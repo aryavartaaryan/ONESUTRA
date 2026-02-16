@@ -359,16 +359,18 @@ export default function MantraSangrah({
 
         if (activeTrack) {
             // 1. Check if source needs updating
-            // Prevent double-encoding if src is already encoded (common with cloud links)
-            const encodedSrc = encodeURI(decodeURI(activeTrack.src)).replace(/\(/g, '%28').replace(/\)/g, '%29');
+            // Treat the src as-is. Browsers are good at handling this.
+            // Only encode specific characters if absolutely necessary, but fully encoded URLs should be left alone.
+            const targetSrc = activeTrack.src;
             const currentSrc = audio.src;
 
-            // Allow for browser-encoded variations in comparison
-            const isSameSource = currentSrc.includes(encodedSrc) || currentSrc === encodedSrc;
+            // Simple comparison - decode browser's currentSrc to match targetSrc if needed, 
+            // but for assignment, just use targetSrc.
+            const isSameSource = currentSrc.includes(encodeURI(targetSrc)) || currentSrc === targetSrc || decodeURI(currentSrc) === targetSrc;
 
             if (!isSameSource) {
                 console.log(`[MantraSangrah] Loading NEW Track: ${activeTrack.title}`);
-                audio.src = encodedSrc;
+                audio.src = targetSrc;
                 audio.currentTime = activeTrack.startTime || 0;
             }
 
