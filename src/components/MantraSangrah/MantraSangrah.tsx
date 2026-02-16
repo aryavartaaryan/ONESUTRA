@@ -358,42 +358,31 @@ export default function MantraSangrah({
         if (!audio) return;
 
         if (activeTrack) {
-            // 1. Check if source needs updating
-            // Treat the src as-is. Browsers are good at handling this.
-            // Only encode specific characters if absolutely necessary, but fully encoded URLs should be left alone.
-            const targetSrc = activeTrack.src;
-            const currentSrc = audio.src;
+            // 1. Check if source needs updating using ID (More robust than URL comparison)
+            // We use a data attribute on the audio element to track the currently loaded ID
+            const currentTrackId = audio.dataset.trackId;
 
-            // Simple comparison - decode browser's currentSrc to match targetSrc if needed, 
-            // but for assignment, just use targetSrc.
-            const isSameSource = currentSrc.includes(encodeURI(targetSrc)) || currentSrc === targetSrc || decodeURI(currentSrc) === targetSrc;
+            if (currentTrackId !== activeTrack.id) {
+                console.log(`[MantraSangrah] Loading NEW Track: ${activeTrack.title} (ID: ${activeTrack.id})`);
 
-            if (!isSameSource) {
-                console.log(`[MantraSangrah] Loading NEW Track: ${activeTrack.title}`);
-                audio.src = targetSrc;
+                // Force reset
+                audio.pause();
+                audio.src = activeTrack.src;
+                audio.dataset.trackId = activeTrack.id;
                 audio.currentTime = activeTrack.startTime || 0;
+                audio.load(); // Explicitly load the new source
             }
 
             // 2. Enforce Playback respect sessionActive prop
-            if (activeTrack && sessionActive) {
+            if (sessionActive) {
                 const playPromise = audio.play();
                 if (playPromise !== undefined) {
                     playPromise
                         .then(() => {
-                            // Playback started successfully
                             if (!isPlaying) setIsPlaying(true);
                         })
                         .catch(err => {
-                            if (err.name === 'AbortError') {
-                                // Benign: triggered by rapid track switching
-                            } else if (err.name === 'NotAllowedError') {
-                                console.warn("[MantraSangrah] Autoplay blocked. Retrying with mute...");
-                                audio.muted = true;
-                                setIsMuted(true);
-                                audio.play().catch(e => console.error("Muted play failed", e));
-                            } else {
-                                console.error("[MantraSangrah] Play error:", err);
-                            }
+                            console.error("[MantraSangrah] Play failed:", err);
                         });
                 }
             } else {
@@ -401,14 +390,11 @@ export default function MantraSangrah({
                 setIsPlaying(false);
             }
         } else {
-            // No active track -> Pause and Reset
+            // No active track logic...
             if (!audio.paused) {
-                console.log("[MantraSangrah] No active track. Pausing.");
                 audio.pause();
             }
             setIsPlaying(false);
-            // Optionally clear src to stop buffering, or keep for resume? 
-            // Better to keep for now, but strictly paused.
         }
     }, [activeTrack, sessionActive]);
 
@@ -773,6 +759,15 @@ export default function MantraSangrah({
                 }}
                 preload="auto"
                 style={{ display: 'none' }}
+                onError={(e) => {
+                    const error = e.currentTarget.error;
+                    console.error("Audio Playback Error Details:", {
+                        code: error?.code,
+                        message: error?.message,
+                        src: e.currentTarget.src,
+                        originalSrc: activeTrack?.src
+                    });
+                }}
             />
         </>
     );
