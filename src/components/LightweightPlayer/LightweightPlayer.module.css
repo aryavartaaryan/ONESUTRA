@@ -12,42 +12,43 @@
 }
 
 .playerPill {
-    /* Glassmorphism Container - LIGHT & ETHEREAL */
+    /* Glassmorphism Container - SLEEK & SPIRITUAL */
     background:
-        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.2) 0%, transparent 60%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+        linear-gradient(180deg, rgba(20, 10, 5, 0.6) 0%, rgba(20, 10, 5, 0.85) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
 
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    border-radius: 40px;
-    /* More rounded/slim feel */
-    padding: 8px 24px 10px 24px;
-    /* Reduced vertical padding */
+    border: 1px solid rgba(255, 215, 0, 0.15);
+    border-top: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 24px;
+    padding: 0 20px;
+    height: 70px;
+    /* Fixed minimal height */
 
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    /* Horizontal Layout */
     align-items: center;
-    gap: 8px;
-    /* Reduced gap */
+    justify-content: space-between;
+    gap: 16px;
 
-    /* Subtle Shadow */
     box-shadow:
-        0 10px 30px rgba(0, 0, 0, 0.4),
-        0 0 20px rgba(255, 165, 0, 0.05),
+        0 8px 32px rgba(0, 0, 0, 0.5),
+        0 0 15px rgba(255, 165, 0, 0.05),
         inset 0 1px 0 rgba(255, 255, 255, 0.05);
 
     transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-    min-width: 300px;
-    /* Slightly narrower */
+    width: 100%;
+    max-width: 800px;
+    /* Wider for horizontal */
+    margin: 0 auto;
 }
 
 .playerPill:hover {
-    border-color: rgba(255, 215, 0, 0.5);
+    border-color: rgba(255, 215, 0, 0.4);
     box-shadow:
-        0 25px 60px rgba(0, 0, 0, 0.8),
-        0 0 40px rgba(255, 165, 0, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        0 12px 40px rgba(0, 0, 0, 0.7),
+        0 0 25px rgba(255, 165, 0, 0.1);
 }
 
 /* ============================================
@@ -55,14 +56,22 @@
    ============================================ */
 .progressContainer {
     position: absolute;
-    top: 0;
-    left: 20px;
-    right: 20px;
-    height: 3px;
-    background: rgba(255, 255, 255, 0.08);
+    bottom: 0;
+    /* Move to bottom edge */
+    top: auto;
+    left: 24px;
+    right: 24px;
+    height: 2px;
+    /* Ultra thin */
+    background: rgba(255, 255, 255, 0.1);
     cursor: pointer;
-    overflow: hidden;
-    /* Create a break in the border feeling */
+    overflow: visible;
+    border-radius: 2px;
+}
+
+.progressContainer:hover {
+    height: 4px;
+    /* Expand slightly on hover */
 }
 
 .progressFill {
@@ -77,126 +86,95 @@
 /* ============================================
    2. TRACK INFO (Centered)
    ============================================ */
+/* ============================================
+   2. TRACK INFO (Compact Left Aligned)
+   ============================================ */
 .trackInfoCentered {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 4px;
-    width: 100%;
-    padding: 4px 0 0 0;
+    align-items: flex-start;
+    text-align: left;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+    /* Allow ellipsis */
+    margin-right: 16px;
 }
 
 .trackTitle {
     margin: 0;
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #F5E6D3;
-    /* Cream/Off-white */
-    letter-spacing: 0.5px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
-
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #E0C097;
+    /* Sandalwood */
+    letter-spacing: 0.3px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 280px;
+    width: 100%;
 }
 
 .trackSubtitle {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    color: #D4AF37;
+    letter-spacing: 1.5px;
+    color: rgba(255, 215, 0, 0.6);
     /* Muted Gold */
-    font-weight: 600;
+    font-weight: 500;
 }
 
 /* ============================================
    3. SYMMETRICAL CONTROLS ROW
    ============================================ */
+/* ============================================
+   3. CONTROLS ROW (Right Aligned Group)
+   ============================================ */
 .controlsRow {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    gap: 20px;
+    justify-content: flex-end;
+    gap: 16px;
+    flex-shrink: 0;
 }
 
+/* Consolidate Wings for new layout */
 .controlWing {
     display: flex;
     align-items: center;
-    gap: 12px;
-    /* Increased gap for better spacing */
-    flex: 1;
+    gap: 8px;
 }
 
-/* New Feature Buttons (Playlist & Acharya) */
 .featureBtn {
-    background: rgba(255, 215, 0, 0.1);
-    border: 1px solid rgba(255, 215, 0, 0.3);
+    background: transparent;
+    border: 1px solid rgba(255, 215, 0, 0.2);
     border-radius: 50%;
-    /* Circular */
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #FFD700;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 0 10px rgba(255, 165, 0, 0.1);
-    position: relative;
-    overflow: hidden;
 }
 
 .featureBtn:hover {
-    background: rgba(255, 215, 0, 0.2);
-    border-color: rgba(255, 215, 0, 0.6);
-    box-shadow: 0 0 15px rgba(255, 165, 0, 0.3);
+    background: rgba(255, 215, 0, 0.1);
+    border-color: rgba(255, 215, 0, 0.5);
     transform: scale(1.05);
 }
 
-.featureBtn::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    box-shadow: inset 0 0 10px rgba(255, 215, 0, 0.2);
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-
-.featureBtn:hover::after {
-    opacity: 1;
-}
-
-/* Pulse animation for "Attentive" look */
+/* Hide Pulse in compact mode unless active? Keep consistent */
 .pulseSlow {
-    animation: goldPulse 3s infinite ease-in-out;
+    animation: none;
 }
 
-@keyframes goldPulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.2);
-    }
-
-    50% {
-        box-shadow: 0 0 0 6px rgba(255, 215, 0, 0);
-    }
-
-    100% {
-        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
-    }
-}
-
-.controlWing:first-child {
-    justify-content: flex-end;
-    /* Push Mute/Prev towards center */
-}
-
-.controlWing:last-child {
-    justify-content: flex-start;
-    /* Push Next/Time towards center */
+/* Center Piece now just Play/Pause */
+.centerPiece {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 8px;
 }
 
 /* Secondary Buttons (Mute, Prev, Next) */
@@ -228,34 +206,28 @@
 }
 
 .primaryPlayBtn {
-    width: 40px;
-    /* Compact play button */
-    height: 40px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
-    border: 1px solid rgba(255, 215, 0, 0.5);
+    border: 1px solid rgba(255, 215, 0, 0.3);
 
-    /* Golden Sun Gradient - More Subtle */
-    background: radial-gradient(circle at 30% 30%, rgba(255, 215, 0, 0.2) 0%, rgba(20, 10, 5, 0.6) 100%);
-    box-shadow:
-        0 0 15px rgba(255, 165, 0, 0.15),
-        inset 0 0 10px rgba(255, 215, 0, 0.05);
+    /* Clean Dark Gold */
+    background: linear-gradient(135deg, #FFD700 0%, #B8860B 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 
-    color: #FFD700;
+    color: #2F1B0C;
+    /* Dark Brown Icon */
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: all 0.3s ease;
 }
 
 .primaryPlayBtn:hover {
-    transform: scale(1.15);
-    background: radial-gradient(circle at 30% 30%, rgba(255, 215, 0, 0.3) 0%, rgba(40, 20, 10, 0.8) 100%);
-    box-shadow:
-        0 0 30px rgba(255, 165, 0, 0.4),
-        0 0 60px rgba(255, 215, 0, 0.2);
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(255, 215, 0, 0.3);
     border-color: #FFD700;
-    color: #FFF;
 }
 
 .primaryPlayBtn:active {
@@ -337,26 +309,33 @@
 /* Mobile Adjustments */
 @media (max-width: 768px) {
     .playerPill {
-        min-width: 90vw;
-        padding: 12px 16px 14px 16px;
-        gap: 10px;
+        height: auto;
+        padding: 12px 16px;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        border-radius: 20px 20px 0 0;
+        /* Bottom sheet style */
+        border-bottom: none;
     }
 
-    .trackTitle {
-        font-size: 1rem;
-        max-width: 220px;
+    .trackInfoCentered {
+        align-items: center;
+        text-align: center;
+        margin-right: 0;
     }
 
     .controlsRow {
-        gap: 12px;
+        width: 100%;
+        justify-content: space-between;
     }
 
-    .controlWing {
-        gap: 8px;
-    }
-
-    .primaryPlayBtn {
-        width: 50px;
-        height: 50px;
+    .progressContainer {
+        top: 0;
+        /* Move progress to top on mobile */
+        bottom: auto;
+        left: 0;
+        right: 0;
+        border-radius: 0;
     }
 }
