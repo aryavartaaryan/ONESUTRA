@@ -269,202 +269,67 @@ function DigitalVaidyaContent() {
                 </div>
             </div>
 
-            {/* Acharya Samvad Header - Supreme Spiritual Redesign */}
-            <div className={styles.desktopTitleHeader} style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -140%)', // Centered but slightly higher for balance
-                zIndex: 15,
-                textAlign: 'center',
-                width: '100%',
-                maxWidth: '900px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '1.5rem',
-                pointerEvents: 'none' // Let clicks pass through to empty areas
-            }}>
-                {/* 1. The Divine Core: Pranav.AI Image with Halo */}
-                <div style={{
-                    position: 'relative',
-                    width: '180px',
-                    height: '180px',
-                    marginBottom: '1rem',
-                    pointerEvents: 'auto'
-                }}>
-                    {/* Rotating Golden Halo */}
-                    <div style={{
-                        position: 'absolute',
-                        inset: '-50px',
-                        background: 'conic-gradient(from 0deg, transparent 0%, rgba(255, 215, 0, 0.1) 20%, rgba(255, 215, 0, 0.4) 50%, rgba(255, 215, 0, 0.1) 80%, transparent 100%)',
-                        borderRadius: '50%',
-                        animation: 'spin 10s linear infinite',
-                        filter: 'blur(15px)'
-                    }} />
-
-                    {/* Pulsing Aura */}
-                    <div style={{
-                        position: 'absolute',
-                        inset: '-20px',
-                        background: 'radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%)',
-                        borderRadius: '50%',
-                        animation: 'pulse 4s ease-in-out infinite'
-                    }} />
-
-                    <img
-                        src="/images/Pranav copy.AI.png"
-                        alt="Pranav.AI Divine Logo"
-                        style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'contain',
-                            filter: 'drop-shadow(0 0 20px rgba(255, 215, 0, 0.6))',
-                            animation: 'float 6s ease-in-out infinite'
-                        }}
-                    />
-                </div>
-
-                {/* 2. Typography: Clean & Majestic */}
-                <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    pointerEvents: 'auto'
-                }}>
-                    <h2 style={{
-                        fontFamily: 'var(--font-header)',
-                        fontSize: '4.5rem',
-                        marginBottom: '0.5rem',
-                        fontWeight: 'bold',
-                        background: 'linear-gradient(to bottom, #FFD700, #FDB931, #B8860B)',
-                        WebkitBackgroundClip: 'text',
-                        backgroundClip: 'text',
-                        color: 'transparent',
-                        filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4))',
-                        letterSpacing: '0.05em'
-                    }}>
-                        आचार्य संवाद
-                    </h2>
-
-                    <div style={{
-                        width: '100px',
-                        height: '2px',
-                        background: 'linear-gradient(90deg, transparent, #FFD700, transparent)',
-                        margin: '0.5rem 0 1.5rem 0'
-                    }} />
-
-                    <p style={{
-                        fontFamily: 'var(--font-body)',
-                        fontSize: '1.3rem',
-                        color: 'rgba(253, 251, 247, 0.9)',
-                        lineHeight: '1.6',
-                        maxWidth: '700px',
-                        fontWeight: 300,
-                        textShadow: '0 2px 4px rgba(0,0,0,0.6)',
-                        letterSpacing: '0.02em'
-                    }}>
+            {/* NEW HERO SECTION With AI+Spirituality Fusion */}
+            <div className={styles.heroSection}>
+                <div className={styles.heroBackground}></div>
+                <div className={styles.heroOverlay}></div>
+                <div className={styles.heroContent}>
+                    <h1 className={styles.heroTitle}>आचार्य संवाद</h1>
+                    <p className={styles.heroSubtitle}>
                         {lang === 'hi'
-                            ? "सनातन ज्ञान और आधुनिक विज्ञान का अद्भुत संगम।"
-                            : "Where Ancient Wisdom meets Modern Science."}
+                            ? "प्राचीन वैदिक ज्ञान और आधुनिक AI का अद्भुत संगम"
+                            : "The Fusion of Ancient Vedic Wisdom & Modern AI"}
                     </p>
-                </div>
 
-                {/* 3. Call to Action: The Golden Conch */}
-                <button
-                    onClick={() => setIsVoiceCallOpen(true)}
-                    style={{
-                        marginTop: '1rem',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.8rem',
-                        padding: '1rem 3rem',
-                        background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.2))',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255, 215, 0, 0.4)',
-                        borderRadius: '50px',
-                        color: '#FFD700',
-                        fontFamily: 'var(--font-body)',
-                        fontSize: '1.2rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        boxShadow: '0 0 20px rgba(255, 215, 0, 0.1), inset 0 0 10px rgba(255, 215, 0, 0.1)',
-                        transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                        pointerEvents: 'auto',
-                        letterSpacing: '0.05em'
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'scale(1.05)';
-                        e.currentTarget.style.boxShadow = '0 0 30px rgba(255, 215, 0, 0.3), inset 0 0 20px rgba(255, 215, 0, 0.2)';
-                        e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.3))';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'scale(1)';
-                        e.currentTarget.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.1), inset 0 0 10px rgba(255, 215, 0, 0.1)';
-                        e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.2))';
-                    }}
-                >
-                    <Mic size={24} />
-                    {lang === 'hi' ? 'आचार्य जी से बात करें' : 'Speak to Acharya'}
-                </button>
-            </div>
-
-            <div className={styles.contentLayer}>
-                {/* Mobile Specific Header (Stacked) */}
-                <div className={styles.mobileTitleHeader}>
-                    {/* Mobile Logo Integration */}
-                    <div style={{
-                        position: 'relative',
-                        width: '80px',
-                        height: '80px',
-                        marginBottom: '0.5rem'
-                    }}>
-                        <div style={{
-                            position: 'absolute',
-                            inset: '-10px',
-                            background: 'radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%)',
-                            borderRadius: '50%',
-                            animation: 'pulse 3s ease-in-out infinite'
-                        }} />
-                        <img
-                            src="/images/Pranav copy.AI.png"
-                            alt="Pranav.AI Icon"
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'contain',
-                                filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.4))'
-                            }}
-                        />
-                    </div>
-
-                    <h2 className={styles.mobileMainTitle}>आचार्य संवाद</h2>
+                    {/* Voice Call Button - Embedded in Hero */}
                     <button
                         onClick={() => setIsVoiceCallOpen(true)}
                         style={{
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '0.4rem',
-                            padding: '0.5rem 1.2rem',
-                            background: 'linear-gradient(135deg, #C49102, #FFD700)',
+                            gap: '0.8rem',
+                            padding: '0.8rem 2.5rem',
+                            background: 'linear-gradient(135deg, #FFD700 0%, #B8860B 100%)',
                             color: '#1a0f05',
-                            border: 'none',
-                            borderRadius: '20px',
+                            border: '1px solid rgba(255, 255, 255, 0.4)',
+                            borderRadius: '50px',
                             fontFamily: 'var(--font-body)',
-                            fontSize: '0.9rem',
-                            fontWeight: 600,
+                            fontSize: '1.2rem',
+                            fontWeight: 700,
                             cursor: 'pointer',
-                            boxShadow: '0 4px 12px rgba(196, 145, 2, 0.25)',
+                            boxShadow: '0 0 20px rgba(255, 215, 0, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.4)',
+                            transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em',
+                            position: 'relative',
+                            overflow: 'hidden'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'scale(1.05) translateY(-3px)';
+                            e.currentTarget.style.boxShadow = '0 0 30px rgba(255, 215, 0, 0.8), inset 0 0 15px rgba(255, 255, 255, 0.6)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'scale(1) translateY(0)';
+                            e.currentTarget.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.4)';
                         }}
                     >
-                        <Mic size={16} />
+                        <Mic size={24} strokeWidth={2.5} />
                         {lang === 'hi' ? 'आचार्य जी से बात करें' : 'Talk with Acharya'}
                     </button>
-                    <p className={styles.mobileSubtitle}>
-                        आचार्य जी से अपनी समस्याओं का समाधान प्राप्त करें।
-                    </p>
-                </div>
 
+                    <div style={{
+                        marginTop: '1rem',
+                        fontSize: '0.8rem',
+                        color: 'rgba(255, 255, 255, 0.6)',
+                        letterSpacing: '0.1em',
+                        textTransform: 'uppercase'
+                    }}>
+                        Powered by Pranav.AI
+                    </div>
+                </div>
+            </div>
+
+            <div className={styles.contentLayer}>
                 {/* Spiritual Atmosphere: Incense Smoke Overlay */}
                 <div className={styles.incenseSmoke}></div>
 

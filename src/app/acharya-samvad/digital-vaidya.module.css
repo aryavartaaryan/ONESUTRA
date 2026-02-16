@@ -142,7 +142,100 @@
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
-/* --- HEADER --- */
+/* --- HERO SECTION --- */
+.heroSection {
+    position: relative;
+    width: 100%;
+    height: 45vh;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    margin-bottom: -2rem;
+    /* Overlap with content slightly */
+    z-index: 5;
+}
+
+.heroBackground {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("/images/Pranav copy.AI.png");
+    background-size: cover;
+    background-position: center;
+    filter: brightness(0.6) contrast(1.1);
+    z-index: 1;
+}
+
+.heroOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom,
+            rgba(13, 6, 2, 0.3) 0%,
+            rgba(13, 6, 2, 0.6) 50%,
+            rgba(13, 6, 2, 1) 100%);
+    z-index: 2;
+}
+
+.heroContent {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    transform: translateY(-20px);
+}
+
+.heroTitle {
+    font-family: var(--font-header);
+    font-size: 4.5rem;
+    font-weight: 700;
+    background: linear-gradient(to right, #B8860B, #FFD700, #FFFACD, #FFD700, #B8860B);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    margin: 0;
+    line-height: 1.1;
+}
+
+.heroSubtitle {
+    font-family: var(--font-body);
+    font-size: 1.2rem;
+    color: var(--color-parchment);
+    letter-spacing: 0.05em;
+    max-width: 600px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .heroSection {
+        height: 60vh;
+        min-height: auto;
+    }
+
+    .heroTitle {
+        font-size: 2.8rem;
+    }
+
+    .heroSubtitle {
+        font-size: 1rem;
+        padding: 0 1rem;
+    }
+}
+
+/* --- HEADER (Adjusted) --- */
 .headerSection {
     text-align: center;
     padding: 0.5rem 1rem 0.5rem;
@@ -163,46 +256,6 @@
 }
 
 
-/* --- ANIMATIONS --- */
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-@keyframes float {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-10px);
-    }
-}
-
-@keyframes pulse {
-    0% {
-        transform: scale(0.95);
-        opacity: 0.5;
-    }
-
-    50% {
-        transform: scale(1.05);
-        opacity: 0.8;
-    }
-
-    100% {
-        transform: scale(0.95);
-        opacity: 0.5;
-    }
-}
-
 /* --- CHAT AREA --- */
 .chatContainer {
     flex: 1;
@@ -210,18 +263,20 @@
     overflow-y: auto;
     /* Scroll ONLY inside this container */
     padding: 1rem 1.5rem 1rem;
-    scrollbar-width: none;
-    /* Hide scrollbar for cleaner UI */
+    scrollbar-width: thin;
+    /* Show thin scrollbar for UX hint */
     display: flex;
     flex-direction: column;
     scroll-behavior: smooth;
-    margin-top: 300px;
-    /* Push content down to reveal hero */
 }
 
 .chatContainer::-webkit-scrollbar {
-    display: none;
-    /* Hide scrollbar for Chrome/Safari */
+    width: 6px;
+}
+
+.chatContainer::-webkit-scrollbar-thumb {
+    background-color: rgba(139, 69, 19, 0.2);
+    border-radius: 3px;
 }
 
 .messageWrapper {
