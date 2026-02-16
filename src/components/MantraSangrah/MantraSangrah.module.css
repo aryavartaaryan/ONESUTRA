@@ -1232,10 +1232,9 @@
     /* Transform Panel into Bottom Sheet */
     .panel {
         width: 100%;
-        height: 85dvh;
-        /* Dynamic viewport height to prevent full-screen lock */
-        max-height: 85vh;
-        /* Fallback */
+        height: 92dvh;
+        /* Increased from 85dvh for better visibility */
+        max-height: 92vh;
         max-width: none;
         left: 0;
         top: auto;
@@ -1243,85 +1242,55 @@
         transform: translateY(100%);
         border-right: none;
         border-top: 2px solid rgba(212, 175, 55, 0.6);
-        border-radius: 32px 32px 0 0;
-        padding: 24px 20px;
+        border-radius: 24px 24px 0 0;
+        /* Slightly less rounded to save corner space */
+        padding: 20px 16px;
+        /* Reduced padding */
         box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8);
         overflow: hidden;
-        /* Prevent layout blowout */
         display: flex;
         flex-direction: column;
         z-index: 1200;
-        /* Ensure on top of floating buttons (z-1100) */
     }
 
-    .panelOpen {
-        transform: translateY(0);
+    .trackList {
+        gap: 8px;
+        /* Reduced from 12px */
     }
 
-    /* Pull Handle for Aesthetics */
-    .panel::after {
-        content: '';
-        position: absolute;
-        top: 12px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 48px;
-        height: 4px;
-        background: rgba(212, 175, 55, 0.4);
-        border-radius: 2px;
-        pointer-events: none;
-        /* Ensure no interaction interference */
+    .trackItem {
+        padding: 10px 14px;
+        /* Reduced from 14px 18px */
+    }
+
+    .categoryLabel {
+        font-size: 1.1rem;
+        padding: 8px 12px;
+        margin: 0 0 10px 0;
+    }
+
+    .sectionHeader {
+        font-size: 0.85rem;
+        margin: 4px 0 8px 0;
     }
 
     .header {
         position: relative;
-        /* Remove sticky inside flex */
         z-index: 10;
-        padding-bottom: 12px;
+        padding-bottom: 8px;
+        /* Reduced */
         margin-bottom: 0;
-        flex-shrink: 0;
-        /* Keep header strictly sized */
-    }
-
-    .headerTitle h2 {
-        font-size: 1.35rem;
-    }
-
-    .divider {
-        margin: 12px 0 20px;
         flex-shrink: 0;
     }
 
     .playlist {
-        padding-bottom: 20px;
-        /* Reduced excess padding since controls are separate flex item */
-        touch-action: pan-y;
-        /* Explicitly allow vertical scrolling without locking */
-        -webkit-overflow-scrolling: touch;
-        /* Smooth scroll */
-    }
-
-    /* Fixed Controls at Bottom on Mobile */
-    .controls {
-        position: relative;
-        /* Stickiness not needed in flex column */
-        bottom: auto;
-        left: auto;
-        right: auto;
-        margin-top: auto;
-        border-radius: 16px;
-        padding: 14px;
-        background: rgba(15, 8, 3, 0.95);
-        /* Slightly more opaque */
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
-        flex-shrink: 0;
-        /* Don't shrink controls */
-        z-index: 20;
+        padding-bottom: 60px;
+        /* Ensure bottom items aren't hidden behind controls */
     }
 
     .footer {
-        padding-bottom: 10px;
-        flex-shrink: 0;
+        padding-bottom: 8px;
+        font-size: 0.75rem;
     }
 }
 
