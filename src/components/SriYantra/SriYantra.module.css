@@ -37,24 +37,51 @@
 .mainSkeletonSvg {
     width: 100%;
     height: 100%;
-    opacity: 0.82;
-    animation: spin 14s linear infinite, fastBlink 0.3s ease-in-out infinite;
+    opacity: 1.0;
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
+    animation: spin 14s linear infinite, fastBlink 0.4s ease-in-out infinite;
+}
+
+.glowLayer {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(255, 215, 0, 0.4) 40%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(25px);
+    z-index: -1;
+    animation: glowPulse 2s ease-in-out infinite;
+    mix-blend-mode: screen;
+}
+
+@keyframes glowPulse {
+
+    0%,
+    100% {
+        transform: scale(0.85);
+        opacity: 0.6;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 1.0;
+    }
 }
 
 @keyframes fastBlink {
     0% {
-        opacity: 0.3;
-        filter: brightness(0.5);
+        opacity: 0.5;
+        filter: brightness(0.7) drop-shadow(0 0 8px rgba(255, 215, 0, 0.3));
     }
 
     50% {
         opacity: 1;
-        filter: brightness(1.7);
+        filter: brightness(3.5) contrast(1.6) drop-shadow(0 0 45px rgba(255, 255, 255, 1)) drop-shadow(0 0 75px rgba(255, 215, 0, 0.8));
     }
 
     100% {
-        opacity: 0.3;
-        filter: brightness(0.5);
+        opacity: 0.5;
+        filter: brightness(0.7) drop-shadow(0 0 8px rgba(255, 215, 0, 0.3));
     }
 }
 

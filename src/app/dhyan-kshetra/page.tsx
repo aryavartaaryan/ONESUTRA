@@ -486,61 +486,27 @@ export default function DhyanKakshaPage() {
         >
             {/* SPLASH SCREEN - Elegant Single Entry */}
             {!hasStarted && (
-                <div style={{
-                    position: 'fixed',
-                    inset: 0,
-                    zIndex: 9999,
-                    background: 'radial-gradient(ellipse at 50% 30%, #0a1628 0%, #050d1a 40%, #020810 100%)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '2rem',
-                    textAlign: 'center',
-                    padding: '2rem'
-                }}>
-
+                <div className={pageStyles.spiritualEntry}>
                     {/* Decorative Om Image */}
                     <img
-                        src="/images/golden_om_enter.png"
+                        src="/images/vedic_om.png"
                         alt="Om"
-                        style={{
-                            width: 'clamp(172px, 39vw, 266px)',
-                            height: 'auto',
-                            opacity: 0.85,
-                            filter: 'drop-shadow(0 0 25px rgba(255, 215, 0, 0.4))',
-                            animation: 'breathe 4s ease-in-out infinite'
-                        }}
+                        className={pageStyles.entryOm}
                     />
 
-                    <div style={{ maxWidth: '500px' }}>
-                        <h1 style={{
-                            background: 'linear-gradient(135deg, #FFD700, #FF9933, #FFD700)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            fontFamily: "'Playfair Display', serif",
-                            fontSize: 'clamp(2rem, 6vw, 3rem)',
-                            marginBottom: '1rem',
-                            letterSpacing: '3px',
-                            filter: 'drop-shadow(0 0 15px rgba(255, 215, 0, 0.3))'
-                        }}>
+                    <div className={pageStyles.entryContent}>
+                        <h1 className={pageStyles.entryTitle}>
                             ध्यान क्षेत्र
                         </h1>
-                        <p style={{
-                            color: 'rgba(245, 230, 211, 0.85)',
-                            fontSize: 'clamp(1rem, 3vw, 1.2rem)',
-                            lineHeight: '1.8',
-                            fontFamily: "'Noto Serif Devanagari', serif",
-                            textShadow: '0 1px 3px rgba(0,0,0,0.5)'
-                        }}>
+                        <p className={pageStyles.entrySub}>
                             दिव्य ध्यान अनुभव के लिए तैयार रहें।<br />
-                            <span style={{ color: 'rgba(150, 200, 255, 0.7)', fontSize: '0.9em' }}>
+                            <span>
                                 Prepare for a divine meditation experience.
                             </span>
                         </p>
                     </div>
 
-                    {/* Single Enter Button */}
+                    {/* Consecrated Enter Button */}
                     <button
                         onClick={() => {
                             if (introVideos.length > 0) {
@@ -557,27 +523,13 @@ export default function DhyanKakshaPage() {
                             }
                         }}
                         disabled={introVideos.length === 0}
-                        style={{
-                            padding: '1rem 3.5rem',
-                            fontSize: 'clamp(1.1rem, 3vw, 1.3rem)',
-                            fontFamily: "'Noto Serif Devanagari', serif",
-                            fontWeight: 700,
-                            color: '#0a1628',
-                            background: 'linear-gradient(135deg, #FFD700 0%, #FF9933 50%, #FFD700 100%)',
-                            border: '1px solid rgba(255, 215, 0, 0.4)',
-                            borderRadius: '50px',
-                            cursor: introVideos.length === 0 ? 'wait' : 'pointer',
-                            letterSpacing: '1px',
-                            boxShadow: '0 8px 32px rgba(255, 215, 0, 0.25), inset 0 1px 0 rgba(255,255,255,0.3)',
-                            transition: 'all 0.4s ease',
-                            opacity: introVideos.length === 0 ? 0.5 : 1,
-                            animation: introVideos.length > 0 ? 'gentlePulse 3s ease-in-out infinite' : 'none'
-                        }}
+                        className={pageStyles.consecratedButton}
                     >
                         {introVideos.length === 0 ? '🪷 प्रतीक्षा करें...' : '🪷 प्रवेश करें'}
                     </button>
-
-                    <style jsx>{`
+                </div>
+            )}
+            <style jsx>{`
                         @keyframes breathe {
                             0%, 100% { transform: scale(1); opacity: 0.25; }
                             50% { transform: scale(1.08); opacity: 0.4; }
@@ -587,32 +539,32 @@ export default function DhyanKakshaPage() {
                             50% { box-shadow: 0 8px 40px rgba(255, 215, 0, 0.4), 0 0 60px rgba(255, 153, 51, 0.15); }
                         }
                     `}</style>
-                </div>
-            )}
+
 
             {/* INTRO VIDEO FLASH (Now activates after user interaction) */}
-            {showIntro && hasStarted && (
-                <IntroVideoFlash
-                    videos={introVideos}
-                    onFadeOutStart={() => {
-                        console.log("[Intro] Fade out started, initiating background early...");
-                        // REMOVED: setStartBackgroundLoop(true) - to prevent Guidance form starting too early
-                    }}
-                    onComplete={() => {
-                        console.log("Intro complete. Starting Margdarshan...");
-                        setShowIntro(false);
-                        setStartBackgroundLoop(true);
-                        setIsSessionPaused(false);
+            {
+                showIntro && hasStarted && (
+                    <IntroVideoFlash
+                        videos={introVideos}
+                        onFadeOutStart={() => {
+                            console.log("[Intro] Fade out started, initiating background early...");
+                            // REMOVED: setStartBackgroundLoop(true) - to prevent Guidance form starting too early
+                        }}
+                        onComplete={() => {
+                            console.log("Intro complete. Starting Margdarshan...");
+                            setShowIntro(false);
+                            setStartBackgroundLoop(true);
+                            setIsSessionPaused(false);
 
-                        // Explicitly trigger Margdarshan (playlist[0])
-                        const firstItem = playlist[0];
-                        if (firstItem && firstItem.type === 'mantra') {
-                            setForceMantraId(firstItem.id || null);
-                            setIsMantraPlaying(true);
-                        }
-                    }}
-                />
-            )
+                            // Explicitly trigger Margdarshan (playlist[0])
+                            const firstItem = playlist[0];
+                            if (firstItem && firstItem.type === 'mantra') {
+                                setForceMantraId(firstItem.id || null);
+                                setIsMantraPlaying(true);
+                            }
+                        }}
+                    />
+                )
             }
 
             {/* ... language button ... */}
@@ -919,66 +871,68 @@ export default function DhyanKakshaPage() {
 
             {/* SESSION DASHBOARD (Unified Up Next - Restored to Top Alignment) */}
             {/* MOVED OUT OF VIDEO CONTAINER TO SHOW FOR AUDIO TOO */}
-            {!showIntro && startBackgroundLoop && (
-                <div className={pageStyles.sessionDashboard}>
-                    <div className={pageStyles.dashboardPill}>
-                        {/* Up Next Only - Show ONLY if playing from Sequence (no active manual mantra) */}
-                        {!manualTrack && (
-                            <>
-                                <div className={pageStyles.dashboardHeader}>
-                                    <Sparkles size={14} className={pageStyles.nextIcon} />
-                                    <span>{lang === 'hi' ? 'अगला अनुभव' : 'Up Next'}</span>
-                                </div>
-                                <div className={pageStyles.dashboardTitle}>
-                                    {(() => {
-                                        let nextIdx = (currentIndex + 1) % playlist.length;
-                                        // Skip Guidance
-                                        if (nextIdx === 0 && playlist.length > 1) nextIdx = 1;
+            {
+                !showIntro && startBackgroundLoop && (
+                    <div className={pageStyles.sessionDashboard}>
+                        <div className={pageStyles.dashboardPill}>
+                            {/* Up Next Only - Show ONLY if playing from Sequence (no active manual mantra) */}
+                            {!manualTrack && (
+                                <>
+                                    <div className={pageStyles.dashboardHeader}>
+                                        <Sparkles size={14} className={pageStyles.nextIcon} />
+                                        <span>{lang === 'hi' ? 'अगला अनुभव' : 'Up Next'}</span>
+                                    </div>
+                                    <div className={pageStyles.dashboardTitle}>
+                                        {(() => {
+                                            let nextIdx = (currentIndex + 1) % playlist.length;
+                                            // Skip Guidance
+                                            if (nextIdx === 0 && playlist.length > 1) nextIdx = 1;
 
-                                        let nextItem = playlist[nextIdx];
+                                            let nextItem = playlist[nextIdx];
 
 
 
-                                        return (
-                                            <>
-                                                <span className={pageStyles.nextTypeIcon} style={{ marginRight: '8px' }}>
-                                                    {nextItem.type === 'video' ? '📽️' : '🎵'}
-                                                </span>
-                                                {lang === 'hi' ? nextItem.titleHi : nextItem.title}
-                                            </>
-                                        );
-                                    })()}
-                                </div>
-                            </>
-                        )}
+                                            return (
+                                                <>
+                                                    <span className={pageStyles.nextTypeIcon} style={{ marginRight: '8px' }}>
+                                                        {nextItem.type === 'video' ? '📽️' : '🎵'}
+                                                    </span>
+                                                    {lang === 'hi' ? nextItem.titleHi : nextItem.title}
+                                                </>
+                                            );
+                                        })()}
+                                    </div>
+                                </>
+                            )}
 
-                        {/* शेष (Remaining Time) - Show for ALL tracks now as per user request */}
-                        {(() => {
-                            // Prioritize Active Mantra (Manual Selection) if present
-                            const targetItem = activeMantra || currentItem;
-                            const isVideo = targetItem.type === 'video';
+                            {/* शेष (Remaining Time) - Show for ALL tracks now as per user request */}
+                            {(() => {
+                                // Prioritize Active Mantra (Manual Selection) if present
+                                const targetItem = activeMantra || currentItem;
+                                const isVideo = targetItem.type === 'video';
 
-                            // Use audioTime/Duration if activeMantra is playing (even if currentItem is video, it's paused)
-                            const cur = (activeMantra || !isVideo) ? audioTime : videoTime;
-                            const dur = (activeMantra || !isVideo) ? audioDuration : videoDuration;
+                                // Use audioTime/Duration if activeMantra is playing (even if currentItem is video, it's paused)
+                                const cur = (activeMantra || !isVideo) ? audioTime : videoTime;
+                                const dur = (activeMantra || !isVideo) ? audioDuration : videoDuration;
 
-                            if (targetItem.id === 'guidance') return null;
+                                if (targetItem.id === 'guidance') return null;
 
-                            const remaining = dur ? Math.max(0, dur - cur) : 0;
+                                const remaining = dur ? Math.max(0, dur - cur) : 0;
 
-                            return (
-                                <div className={pageStyles.dashboardShesh}>
-                                    <span>{lang === 'hi' ? 'शेष' : 'Remaining'}</span>
-                                    <span className={pageStyles.sheshTime}>
-                                        {dur ? formatTime(remaining) : '--:--'}
-                                    </span>
-                                </div>
-                            );
-                        })()}
+                                return (
+                                    <div className={pageStyles.dashboardShesh}>
+                                        <span>{lang === 'hi' ? 'शेष' : 'Remaining'}</span>
+                                        <span className={pageStyles.sheshTime}>
+                                            {dur ? formatTime(remaining) : '--:--'}
+                                        </span>
+                                    </div>
+                                );
+                            })()}
+                        </div>
+
                     </div>
-
-                </div>
-            )}
+                )
+            }
 
         </main >
     );

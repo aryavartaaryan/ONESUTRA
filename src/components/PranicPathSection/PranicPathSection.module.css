@@ -2,7 +2,8 @@
 .container {
     position: relative;
     width: 100%;
-    min-height: 100vh;
+    min-height: 90vh;
+    /* Reduced height to minimize empty space below */
     overflow-x: hidden;
     overflow-y: auto;
     display: flex;
@@ -13,7 +14,8 @@
     color: #F5F5DC;
     /* Off-white / Cream for readability */
     font-family: var(--font-hind), sans-serif;
-    padding: 2rem 1rem;
+    padding: 1rem 1rem;
+    /* Reduced padding */
 }
 
 /* Background Elements */
@@ -65,12 +67,13 @@
 /* --- SACRED HERO VISUALS --- */
 .auroraContainer {
     position: relative;
-    width: clamp(150px, 30vw, 220px);
-    height: clamp(150px, 30vw, 220px);
+    width: clamp(180px, 35vw, 280px);
+    height: clamp(180px, 35vw, 280px);
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: -1.5rem;
+    margin-bottom: -3rem;
+    /* More aggressive negative margin to keep layout lifted */
 }
 
 .auroraContainer::before {
@@ -122,8 +125,8 @@
 }
 
 .homeVedicOm {
-    width: clamp(80px, 12vw, 130px);
-    /* Reduced size to prevent mobile shifting */
+    width: clamp(150px, 22vw, 240px);
+    /* Enelarged as per final polish request */
     height: auto;
     filter: drop-shadow(0 0 30px rgba(79, 195, 247, 0.4)) drop-shadow(0 0 50px rgba(212, 175, 55, 0.4));
     animation: floatingOm 6s ease-in-out infinite;
@@ -288,8 +291,14 @@
 }
 
 @media (max-width: 768px) {
+    .container {
+        padding: 0.5rem 1rem !important;
+        align-items: flex-start !important;
+    }
+
     .contentWrapper {
-        padding: 1.5rem;
+        padding: 1rem 1rem 2rem 1rem;
+        margin-top: 10px;
         width: 95%;
         border-radius: 16px;
     }

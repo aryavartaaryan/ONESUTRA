@@ -101,6 +101,7 @@ export default function SriYantra() {
             <div className={styles.container}>
                 {/* Background Layer: Detailed SVG Skeleton */}
                 <div className={styles.skeletonLayer}>
+                    <div className={styles.glowLayer}></div>
                     <SriYantraSVG className={styles.mainSkeletonSvg} />
                 </div>
 

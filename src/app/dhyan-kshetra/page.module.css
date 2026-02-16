@@ -121,13 +121,14 @@
     }
 
     .sriYantraContainer {
-        margin-top: 15vh !important;
-        /* Pushed down on mobile */
+        bottom: 140px !important;
+        /* Positioned relatively to lowered dashboard */
+        margin-top: 0 !important;
         width: 100% !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
-        transform: none;
+        transform: translateX(-50%) !important;
         z-index: 5;
     }
 
@@ -156,7 +157,8 @@
 
 .sriYantraContainer {
     position: absolute;
-    bottom: 15%;
+    bottom: 125px;
+    /* Lowered from 140px, keeping 120px gap with dashboard */
     left: 50%;
     transform: translateX(-50%);
     width: clamp(220px, 50vw, 360px);
@@ -166,6 +168,26 @@
     align-items: center;
     z-index: 5;
     pointer-events: none;
+
+    /* Optimized Goldish Blinking Effect */
+    filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.6)) drop-shadow(0 0 30px rgba(212, 175, 55, 0.4));
+    animation: breathingGold 5s ease-in-out infinite;
+}
+
+@keyframes breathingGold {
+
+    0%,
+    100% {
+        opacity: 0.9;
+        filter: drop-shadow(0 0 25px rgba(212, 175, 55, 0.6)) drop-shadow(0 0 50px rgba(255, 255, 255, 0.5)) brightness(1);
+        transform: translateX(-50%) scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        filter: drop-shadow(0 0 60px rgba(255, 255, 255, 1)) drop-shadow(0 0 110px rgba(212, 175, 55, 0.95)) brightness(2.5);
+        transform: translateX(-50%) scale(1.12);
+    }
 }
 
 .mainContentHidden {
@@ -385,8 +407,8 @@
 /* SESSION DASHBOARD (Unified Up Next + Countdown) */
 .sessionDashboard {
     position: absolute;
-    top: 120px;
-    /* Safe distance from top */
+    bottom: 5px;
+    /* Lowered from 20px to move down with Yantra */
     left: 50%;
     transform: translateX(-50%);
     z-index: 100;
@@ -518,7 +540,8 @@
 
 @media (max-width: 768px) {
     .sessionDashboard {
-        top: 100px;
+        bottom: 20px;
+        /* Lowered from 60px */
         max-width: 90%;
     }
 
@@ -612,4 +635,167 @@
     .dashboardHeader {
         font-size: 1.1rem;
     }
+}
+
+/* --- SPIRITUAL ENTRY SCREEN REDESIGN --- */
+.spiritualEntry {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: radial-gradient(circle at 50% 40%,
+            rgb(18, 28, 48) 0%,
+            rgb(8, 14, 25) 50%,
+            rgb(2, 5, 10) 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2.5rem;
+    text-align: center;
+    padding: 2rem;
+    overflow: hidden;
+}
+
+.spiritualEntry::before {
+    content: '';
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4af37' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4v-4H4v4H0v2h4v4h2v-4h4v-2H6zM36 4v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.2;
+    animation: slowbackground 120s linear infinite;
+    z-index: 0;
+}
+
+@keyframes slowbackground {
+    from {
+        transform: translate(-25%, -25%);
+    }
+
+    to {
+        transform: translate(0, 0);
+    }
+}
+
+.entryOm {
+    width: clamp(180px, 45vw, 300px);
+    height: auto;
+    z-index: 2;
+    filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.4));
+    animation: omPulse 5s ease-in-out infinite;
+}
+
+@keyframes omPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.8;
+        filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.3));
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+        filter: drop-shadow(0 0 40px rgba(255, 215, 0, 0.6));
+    }
+}
+
+.entryContent {
+    max-width: 600px;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.entryTitle {
+    font-family: var(--font-rozha), serif;
+    font-size: clamp(3rem, 10vw, 4.5rem);
+    margin: 0;
+    background: linear-gradient(135deg, #FFD700 0%, #FF9933 50%, #FFD700 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 4px;
+    filter: drop-shadow(0 0 15px rgba(255, 153, 51, 0.3));
+    animation: titleGlow 4s ease-in-out infinite;
+}
+
+@keyframes titleGlow {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 10px rgba(255, 153, 51, 0.2));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.5));
+    }
+}
+
+.entrySub {
+    color: rgba(245, 230, 211, 0.9);
+    font-size: clamp(1.1rem, 4vw, 1.4rem);
+    line-height: 1.6;
+    font-family: var(--font-header), serif;
+    margin: 0;
+}
+
+.entrySub span {
+    display: block;
+    margin-top: 0.5rem;
+    font-family: var(--font-serif), serif;
+    font-style: italic;
+    font-size: 0.9em;
+    color: rgba(135, 185, 255, 0.7);
+}
+
+.consecratedButton {
+    z-index: 2;
+    padding: 1.2rem 4rem;
+    font-family: var(--font-rozha), serif;
+    font-size: clamp(1.2rem, 3.5vw, 1.6rem);
+    color: #1a0f00;
+    background: linear-gradient(135deg, #FFD700 0%, #FF9933 50%, #FFD700 100%);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(255, 153, 51, 0.3);
+    transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+}
+
+.consecratedButton:hover:not(:disabled) {
+    transform: translateY(-5px);
+    box-shadow:
+        0 15px 40px rgba(0, 0, 0, 0.6),
+        0 0 40px rgba(255, 215, 0, 0.5);
+    background: linear-gradient(135deg, #FFF0A0 0%, #FFD700 50%, #FFA500 100%);
+}
+
+.consecratedButton::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%);
+    transform: translate(-100%, -100%);
+    transition: transform 0.8s ease-out;
+}
+
+.consecratedButton:hover::after {
+    transform: translate(0, 0);
+}
+
+.consecratedButton:disabled {
+    opacity: 0.6;
+    cursor: wait;
+    filter: grayscale(0.5);
 }

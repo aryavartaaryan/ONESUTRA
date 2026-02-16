@@ -42,15 +42,18 @@
     z-index: 10;
     display: flex;
     flex-direction: column;
-    height: calc(100vh - var(--header-height) - 2rem);
-    margin: 1rem 0;
+    height: calc(100vh - var(--header-height) - 4rem);
+    margin: 2rem 0;
     width: 100%;
-    max-width: 500px;
+    max-width: 550px;
     background-color: var(--color-parchment);
     background-image: url("https://www.transparenttextures.com/patterns/aged-paper.png");
-    box-shadow: var(--shadow-scroll), var(--shadow-inner-glow);
-    border: 2px solid var(--color-burnt-sienna);
-    border-radius: 12px;
+    box-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.5),
+        0 0 40px rgba(184, 134, 11, 0.2),
+        var(--shadow-inner-glow);
+    border: 3px solid var(--color-burnt-sienna);
+    border-radius: 20px;
     overflow: hidden;
 }
 
@@ -211,13 +214,14 @@
 .vaidyaMessage {
     text-align: left;
     font-family: var(--font-sanskrit), var(--font-serif);
-    font-size: 1.1rem;
-    color: var(--color-ink-vedic);
+    font-size: 1.15rem;
+    color: #2b1d0e;
     line-height: 1.6;
-    padding: 1rem;
-    background: rgba(255, 255, 255, 0.4);
-    border-left: 3px solid var(--color-saffron);
-    border-radius: 4px;
+    padding: 1.25rem;
+    background: rgba(255, 255, 255, 0.6);
+    border-left: 5px solid var(--color-saffron);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 
 .manuscriptCard {
@@ -247,13 +251,16 @@
 .userMessage {
     text-align: right;
     font-family: var(--font-serif);
-    font-size: 1rem;
-    color: var(--color-burnt-sienna);
+    font-size: 1.05rem;
+    color: #5d4037;
     font-style: italic;
     margin-left: auto;
-    max-width: 80%;
-    border-bottom: 1px dashed var(--color-saffron);
-    padding-bottom: 0.2rem;
+    max-width: 85%;
+    background: rgba(184, 134, 11, 0.05);
+    padding: 0.75rem 1rem;
+    border-radius: 12px 12px 2px 12px;
+    border: 1px solid rgba(139, 69, 19, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
 .sendingIndicator {
@@ -458,7 +465,8 @@
     background: rgba(244, 235, 208, 0.4);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(139, 69, 19, 0.2);
-    display: none; /* Shown via media query */
+    display: none;
+    /* Shown via media query */
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
