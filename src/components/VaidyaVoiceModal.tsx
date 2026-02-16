@@ -10,10 +10,9 @@ interface VaidyaVoiceModalProps {
     isOpen: boolean;
     onClose: () => void;
     lang: 'en' | 'hi';
-    onVoiceResponse?: (text: string) => void;
 }
 
-export default function VaidyaVoiceModal({ isOpen, onClose, lang, onVoiceResponse }: VaidyaVoiceModalProps) {
+export default function VaidyaVoiceModal({ isOpen, onClose, lang }: VaidyaVoiceModalProps) {
     const {
         callState,
         startCall,
@@ -25,7 +24,7 @@ export default function VaidyaVoiceModal({ isOpen, onClose, lang, onVoiceRespons
         volumeLevel,
         transcript,
         isSpeaking,
-    } = useVaidyaVoiceCall({ onAiResponse: onVoiceResponse });
+    } = useVaidyaVoiceCall();
 
     const transcriptEndRef = useRef<HTMLDivElement>(null);
 

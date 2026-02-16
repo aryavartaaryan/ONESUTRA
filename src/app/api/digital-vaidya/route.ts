@@ -201,6 +201,15 @@ ${isFirstMessage ? `
         }
     } catch (error: any) {
         console.error("Error in digital-vaidya route:", error);
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+
+        // Handle Rate Limiting / Quota Exceeded
+        if (error.message?.includes('429') || error.status === 429) {
+            return NextResponse.json(
+                { error: "429: High Traffic - The Vaidya is currently busy with many seekers." },
+                { status: 429 }
+            );
+        }
+
+        return NextResponse.json({ error: "Internal server error", details: error.message }, { status: 500 });
     }
 }

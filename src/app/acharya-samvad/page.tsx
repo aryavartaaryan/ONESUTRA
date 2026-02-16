@@ -493,10 +493,6 @@ function DigitalVaidyaContent() {
                 isOpen={isVoiceCallOpen}
                 onClose={() => setIsVoiceCallOpen(false)}
                 lang={lang}
-                onVoiceResponse={(text) => {
-                    // Automatically append Voice AI response to the chat
-                    setMessages(prev => [...prev, { role: 'vaidya', content: text }]);
-                }}
             />
         </main>
     );
