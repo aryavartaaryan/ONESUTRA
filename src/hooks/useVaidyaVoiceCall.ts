@@ -130,7 +130,13 @@ const OUTPUT_SAMPLE_RATE = 24000;
 const BUFFER_SIZE = 2048;
 const NOISE_GATE_THRESHOLD = 0.012; // Increased to filter background noise
 
-export function useVaidyaVoiceCall(): UseVaidyaVoiceCallReturn {
+// Add props interface for the hook
+interface UseVaidyaVoiceCallProps {
+    onAiResponse?: (text: string) => void;
+}
+
+export function useVaidyaVoiceCall(props?: UseVaidyaVoiceCallProps): UseVaidyaVoiceCallReturn {
+    const { onAiResponse } = props || {};
     const [callState, setCallState] = useState<VaidyaCallState>('idle');
     const [error, setError] = useState<string | null>(null);
     const [isMuted, setIsMuted] = useState(false);
@@ -149,6 +155,9 @@ export function useVaidyaVoiceCall(): UseVaidyaVoiceCallReturn {
     const mutedRef = useRef(false);
     const connectionIntentRef = useRef(false);
     const callTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Valid text accumulation for chat sync
+    const currentResponseTextRef = useRef<string>('');
 
     // Keep mutedRef in sync
     useEffect(() => {
@@ -196,6 +205,7 @@ export function useVaidyaVoiceCall(): UseVaidyaVoiceCallReturn {
         }
         audioQueueRef.current = [];
         isPlayingRef.current = false;
+        currentResponseTextRef.current = '';
     }, []);
 
     // Convert Float32Array to base64-encoded 16-bit PCM
@@ -326,6 +336,7 @@ export function useVaidyaVoiceCall(): UseVaidyaVoiceCallReturn {
             setTranscript([]);
             setVolumeLevel(0);
             setIsSpeaking(false);
+            currentResponseTextRef.current = '';
 
             // 1. Get API key from backend
             const tokenRes = await fetch('/api/gemini-live-token', { method: 'POST' });
@@ -398,6 +409,7 @@ export function useVaidyaVoiceCall(): UseVaidyaVoiceCallReturn {
                                 }
                                 if (part.text) {
                                     setTranscript(prev => [...prev.slice(-20), `आचार्य: ${part.text} `]);
+                                    currentResponseTextRef.current += part.text;
                                 }
                             }
                         }
@@ -405,12 +417,20 @@ export function useVaidyaVoiceCall(): UseVaidyaVoiceCallReturn {
                         // Handle turn completion
                         if (serverContent?.turnComplete) {
                             setIsSpeaking(false);
+                            // Flush accumulated text to callback
+                            if (currentResponseTextRef.current.trim()) {
+                                onAiResponse?.(currentResponseTextRef.current.trim());
+                                currentResponseTextRef.current = '';
+                            }
                         }
 
                         // Handle interruption
                         if (serverContent?.interrupted) {
                             audioQueueRef.current = [];
                             setIsSpeaking(false);
+                            // If interrupted, we might want to discard incomplete text or send partial
+                            // For now, discard to avoid partial nonsense in chat history
+                            currentResponseTextRef.current = '';
                         }
                     },
                     onerror: (e: any) => {
