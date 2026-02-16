@@ -284,10 +284,10 @@ export default function DhyanKakshaPage() {
 
 
 
-    // State for A/B double buffering ambient slides (Videos + Images)
-    const [ambientSlides, setAmbientSlides] = useState<{ src: string, type: 'video' | 'image' }[]>([]);
-    const [currentSlideA, setCurrentSlideA] = useState<{ src: string, type: 'video' | 'image', start?: number, animationIndex?: number } | null>(null);
-    const [currentSlideB, setCurrentSlideB] = useState<{ src: string, type: 'video' | 'image', start?: number, animationIndex?: number } | null>(null);
+    // State for A/B double buffering ambient slides (Videos + Images + Logo)
+    const [ambientSlides, setAmbientSlides] = useState<{ src: string, type: 'video' | 'image' | 'logo' }[]>([]);
+    const [currentSlideA, setCurrentSlideA] = useState<{ src: string, type: 'video' | 'image' | 'logo', start?: number, animationIndex?: number } | null>(null);
+    const [currentSlideB, setCurrentSlideB] = useState<{ src: string, type: 'video' | 'image' | 'logo', start?: number, animationIndex?: number } | null>(null);
     const [activeBuffer, setActiveBuffer] = useState<'A' | 'B'>('A');
 
     const videoRefA = React.useRef<HTMLVideoElement>(null);
@@ -341,7 +341,7 @@ export default function DhyanKakshaPage() {
                     fetch('/api/images')
                 ]);
 
-                let combined: { src: string, type: 'video' | 'image' }[] = [];
+                let combined: { src: string, type: 'video' | 'image' | 'logo' }[] = [];
 
                 if (vRes.ok) {
                     const vData = await vRes.json();
@@ -351,6 +351,9 @@ export default function DhyanKakshaPage() {
                     const iData = await iRes.json();
                     combined = [...combined, ...iData.files.map((f: any) => ({ src: f.path, type: 'image' }))];
                 }
+
+                // Add Pranav.AI Logo Slide (Divine Circuitry Halo)
+                combined.push({ src: "/images/pranav_logo.png", type: 'logo' });
 
                 console.log("Loaded unified ambient slides:", combined);
                 setAmbientSlides(combined);
@@ -382,8 +385,13 @@ export default function DhyanKakshaPage() {
         // FILTER: Only include images if it's an Agnihotra/Shanti session
         let pool = ambientSlides;
         if (!isAgnihotraSession) {
-            pool = ambientSlides.filter(s => s.type === 'video');
+            // In regular session, show Videos AND Logo
+            pool = ambientSlides.filter(s => s.type === 'video' || s.type === 'logo');
             // If no videos available (shouldn't happen), fallback to all
+            if (pool.length === 0) pool = ambientSlides;
+        } else {
+            // In Agnihotra session, show Images AND Logo
+            pool = ambientSlides.filter(s => s.type === 'image' || s.type === 'logo');
             if (pool.length === 0) pool = ambientSlides;
         }
 
@@ -423,7 +431,10 @@ export default function DhyanKakshaPage() {
         if (!startBackgroundLoop || ambientSlides.length === 0) return;
 
         const currentSlide = activeBuffer === 'A' ? currentSlideA : currentSlideB;
-        const effectiveDuration = (currentSlide?.type === 'image') ? 3000 : 30000;
+
+        let effectiveDuration = 30000; // Default Video
+        if (currentSlide?.type === 'image') effectiveDuration = 3000;
+        if (currentSlide?.type === 'logo') effectiveDuration = 5000;
 
         console.log(`[Ambient] Timer set for ${effectiveDuration}ms (${currentSlide?.type}). Agnihotra Mode: ${isAgnihotra}`);
 
@@ -488,13 +499,14 @@ export default function DhyanKakshaPage() {
             {/* SPLASH SCREEN - Elegant Single Entry */}
             {!hasStarted && (
                 <div className={pageStyles.spiritualEntry}>
-                    {/* Pranav.AI Icon with Natural Integration & Surround Halo */}
+                    {/* Background Rotating Sri Yantra */}
+                    <div className={pageStyles.rotatingBackgroundYantra}>
+                        <SriYantraSVG />
+                    </div>
+
+                    {/* Foreground Illuminating Sri Yantra with Natural Integration & Surround Halo */}
                     <div className={pageStyles.iconSurround}>
-                        <img
-                            src="/images/pranav_logo.png"
-                            alt="Pranav.AI"
-                            className={pageStyles.entryOm}
-                        />
+                        <SriYantraSVG className={pageStyles.entryYantraSvg} />
                     </div>
 
                     <div className={pageStyles.entryContent}>
@@ -818,6 +830,29 @@ export default function DhyanKakshaPage() {
                                         zIndex: activeBuffer === 'A' ? 2 : 1
                                     }}
                                 />
+                            ) : currentSlideA.type === 'logo' ? (
+                                <div
+                                    style={{
+                                        position: 'absolute',
+                                        inset: 0,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        opacity: activeBuffer === 'A' ? 1 : 0,
+                                        transition: 'opacity 1.5s ease-in-out',
+                                        zIndex: activeBuffer === 'A' ? 2 : 1,
+                                        background: 'radial-gradient(circle at 50% 50%, #050d1a 0%, #020810 100%)'
+                                    }}
+                                    ref={el => { if (el && activeBuffer === 'B') setActiveBuffer('A'); }}
+                                >
+                                    <div className={pageStyles.iconSurround}>
+                                        <img
+                                            src={currentSlideA.src}
+                                            alt="Pranav.AI"
+                                            className={pageStyles.entryOm}
+                                        />
+                                    </div>
+                                </div>
                             ) : (
                                 <img
                                     src={currentSlideA.src}
@@ -850,6 +885,29 @@ export default function DhyanKakshaPage() {
                                         zIndex: activeBuffer === 'B' ? 2 : 1
                                     }}
                                 />
+                            ) : currentSlideB.type === 'logo' ? (
+                                <div
+                                    style={{
+                                        position: 'absolute',
+                                        inset: 0,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        opacity: activeBuffer === 'B' ? 1 : 0,
+                                        transition: 'opacity 1.5s ease-in-out',
+                                        zIndex: activeBuffer === 'B' ? 2 : 1,
+                                        background: 'radial-gradient(circle at 50% 50%, #050d1a 0%, #020810 100%)'
+                                    }}
+                                    ref={el => { if (el && activeBuffer === 'A') setActiveBuffer('B'); }}
+                                >
+                                    <div className={pageStyles.iconSurround}>
+                                        <img
+                                            src={currentSlideB.src}
+                                            alt="Pranav.AI"
+                                            className={pageStyles.entryOm}
+                                        />
+                                    </div>
+                                </div>
                             ) : (
                                 <img
                                     src={currentSlideB.src}

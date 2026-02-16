@@ -2,7 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import styles from './SriYantra.module.css';
 
-const SriYantraSVG = ({ className }: { className?: string }) => (
+export const SriYantraSVG = ({ className }: { className?: string }) => (
     <svg viewBox="0 0 200 200" className={className}>
         <defs>
             <filter id="silverGlow">
