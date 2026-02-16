@@ -330,9 +330,6 @@ function DigitalVaidyaContent() {
             </div>
 
             <div className={styles.contentLayer}>
-                {/* Spiritual Atmosphere: Incense Smoke Overlay */}
-                <div className={styles.incenseSmoke}></div>
-
                 {/* HEADER: MINIMAL (Desktop Language Toggle etc) */}
                 <header className={styles.headerSection}>
                     <button onClick={toggleLanguage} className={styles.langToggle}>
