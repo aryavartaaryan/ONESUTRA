@@ -359,7 +359,8 @@ export default function MantraSangrah({
 
         if (activeTrack) {
             // 1. Check if source needs updating
-            const encodedSrc = encodeURI(activeTrack.src).replace(/\(/g, '%28').replace(/\)/g, '%29');
+            // Prevent double-encoding if src is already encoded (common with cloud links)
+            const encodedSrc = encodeURI(decodeURI(activeTrack.src)).replace(/\(/g, '%28').replace(/\)/g, '%29');
             const currentSrc = audio.src;
 
             // Allow for browser-encoded variations in comparison
