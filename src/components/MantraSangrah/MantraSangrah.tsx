@@ -277,7 +277,10 @@ interface MantraSangrahProps {
     onVideoToggle?: () => void;
     sessionActive?: boolean;
     onActiveTrackChange?: (track: Track | null) => void;
+    onActiveTrackChange?: (track: Track | null) => void;
     onTrackSelect?: (track: Track) => void; // Delegate control
+    volume?: number;
+    onVolumeChange?: (vol: number) => void;
 }
 
 // Helper to get Hindi title
@@ -339,7 +342,9 @@ export default function MantraSangrah({
     onTimeUpdate,
     sessionActive = false,
     onActiveTrackChange,
-    onTrackSelect
+    onTrackSelect,
+    volume: volumeProp,
+    onVolumeChange: onVolumeChangeProp
 }: MantraSangrahProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [playlist, setPlaylist] = useState<Track[]>(INITIAL_PLAYLIST);
@@ -349,7 +354,17 @@ export default function MantraSangrah({
     const [progress, setProgress] = useState(0);
     const [lang, setLangState] = useState(langProp);
     const [duration, setDuration] = useState(0);
-    const [volume, setVolume] = useState(1); // Default volume 100%
+    const [localVolume, setLocalVolume] = useState(1); // Default volume 100%
+
+    // Use prop volume if available, otherwise local
+    const volume = volumeProp !== undefined ? volumeProp : localVolume;
+
+    const handleVolumeChange = (vol: number) => {
+        if (onVolumeChangeProp) {
+            onVolumeChangeProp(vol);
+        }
+        setLocalVolume(vol);
+    };
 
     // Refs for state access inside event listeners
     const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -742,7 +757,7 @@ export default function MantraSangrah({
                                     isPlaying={currentlyPlaying}
                                     isMuted={isMuted}
                                     volume={volume} // NEW PROP
-                                    onVolumeChange={setVolume} // NEW PROP
+                                    onVolumeChange={handleVolumeChange} // UPDATED PROP
                                     progress={displayProgress}
                                     currentTime={displayTime}
                                     duration={isVideo ? (videoDuration || 0) : duration}

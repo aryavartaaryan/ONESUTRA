@@ -46,7 +46,16 @@ export default function DhyanKakshaPage() {
     const [activeMantra, setActiveMantra] = useState<any>(null);
     const [manualTrack, setManualTrack] = useState<any>(null); // NEW: For library/manual selections
     const [userName, setUserName] = useState(""); // NEW: User Name State
+    const [volume, setVolume] = useState(1); // Global Volume State (0 to 1)
+
     const sequentialVideoRef = React.useRef<HTMLVideoElement>(null);
+
+    // Sync Volume for Sequential Video
+    useEffect(() => {
+        if (sequentialVideoRef.current) {
+            sequentialVideoRef.current.volume = volume;
+        }
+    }, [volume]);
 
     const playlist = useMemo(() => {
         // 1. Define the Fixed Start Sequence (Exact Order Requested)
@@ -774,6 +783,8 @@ export default function DhyanKakshaPage() {
                         }
                     }
                 }}
+                volume={volume}
+                onVolumeChange={setVolume}
             />
 
             {/* LIGHTWEIGHT MEDIA PLAYER - Global Control Center */}
