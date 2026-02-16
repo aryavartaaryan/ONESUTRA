@@ -654,17 +654,31 @@
     text-align: center;
     padding: 2rem;
     overflow: hidden;
-    /* AI-Gurukul Fusion Background: Deep Blue + Gold Circuitry */
+    /* AI-Gurukul Fusion Background: Rishi + Deep Blue + Gold Circuitry */
     background-color: #020617;
     /* Very Dark Blue Slate */
     background-image:
-        /* Deep Cosmic Blue Gradient Base */
-        radial-gradient(circle at 50% 40%, rgba(10, 25, 60, 0.9) 0%, rgba(2, 6, 23, 0.95) 100%),
         /* Neural Network / Circuitry Overlay (Golden & Blue) */
         linear-gradient(rgba(0, 191, 255, 0.05) 1px, transparent 1px),
         linear-gradient(90deg, rgba(212, 175, 55, 0.05) 1px, transparent 1px),
-        radial-gradient(circle at 50% 50%, rgba(0, 191, 255, 0.08) 1px, transparent 2px);
-    background-size: 100% 100%, 50px 50px, 50px 50px, 25px 25px;
+        /* Rishi AI Fusion Image (Centered & Blended) */
+        url('/images/rishi_ai_fusion.png'),
+        /* Deep Cosmic Blue Gradient Base */
+        radial-gradient(circle at 50% 40%, rgba(10, 25, 60, 0.8) 0%, rgba(2, 6, 23, 0.95) 100%);
+    background-size: 50px 50px, 50px 50px, contain, 100% 100%;
+    background-repeat: repeat, repeat, no-repeat, no-repeat;
+    background-position: center, center, center bottom, center;
+    background-blend-mode: overlay, overlay, normal, normal;
+}
+
+/* Add a subtle Overlay to ensure text readability over the complex image */
+.spiritualEntry::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 30%, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.7) 80%);
+    z-index: 1;
+    pointer-events: none;
 }
 
 .spiritualEntry::before {

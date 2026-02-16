@@ -496,9 +496,9 @@ export default function DhyanKakshaPage() {
 
                     <div className={pageStyles.entryContent}>
                         <h1 className={pageStyles.entryTitle}>
-                            {/* Letter-by-letter animation for "Transformation By The Intelligence of Divine" */}
+                            {/* Letter-by-letter animation for "Transformation by the Intelligence of the Universe" */}
                             <div className={pageStyles.animatedTitleWrapper}>
-                                {"Transformation By The Intelligence of Divine".split("").map((char, index) => (
+                                {"Transformation by the Intelligence of the Universe".split("").map((char, index) => (
                                     <span
                                         key={index}
                                         className={pageStyles.animatedLetter}
