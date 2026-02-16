@@ -47,23 +47,29 @@ export default function DhyanKakshaPage() {
     const sequentialVideoRef = React.useRef<HTMLVideoElement>(null);
 
     const playlist = useMemo(() => {
-        // PRE-REQUISITE ITEMS (The Specific Start Sequence)
-        // 1. HARDCODED START SEQUENCE (Spiritual Priority)
-        const startSequence = [
+        // 1. Define the Fixed Start Sequence (Exact Order Requested)
+        // Guidance -> Sahana -> Lalitha -> Shiva Tandava -> Vishesh (Video) -> Maha Mrityunjaya
+        const fixedStartItems = [
             { type: "mantra", id: "guidance", src: "/audio/Guidance.wav", title: "Guidance", titleHi: "आज्ञा और मार्गदर्शन" },
-            { type: "mantra", id: "sahana", src: "/audio/Om_Sahana_Vavatu_Shanti_Mantra.mp3", title: "Om Sahana Vavatu", titleHi: "ॐ सहना ववतु" },
+            { type: "mantra", id: "sahana", src: "/audio/Om_Sahana_Vavatu_Shanti_Mantra.mp3", title: "Guru Shishya Mantra", titleHi: "गुरु शिष्य मंत्र" },
             { type: "mantra", id: "lalitha", src: "/audio/Lalitha_Sahasranamam.mp3", title: "Lalitha Sahasranamam", titleHi: "ललिता सहस्रनाम" },
-            { type: "mantra", id: "shivatandava", src: "/audio/Shiva Tandava Stotram (All 18 Slokas)  Vande Guru Paramparaam  'Shiva-Bhakta' Ravana.mp3", title: "Shiva Tandava", titleHi: "शिव ताण्डव स्तोत्रम्" },
-            { type: "video", id: "v_vishesh", src: "https://ik.imagekit.io/aup4wh6lq/VISHNU%20SAHASRANAMAM%20_%20Madhubanti%20Bagchi%20&%20Siddharth%20Bhavsar%20_%20Stotra%20For%20Peace%20&%20Divine%20Blessings.mp4", title: "Vishesh", titleHi: "विष्णु सहस्रनाम", startTime: 7 },
-            { type: "mantra", id: "shantipath", src: "/audio/Agnihotra_Shantipath_-_Vedic_Chants_for_Universal_Peace_and_Well-Being_part_2_(mp3.pm).mp3", title: "Shanti Mantra", titleHi: "अग्निहोत्र शांतिपाठ" },
+            { type: "mantra", id: "shiva-tandava", src: "/audio/Shiva Tandava Stotram (All 18 Slokas)  Vande Guru Paramparaam  'Shiva-Bhakta' Ravana.mp3", title: "Shiva Tandava Stotram", titleHi: "शिव तांडव स्तोत्रम्" },
+            {
+                type: "video",
+                id: 'v_vishesh',
+                title: 'Vishesh (Vishnu Sahasranamam)',
+                titleHi: 'विष्णु सहस्रनाम (विशेष)',
+                src: 'https://ik.imagekit.io/aup4wh6lq/VISHNU%20SAHASRANAMAM%20_%20Madhubanti%20Bagchi%20&%20Siddharth%20Bhavsar%20_%20Stotra%20For%20Peace%20&%20Divine%20Blessings.mp4',
+                startTime: 7
+            },
+            { type: "mantra", id: "agnihotra", src: "/audio/Agnihotra_Shantipath_-_Vedic_Chants_for_Universal_Peace_and_Well-Being_part_2_(mp3.pm).mp3", title: "Agnihotra Shantipath", titleHi: "अग्निहोत्र शांति पाठ" }
         ];
 
-        // If NOT first time, remove the Guidance mantra
-        const effectiveStartSequence = isFirstTime === false
-            ? startSequence.filter(item => item.id !== "guidance")
-            : startSequence;
+        // 2. Define Remaining Pools (Excluding items already in fixed list)
+        // Note: Vishesh and MahaMrityunjaya were in the pools before, so we must exclude them to avoid duplicates if we reused the array.
+        // We will define specific arrays for the remaining content.
 
-        // POOL OF REMAINING MEDIA (alternating)
+        // Remaining Videos (All except Vishesh)
         const remainingVideos = [
             { type: "video", id: "v1", src: VIDEO_LIST[0], title: "Maheshvara Sutram", titleHi: "महेश्वर सूत्रम्", trimEnd: 4 },
             { type: "video", id: "v2", src: VIDEO_LIST[1], title: "Shiv Shakti Energy", titleHi: "शिव शक्ति ऊर्जा" },
@@ -75,18 +81,22 @@ export default function DhyanKakshaPage() {
             { type: "video", id: "v8", src: VIDEO_LIST[7], title: "Kaal Bhairav Ashtakam", titleHi: "काल भैरव अष्टकम्" }
         ];
 
+        // Remaining Mantras (Excluding Sahana, Lalitha, ShivaTandava, MahaMrityunjaya, Guidance)
+        // Added: Shanti Mantra (Agnihotra) should participate here or be specifically placed? 
+        // User didn't specify Shanti Mantra position, but it was in startSequence before. 
+        // "then all videso and auioso in later nating order...And at last the reaming mantra in the list"
+        // Let's put Agnihotra Shanti Path in the alternating mix.
         const remainingMantras = [
             { type: "mantra", id: "shrisuktam", src: "/audio/Challakere_Brothers_vedic_chanting_-_Shri_suktam_(mp3.pm).mp3", title: "Shri Suktam", titleHi: "श्री सूक्तम्" },
             { type: "mantra", id: "narayana", src: "/audio/Anant_-_a_collection_of_vedic_chants_-_05._Narayana_Suktam_(mp3.pm).mp3", title: "Narayana Suktam", titleHi: "नारायण सूक्तम्" },
-            { type: "mantra", id: "mahamrtyunjaya", src: "/audio/Challakere_Brothers_vedic_chanting_-_MahaMrtyunjaya_mantrah_108_times_(mp3.pm).mp3", title: "MahaMrtyunjaya", titleHi: "महामृत्युंजय मंत्र" },
             { type: "mantra", id: "rudrashtakam", src: "/audio/Agam - Rudrashtakam  रदरषटकम  Most POWERFUL Shiva Mantras Ever  Lyrical Video  Shiv.mp3", title: "Rudrashtakam", titleHi: "रुद्राष्टकम" },
             { type: "mantra", id: "hanuman", src: "/audio/Powerful Hanuman Chalisa  HanuMan  Teja Sajja  Saicharan  Hanuman Jayanti Song  Jai Hanuman.mp3", title: "Hanuman Chalisa", titleHi: "हनुमान चालीसा" },
             { type: "mantra", id: "virija", src: "/audio/Virija Homa Mantra  Uma Mohan  Promod Shanker  Times Music Spiritual.mp3", title: "Virija Homa Mantra", titleHi: "विरजा होम मंत्र" },
             { type: "mantra", id: "dainik", src: "/audio/दैनिक अग्निहोत्र _ Dainik Agnihotra _ Ramashish _ Spiritual Mantra _ Latest Mantra 2024 _ मंत्र.mp3", title: "Dainik Agnihotra", titleHi: "दैनिक अग्निहोत्र" }
         ];
 
-        // ALTERNATING: video → mantra → video → mantra ...
-        // We start with a video after the initial sacred block
+        // 3. Alternating Section (Video -> Mantra)
+        // User wants: "then all videso and auioso in later nating order"
         const alternatingSection: any[] = [];
         const maxPairs = Math.min(remainingVideos.length, remainingMantras.length);
 
@@ -95,13 +105,20 @@ export default function DhyanKakshaPage() {
             alternatingSection.push(remainingMantras[i]);
         }
 
-        // REMAINING ITEMS
+        // 4. Leftovers
+        // "And at last the reaming mantra in the list"
         const leftovers = [
             ...remainingVideos.slice(maxPairs),
             ...remainingMantras.slice(maxPairs)
         ];
 
-        return [...effectiveStartSequence, ...alternatingSection, ...leftovers];
+        // 5. Final Assembly
+        // If NOT first time, remove the Guidance mantra from the start
+        const finalStartSequence = isFirstTime === false
+            ? fixedStartItems.filter(item => item.id !== "guidance")
+            : fixedStartItems;
+
+        return [...finalStartSequence, ...alternatingSection, ...leftovers];
     }, [isFirstTime]);
 
     // UNIFIED CONTROLLER LOGIC
@@ -179,6 +196,10 @@ export default function DhyanKakshaPage() {
             setCurrentIndex(nextIndex);
         }
 
+        // RESUME PLAYBACK ALWAYS ON NEXT
+        setIsSessionPaused(false);
+        setIsMantraPlaying(false); // Reset to allow effect to trigger fresh play
+
         // Ensure video is reset if we are moving to one
         if (sequentialVideoRef.current) {
             sequentialVideoRef.current.pause();
@@ -245,6 +266,12 @@ export default function DhyanKakshaPage() {
             video.pause();
         }
     }, [currentIndex, currentItem.src, currentItem.type, isMuted, isSessionPaused, isMantraPlaying, startBackgroundLoop]);
+
+    // NEW: Global Mute Synchronization for Sequential Video only
+    useEffect(() => {
+        if (sequentialVideoRef.current) sequentialVideoRef.current.muted = isMuted;
+        // Ambient videos (videoRefA/B) are excluded here to remain permanently muted.
+    }, [isMuted]);
 
 
 
@@ -668,9 +695,14 @@ export default function DhyanKakshaPage() {
                 onTrackSelect={handleTrackSelect}
                 onSelectIndex={handleSelectIndex}
                 externalPlaylist={playlist}
+                currentIndex={currentIndex}
                 onMutedChange={setIsMuted}
                 isMuted={isMuted}
                 onActiveTrackChange={(track) => setActiveMantra(track)}
+                onTimeUpdate={(cur, dur) => {
+                    setAudioTime(cur);
+                    setAudioDuration(dur);
+                }}
                 // Video Control Props
                 videoProgress={videoProgress}
                 videoTime={videoTime}
@@ -769,61 +801,7 @@ export default function DhyanKakshaPage() {
                             </div>
                         )}
 
-                        {/* SESSION DASHBOARD (Unified Up Next - Restored to Top Alignment) */}
-                        {!showIntro && (
-                            <div className={pageStyles.sessionDashboard}>
-                                <div className={pageStyles.dashboardPill}>
-                                    {/* Up Next Only */}
-                                    <div className={pageStyles.dashboardHeader}>
-                                        <Sparkles size={14} className={pageStyles.nextIcon} />
-                                        <span>{lang === 'hi' ? 'अगला अनुभव' : 'Up Next'}</span>
-                                    </div>
-                                    <div className={pageStyles.dashboardTitle}>
-                                        {(() => {
-                                            let nextIdx = (currentIndex + 1) % playlist.length;
-                                            // Skip Guidance
-                                            if (nextIdx === 0 && playlist.length > 1) nextIdx = 1;
 
-                                            let nextItem = playlist[nextIdx];
-
-                                            // Skip Sahana display (Intro Mantra)
-                                            if (nextItem && (nextItem.id === 'sahana' || nextItem.src.includes('Sahana'))) {
-                                                nextIdx = (nextIdx + 1) % playlist.length;
-                                                nextItem = playlist[nextIdx];
-                                            }
-
-                                            return (
-                                                <>
-                                                    <span className={pageStyles.nextTypeIcon} style={{ marginRight: '8px' }}>
-                                                        {nextItem.type === 'video' ? '📽️' : '🎵'}
-                                                    </span>
-                                                    {lang === 'hi' ? nextItem.titleHi : nextItem.title}
-                                                </>
-                                            );
-                                        })()}
-                                    </div>
-
-                                    {/* शेष (Remaining Time) - Only for mantras > 3 min */}
-                                    {(() => {
-                                        const isVideo = currentItem.type === 'video';
-                                        const cur = isVideo ? videoTime : audioTime;
-                                        const dur = isVideo ? videoDuration : audioDuration;
-
-                                        if (currentItem.id === 'guidance' || dur < 180) return null;
-
-                                        const remaining = Math.max(0, dur - cur);
-
-                                        return (
-                                            <div className={pageStyles.dashboardShesh}>
-                                                <span>{lang === 'hi' ? 'शेष' : 'Remaining'}</span>
-                                                <span className={pageStyles.sheshTime}>{formatTime(remaining)}</span>
-                                            </div>
-                                        );
-                                    })()}
-                                </div>
-
-                            </div>
-                        )}
 
 
 
@@ -938,6 +916,69 @@ export default function DhyanKakshaPage() {
 
 
             </div>
+
+            {/* SESSION DASHBOARD (Unified Up Next - Restored to Top Alignment) */}
+            {/* MOVED OUT OF VIDEO CONTAINER TO SHOW FOR AUDIO TOO */}
+            {!showIntro && startBackgroundLoop && (
+                <div className={pageStyles.sessionDashboard}>
+                    <div className={pageStyles.dashboardPill}>
+                        {/* Up Next Only - Show ONLY if playing from Sequence (no active manual mantra) */}
+                        {!manualTrack && (
+                            <>
+                                <div className={pageStyles.dashboardHeader}>
+                                    <Sparkles size={14} className={pageStyles.nextIcon} />
+                                    <span>{lang === 'hi' ? 'अगला अनुभव' : 'Up Next'}</span>
+                                </div>
+                                <div className={pageStyles.dashboardTitle}>
+                                    {(() => {
+                                        let nextIdx = (currentIndex + 1) % playlist.length;
+                                        // Skip Guidance
+                                        if (nextIdx === 0 && playlist.length > 1) nextIdx = 1;
+
+                                        let nextItem = playlist[nextIdx];
+
+
+
+                                        return (
+                                            <>
+                                                <span className={pageStyles.nextTypeIcon} style={{ marginRight: '8px' }}>
+                                                    {nextItem.type === 'video' ? '📽️' : '🎵'}
+                                                </span>
+                                                {lang === 'hi' ? nextItem.titleHi : nextItem.title}
+                                            </>
+                                        );
+                                    })()}
+                                </div>
+                            </>
+                        )}
+
+                        {/* शेष (Remaining Time) - Show for ALL tracks now as per user request */}
+                        {(() => {
+                            // Prioritize Active Mantra (Manual Selection) if present
+                            const targetItem = activeMantra || currentItem;
+                            const isVideo = targetItem.type === 'video';
+
+                            // Use audioTime/Duration if activeMantra is playing (even if currentItem is video, it's paused)
+                            const cur = (activeMantra || !isVideo) ? audioTime : videoTime;
+                            const dur = (activeMantra || !isVideo) ? audioDuration : videoDuration;
+
+                            if (targetItem.id === 'guidance') return null;
+
+                            const remaining = dur ? Math.max(0, dur - cur) : 0;
+
+                            return (
+                                <div className={pageStyles.dashboardShesh}>
+                                    <span>{lang === 'hi' ? 'शेष' : 'Remaining'}</span>
+                                    <span className={pageStyles.sheshTime}>
+                                        {dur ? formatTime(remaining) : '--:--'}
+                                    </span>
+                                </div>
+                            );
+                        })()}
+                    </div>
+
+                </div>
+            )}
 
         </main >
     );

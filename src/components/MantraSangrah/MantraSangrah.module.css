@@ -750,12 +750,37 @@
    SECTION LABEL
    ============================================ */
 
+/* ============================================
+   SECTION LABEL
+   ============================================ */
+
 .sectionLabel {
     font-family: 'Noto Serif Devanagari', serif;
     font-size: 0.9rem;
     color: rgba(255, 215, 0, 0.75);
     margin-bottom: 14px;
     letter-spacing: 0.3px;
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Noto Serif Devanagari', serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #FFD700;
+    margin: 8px 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    text-shadow: 0 0 10px rgba(255, 165, 0, 0.2);
+    letter-spacing: 0.5px;
+}
+
+.videoHeader {
+    margin-top: 24px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(212, 175, 55, 0.1);
 }
 
 /* ============================================
@@ -780,6 +805,7 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    padding-bottom: 20px;
 }
 
 .playlist::-webkit-scrollbar {
@@ -946,16 +972,19 @@
    ============================================ */
 
 .controls {
-    background: rgba(10, 5, 2, 0.6);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid rgba(212, 175, 55, 0.3);
-    padding: 12px 16px;
+    /* Pinned to Bottom of Panel */
+    flex-shrink: 0;
+    /* Don't shrink */
     margin-top: auto;
-    /* Push to bottom */
+    /* Push to bottom if space available */
+    width: 100%;
+    z-index: 10;
     display: flex;
-    align-items: center;
-    gap: 12px;
-    border-radius: 12px;
+    justify-content: center;
+    background: transparent;
+    border-top: 1px solid rgba(212, 175, 55, 0.2);
+    padding: 16px 0;
+    pointer-events: auto;
 }
 
 .miniPlayBtn {

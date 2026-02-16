@@ -43,8 +43,10 @@ export default function LightweightPlayer({
     nextTrackTitle,
     nextTrackTitleHi,
     onOpenPlaylist,
-    onOpenAcharya
-}: LightweightPlayerProps) {
+    onOpenAcharya,
+    volume,
+    onVolumeChange
+}: LightweightPlayerProps & { volume?: number; onVolumeChange?: (vol: number) => void }) {
 
     const formatTime = (seconds: number) => {
         if (!seconds || isNaN(seconds)) return "0:00";
@@ -126,13 +128,38 @@ export default function LightweightPlayer({
                             </button>
                         )}
 
-                        <button
-                            className={styles.secondaryBtn}
-                            onClick={onToggleMute}
-                            title={isMuted ? (lang === 'hi' ? 'ध्वनि चालू' : 'Unmute') : (lang === 'hi' ? 'म्यूट' : 'Mute')}
-                        >
-                            {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-                        </button>
+                        {/* Volume Control Group */}
+                        <div className={styles.volumeContainer}>
+                            <button
+                                className={styles.secondaryBtn}
+                                onClick={onToggleMute}
+                                title={isMuted ? (lang === 'hi' ? 'ध्वनि चालू' : 'Unmute') : (lang === 'hi' ? 'म्यूट' : 'Mute')}
+                            >
+                                {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                            </button>
+
+                            {/* Compact Volume Slider */}
+                            {onVolumeChange && (
+                                <div className={styles.volumeSliderWrapper}>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="1"
+                                        step="0.05"
+                                        value={isMuted ? 0 : (volume ?? 1)}
+                                        onChange={(e) => {
+                                            const val = parseFloat(e.target.value);
+                                            onVolumeChange(val);
+                                            // Auto-unmute if sliding up
+                                            if (val > 0 && isMuted) onToggleMute();
+                                        }}
+                                        className={styles.volumeSlider}
+                                        title={lang === 'hi' ? 'ध्वनि' : 'Volume'}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
                         <button
                             className={styles.secondaryBtn}
                             onClick={onPrevious}

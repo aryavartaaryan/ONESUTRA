@@ -21,12 +21,189 @@ interface Track {
 const INITIAL_PLAYLIST: Track[] = [
     {
         id: 'sahana',
-        title: 'Om Sahana Vavatu (Shanti Mantra)', // Internal ID/Search key
-        titleHi: 'ॐ सहना ववतु (शांति मंत्र)',
+        title: 'Guru Shishya Mantra',
+        titleHi: 'गुरु शिष्य मंत्र',
         src: '/audio/Om_Sahana_Vavatu_Shanti_Mantra.mp3',
         startTime: 0,
         isDefault: true,
         type: 'mantra'
+    },
+    {
+        id: 'mahamrityunjaya',
+        title: 'Maha Mrityunjaya Mantra (108 Times)',
+        titleHi: 'महामृत्युंजय मंत्र (108 बार)',
+        src: '/audio/Challakere_Brothers_vedic_chanting_-_MahaMrtyunjaya_mantrah_108_times_(mp3.pm).mp3',
+        startTime: 0,
+        type: 'mantra'
+    },
+    {
+        id: 'shiva-tandava',
+        title: 'Shiva Tandava Stotram',
+        titleHi: 'शिव तांडव स्तोत्रम्',
+        src: '/audio/Shiva Tandava Stotram (All 18 Slokas)  Vande Guru Paramparaam  \'Shiva-Bhakta\' Ravana.mp3',
+        startTime: 0,
+        type: 'mantra'
+    },
+    {
+        id: 'lalitha',
+        title: 'Lalitha Sahasranamam',
+        titleHi: 'ललिता सहस्रनाम',
+        src: '/audio/Lalitha_Sahasranamam.mp3',
+        startTime: 0,
+        type: 'mantra'
+    },
+    {
+        id: 'hanuman',
+        title: 'Hanuman Chalisa',
+        titleHi: 'हनुमान चालीसा',
+        src: '/audio/Powerful Hanuman Chalisa  HanuMan  Teja Sajja  Saicharan  Hanuman Jayanti Song  Jai Hanuman.mp3',
+        startTime: 0,
+        type: 'mantra'
+    },
+    {
+        id: 'rudrashtakam',
+        title: 'Rudrashtakam',
+        titleHi: 'रुद्राष्टकम',
+        src: '/audio/Agam - Rudrashtakam  रदरषटकम  Most POWERFUL Shiva Mantras Ever  Lyrical Video  Shiv.mp3',
+        startTime: 0,
+        type: 'mantra'
+    },
+    {
+        id: 'agnihotra',
+        title: 'Agnihotra Shantipath',
+        titleHi: 'अग्निहोत्र शांति पाठ',
+        src: '/audio/Agnihotra_Shantipath_-_Vedic_Chants_for_Universal_Peace_and_Well-Being_part_2_(mp3.pm).mp3',
+        startTime: 0,
+        type: 'mantra'
+    },
+    {
+        id: 'narayana',
+        title: 'Narayana Suktam',
+        titleHi: 'नारायण सूक्तम्',
+        src: '/audio/Anant_-_a_collection_of_vedic_chants_-_05._Narayana_Suktam_(mp3.pm).mp3',
+        startTime: 0,
+        type: 'mantra'
+    },
+    {
+        id: 'shri-suktam',
+        title: 'Shri Suktam',
+        titleHi: 'श्री सूक्तम्',
+        src: '/audio/Challakere_Brothers_vedic_chanting_-_Shri_suktam_(mp3.pm).mp3',
+        startTime: 0,
+        type: 'mantra'
+    },
+    {
+        id: 'chamakam',
+        title: 'Chamakam',
+        titleHi: 'चमकम्',
+        src: '/audio/A_Collection_Of_Vedic_Chants_-_Chamakam_-_11_11_(mp3.pm).mp3',
+        startTime: 0,
+        type: 'mantra'
+    },
+    {
+        id: 'kshama',
+        title: 'Kshama Prarthana',
+        titleHi: 'क्षमा प्रार्थना',
+        src: '/audio/A_Collection_Of_Vedic_Chants_-_Kshama_Prarthana_(mp3.pm).mp3',
+        startTime: 0,
+        type: 'mantra'
+    },
+    {
+        id: 'virija',
+        title: 'Virija Homa Mantra',
+        titleHi: 'विरिजा होम मंत्र',
+        src: '/audio/Virija Homa Mantra  Uma Mohan  Promod Shanker  Times Music Spiritual.mp3',
+        startTime: 0,
+        type: 'mantra'
+    },
+    {
+        id: 'dainik-agnihotra',
+        title: 'Dainik Agnihotra',
+        titleHi: 'दैनिक अग्निहोत्र',
+        src: '/audio/दैनिक अग्निहोत्र _ Dainik Agnihotra _ Ramashish _ Spiritual Mantra _ Latest Mantra 2024 _ मंत्र.mp3',
+        startTime: 0,
+        type: 'mantra'
+    },
+    {
+        id: 'guidance',
+        title: 'Guidance',
+        titleHi: 'मार्गदर्शन',
+        src: '/audio/Guidance.wav',
+        startTime: 0,
+        type: 'mantra'
+    },
+    // --- Videos ---
+    {
+        id: 'v_vishesh',
+        title: 'Vishesh (Vishnu Sahasranamam)',
+        titleHi: 'विष्णु सहस्रनाम (विशेष)',
+        src: 'https://ik.imagekit.io/aup4wh6lq/VISHNU%20SAHASRANAMAM%20_%20Madhubanti%20Bagchi%20&%20Siddharth%20Bhavsar%20_%20Stotra%20For%20Peace%20&%20Divine%20Blessings.mp4',
+        startTime: 7,
+        type: 'video'
+    },
+    {
+        id: 'v1',
+        title: 'Maheshvara Sutram',
+        titleHi: 'महेश्वर सूत्रम्',
+        src: 'https://ik.imagekit.io/aup4wh6lq/Most%20powerful%20Maheshvara%20Su%CC%84tram%20_%20the%20primal%20sound%20of%20creation.%E0%A4%AE%E0%A4%BE%E0%A4%B9%E0%A5%87%E0%A4%B6%E0%A5%8D%E0%A4%B5%E0%A4%B0%20%E0%A4%B8%E0%A5%82%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%AE%E0%A5%8D%20_%20%E0%A4%9C%E0%A4%BF%E0%A4%B8%E0%A4%B8%E0%A5%87%20%E0%A4%B8%E0%A4%AE%E0%A5%8D%E0%A4%AA%E0%A5%82%E0%A4%B0%E0%A5%8D%E0%A4%A6.mp4',
+        startTime: 0,
+        type: 'video'
+    },
+    {
+        id: 'v2',
+        title: 'Shiv Shakti Energy',
+        titleHi: 'शिव शक्ति ऊर्जा',
+        src: 'https://ik.imagekit.io/aup4wh6lq/Just%20feel%20the%20energy%20____Follow%20@fmccreators%20for%20more_%E0%A4%B9%E0%A4%B0%20%E0%A4%B9%E0%A4%B0%20%E0%A4%AE%E0%A4%B9%E0%A4%BE%E0%A4%A6%E0%A5%87%E0%A4%B5%20__%E0%A4%9C%E0%A4%AF%20%E0%A4%B6%E0%A4%82%E0%A4%95%E0%A4%B0%20___Do%20like.mp4',
+        startTime: 0,
+        type: 'video'
+    },
+    {
+        id: 'v3',
+        title: 'Mahadev Nav Varsh',
+        titleHi: 'महादेव नव वर्ष',
+        src: 'https://ik.imagekit.io/aup4wh6lq/%E0%A4%86%E0%A4%AA%20%E0%A4%B8%E0%A4%AD%E0%A5%80%20%E0%A4%95%E0%A5%8B%20%E0%A4%A8%E0%A4%B5%20%E0%A4%B5%E0%A4%B0%E0%A5%8D%E0%A4%B7%20%E0%A4%95%E0%A5%80%20%E0%A4%B9%E0%A4%BE%E0%A4%B0%E0%A5%8D%E0%A4%A6%E0%A4%BF%E0%A4%95%20%E0%A4%AC%E0%A4%A7%E0%A4%BE%E0%A4%88%20%E0%A4%8F%E0%A4%B5%E0%A4%82%20%E0%A4%B6%E0%A5%81%E0%A4%AD%E0%A4%95%E0%A4%BE%E0%A4%AE%E0%A4%A8%E0%A4%A6%E0%A4%88%E0%A4%AE%E0%A4%A8%E0%A4%BE%E0%A4%8F%E0%A4%81_%E0%A4%B9%E0%A4%B0%20%E0%A4%B9%E0%A4%B0%20%E0%A4%AE%E0%A4%B9%E0%A4%BE%E0%A4%A6%E0%A5%87%E0%A4%B5____.mp4',
+        startTime: 0,
+        type: 'video'
+    },
+    {
+        id: 'v4',
+        title: 'Ardhanarishwara',
+        titleHi: 'अर्धनारीश्वर स्वरूप',
+        src: 'https://ik.imagekit.io/aup4wh6lq/The%20_Lord%20who%20is%20half%20woman_%20signifies%20the%20perfect%20synthesis%20of%20masculine%20and%20feminine%20energies,.mp4',
+        startTime: 0,
+        type: 'video'
+    },
+    {
+        id: 'v5',
+        title: 'Shiv Swarnamala',
+        titleHi: 'शिव स्वर्णमाला स्तुति',
+        src: 'https://ik.imagekit.io/aup4wh6lq/Shiv%20Swarnamala%20Stuti%20_%E2%9D%A4%EF%B8%8F%20I%20Verse%20-%207%20_.Follow%20@aumm_namah_shivay%20for%20more%20%E2%9D%A4%EF%B8%8F%20.._mahadev%20_shiv.mp4',
+        startTime: 0,
+        type: 'video'
+    },
+    {
+        id: 'v6',
+        title: 'Sound Healing',
+        titleHi: 'नाद चिकित्सा',
+        src: 'https://ik.imagekit.io/aup4wh6lq/Most%20people%20don_t%20realize%20it,%20but%20sound%20has%20the%20power%20to%20heal%20-%20or%20harm.%20There_s%20a%20reason%20why%20an.mp4',
+        startTime: 0,
+        type: 'video'
+    },
+    {
+        id: 'v7',
+        title: 'Mahashivratri Special',
+        titleHi: 'महाशिवरात्रि दर्शन',
+        src: '/videos/mahashivratri_darshan.mp4',
+        startTime: 0,
+        type: 'video'
+    },
+    {
+        id: 'v8',
+        title: 'Kaal Bhairav Ashtakam',
+        titleHi: 'काल भैरव अष्टकम्',
+        src: 'https://ik.imagekit.io/aup4wh6lq/Kaal%20Bhairav%20Ashtakam%20_%20Tanuku%20Sisters%20_%20@DivineDharohar.mp4',
+        startTime: 0,
+        type: 'video'
     }
 ];
 
@@ -73,7 +250,7 @@ interface MantraSangrahProps {
 // Helper to get Hindi title
 const getHindiTitle = (filename: string): string => {
     // Specific Long Names or Priority Mappings First
-    if (filename.includes('Om_Sahana_Vavatu')) return 'ॐ सहना ववतु (शांति मंत्र)';
+    if (filename.includes('Om_Sahana_Vavatu')) return 'गुरु शिष्य मंत्र';
     if (filename.includes('Lalitha Sahasranamam')) return 'ललिता सहस्रनाम';
     if (filename.includes('vishnu_sahasranama')) return 'विष्णु सहस्रनाम';
     if (filename.includes('MahaMrtyunjaya')) return 'महामृत्युंजय मंत्र (108 बार)';
@@ -133,94 +310,13 @@ export default function MantraSangrah({
 }: MantraSangrahProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [playlist, setPlaylist] = useState<Track[]>(INITIAL_PLAYLIST);
-    const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
+
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(isMutedProp || false);
     const [progress, setProgress] = useState(0);
     const [lang, setLangState] = useState(langProp);
     const [duration, setDuration] = useState(0);
-
-    // RESTORED: Fetch dynamic playlist
-    useEffect(() => {
-        const fetchPlaylist = async () => {
-            try {
-                const response = await fetch('/api/audio');
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.files && Array.isArray(data.files)) {
-                        const filteredFiles = data.files.filter((file: any) =>
-                            !file.name.includes('Nitya_Santhoshini')
-                        );
-
-                        // Map files to Track objects
-                        let newTracks: Track[] = filteredFiles.map((file: any) => {
-                            let title = formatTitle(file.name);
-                            let titleHi = getHindiTitle(file.name);
-                            let isSpecial = false;
-                            let isDefault = false;
-                            let id = file.path; // Use path as ID for library items
-
-                            if (file.name.includes('Guidance')) {
-                                title = 'Guidance';
-                                id = 'guidance';
-                            } else if (file.name.includes('Om_Sahana_Vavatu')) {
-                                title = 'Om Sahana Vavatu (Shanti Mantra)';
-                            } else if (file.name.includes('Lalitha Sahasranamam I Manojna')) {
-                                title = 'Lalitha Sahasranamam';
-                                isSpecial = true;
-                            } else if (file.name.includes('vishnu_sahasranama')) {
-                                title = 'Vishnu Sahasranama';
-                                isSpecial = true;
-                                isDefault = true;
-                            }
-
-                            return {
-                                id,
-                                title,
-                                titleHi,
-                                src: file.path,
-                                startTime: file.name.includes('vishnu_sahasranama') ? 5 : 0,
-                                isSpecial,
-                                isDefault,
-                                type: 'mantra'
-                            };
-                        });
-
-                        // Custom Sorting Logic
-                        const orderedTracks: Track[] = [];
-                        const remainingTracks: Track[] = [];
-
-                        let guidanceTrack: Track | undefined;
-                        let sahanaTrack: Track | undefined;
-                        let lalithaTrack: Track | undefined;
-                        let vishnuTrack: Track | undefined;
-
-                        newTracks.forEach(track => {
-                            if (track.id === 'guidance') guidanceTrack = track;
-                            else if (track.src.includes('Om_Sahana_Vavatu')) sahanaTrack = track;
-                            else if (track.src.includes('Lalitha Sahasranamam I Manojna')) lalithaTrack = track;
-                            else if (track.src.includes('vishnu_sahasranama')) vishnuTrack = track;
-                            else remainingTracks.push(track);
-                        });
-
-                        remainingTracks.sort((a, b) => a.title.localeCompare(b.title));
-
-                        if (guidanceTrack) { guidanceTrack.isDefault = true; orderedTracks.push(guidanceTrack); }
-                        if (sahanaTrack) { if (!guidanceTrack) sahanaTrack.isDefault = true; orderedTracks.push(sahanaTrack); }
-                        if (lalithaTrack) { if (!sahanaTrack) lalithaTrack.isDefault = true; orderedTracks.push(lalithaTrack); }
-                        if (vishnuTrack) orderedTracks.push(vishnuTrack);
-
-                        setPlaylist([...orderedTracks, ...remainingTracks]);
-                    }
-                }
-            } catch (error) {
-                console.error("Failed to fetch playlist:", error);
-            }
-        };
-
-        fetchPlaylist();
-    }, []);
-
+    const [volume, setVolume] = useState(1); // Default volume 100%
 
     // Refs for state access inside event listeners
     const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -244,7 +340,13 @@ export default function MantraSangrah({
         };
     }, []);
 
-
+    // NEW: Sync Mute Prop with Audio Element and Local State
+    useEffect(() => {
+        if (audioRef.current) {
+            audioRef.current.muted = isMutedProp || false;
+        }
+        setIsMuted(isMutedProp || false);
+    }, [isMutedProp]);
 
     // REFACTORED: Single Source of Truth - 'activeTrack' Prop
     // We no longer maintain internal currentTrack or playOperationId for logic.
@@ -269,8 +371,8 @@ export default function MantraSangrah({
                 audio.currentTime = activeTrack.startTime || 0;
             }
 
-            // 2. Enforce Playback (Aggressive: If track exists, PLAY IT)
-            if (activeTrack) {
+            // 2. Enforce Playback respect sessionActive prop
+            if (activeTrack && sessionActive) {
                 const playPromise = audio.play();
                 if (playPromise !== undefined) {
                     playPromise
@@ -307,35 +409,7 @@ export default function MantraSangrah({
         }
     }, [activeTrack, sessionActive]);
 
-    // Handle User Interactions (Play/Pause Toggle)
-    const togglePlayPause = useCallback(() => {
-        const audio = audioRef.current;
-        if (!audio || !activeTrack) {
-            // If no active track, maybe ask parent to start default?
-            if (onTrackSelect && playlist.length > 0) {
-                onTrackSelect(playlist[0]);
-            }
-            return;
-        }
-
-        if (audio.paused) {
-            audio.play().catch(console.error);
-        } else {
-            audio.pause();
-        }
-    }, [activeTrack, playlist, onTrackSelect]);
-
-    const selectTrack = async (track: Track) => {
-        console.log(`[MantraSangrah] User clicked track: ${track.title}`);
-
-        // DELEGATE TO PARENT ALWAYS via onTrackSelect
-        if (onTrackSelect) {
-            onTrackSelect(track);
-        }
-    };
-
-
-
+    // Helper Functions
     const toggleMute = useCallback(() => {
         const audio = audioRef.current;
         if (!audio) return;
@@ -366,196 +440,257 @@ export default function MantraSangrah({
         audioRef.current.currentTime = percentage * duration;
     };
 
-    const formatTime = (seconds: number) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
+
+    // NEW: Sync Volume with Audio Element
+    useEffect(() => {
+        if (audioRef.current) {
+            audioRef.current.volume = volume;
+        }
+    }, [volume]);
+
+    // ... (existing effects)
+
+    // Handle User Interactions (Play/Pause Toggle)
+    const togglePlayPause = useCallback(() => {
+        const audio = audioRef.current;
+        if (!audio || !activeTrack) {
+            // If no active track, maybe ask parent to start default?
+            if (onTrackSelect && playlist.length > 0) {
+                onTrackSelect(playlist[0]);
+            }
+            return;
+        }
+
+        if (audio.paused) {
+            audio.play().catch(console.error);
+        } else {
+            audio.pause();
+        }
+    }, [activeTrack, playlist, onTrackSelect]);
+
+    const selectTrack = async (track: Track) => {
+        // Robust Play/Pause Toggle Logic
+        // Normalize URLs for comparison to handle encoding differences
+        const normalize = (url: string) => {
+            try {
+                return decodeURIComponent(url).replace(/\s/g, '_'); // Basic start
+            } catch (e) {
+                return url;
+            }
+        };
+
+        const isSameId = activeTrack?.id === track.id;
+
+        // Detailed check for source match
+        let isSameSrc = false;
+        if (activeTrack?.src && track.src) {
+            const s1 = normalize(activeTrack.src);
+            const s2 = normalize(track.src);
+            isSameSrc = s1.includes(s2) || s2.includes(s1);
+        }
+
+        console.log(`[MantraSangrah] User selected: ${track.title}`, {
+            matchId: isSameId,
+            matchSrc: isSameSrc,
+            activeId: activeTrack?.id,
+            newId: track.id
+        });
+
+        // If clicking the ALREADY active track, Toggle it.
+        if (activeTrack && (isSameId || isSameSrc)) {
+            togglePlayPause();
+            return;
+        }
+
+        // DELEGATE TO PARENT ALWAYS via onTrackSelect
+        if (onTrackSelect) {
+            onTrackSelect(track);
+        }
     };
+
+    // ... (existing helper functions)
 
     return (
         <>
+            {/* Trigger Button - Bottom Left */}
+            <div className={`${styles.triggerContainer} ${isOpen ? styles.triggerHidden : ''}`}>
+                <button
+                    className={styles.trigger}
+                    onClick={() => setIsOpen(true)}
+                    aria-label="Open Mantra Collection"
+                >
+                    <div className={styles.lotusIcon}>🪷</div>
+                </button>
+                <span className={styles.triggerLabel}>
+                    {lang === 'hi' ? 'मंत्र संग्रह' : 'Mantra Collection'}
+                </span>
+            </div>
 
-
-            {/* FLOATING TRIGGER - LEFT (Mantra Sangrah) */}
-            {!isOpen && (
-                <div className={styles.triggerContainer}>
-                    <button
-                        className={styles.trigger}
-                        onClick={() => setIsOpen(true)}
-                        aria-label="Open Mantra Sangrah"
-                    >
-                        <span className={styles.lotusIcon}>🪷</span>
-                    </button>
-                    <div className={styles.triggerLabel}>मंत्र संग्रह</div>
-                </div>
-            )}
-
-            {/* FLOATING TRIGGER - RIGHT (Acharya Samvad) */}
-            {!isOpen && (
-                <div className={styles.acharyaContainer}>
-                    <a
-                        href={`/acharya-samvad?lang=${lang}`}
-                        className={styles.acharyaTrigger}
-                        aria-label="Chat with Acharya"
-                    >
-                        <span className={styles.acharyaIcon}>🪔</span>
-                    </a>
-                    <div className={styles.acharyaLabel}>आचार्य संवाद</div>
-                </div>
-            )}
+            {/* Acharya Samvad - Top Right Temple Pillar */}
+            <div className={styles.acharyaContainer}>
+                <Link
+                    href="/acharya-samvad"
+                    className={styles.acharyaTrigger}
+                    aria-label="Ask Acharya"
+                >
+                    <div className={styles.acharyaIcon}>🔥</div>
+                </Link>
+                <span className={styles.acharyaLabel}>
+                    {lang === 'hi' ? 'आचार्य संवाद' : 'Ask Acharya'}
+                </span>
+            </div>
 
             {/* Overlay */}
             {isOpen && (
-                <div
-                    className={styles.overlay}
-                    onClick={() => setIsOpen(false)}
-                />
-
+                <div className={styles.overlay} onClick={() => setIsOpen(false)} />
             )}
 
-            {/* Menu Panel */}
+            {/* Side Panel */}
             <div className={`${styles.panel} ${isOpen ? styles.panelOpen : ''}`}>
                 {/* Header */}
                 <div className={styles.header}>
                     <div className={styles.headerTitle}>
-                        <Sparkles size={20} className={styles.headerIcon} />
-                        <h2>{lang === 'hi' ? 'हमारा संग्रह' : 'Humara Sangrah'}</h2>
+                        <Sparkles className={styles.headerIcon} size={24} />
+                        <h2>{lang === 'hi' ? 'वैदिक मंत्र एवं स्तोत्र संग्रह' : 'Vedic Mantra & Stotra Collection'}</h2>
                     </div>
                     <button
                         className={styles.closeBtn}
                         onClick={() => setIsOpen(false)}
                         aria-label="Close"
-                        title={lang === 'hi' ? 'बंद करें' : 'Close'}
                     >
-                        <X size={26} />
+                        <X size={24} />
                     </button>
                 </div>
 
-                {/* Divider */}
                 <div className={styles.divider} />
 
-                {/* Playlist Scroll Area */}
+                {/* Playlist */}
                 <div className={styles.playlist}>
+                    {/* Audio Section */}
+                    <div className={styles.sectionHeader}>
+                        <Volume2 size={16} />
+                        <span>{lang === 'hi' ? 'मंत्र (ऑडियो)' : 'Mantras (Audio)'}</span>
+                    </div>
                     <div className={styles.trackList}>
-                        {/* Unified Collection in Playback Order */}
-                        <div className={styles.sectionGroup}>
-                            {/* 1. Sequence Items (Videos + Audio in their playback order) */}
-                            {externalPlaylist && externalPlaylist.map((track, index) => {
-                                const isActive = currentIndex === index;
-                                const isVideo = track.type === 'video';
+                        {playlist.filter(t => t.type === 'mantra' || !t.type).map((track) => {
+                            const isActive = activeTrack?.id === track.id;
+                            const isPlayingCalculated = isActive && isPlaying;
 
-                                return (
+                            return (
+                                <div
+                                    key={track.id}
+                                    className={`${styles.trackItem} ${isActive ? styles.activeTrack : ''}`}
+                                    onClick={() => selectTrack(track)}
+                                >
+                                    <div className={styles.trackInfo}>
+                                        <div className={styles.trackIcon}>
+                                            {isActive && isPlaying ? (
+                                                <span className={styles.playingIndicator}>
+                                                    <span className={styles.bar}></span>
+                                                    <span className={styles.bar}></span>
+                                                    <span className={styles.bar}></span>
+                                                </span>
+                                            ) : (
+                                                <Flower2 size={18} />
+                                            )}
+                                        </div>
+                                        <div className={styles.trackDetails}>
+                                            <span className={styles.trackTitle}>
+                                                {lang === 'hi' ? (track.titleHi || track.title) : track.title}
+                                            </span>
+                                        </div>
+                                    </div>
                                     <button
-                                        key={`seq-${track.id || index}`}
-                                        className={`${styles.trackItem} ${isActive ? styles.trackActive : ''}`}
-                                        onClick={() => {
-                                            onSelectIndex?.(index);
-                                            // Only auto-close if selecting a DIFFERENT video
-                                            if (isVideo && index !== currentIndex) setIsOpen(false);
+                                        className={styles.playBtn}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            selectTrack(track);
                                         }}
                                     >
-                                        <div className={styles.trackInfo}>
-                                            <div className={styles.trackTitleContainer}>
-                                                <span className={styles.mediaIcon}>{isVideo ? '📽️' : '🎵'}</span>
-                                                <div className={styles.trackTitleGroup}>
-                                                    <span className={styles.trackTitle}>{lang === 'hi' ? track.titleHi : track.title}</span>
-                                                    {isVideo && (
-                                                        <span className={styles.trackSubtitle}>{lang === 'hi' ? 'चलचित्र' : 'Video'}</span>
-                                                    )}
-                                                    {!isVideo && (track.title.includes('Vishnu') || track.title.includes('Lalitha')) && (
-                                                        <span className={styles.trackSubtitle}>{lang === 'hi' ? 'विशेष' : 'Vishesh'}</span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className={styles.trackAction}>
-                                            {isActive && (isVideo ? !isSessionPaused : isPlaying) ? <Pause size={18} /> : <Play size={18} />}
-                                        </div>
+                                        {isPlayingCalculated ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
                                     </button>
-                                );
-                            })}
+                                </div>
+                            );
+                        })}
+                    </div>
 
-                            {/* 2. Full Library Collection (Remaining items) */}
-                            {playlist
-                                .filter(track => {
-                                    if (!externalPlaylist) return true;
-                                    return !externalPlaylist.some((extItem: any) =>
-                                        extItem.id === track.id || extItem.src === track.id
-                                    );
-                                })
-                                .map((track) => {
-                                    const isActive = currentTrack?.id === track.id;
-                                    return (
-                                        <button
-                                            key={`lib-${track.id}`}
-                                            className={`${styles.trackItem} ${isActive ? styles.trackActive : ''}`}
-                                            onClick={() => selectTrack(track)}
-                                        >
-                                            <div className={styles.trackInfo}>
-                                                <div className={styles.trackTitleContainer}>
-                                                    <span className={styles.mediaIcon}>🪷</span>
-                                                    <div className={styles.trackTitleGroup}>
-                                                        <span className={styles.trackTitle}>{lang === 'hi' ? track.titleHi : track.title}</span>
-                                                        {track.isDefault && (
-                                                            <span className={track.id === 'guidance' ? styles.trackSubtitleGuidance : styles.trackSubtitle}>
-                                                                {lang === 'hi' ? 'प्रारंभिक' : 'Default'}
-                                                            </span>
-                                                        )}
-                                                        {track.isSpecial && (
-                                                            <span className={styles.trackSubtitle}>{lang === 'hi' ? 'विशेष' : 'Vishesh'}</span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className={styles.trackAction}>
-                                                {isActive && isPlaying ? <Pause size={18} /> : <Play size={18} />}
-                                            </div>
-                                        </button>
-                                    );
-                                })}
-                        </div>
+                    {/* Video Section */}
+                    <div className={`${styles.sectionHeader} ${styles.videoHeader}`}>
+                        <Play size={16} />
+                        <span>{lang === 'hi' ? 'दर्शन (वीडियो)' : 'Darshan (Video)'}</span>
+                    </div>
+                    <div className={styles.trackList}>
+                        {playlist.filter(t => t.type === 'video').map((track) => {
+                            const isActive = activeTrack?.id === track.id;
+                            const isPlayingCalculated = isActive && isPlaying; // Or sessionActive? Video logic is handled by selectTrack -> parent
+
+                            return (
+                                <div
+                                    key={track.id}
+                                    className={`${styles.trackItem} ${isActive ? styles.activeTrack : ''}`}
+                                    onClick={() => selectTrack(track)}
+                                >
+                                    <div className={styles.trackInfo}>
+                                        <div className={styles.trackIcon}>
+                                            {isActive && isPlayingCalculated ? ( // visual feedback might need tuning for video
+                                                <span className={styles.playingIndicator}>
+                                                    <span className={styles.bar}></span>
+                                                    <span className={styles.bar}></span>
+                                                    <span className={styles.bar}></span>
+                                                </span>
+                                            ) : (
+                                                <Play size={18} />
+                                            )}
+                                        </div>
+                                        <div className={styles.trackDetails}>
+                                            <span className={styles.trackTitle}>
+                                                {lang === 'hi' ? (track.titleHi || track.title) : track.title}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        className={styles.playBtn}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            selectTrack(track);
+                                        }}
+                                    >
+                                        {/* Video play state might be different, but using consistent UI */}
+                                        <Play size={18} fill="currentColor" />
+                                    </button>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
 
-                {/* Unified Media Controls - Compact Mini Player */}
-                {(currentTrack || (externalPlaylist && currentIndex !== undefined)) && (
+                {/* Unified Media Controls - Compact Mini Player - Pinned to Bottom of Panel */}
+                {(activeTrack || (externalPlaylist && currentIndex !== undefined)) && (
                     <div className={styles.controls}>
                         {/* Compact Layout: [PlayBtn] [Title+Progress] [Time] */}
 
                         {/* Derive current display item from either library track or sequence index */}
                         {(() => {
+                            // ... (existing logic to determine activeItem) ...
                             // PRIORITIZE external playlist (the meditation sequence) if it exists and current index is valid
                             const isSequenceActive = !!externalPlaylist && currentIndex !== undefined;
                             const sequenceItem = isSequenceActive ? externalPlaylist[currentIndex] : null;
 
                             // An item is from "sequence" if no library track is playing OR if the sequence item is a video
                             // (Videos MUST use sequence controls)
-                            const useSequenceControls = isSequenceActive && (!currentTrack || sequenceItem?.type === 'video');
+                            const useSequenceControls = isSequenceActive && (!activeTrack || sequenceItem?.type === 'video');
 
-                            const activeItem = useSequenceControls ? sequenceItem : currentTrack;
+                            const activeItem = useSequenceControls ? sequenceItem : activeTrack;
                             const isVideo = activeItem?.type === 'video';
 
                             // Control State - Use ACTUAL playback state
                             const currentlyPlaying = isVideo
-                                ? !isSessionPaused
+                                ? sessionActive
                                 : isPlaying; // Use actual audio isPlaying state
 
                             // UI Values
                             const displayProgress = isVideo ? (videoProgress || 0) : progress;
                             const displayTime = isVideo ? (videoTime || 0) : (audioRef.current?.currentTime || 0);
-
-                            // Calculate Next Track Info
-                            let nextItem = null;
-                            if (isSequenceActive && externalPlaylist.length > 0) {
-                                // Default next index
-                                let nextIdx = (currentIndex + 1) % externalPlaylist.length;
-
-                                // Skip 'Guidance' (index 0) if looping back and list > 1
-                                if (nextIdx === 0 && externalPlaylist.length > 1) {
-                                    nextIdx = 1;
-                                }
-                                nextItem = externalPlaylist[nextIdx];
-                            }
 
                             return (
                                 <LightweightPlayer
@@ -565,6 +700,8 @@ export default function MantraSangrah({
                                     type={activeItem?.type as any || 'mantra'}
                                     isPlaying={currentlyPlaying}
                                     isMuted={isMuted}
+                                    volume={volume} // NEW PROP
+                                    onVolumeChange={setVolume} // NEW PROP
                                     progress={displayProgress}
                                     currentTime={displayTime}
                                     duration={isVideo ? (videoDuration || 0) : duration}
@@ -613,14 +750,14 @@ export default function MantraSangrah({
                     }
                 }}
                 onLoadedMetadata={(e) => {
-                    setDuration(e.currentTarget.duration);
-                    onTimeUpdate?.(e.currentTarget.currentTime, e.currentTarget.duration);
+                    const dur = e.currentTarget.duration;
+                    setDuration(dur);
+                    onTimeUpdate?.(e.currentTarget.currentTime, dur);
                 }}
                 onEnded={() => {
-                    // Notify parent that THIS specific track ended
-                    if (activeTrack && onTrackEnded) {
-                        console.log(`[MantraSangrah] Track ended: ${activeTrack.title}`);
-                        onTrackEnded(activeTrack.id);
+                    setIsPlaying(false);
+                    if (activeTrack) {
+                        onTrackEnded?.(activeTrack.id);
                     }
                 }}
                 onPlay={() => {
@@ -628,11 +765,6 @@ export default function MantraSangrah({
                     onPlayingChange?.(true);
                 }}
                 onPause={() => {
-                    setIsPlaying(false);
-                    onPlayingChange?.(false);
-                }}
-                onError={(e) => {
-                    console.error('Audio element error:', e);
                     setIsPlaying(false);
                     onPlayingChange?.(false);
                 }}
