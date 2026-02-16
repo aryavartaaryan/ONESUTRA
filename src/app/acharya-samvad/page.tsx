@@ -381,18 +381,23 @@ function DigitalVaidyaContent() {
             <div className={styles.contentLayer}>
                 {/* Mobile Specific Header (Stacked) */}
                 <div className={styles.mobileTitleHeader}>
-                    {/* Mobile Logo Integration */}
-                    <img
-                        src="/images/Pranav copy.AI.png"
-                        alt="Pranav.AI Icon"
-                        style={{
-                            width: '60px',
-                            height: '60px',
-                            objectFit: 'contain',
-                            marginBottom: '0.2rem',
-                            filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.2))'
-                        }}
-                    />
+                    {/* Mobile Text Branding */}
+                    <span style={{
+                        fontFamily: 'var(--font-body)',
+                        fontSize: '0.75rem',
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        color: 'rgba(255, 215, 0, 0.8)',
+                        marginBottom: '0.2rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4rem'
+                    }}>
+                        <span style={{ width: '15px', height: '1px', background: 'rgba(255, 215, 0, 0.5)' }}></span>
+                        Powered by Pranav.AI
+                        <span style={{ width: '15px', height: '1px', background: 'rgba(255, 215, 0, 0.5)' }}></span>
+                    </span>
+
                     <h2 className={styles.mobileMainTitle}>आचार्य संवाद</h2>
                     <button
                         onClick={() => setIsVoiceCallOpen(true)}

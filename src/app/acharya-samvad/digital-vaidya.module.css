@@ -3,12 +3,12 @@
 /* --- MODERN VEDIC THEME VARIABLES --- */
 :root {
     /* Colors */
-    --color-saffron: #FF9933;
-    --color-sandalwood: #C2B280;
-    --color-turmeric-deep: #EAA221;
+    --color-saffron: #FFB347;
+    --color-sandalwood: #E0C097;
+    --color-turmeric-deep: #FFD700;
     --color-burnt-sienna: #8B4513;
-    --color-parchment: #F4EBD0;
-    --color-ink-vedic: #3E2723;
+    --color-parchment: #FDFBF7;
+    --color-ink-vedic: #2b1d0e;
 
     /* Fonts */
     --font-serif: 'Playfair Display', serif;
@@ -46,13 +46,13 @@
     margin: 2rem 0;
     width: 100%;
     max-width: 550px;
-    background-color: var(--color-parchment);
+    background-color: rgba(253, 251, 247, 0.95);
     background-image: url("https://www.transparenttextures.com/patterns/aged-paper.png");
     box-shadow:
-        0 25px 50px -12px rgba(0, 0, 0, 0.5),
-        0 0 40px rgba(184, 134, 11, 0.2),
+        0 25px 50px -12px rgba(0, 0, 0, 0.8),
+        0 0 40px rgba(184, 134, 11, 0.3),
         var(--shadow-inner-glow);
-    border: 3px solid var(--color-burnt-sienna);
+    border: 2px solid rgba(139, 69, 19, 0.5);
     border-radius: 20px;
     overflow: hidden;
 }
@@ -134,11 +134,12 @@
 }
 
 .mantraMeaning {
-    font-size: 1.4rem;
-    color: var(--color-burnt-sienna);
+    font-size: 1.2rem;
+    color: var(--color-sandalwood);
     font-style: italic;
     display: block;
     margin-top: 0.5rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 /* --- HEADER --- */
@@ -471,6 +472,7 @@
     align-items: center;
     gap: 0.5rem;
     z-index: 20;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.1);
 }
 
 @media (max-width: 768px) {
@@ -518,10 +520,11 @@
 .mobileSubtitle {
     font-family: var(--font-body);
     font-size: 0.9rem;
-    color: #5D4037;
+    color: var(--color-sandalwood);
     line-height: 1.4;
     max-width: 300px;
     margin: 0;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 /* --- RESPONSIVE: HIDE MANTRAS ON SMALLER SCREENS --- */
