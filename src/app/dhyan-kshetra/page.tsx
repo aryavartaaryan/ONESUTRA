@@ -354,12 +354,16 @@ export default function DhyanKakshaPage() {
                 console.log("Loaded unified ambient slides:", combined);
                 setAmbientSlides(combined);
 
-                // Initial Slide
+                // Initial Slide - FORCE PRANAV INTRO
                 if (combined.length > 0) {
-                    const first = combined[Math.floor(Math.random() * combined.length)];
-                    const start = first.type === 'video' ? Math.floor(Math.random() * 4) * 15 : undefined;
-                    const animationIndex = Math.floor(Math.random() * 4) + 1; // 1 to 4
-                    setCurrentSlideA({ ...first, start, animationIndex });
+                    // Try to find specific Pranav image, otherwise define it
+                    const pranavSrc = '/images/Pranav copy 2.AI.png';
+
+                    setCurrentSlideA({
+                        src: pranavSrc,
+                        type: 'image',
+                        animationIndex: 999 // 999 indicates Pranav Intro
+                    });
                     setActiveBuffer('A');
                 }
             } catch (error) {
@@ -418,21 +422,36 @@ export default function DhyanKakshaPage() {
     }, [currentItem]);
 
     // Auto-rotate ambient slides: 3s for images (Agnihotra), 30s for videos
+    // MODIFIED: 5s for Pranav Intro Slide
+    const [isPranavIntro, setIsPranavIntro] = useState(true);
+
     React.useEffect(() => {
         if (!startBackgroundLoop || ambientSlides.length === 0) return;
 
         const currentSlide = activeBuffer === 'A' ? currentSlideA : currentSlideB;
-        const effectiveDuration = (currentSlide?.type === 'image') ? 3000 : 30000;
 
-        console.log(`[Ambient] Timer set for ${effectiveDuration}ms (${currentSlide?.type}). Agnihotra Mode: ${isAgnihotra}`);
+        // Determine Duration
+        let effectiveDuration = 30000; // Default Video
+        if (isPranavIntro) {
+            effectiveDuration = 5000; // Pranav Intro: 5s
+        } else if (currentSlide?.type === 'image') {
+            effectiveDuration = 3000; // Standard Image: 3s
+        }
+
+        console.log(`[Ambient] Timer set for ${effectiveDuration}ms. Intro: ${isPranavIntro}, Type: ${currentSlide?.type}`);
 
         const interval = setInterval(() => {
             console.log(`[Ambient] Rotating slide...`);
+
+            if (isPranavIntro) {
+                setIsPranavIntro(false); // End Intro Mode
+            }
+
             pickRandomSlide(isAgnihotra);
         }, effectiveDuration);
 
         return () => clearInterval(interval);
-    }, [startBackgroundLoop, ambientSlides.length, activeBuffer, currentSlideA?.src, currentSlideB?.src, isAgnihotra]);
+    }, [startBackgroundLoop, ambientSlides.length, activeBuffer, currentSlideA?.src, currentSlideB?.src, isAgnihotra, isPranavIntro]);
 
     // Handle media synchronization on the buffers
     React.useEffect(() => {
@@ -795,7 +814,7 @@ export default function DhyanKakshaPage() {
                                     src={currentSlideA.src}
                                     alt="Atmosphere"
                                     onLoad={() => activeBuffer === 'B' && setActiveBuffer('A')}
-                                    className={pageStyles[`ambientCinematic${currentSlideA.animationIndex || 1}`]}
+                                    className={currentSlideA.animationIndex === 999 ? pageStyles.pranavIntro : pageStyles[`ambientCinematic${currentSlideA.animationIndex || 1}`]}
                                     style={{
                                         ...ambientLayerStyle,
                                         objectFit: 'cover',
@@ -827,7 +846,7 @@ export default function DhyanKakshaPage() {
                                     src={currentSlideB.src}
                                     alt="Atmosphere"
                                     onLoad={() => activeBuffer === 'A' && setActiveBuffer('B')}
-                                    className={pageStyles[`ambientCinematic${currentSlideB.animationIndex || 1}`]}
+                                    className={currentSlideB.animationIndex === 999 ? pageStyles.pranavIntro : pageStyles[`ambientCinematic${currentSlideB.animationIndex || 1}`]}
                                     style={{
                                         ...ambientLayerStyle,
                                         objectFit: 'cover',
