@@ -352,6 +352,30 @@ export default function MantraSangrah({
     // We no longer maintain internal currentTrack or playOperationId for logic.
     // The parent tells us WHAT to play. We just sync the <audio> element to it.
 
+    // Helper: Sanitize URL for robust playback
+    // Requirements: Keep domain/protocol, encode filename (spaces, parens), preserve query params
+    const sanitizeUrl = (urlString: string): string => {
+        try {
+            // 1. Parse URL to separate components
+            const url = new URL(urlString);
+
+            // 2. Decode pathname to ensure we don't double-encode (handling legacy encoded strings)
+            const rawPath = decodeURIComponent(url.pathname);
+
+            // 3. Encode pathname using encodeURI (preserves slashes) + explicit fixes for Parens
+            // encodeURI handles spaces (%20) but leaves ( ) open. We manually encode them.
+            const encodedPath = encodeURI(rawPath)
+                .replace(/\(/g, '%28')
+                .replace(/\)/g, '%29');
+
+            // 4. Reconstruct: Origin + Encoded Path + Original Query String (preserved)
+            return `${url.origin}${encodedPath}${url.search}`;
+        } catch (e) {
+            console.warn("URL Sanitize Failed, using original:", urlString);
+            return urlString;
+        }
+    };
+
     // Effect: Sync Audio Element with Active Track
     useEffect(() => {
         const audio = audioRef.current;
@@ -361,13 +385,15 @@ export default function MantraSangrah({
             // 1. Check if source needs updating using ID (More robust than URL comparison)
             // We use a data attribute on the audio element to track the currently loaded ID
             const currentTrackId = audio.dataset.trackId;
+            const targetSrc = sanitizeUrl(activeTrack.src); // APPLY FIX HERE
 
             if (currentTrackId !== activeTrack.id) {
                 console.log(`[MantraSangrah] Loading NEW Track: ${activeTrack.title} (ID: ${activeTrack.id})`);
+                console.log(`[MantraSangrah] Sanitized URL: ${targetSrc}`); // Debug log
 
                 // Force reset
                 audio.pause();
-                audio.src = activeTrack.src;
+                audio.src = targetSrc;
                 audio.dataset.trackId = activeTrack.id;
                 audio.currentTime = activeTrack.startTime || 0;
                 audio.load(); // Explicitly load the new source
