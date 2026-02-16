@@ -808,13 +808,17 @@
 }
 
 .entryOm {
-    width: clamp(180px, 45vw, 300px);
+    width: 80%;
+    /* Adjusted relative to surround */
     height: auto;
+    border-radius: 50%;
+    /* Force circular shape */
+    object-fit: cover;
     z-index: 2;
     /* Soft Golden Glow for Natural Integration */
     filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.5));
     animation: omGoldenBlink 4s ease-in-out infinite;
-    mix-blend-mode: screen;
+    mix-blend-mode: normal;
     /* Ensures it blends beautifully with the dark background */
 }
 
