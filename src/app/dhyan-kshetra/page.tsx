@@ -433,7 +433,7 @@ export default function DhyanKakshaPage() {
         // Determine Duration
         let effectiveDuration = 30000; // Default Video
         if (isPranavIntro) {
-            effectiveDuration = 5000; // Pranav Intro: 5s
+            effectiveDuration = 11000; // Pranav Intro: 11s
         } else if (currentSlide?.type === 'image') {
             effectiveDuration = 3000; // Standard Image: 3s
         }
