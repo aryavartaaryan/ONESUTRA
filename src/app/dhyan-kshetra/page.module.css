@@ -650,10 +650,11 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    justify-content: center;
+    gap: 0.25rem;
     /* Made very compact */
     text-align: center;
-    padding: 2rem;
+    padding: 1rem;
     overflow: hidden;
     /* AI-Gurukul Fusion Background + Pranav.AI Watermark */
     background-color: #020617;
@@ -695,7 +696,7 @@
 
 /* Divine Name Input Gate */
 .nameGateContainer {
-    margin-top: 1.5rem;
+    margin-top: 0.5rem;
     /* Reduced margin */
     display: flex;
     flex-direction: column;
@@ -718,10 +719,10 @@
 
 .iconSurround {
     position: relative;
-    width: clamp(450px, 80vw, 825px);
-    /* Increased 1.5x (was 300-550) */
-    height: clamp(450px, 80vw, 825px);
-    /* Increased 1.5x */
+    width: clamp(315px, 56vw, 580px);
+    /* Reduced by 30% from 1.5x size */
+    height: clamp(315px, 56vw, 580px);
+    /* Reduced by 30% */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -744,7 +745,7 @@
     backdrop-filter: blur(4px);
     z-index: 2;
     animation: haloPulse 6s ease-in-out infinite, logoFloating 8s ease-in-out infinite;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
 }
 
 @keyframes logoFloating {
