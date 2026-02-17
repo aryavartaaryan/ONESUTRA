@@ -105,7 +105,7 @@ export default function DhyanKakshaPage() {
             { type: "mantra", id: "rudrashtakam", src: "/audio/Agam - Rudrashtakam  रदरषटकम  Most POWERFUL Shiva Mantras Ever  Lyrical Video  Shiv.mp3", title: "Rudrashtakam", titleHi: "रुद्राष्टकम" },
             { type: "mantra", id: "hanuman", src: "/audio/Powerful Hanuman Chalisa  HanuMan  Teja Sajja  Saicharan  Hanuman Jayanti Song  Jai Hanuman.mp3", title: "Hanuman Chalisa", titleHi: "हनुमान चालीसा" },
             { type: "mantra", id: "virija", src: "/audio/Virija Homa Mantra  Uma Mohan  Promod Shanker  Times Music Spiritual.mp3", title: "Virija Homa Mantra", titleHi: "विरजा होम मंत्र" },
-            { type: "mantra", id: "dainik", src: "/audio/दैनिक अग्निहोत्र _ Dainik Agnihotra _ Ramashish _ Spiritual Mantra _ Latest Mantra 2024 _ मंत्र.mp3", title: "Dainik Agnihotra", titleHi: "दैनिक अग्निहोत्र" }
+            { type: "mantra", id: "dainik", src: "https://ik.imagekit.io/aup4wh6lq/DainikAgnihotra.mp3?updatedAt=1771246817070", title: "Dainik Agnihotra", titleHi: "दैनिक अग्निहोत्र" }
         ];
 
         // 3. Alternating Section (Video -> Mantra)

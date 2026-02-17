@@ -120,7 +120,7 @@ const INITIAL_PLAYLIST: Track[] = [
         id: 'dainik-agnihotra',
         title: 'Dainik Agnihotra',
         titleHi: 'दैनिक अग्निहोत्र',
-        src: 'https://ik.imagekit.io/aup4wh6lq/DainikAgnihotra.mp3',
+        src: 'https://ik.imagekit.io/aup4wh6lq/DainikAgnihotra.mp3?updatedAt=1771246817070',
         startTime: 0,
         type: 'mantra'
     },
