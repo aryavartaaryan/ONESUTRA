@@ -66,11 +66,22 @@
 /* --- TYPOGRAPHY --- */
 
 /* --- SACRED HERO VISUALS --- */
+/* --- SACRED HERO VISUALS --- */
+.headerGroup {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-top: 2rem;
+    /* Spacing from top */
+}
+
 .auroraContainer {
     position: absolute;
     /* Changed to absolute for background placement */
-    top: 45%;
-    /* Moved further down to clear heading */
+    top: 50%;
+    /* Centered vertically in headerGroup */
     left: 50%;
     transform: translate(-50%, -50%);
     /* Centered behind text */
@@ -90,187 +101,6 @@
     /* Stronger fade for true background effect */
 }
 
-.auroraContainer::before {
-    content: '';
-    position: absolute;
-    width: 150%;
-    height: 150%;
-    background: radial-gradient(circle, rgba(255, 215, 0, 0.2) 0%, rgba(227, 83, 53, 0.1) 40%, transparent 70%);
-    border-radius: 50%;
-    animation: auroraPulse 6s infinite ease-in-out;
-    pointer-events: none;
-    z-index: -1;
-}
-
-@keyframes auroraPulse {
-
-    0%,
-    100% {
-        transform: scale(0.9);
-        opacity: 0.5;
-        filter: blur(20px);
-    }
-
-    50% {
-        transform: scale(1.1);
-        opacity: 0.8;
-        filter: blur(40px);
-    }
-}
-
-.vedicOmHero {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.6));
-    animation: floatingOm 8s infinite ease-in-out;
-    display: block;
-    user-select: none;
-    pointer-events: none;
-}
-
-@keyframes floatingOm {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-10px);
-    }
-}
-
-/* --- ROTATING BACKGROUND (Added to match Dhyan Kshetra) --- */
-.rotatingBackgroundYantra {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 250%;
-    /* Much larger than surround */
-    height: 250%;
-    opacity: 0.15;
-    z-index: -2;
-    animation: gentleRotate 60s linear infinite;
-    pointer-events: none;
-    filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.3));
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.rotatingBackgroundYantra .homeVedicOm {
-    width: 100%;
-    height: 100%;
-    animation: none;
-    /* Disable blinking for the rotating background */
-}
-
-@keyframes gentleRotate {
-    from {
-        transform: translate(-50%, -50%) rotate(0deg);
-    }
-
-    to {
-        transform: translate(-50%, -50%) rotate(360deg);
-    }
-}
-
-
-/* --- DIVINE CIRCUITRY HALO (Ported from Dhyan Kshetra) --- */
-.iconSurround {
-    position: relative;
-    width: clamp(240px, 37vw, 390px);
-    /* 1.5x larger */
-    height: clamp(240px, 37vw, 390px);
-    /* 1.5x larger */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-
-    /* Divine Circuitry Halo Background */
-    background: radial-gradient(circle, rgba(2, 6, 23, 0.95) 40%, rgba(10, 25, 60, 0.8) 100%);
-    box-shadow:
-        /* Inner Shadow Depth */
-        inset 0 0 30px rgba(0, 0, 0, 0.8),
-        /* Outer Golden Circuitry Glow */
-        0 0 0 1px rgba(212, 175, 55, 0.3),
-        0 0 20px rgba(0, 191, 255, 0.4),
-        0 0 40px rgba(212, 175, 55, 0.2);
-
-    /* Circuitry Border Effect */
-    border: 1px solid rgba(255, 215, 0, 0.2);
-    backdrop-filter: blur(4px);
-    z-index: 2;
-    animation: haloPulse 6s ease-in-out infinite;
-}
-
-.iconSurround::before {
-    content: '';
-    position: absolute;
-    inset: -5px;
-    border-radius: 50%;
-    background: conic-gradient(from 0deg, transparent 0%, rgba(212, 175, 55, 0.4) 20%, transparent 40%);
-    /* animation: spinHalo 10s linear infinite; */
-    /* Disabled rotation on central icon */
-    z-index: -1;
-}
-
-.homeVedicOm {
-    width: 65%;
-    /* Adjusted for Halo container */
-    height: auto;
-    border-radius: 50%;
-    /* Force circular shape */
-    object-fit: cover;
-    filter: drop-shadow(0 0 30px rgba(79, 195, 247, 0.4)) drop-shadow(0 0 50px rgba(212, 175, 55, 0.4));
-    animation: omGoldenBlink 4s ease-in-out infinite;
-    display: block;
-    user-select: none;
-    pointer-events: none;
-    mix-blend-mode: normal;
-}
-
-@keyframes spinHalo {
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-@keyframes haloPulse {
-
-    0%,
-    100% {
-        box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(212, 175, 55, 0.3), 0 0 20px rgba(0, 191, 255, 0.4);
-    }
-
-    50% {
-        box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.9), 0 0 0 2px rgba(212, 175, 55, 0.6), 0 0 40px rgba(0, 191, 255, 0.6), 0 0 60px rgba(212, 175, 55, 0.4);
-    }
-}
-
-@keyframes omGoldenBlink {
-
-    0%,
-    100% {
-        opacity: 0.9;
-        transform: scale(1);
-        filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.4)) brightness(1.1);
-    }
-
-    50% {
-        opacity: 1;
-        transform: scale(1.05);
-        filter: drop-shadow(0 0 60px rgba(255, 215, 0, 0.9)) drop-shadow(0 0 100px rgba(255, 165, 0, 0.6)) brightness(1.4);
-    }
-}
-
 .title {
     position: relative;
     /* Ensure it stays above the absolute background icon */
@@ -279,8 +109,8 @@
     font-family: var(--font-header), serif;
     font-size: clamp(2.5rem, 8vw, 4.5rem);
     font-weight: 700;
-    margin-top: 2rem;
-    /* Increased to push down from top edge */
+    margin-top: 0;
+    /* Grid/Flex handles spacing now */
     background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FFD700 100%);
     -webkit-background-clip: text;
     background-clip: text;

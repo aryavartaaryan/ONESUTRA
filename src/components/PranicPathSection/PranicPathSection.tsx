@@ -225,30 +225,33 @@ export default function PranicPathSection() {
                     <SriYantraSVG />
                 </motion.div>
 
-                {/* Pranav.AI Icon - background of the heading */}
-                <div className={styles.auroraContainer}>
-                    {/* Background Rotating Sri Yantra */}
-                    <div className={styles.rotatingBackgroundYantra}>
-                        <img
-                            src="/images/pranav_logo.png"
-                            className={styles.homeVedicOm}
-                            alt="Pranav.AI Logo"
-                        />
+                {/* Header Group to lock Icon and Title alignment */}
+                <div className={styles.headerGroup}>
+                    {/* Pranav.AI Icon - background of the heading */}
+                    <div className={styles.auroraContainer}>
+                        {/* Background Rotating Sri Yantra */}
+                        <div className={styles.rotatingBackgroundYantra}>
+                            <img
+                                src="/images/pranav_logo.png"
+                                className={styles.homeVedicOm}
+                                alt="Pranav.AI Logo"
+                            />
+                        </div>
+
+                        {/* Foreground Illuminating Sri Yantra with Natural Integration & Surround Halo */}
+                        <div className={styles.iconSurround}>
+                            <img
+                                src="/images/pranav_logo.png"
+                                className={styles.homeVedicOm}
+                                alt="Pranav.AI Logo"
+                            />
+                        </div>
                     </div>
 
-                    {/* Foreground Illuminating Sri Yantra with Natural Integration & Surround Halo */}
-                    <div className={styles.iconSurround}>
-                        <img
-                            src="/images/pranav_logo.png"
-                            className={styles.homeVedicOm}
-                            alt="Pranav.AI Logo"
-                        />
-                    </div>
+                    <h1 className={styles.title}>
+                        Pranav Samadhaan
+                    </h1>
                 </div>
-
-                <h1 className={styles.title}>
-                    Pranav Samadhaan
-                </h1>
 
                 {/* Looping Subheading */}
                 <LuminescentText delay={0.2} loop>
