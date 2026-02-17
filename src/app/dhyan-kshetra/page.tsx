@@ -486,7 +486,7 @@ export default function DhyanKakshaPage() {
         let effectiveDuration = 30000; // Default Video
         if (currentSlide?.type === 'image') effectiveDuration = 3000;
         if (currentSlide?.type === 'logo') {
-            effectiveDuration = isIntro ? 15000 : 7000; // 15s for intro, 7s for random
+            effectiveDuration = 15000; // 15s for both intro and random occurrences
         }
 
         console.log(`[Ambient] Timer set for ${effectiveDuration}ms (${currentSlide?.type}). Agnihotra Mode: ${isAgnihotra}`);
