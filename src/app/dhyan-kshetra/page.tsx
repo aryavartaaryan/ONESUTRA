@@ -83,8 +83,7 @@ export default function DhyanKakshaPage() {
         // Remaining Videos (All except Vishesh)
         const remainingVideos = [
             { type: "video", id: "v_rudri", src: "https://ik.imagekit.io/aup4wh6lq/Complete%20Rudri%20Path%20with%20Lyrics%20_%20Vedic%20Chanting%20by%2021%20Brahmins.mp4", title: "Rudri Path", titleHi: "रुद्री पाठ" },
-
-            { type: "video", id: "v_shanti_21", src: "https://ik.imagekit.io/aup4wh6lq/shanti-path.mp4", title: "Shanti Path (21 Brahmins)", titleHi: "शांति पाठ (21 ब्राह्मण)" },
+            // Shanti Path Video Removed - Replaced with Audio in Mantras below
             { type: "video", id: "v1", src: VIDEO_LIST[0], title: "Maheshvara Sutram", titleHi: "महेश्वर सूत्रम्", trimEnd: 4 },
             { type: "video", id: "v2", src: VIDEO_LIST[1], title: "Shiv Shakti Energy", titleHi: "शिव शक्ति ऊर्जा" },
             { type: "video", id: "v3", src: VIDEO_LIST[2], title: "Mahadev Nav Varsh", titleHi: "महादेव नव वर्ष" },
@@ -97,6 +96,8 @@ export default function DhyanKakshaPage() {
 
         // Remaining Mantras (Excluding Sahana, Lalitha, ShivaTandava, MahaMrityunjaya, Guidance)
         const remainingMantras = [
+            { type: "mantra", id: "shanti_path_audio", src: "https://ik.imagekit.io/rcsesr4xf/shanti-path.mp3", title: "Shanti Path (21 Brahmins)", titleHi: "शांति पाठ (21 ब्राह्मण)" },
+            { type: "mantra", id: "brahma_yagya_new", src: "https://ik.imagekit.io/rcsesr4xf/BrahmaYagya.mp3", title: "Brahma Yagya", titleHi: "ब्रह्मयज्ञ" },
             { type: "mantra", id: "gayatri_ghanpaath", src: "https://ik.imagekit.io/rcsesr4xf/gayatri-mantra-ghanpaath.mp3", title: "Gayatri Mantra (Ghanpaath)", titleHi: "गायत्री मंत्र (घनपाठ)" },
             { type: "mantra", id: "brahma-yagya", src: "https://ik.imagekit.io/aup4wh6lq/BrahmaYagyaKanya.mp3", title: "Brahma Yagya Kanya", titleHi: "ब्रह्मयज्ञ कन्या" },
             { type: "mantra", id: "shrisuktam", src: "/audio/Challakere_Brothers_vedic_chanting_-_Shri_suktam_(mp3.pm).mp3", title: "Shri Suktam", titleHi: "श्री सूक्तम्" },

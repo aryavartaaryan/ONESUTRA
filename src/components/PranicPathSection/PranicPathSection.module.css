@@ -64,16 +64,30 @@
 }
 
 /* --- TYPOGRAPHY --- */
+
 /* --- SACRED HERO VISUALS --- */
 .auroraContainer {
-    position: relative;
-    width: clamp(180px, 35vw, 280px);
-    height: clamp(180px, 35vw, 280px);
+    position: absolute;
+    /* Changed to absolute for background placement */
+    top: 45%;
+    /* Moved further down to clear heading */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    /* Centered behind text */
+    width: clamp(270px, 52vw, 420px);
+    /* 1.5x larger */
+    height: clamp(270px, 52vw, 420px);
+    /* 1.5x larger */
     display: flex;
     justify-content: center;
     align-items: center;
     margin-bottom: 0rem;
-    /* Removed negative margin to create a small gap */
+    z-index: 0;
+    /* Behind text */
+    pointer-events: none;
+    /* Let clicks pass through to text/buttons if needed */
+    opacity: 0.4;
+    /* Stronger fade for true background effect */
 }
 
 .auroraContainer::before {
@@ -141,6 +155,16 @@
     animation: gentleRotate 60s linear infinite;
     pointer-events: none;
     filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.3));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.rotatingBackgroundYantra .homeVedicOm {
+    width: 100%;
+    height: 100%;
+    animation: none;
+    /* Disable blinking for the rotating background */
 }
 
 @keyframes gentleRotate {
@@ -157,9 +181,10 @@
 /* --- DIVINE CIRCUITRY HALO (Ported from Dhyan Kshetra) --- */
 .iconSurround {
     position: relative;
-    width: clamp(160px, 25vw, 260px);
-    /* Slightly smaller than Dhyan Kshetra for Home Hero balance */
-    height: clamp(160px, 25vw, 260px);
+    width: clamp(240px, 37vw, 390px);
+    /* 1.5x larger */
+    height: clamp(240px, 37vw, 390px);
+    /* 1.5x larger */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -188,7 +213,8 @@
     inset: -5px;
     border-radius: 50%;
     background: conic-gradient(from 0deg, transparent 0%, rgba(212, 175, 55, 0.4) 20%, transparent 40%);
-    animation: spinHalo 10s linear infinite;
+    /* animation: spinHalo 10s linear infinite; */
+    /* Disabled rotation on central icon */
     z-index: -1;
 }
 
@@ -246,10 +272,15 @@
 }
 
 .title {
+    position: relative;
+    /* Ensure it stays above the absolute background icon */
+    z-index: 5;
+    /* Higher than icon */
     font-family: var(--font-header), serif;
     font-size: clamp(2.5rem, 8vw, 4.5rem);
     font-weight: 700;
-    margin-top: 0.5rem;
+    margin-top: 2rem;
+    /* Increased to push down from top edge */
     background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FFD700 100%);
     -webkit-background-clip: text;
     background-clip: text;
@@ -259,6 +290,11 @@
 }
 
 .bodyText {
+    position: relative;
+    z-index: 5;
+    /* Ensure it stays above */
+    margin-top: 2rem;
+    /* Add margin to push text down from heading */
     font-size: 1.25rem;
     line-height: 1.8;
     color: rgba(245, 245, 220, 0.9);
@@ -279,7 +315,13 @@
 
 /* --- GEMSTONE BUTTON --- */
 .stoneSealButton {
-    margin-top: 0.5rem;
+    position: relative;
+    /* Ensure it stays above */
+    z-index: 5;
+    margin-top: 4rem;
+    /* Increased further for separation */
+    /* Adjusted to balance with text margin */
+    /* Increased significantly to move it down */
     padding: 1.2rem 3.5rem;
     font-family: var(--font-rozha), serif;
     font-size: 1.4rem;
@@ -295,7 +337,6 @@
     border-radius: 8px;
     /* More elegant rectangular-soft look */
     cursor: pointer;
-    position: relative;
     overflow: hidden;
     transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
     letter-spacing: 0.5px;
@@ -341,7 +382,10 @@
 
 /* --- BRANDING FOOTER --- */
 .brandingFooter {
-    margin-top: 1rem;
+    position: relative;
+    z-index: 5;
+    margin-top: 3rem;
+    /* Increased spacing */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -394,9 +438,9 @@
     }
 
     .auroraContainer {
-        width: 300px;
-        height: 300px;
-        margin-bottom: 0;
+        /* Already handled by clamp, but can refine if needed */
+        /* width: 450px;
+        height: 450px; */
     }
 }
 

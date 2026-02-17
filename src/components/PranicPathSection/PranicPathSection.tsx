@@ -225,6 +225,7 @@ export default function PranicPathSection() {
                     <SriYantraSVG />
                 </motion.div>
 
+                {/* Pranav.AI Icon - background of the heading */}
                 <div className={styles.auroraContainer}>
                     {/* Background Rotating Sri Yantra */}
                     <div className={styles.rotatingBackgroundYantra}>

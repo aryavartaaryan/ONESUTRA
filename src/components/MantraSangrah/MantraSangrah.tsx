@@ -159,12 +159,20 @@ const INITIAL_PLAYLIST: Track[] = [
     },
 
     {
-        id: 'v_shanti_21',
+        id: 'shanti_path_audio', // Changed ID to reflect audio
         title: 'Shanti Path (21 Brahmins)',
         titleHi: 'शांति पाठ (21 ब्राह्मण)',
-        src: 'https://ik.imagekit.io/aup4wh6lq/shanti-path.mp4',
+        src: 'https://ik.imagekit.io/rcsesr4xf/shanti-path.mp3',
         startTime: 0,
-        type: 'video'
+        type: 'mantra'
+    },
+    {
+        id: 'brahma_yagya_new',
+        title: 'Brahma Yagya',
+        titleHi: 'ब्रह्मयज्ञ',
+        src: 'https://ik.imagekit.io/rcsesr4xf/BrahmaYagya.mp3',
+        startTime: 0,
+        type: 'mantra'
     },
     {
         id: 'v_vishesh',
