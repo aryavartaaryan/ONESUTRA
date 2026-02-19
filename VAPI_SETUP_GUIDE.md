@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-Before using the voice call feature, you need to set up a Vapi.ai account and configure your assistant.
+Before using the voice call feature, you need to set up a Vapi.ai account  and configure your assistant.
 
 ## Step 1: Create Vapi.ai Account
 
