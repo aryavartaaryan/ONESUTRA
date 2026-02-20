@@ -1001,7 +1001,7 @@ export default function DhyanKakshaPage() {
                                 setIsSessionPaused(!isSessionPaused);
                             }
                         }}
-                        onToggleMute={() => setIsMuted(!isMuted)}
+
                         onNext={goNext}
                         onPrevious={goPrevious}
                         onSeek={(time) => {
