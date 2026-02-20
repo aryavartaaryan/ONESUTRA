@@ -40,7 +40,7 @@ const INITIAL_PLAYLIST: Track[] = [
         id: 'shiva-tandava',
         title: 'Shiva Tandava Stotram',
         titleHi: 'शिव तांडव स्तोत्रम्',
-        src: '/audio/Shiva Tandava Stotram (All 18 Slokas)  Vande Guru Paramparaam  \'Shiva-Bhakta\' Ravana.mp3',
+        src: 'https://ik.imagekit.io/rcsesr4xf/Shiva-Tandav.mp3',
         startTime: 0,
         type: 'mantra'
     },
@@ -288,6 +288,8 @@ interface MantraSangrahProps {
     onTrackSelect?: (track: Track) => void; // Delegate control
     volume?: number;
     onVolumeChange?: (vol: number) => void;
+    isOpen?: boolean;
+    setIsOpen?: (open: boolean) => void;
 }
 
 // Helper to get Hindi title
@@ -334,6 +336,8 @@ const getHindiTitle = (filename: string): string => {
 export default function MantraSangrah({
     lang: langProp,
     activeTrack, // NEW input
+    isOpen: isOpenProp,
+    setIsOpen: setIsOpenProp,
     onTrackEnded,
     externalPlaylist,
     currentIndex,
@@ -352,8 +356,13 @@ export default function MantraSangrah({
     onTrackSelect,
     volume: volumeProp,
     onVolumeChange: onVolumeChangeProp
-}: MantraSangrahProps) {
-    const [isOpen, setIsOpen] = useState(false);
+}: MantraSangrahProps & { isOpen?: boolean; setIsOpen?: (open: boolean) => void }) {
+    const [localIsOpen, setLocalIsOpen] = useState(false);
+
+    // Support both lifted and local state
+    const isOpen = isOpenProp !== undefined ? isOpenProp : localIsOpen;
+    const setIsOpen = setIsOpenProp !== undefined ? setIsOpenProp : setLocalIsOpen;
+
     const [playlist, setPlaylist] = useState<Track[]>(INITIAL_PLAYLIST);
 
     const [isPlaying, setIsPlaying] = useState(false);
@@ -645,33 +654,25 @@ export default function MantraSangrah({
                                     className={`${styles.trackItem} ${isActive ? styles.activeTrack : ''}`}
                                     onClick={() => selectTrack(track)}
                                 >
-                                    <div className={styles.trackInfo}>
-                                        <div className={styles.trackIcon}>
-                                            {isActive && isPlaying ? (
+                                    <div className={styles.trackIcon}>
+                                        {isActive && isPlaying ? (
+                                            <div className={styles.playingOverlay}>
                                                 <span className={styles.playingIndicator}>
                                                     <span className={styles.bar}></span>
                                                     <span className={styles.bar}></span>
                                                     <span className={styles.bar}></span>
                                                 </span>
-                                            ) : (
-                                                <Flower2 size={18} />
-                                            )}
-                                        </div>
-                                        <div className={styles.trackDetails}>
-                                            <span className={styles.trackTitle}>
-                                                {lang === 'hi' ? (track.titleHi || track.title) : track.title}
-                                            </span>
-                                        </div>
+                                                <Pause size={20} className={styles.playPauseIcon} />
+                                            </div>
+                                        ) : (
+                                            <Play size={20} className={styles.playPauseIcon} />
+                                        )}
                                     </div>
-                                    <button
-                                        className={styles.playBtn}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            selectTrack(track);
-                                        }}
-                                    >
-                                        {isPlayingCalculated ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
-                                    </button>
+                                    <div className={styles.trackDetails}>
+                                        <span className={styles.trackTitle}>
+                                            {lang === 'hi' ? (track.titleHi || track.title) : track.title}
+                                        </span>
+                                    </div>
                                 </div>
                             );
                         })}
@@ -685,7 +686,7 @@ export default function MantraSangrah({
                     <div className={styles.trackList}>
                         {playlist.filter(t => t.type === 'video').map((track) => {
                             const isActive = activeTrack?.id === track.id;
-                            const isPlayingCalculated = isActive && isPlaying; // Or sessionActive? Video logic is handled by selectTrack -> parent
+                            const isPlayingCalculated = isActive && isPlaying;
 
                             return (
                                 <div
@@ -693,109 +694,32 @@ export default function MantraSangrah({
                                     className={`${styles.trackItem} ${isActive ? styles.activeTrack : ''}`}
                                     onClick={() => selectTrack(track)}
                                 >
-                                    <div className={styles.trackInfo}>
-                                        <div className={styles.trackIcon}>
-                                            {isActive && isPlayingCalculated ? ( // visual feedback might need tuning for video
+                                    <div className={styles.trackIcon}>
+                                        {isActive && isPlayingCalculated ? (
+                                            <div className={styles.playingOverlay}>
                                                 <span className={styles.playingIndicator}>
                                                     <span className={styles.bar}></span>
                                                     <span className={styles.bar}></span>
                                                     <span className={styles.bar}></span>
                                                 </span>
-                                            ) : (
-                                                <Play size={18} />
-                                            )}
-                                        </div>
-                                        <div className={styles.trackDetails}>
-                                            <span className={styles.trackTitle}>
-                                                {lang === 'hi' ? (track.titleHi || track.title) : track.title}
-                                            </span>
-                                        </div>
+                                                <Pause size={20} className={styles.playPauseIcon} />
+                                            </div>
+                                        ) : (
+                                            <Play size={20} className={styles.playPauseIcon} />
+                                        )}
                                     </div>
-                                    <button
-                                        className={styles.playBtn}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            selectTrack(track);
-                                        }}
-                                    >
-                                        {/* Video play state might be different, but using consistent UI */}
-                                        <Play size={18} fill="currentColor" />
-                                    </button>
+                                    <div className={styles.trackDetails}>
+                                        <span className={styles.trackTitle}>
+                                            {lang === 'hi' ? (track.titleHi || track.title) : track.title}
+                                        </span>
+                                    </div>
                                 </div>
                             );
                         })}
                     </div>
                 </div>
 
-                {/* Unified Media Controls - Compact Mini Player - Pinned to Bottom of Panel */}
-                {(activeTrack || (externalPlaylist && currentIndex !== undefined)) && (
-                    <div className={styles.controls}>
-                        {/* Compact Layout: [PlayBtn] [Title+Progress] [Time] */}
-
-                        {/* Derive current display item from either library track or sequence index */}
-                        {(() => {
-                            // ... (existing logic to determine activeItem) ...
-                            // PRIORITIZE external playlist (the meditation sequence) if it exists and current index is valid
-                            const isSequenceActive = !!externalPlaylist && currentIndex !== undefined;
-                            const sequenceItem = isSequenceActive ? externalPlaylist[currentIndex] : null;
-
-                            // An item is from "sequence" if no library track is playing OR if the sequence item is a video
-                            // (Videos MUST use sequence controls)
-                            const useSequenceControls = isSequenceActive && (!activeTrack || sequenceItem?.type === 'video');
-
-                            const activeItem = useSequenceControls ? sequenceItem : activeTrack;
-                            const isVideo = activeItem?.type === 'video';
-
-                            // Control State - Use ACTUAL playback state
-                            const currentlyPlaying = isVideo
-                                ? sessionActive
-                                : isPlaying; // Use actual audio isPlaying state
-
-                            // UI Values
-                            const displayProgress = isVideo ? (videoProgress || 0) : progress;
-                            const displayTime = isVideo ? (videoTime || 0) : (audioRef.current?.currentTime || 0);
-
-                            return (
-                                <LightweightPlayer
-                                    lang={lang}
-                                    title={activeItem?.title || ''}
-                                    titleHi={activeItem?.titleHi || ''}
-                                    type={activeItem?.type as any || 'mantra'}
-                                    isPlaying={currentlyPlaying}
-                                    isMuted={isMuted}
-                                    volume={volume} // NEW PROP
-                                    onVolumeChange={handleVolumeChange} // UPDATED PROP
-                                    progress={displayProgress}
-                                    currentTime={displayTime}
-                                    duration={isVideo ? (videoDuration || 0) : duration}
-                                    onTogglePlay={isVideo ? (onVideoToggle || (() => { })) : togglePlayPause}
-                                    onToggleMute={toggleMute}
-                                    onNext={() => {
-                                        // If using external playlist control, use that.
-                                        if (isSequenceActive && externalPlaylist && currentIndex !== undefined) {
-                                            const nextIdx = (currentIndex + 1) % externalPlaylist.length;
-                                            onSelectIndex?.(nextIdx);
-                                        }
-                                    }}
-                                    onPrevious={() => {
-                                        if (isSequenceActive && externalPlaylist && currentIndex !== undefined) {
-                                            let prevIdx = currentIndex - 1;
-                                            if (prevIdx < 0) prevIdx = externalPlaylist.length - 1;
-                                            onSelectIndex?.(prevIdx);
-                                        }
-                                    }}
-                                    onSeek={(time) => {
-                                        if (isVideo) {
-                                            onVideoSeek?.(time);
-                                        } else {
-                                            if (audioRef.current) audioRef.current.currentTime = time;
-                                        }
-                                    }}
-                                />
-                            );
-                        })()}
-                    </div>
-                )}
+                {/* Unified Media Controls - REMOVED - Now in Main Dashboard */}
 
                 <div className={styles.footer}>
                     <span>🙏 ॐ शान्ति शान्ति शान्ति 🙏</span>

@@ -47,6 +47,7 @@ export default function DhyanKakshaPage() {
     const [manualTrack, setManualTrack] = useState<any>(null); // NEW: For library/manual selections
     const [userName, setUserName] = useState(""); // NEW: User Name State
     const [volume, setVolume] = useState(1); // Global Volume State (0 to 1)
+    const [isMantraMenuOpen, setIsMantraMenuOpen] = useState(false); // Lifted State
 
     const sequentialVideoRef = React.useRef<HTMLVideoElement>(null);
 
@@ -64,7 +65,7 @@ export default function DhyanKakshaPage() {
             { type: "mantra", id: "guidance", src: "/audio/Guidance.wav", title: "Guidance", titleHi: "आज्ञा और मार्गदर्शन" },
             { type: "mantra", id: "sahana", src: "/audio/Om_Sahana_Vavatu_Shanti_Mantra.mp3", title: "Guru Shishya Mantra", titleHi: "गुरु शिष्य मंत्र" },
             { type: "mantra", id: "lalitha", src: "/audio/Lalitha_Sahasranamam.mp3", title: "Lalitha Sahasranamam", titleHi: "ललिता सहस्रनाम" },
-            { type: "mantra", id: "shiva-tandava", src: "/audio/Shiva Tandava Stotram (All 18 Slokas)  Vande Guru Paramparaam  'Shiva-Bhakta' Ravana.mp3", title: "Shiva Tandava Stotram", titleHi: "शिव तांडव स्तोत्रम्" },
+            { type: "mantra", id: "shiva-tandava", src: "https://ik.imagekit.io/rcsesr4xf/Shiva-Tandav.mp3", title: "Shiva Tandava Stotram", titleHi: "शिव तांडव स्तोत्रम्" },
             {
                 type: "video",
                 id: 'v_vishesh',
@@ -308,41 +309,17 @@ export default function DhyanKakshaPage() {
     // --- SMART STRATEGY: Hybrid Loading & Playlist Queue ---
 
     // 1. Hardcoded Fallback List (Fail-Safe)
-    const AMBIENT_VIDEOS = [
-        "/Slide%20Videos/Dhyan10.mp4",
-        "/Slide%20Videos/Dhyan11.mp4",
-        "/Slide%20Videos/Dhyan2.mp4",
-        "/Slide%20Videos/Dhyan4.mp4",
-        "/Slide%20Videos/Dhyan5.mp4",
-        "/Slide%20Videos/Dhyan7.mp4",
-        "/Slide%20Videos/kailash2.mp4",
-        "/Slide%20Videos/SaveClip.App_AQNNfA3VTBjMRS0DKZ2tv3-vhevWxwrMPZKhPI1H9xoLpaHrHIJx3ci5R1abFzFby8aZYL9-YQ5vxtaHUmwHUzuh.mp4",
-        "/Slide%20Videos/SaveClip.App_AQO00LBqdJg_L4Nm4P8HiJPBZYaOlGFEgj32vsgzjb3hcuQ0xDkNYBSDdt7nymEfx9ATsU9C-A_Dcr0eSO5ZVDT0g9jiaWlZ3OpxDAI.mp4",
-        "/Slide%20Videos/SaveClip.App_AQP8N4Skw0SXoFQ7nc9oyvI7KrnvzlivBE6xiEhoNFv-pNRCjmdED51KsXE3jxoDmGBwhbCCd-jS16GMLLWwlHBi.mp4",
-        "/Slide%20Videos/SaveClip.App_AQP9f7S1Rp42JmgD6FCdl2L7_ym9OeWZ8FJt6Qc0fjXcyoCNqU6QxXZzLiTjT-5v2-16R1mzx0VAsRzyVhf-vfybov5XARoPy6RCRP4.mp4",
-        "/Slide%20Videos/%F0%9F%94%B1%20%E0%A4%B6%E0%A5%8D%E0%A4%B0%E0%A5%80%20%E0%A4%AF%E0%A4%82%E0%A4%A4%E0%A5%8D%E0%A4%B0%20%E2%80%94%20%E0%A4%B8%E0%A4%BF%E0%A4%B0%E0%A5%8D%E0%A4%AB%20%E0%A4%8F%E0%A4%95%20%E0%A4%AA%E0%A5%8D%E0%A4%B0%E0%A4%A4%E0%A5%80%E0%A4%95%20%E0%A4%A8%E0%A4%B9%E0%A5%80%E0%A4%82%E2%80%A6%E0%A4%AF%E0%A5%87%20%E0%A4%B9%E0%A5%88%20%E0%A4%9A%E0%A5%87%E0%A4%A4%E0%A4%A8%E0%A4%BE%20%E0%A4%95%E0%A4%BE%20Blueprint%E0%A5%A44%20%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%BF%E0%A4%95%E0%A5%8B%E0%A4%A3%20%E2%80%94%20%E0%A4%B6%E0%A4%95%E0%A5%8D%E0%A4%A4%E0%A4%BF%E0%A5%A4.mp4"
-    ];
-
     // 2. Playlist Queue State
     const playlistQueue = React.useRef<{ src: string, type: 'video' | 'image' | 'logo' }[]>([]);
 
-    // 3. Generator: Create a balanced batch (e.g. 4 Videos + 1 Logo)
-    const generatePlaylistBatch = (slides: { src: string, type: 'video' | 'image' | 'logo' }[]) => {
-        const videos = slides.filter(s => s.type === 'video' || s.type === 'image'); // Treat images as content
-        const logo = slides.find(s => s.type === 'logo');
+    // 3. Generator: Create a shuffled queue of all available content
+    const generateFullPlaylistQueue = (slides: { src: string, type: 'video' | 'image' | 'logo' }[]) => {
+        const content = slides.filter(s => s.type === 'video' || s.type === 'image');
 
-        if (videos.length === 0) return []; // Should not happen with fallback
+        if (content.length === 0) return [];
 
-        // Shuffle videos
-        const shuffled = [...videos].sort(() => Math.random() - 0.5);
-
-        // Take up to 4 videos
-        const batch = shuffled.slice(0, 4);
-
-        // Add Logo if available (Pattern: V, V, V, V, Logo)
-        if (logo) batch.push(logo);
-
-        return batch;
+        // Shuffle all available content
+        return [...content].sort(() => Math.random() - 0.5);
     };
 
     // Fetch Media on Mount
@@ -411,21 +388,40 @@ export default function DhyanKakshaPage() {
                     combined = [...combined, ...images];
                 }
 
-                // 3. Add Pranav.AI Logo Slide (Divine Circuitry Halo)
-                combined.push({ src: "/images/pranav_logo.png", type: 'logo' });
+                // AI Safeguard: Ensure we have at least SOME content if API fails
+                if (combined.length === 0) {
+                    combined = [
+                        { src: "/images/meditation-bg.png", type: 'image' },
+                        { src: "/divine_om_bg.png", type: 'image' }
+                    ];
+                }
+
+                // 3. Pranav.AI Logo Slide (Handled separately for start only)
+                const logoSlide = { src: "/images/pranav_logo.png", type: 'logo' as const };
 
                 console.log(`[Ambient] Final combined slides count: ${combined.length}`, combined);
                 setAmbientSlides(combined);
 
-                // Initial Slide: Force Pranav.AI Logo Slide at the start
-                if (combined.length > 0) {
-                    const logoSlide = combined.find(s => s.type === 'logo') || combined[0];
-                    const animationIndex = Math.floor(Math.random() * 4) + 1;
-                    setCurrentSlideA({ ...logoSlide, animationIndex });
-                    setActiveBuffer('A');
+                // Initial Slide: Force Pranav.AI Logo Slide at the start ONLY
+                const animationIndex = Math.floor(Math.random() * 4) + 1;
+                setCurrentSlideA({ ...logoSlide, animationIndex });
+                setActiveBuffer('A');
+
+                // Pre-fill next buffer immediately
+                const batch = [...combined].sort(() => Math.random() - 0.5);
+                playlistQueue.current = batch;
+                const nextSlide = playlistQueue.current.shift();
+                if (nextSlide) {
+                    const start = nextSlide.type === 'video' ? Math.floor(Math.random() * 4) * 15 : undefined;
+                    const nextAnim = Math.floor(Math.random() * 4) + 1;
+                    setCurrentSlideB({ ...nextSlide, start, animationIndex: nextAnim });
                 }
             } catch (error) {
                 console.error("Failed to fetch media:", error);
+                // Fail-safe initialization
+                const logoSlide = { src: "/images/pranav_logo.png", type: 'logo' as const };
+                setCurrentSlideA({ ...logoSlide, animationIndex: 1 });
+                setActiveBuffer('A');
             }
         };
 
@@ -438,17 +434,16 @@ export default function DhyanKakshaPage() {
 
         // If Queue is empty, generate new balanced batch
         if (playlistQueue.current.length === 0) {
-            console.log("[Ambient] Queue empty. Generating new balanced batch...");
-            // Filter pool based on session if needed (optional, keeping simple for now)
+            console.log("[Ambient] Queue empty. Replenishing with all available content...");
             let pool = ambientSlides;
             if (isAgnihotraSession) {
-                const imgPool = ambientSlides.filter(s => s.type === 'image' || s.type === 'logo');
-                if (imgPool.length > 1) pool = imgPool;
+                const imgPool = ambientSlides.filter(s => s.type === 'image');
+                if (imgPool.length > 0) pool = imgPool;
             }
 
-            const batch = generatePlaylistBatch(pool);
+            const batch = generateFullPlaylistQueue(pool);
             playlistQueue.current = batch;
-            console.log("[Ambient] New Queue:", batch.map(s => s.type));
+            console.log(`[Ambient] New Queue Size: ${batch.length}`);
         }
 
         // Pop next slide from queue
@@ -487,7 +482,7 @@ export default function DhyanKakshaPage() {
         let effectiveDuration = 30000; // Default Video
         if (currentSlide?.type === 'image') effectiveDuration = 3000;
         if (currentSlide?.type === 'logo') {
-            effectiveDuration = 15000; // 15s for both intro and random occurrences
+            effectiveDuration = 11000; // 11s for the starting logo animation
         }
 
         console.log(`[Ambient] Timer set for ${effectiveDuration}ms (${currentSlide?.type}). Agnihotra Mode: ${isAgnihotra}`);
@@ -736,6 +731,8 @@ export default function DhyanKakshaPage() {
             {/* Mantra Sangrah - Divine Audio Player */}
             <MantraSangrah
                 lang={lang}
+                isOpen={isMantraMenuOpen}
+                setIsOpen={setIsMantraMenuOpen}
                 // UNIFIED CONTROLLER:
                 // Only play if activeItem is a mantra AND the main loop has started.
                 activeTrack={startBackgroundLoop && activeItem && (activeItem.type === 'mantra' || !activeItem.type) ? activeItem : null}
@@ -873,127 +870,81 @@ export default function DhyanKakshaPage() {
                 )
             }
 
-            {/* LAYER 2: Ambient Background Loop (During Mantras) - A/B Double Buffering */}
-            {
-                startBackgroundLoop && currentItem.type === 'mantra' && (
-                    <div
-                        style={{
-                            position: 'absolute',
-                            inset: 0,
-                            zIndex: 0,
-                            backgroundColor: '#000',
-                            overflow: 'hidden'
-                        }}
-                    >
-                        {/* Buffer A - Media Display */}
-                        {currentSlideA && (
-                            currentSlideA.type === 'video' ? (
+            {/* AMBIENT SLIDE LAYERS (Double Buffered) */}
+            {startBackgroundLoop && currentItem.type === 'mantra' && (
+                <div style={{ position: 'absolute', inset: 0, zIndex: 1, backgroundColor: '#020810' }}>
+                    {/* Fixed Fallback Background to prevent black screen */}
+                    <img
+                        src="/images/meditation-bg.png"
+                        style={{ ...ambientLayerStyle, opacity: 1, zIndex: 0 }}
+                        alt="Background Fallback"
+                    />
+
+                    {/* Buffer A */}
+                    {currentSlideA && (
+                        <div style={{ ...ambientLayerStyle, opacity: activeBuffer === 'A' ? 1 : 0, zIndex: 2 }}>
+                            {currentSlideA.type === 'video' ? (
                                 <video
                                     ref={videoRefA}
-                                    autoPlay
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                     muted
                                     playsInline
-                                    onCanPlayThrough={() => activeBuffer === 'B' && setActiveBuffer('A')}
-                                    onEnded={() => activeBuffer === 'A' && pickRandomSlide(isAgnihotra)}
-                                    style={{
-                                        ...ambientLayerStyle,
-                                        opacity: activeBuffer === 'A' ? 1 : 0,
-                                        zIndex: activeBuffer === 'A' ? 2 : 1
+                                    loop
+                                    onError={() => {
+                                        console.warn("[Ambient] Video A failed, skipping...");
+                                        pickRandomSlide();
                                     }}
                                 />
                             ) : currentSlideA.type === 'logo' ? (
-                                <div
-                                    style={{
-                                        position: 'absolute',
-                                        inset: 0,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        opacity: activeBuffer === 'A' ? 1 : 0,
-                                        transition: 'opacity 1.5s ease-in-out',
-                                        zIndex: activeBuffer === 'A' ? 2 : 1,
-                                        background: 'radial-gradient(circle at 50% 50%, #050d1a 0%, #020810 100%)'
-                                    }}
-                                >
-                                    <div className={`${pageStyles.iconSurround} ${pageStyles.logoMovement}`}>
-                                        <img
-                                            src={currentSlideA.src}
-                                            alt="Pranav.AI"
-                                            className={pageStyles.entryOm}
-                                        />
+                                <div className={pageStyles.logoMovement}>
+                                    <div className={pageStyles.iconSurround}>
+                                        <img src={currentSlideA.src} className={pageStyles.entryOm} alt="Pranav.AI" />
                                     </div>
                                 </div>
                             ) : (
                                 <img
                                     src={currentSlideA.src}
-                                    alt="Atmosphere"
-                                    onLoad={() => { /* No-op, managed by timer */ }}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                     className={pageStyles[`ambientCinematic${currentSlideA.animationIndex || 1}`]}
-                                    style={{
-                                        ...ambientLayerStyle,
-                                        objectFit: 'cover',
-                                        opacity: activeBuffer === 'A' ? 1 : 0,
-                                        zIndex: activeBuffer === 'A' ? 2 : 1
-                                    }}
+                                    alt="Ambient image"
                                 />
-                            )
-                        )}
+                            )}
+                        </div>
+                    )}
 
-                        {/* Buffer B - Media Display */}
-                        {currentSlideB && (
-                            currentSlideB.type === 'video' ? (
+                    {/* Buffer B */}
+                    {currentSlideB && (
+                        <div style={{ ...ambientLayerStyle, opacity: activeBuffer === 'B' ? 1 : 0, zIndex: 2 }}>
+                            {currentSlideB.type === 'video' ? (
                                 <video
                                     ref={videoRefB}
-                                    autoPlay
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                     muted
                                     playsInline
-                                    // onCanPlayThrough is fine but let's trust the timer mostly now
-                                    style={{
-                                        ...ambientLayerStyle,
-                                        opacity: activeBuffer === 'B' ? 1 : 0,
-                                        zIndex: activeBuffer === 'B' ? 2 : 1
+                                    loop
+                                    onError={() => {
+                                        console.warn("[Ambient] Video B failed, skipping...");
+                                        pickRandomSlide();
                                     }}
                                 />
                             ) : currentSlideB.type === 'logo' ? (
-                                <div
-                                    style={{
-                                        position: 'absolute',
-                                        inset: 0,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        opacity: activeBuffer === 'B' ? 1 : 0,
-                                        transition: 'opacity 1.5s ease-in-out',
-                                        zIndex: activeBuffer === 'B' ? 2 : 1,
-                                        background: 'radial-gradient(circle at 50% 50%, #050d1a 0%, #020810 100%)'
-                                    }}
-                                >
-                                    <div className={`${pageStyles.iconSurround} ${pageStyles.logoMovement}`}>
-                                        <img
-                                            src={currentSlideB.src}
-                                            alt="Pranav.AI"
-                                            className={pageStyles.entryOm}
-                                        />
+                                <div className={pageStyles.logoMovement}>
+                                    <div className={pageStyles.iconSurround}>
+                                        <img src={currentSlideB.src} className={pageStyles.entryOm} alt="Pranav.AI" />
                                     </div>
                                 </div>
                             ) : (
                                 <img
                                     src={currentSlideB.src}
-                                    alt="Atmosphere"
-                                    onLoad={() => { /* No-op */ }}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                     className={pageStyles[`ambientCinematic${currentSlideB.animationIndex || 1}`]}
-                                    style={{
-                                        ...ambientLayerStyle,
-                                        objectFit: 'cover',
-                                        opacity: activeBuffer === 'B' ? 1 : 0,
-                                        zIndex: activeBuffer === 'B' ? 2 : 1
-                                    }}
+                                    alt="Ambient image"
                                 />
-                            )
-                        )}
-                    </div>
-                )
-            }
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Dark Overlay REMOVED for brightness */}
             {/* <div style={{...}} /> */}
@@ -1023,70 +974,46 @@ export default function DhyanKakshaPage() {
 
             </div>
 
-            {/* SESSION DASHBOARD (Unified Up Next - Restored to Top Alignment) */}
-            {/* MOVED OUT OF VIDEO CONTAINER TO SHOW FOR AUDIO TOO */}
-            {
-                !showIntro && startBackgroundLoop && (
-                    <div className={pageStyles.sessionDashboard}>
-                        <div className={pageStyles.dashboardPill}>
-                            {/* Up Next Only - Show ONLY if playing from Sequence (no active manual mantra) */}
-                            {!manualTrack && (
-                                <>
-                                    <div className={pageStyles.dashboardHeader}>
-                                        <Sparkles size={14} className={pageStyles.nextIcon} />
-                                        <span>{lang === 'hi' ? 'अगला अनुभव' : 'Up Next'}</span>
-                                    </div>
-                                    <div className={pageStyles.dashboardTitle}>
-                                        {(() => {
-                                            let nextIdx = (currentIndex + 1) % playlist.length;
-                                            // Skip Guidance
-                                            if (nextIdx === 0 && playlist.length > 1) nextIdx = 1;
-
-                                            let nextItem = playlist[nextIdx];
-
-
-
-                                            return (
-                                                <>
-                                                    <span className={pageStyles.nextTypeIcon} style={{ marginRight: '8px' }}>
-                                                        {nextItem.type === 'video' ? '📽️' : '🎵'}
-                                                    </span>
-                                                    {lang === 'hi' ? nextItem.titleHi : nextItem.title}
-                                                </>
-                                            );
-                                        })()}
-                                    </div>
-                                </>
-                            )}
-
-                            {/* शेष (Remaining Time) - Show for ALL tracks now as per user request */}
-                            {(() => {
-                                // Prioritize Active Mantra (Manual Selection) if present
-                                const targetItem = activeMantra || currentItem;
-                                const isVideo = targetItem.type === 'video';
-
-                                // Use audioTime/Duration if activeMantra is playing (even if currentItem is video, it's paused)
-                                const cur = (activeMantra || !isVideo) ? audioTime : videoTime;
-                                const dur = (activeMantra || !isVideo) ? audioDuration : videoDuration;
-
-                                if (targetItem.id === 'guidance') return null;
-
-                                const remaining = dur ? Math.max(0, dur - cur) : 0;
-
-                                return (
-                                    <div className={pageStyles.dashboardShesh}>
-                                        <span>{lang === 'hi' ? 'शेष' : 'Remaining'}</span>
-                                        <span className={pageStyles.sheshTime}>
-                                            {dur ? formatTime(remaining) : '--:--'}
-                                        </span>
-                                    </div>
-                                );
-                            })()}
-                        </div>
-
-                    </div>
-                )
-            }
+            {/* UNIFIED SESSION PLAYER (Replaces Old Dashboard) */}
+            {!showIntro && startBackgroundLoop && (
+                <div className={pageStyles.sessionDashboard}>
+                    <LightweightPlayer
+                        lang={lang}
+                        title={currentItem.title || ''}
+                        titleHi={currentItem.titleHi || ''}
+                        type={currentItem.type as any || 'mantra'}
+                        isPlaying={currentItem.type === 'video' ? (!isSessionPaused && !isMantraPlaying) : isMantraPlaying}
+                        progress={currentItem.type === 'video' ? videoProgress : (audioDuration ? (audioTime / audioDuration) * 100 : 0)}
+                        currentTime={currentItem.type === 'video' ? videoTime : audioTime}
+                        duration={currentItem.type === 'video' ? videoDuration : audioDuration}
+                        onTogglePlay={() => {
+                            if (currentItem.type === 'video') {
+                                if (sequentialVideoRef.current) {
+                                    if (isSessionPaused) {
+                                        sequentialVideoRef.current.play().catch(() => { });
+                                        setIsSessionPaused(false);
+                                    } else {
+                                        sequentialVideoRef.current.pause();
+                                        setIsSessionPaused(true);
+                                    }
+                                }
+                            } else {
+                                setIsSessionPaused(!isSessionPaused);
+                            }
+                        }}
+                        onToggleMute={() => setIsMuted(!isMuted)}
+                        onNext={goNext}
+                        onPrevious={goPrevious}
+                        onSeek={(time) => {
+                            if (currentItem.type === 'video') {
+                                if (sequentialVideoRef.current) sequentialVideoRef.current.currentTime = time;
+                            } else {
+                                setAudioTime(time);
+                            }
+                        }}
+                    />
+                </div>
+            )}
 
         </main >
     );

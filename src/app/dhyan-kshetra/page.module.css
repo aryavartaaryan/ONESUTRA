@@ -121,8 +121,8 @@
     }
 
     .sriYantraContainer {
-        bottom: 190px !important;
-        /* Lifted more on mobile to maintain 90px gap with dashboard */
+        bottom: 225px !important;
+        /* Balanced mobile position to maintain a small gap with the dashboard player */
         margin-top: 0 !important;
         width: 100% !important;
         display: flex !important;
@@ -157,8 +157,8 @@
 
 .sriYantraContainer {
     position: absolute;
-    bottom: 160px;
-    /* Lifted to target 90px gap with dashboard at 70px */
+    bottom: 235px;
+    /* Lifted further to ensure small margin from media player */
     left: 50%;
     transform: translateX(-50%);
     width: clamp(220px, 50vw, 360px);
@@ -179,13 +179,13 @@
     0%,
     100% {
         opacity: 0.9;
-        filter: drop-shadow(0 0 35px rgba(212, 175, 55, 0.75)) drop-shadow(0 0 70px rgba(255, 255, 255, 0.7)) brightness(1);
+        filter: drop-shadow(0 0 70px rgba(212, 175, 55, 0.75)) drop-shadow(0 0 140px rgba(255, 255, 255, 0.7)) brightness(1.2);
         transform: translateX(-50%) scale(1);
     }
 
     50% {
         opacity: 1;
-        filter: drop-shadow(0 0 100px rgba(255, 255, 255, 1)) drop-shadow(0 0 180px rgba(212, 175, 55, 1)) brightness(4.6);
+        filter: drop-shadow(0 0 200px rgba(255, 255, 255, 1)) drop-shadow(0 0 360px rgba(212, 175, 55, 1)) brightness(9.2);
         transform: translateX(-50%) scale(1.18);
     }
 }
@@ -720,9 +720,9 @@
 .iconSurround {
     position: relative;
     width: clamp(328px, 58vw, 600px);
-    /* Reduced by 20% from previous enlargement */
+    /* Reduced by half from 2x enlargement */
     height: clamp(328px, 58vw, 600px);
-    /* Reduced by 20% */
+    /* Reduced by half */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -736,9 +736,9 @@
         /* Outer Golden Circuitry Glow */
         0 0 0 1.3px rgba(212, 175, 55, 0.3),
         0 0 34px rgba(0, 191, 255, 0.4),
-        /* Increased by 30% */
+        /* Restored to original proportions */
         0 0 68px rgba(212, 175, 55, 0.2);
-    /* Increased by 30% */
+    /* Restored to original proportions */
 
     /* Circuitry Border Effect */
     border: 1px solid rgba(255, 215, 0, 0.2);
