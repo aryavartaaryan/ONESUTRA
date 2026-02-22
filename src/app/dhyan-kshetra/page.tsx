@@ -299,8 +299,8 @@ export default function DhyanKakshaPage() {
 
     // State for A/B double buffering ambient slides (Videos + Images + Logo)
     const [ambientSlides, setAmbientSlides] = useState<{ src: string, type: 'video' | 'image' | 'logo' }[]>([]);
-    const [currentSlideA, setCurrentSlideA] = useState<{ src: string, type: 'video' | 'image' | 'logo', start?: number, animationIndex?: number } | null>(null);
-    const [currentSlideB, setCurrentSlideB] = useState<{ src: string, type: 'video' | 'image' | 'logo', start?: number, animationIndex?: number } | null>(null);
+    const [currentSlideA, setCurrentSlideA] = useState<{ src: string, type: 'video' | 'image' | 'logo', start?: number, animationIndex?: number } | null>({ src: "/images/meditation-bg.png", type: 'image', animationIndex: 1 });
+    const [currentSlideB, setCurrentSlideB] = useState<{ src: string, type: 'video' | 'image' | 'logo', start?: number, animationIndex?: number } | null>({ src: "/divine_om_bg.png", type: 'image', animationIndex: 2 });
     const [activeBuffer, setActiveBuffer] = useState<'A' | 'B'>('A');
 
     const videoRefA = React.useRef<HTMLVideoElement>(null);
@@ -396,20 +396,20 @@ export default function DhyanKakshaPage() {
                     ];
                 }
 
-                // 3. Pranav.AI Logo Slide (Handled separately for start only)
-                const logoSlide = { src: "/images/pranav_logo.png", type: 'logo' as const };
-
-                console.log(`[Ambient] Final combined slides count: ${combined.length}`, combined);
-                setAmbientSlides(combined);
-
-                // Initial Slide: Force Pranav.AI Logo Slide at the start ONLY
-                const animationIndex = Math.floor(Math.random() * 4) + 1;
-                setCurrentSlideA({ ...logoSlide, animationIndex });
-                setActiveBuffer('A');
-
-                // Pre-fill next buffer immediately
+                // 3. Setup Initial Playback Queue from Loaded Media
                 const batch = [...combined].sort(() => Math.random() - 0.5);
                 playlistQueue.current = batch;
+
+                // Initial Slide: Pick first from batch to avoid black screen immediately
+                const firstSlide = playlistQueue.current.shift();
+                if (firstSlide) {
+                    const animationIndex = Math.floor(Math.random() * 4) + 1;
+                    const startA = firstSlide.type === 'video' ? Math.floor(Math.random() * 4) * 15 : undefined;
+                    setCurrentSlideA({ ...firstSlide, start: startA, animationIndex });
+                    setActiveBuffer('A');
+                }
+
+                // Pre-fill next buffer immediately
                 const nextSlide = playlistQueue.current.shift();
                 if (nextSlide) {
                     const start = nextSlide.type === 'video' ? Math.floor(Math.random() * 4) * 15 : undefined;
@@ -419,8 +419,8 @@ export default function DhyanKakshaPage() {
             } catch (error) {
                 console.error("Failed to fetch media:", error);
                 // Fail-safe initialization
-                const logoSlide = { src: "/images/pranav_logo.png", type: 'logo' as const };
-                setCurrentSlideA({ ...logoSlide, animationIndex: 1 });
+                const defaultSlide = { src: "/images/meditation-bg.png", type: 'image' as const };
+                setCurrentSlideA({ ...defaultSlide, animationIndex: 1 });
                 setActiveBuffer('A');
             }
         };
@@ -575,9 +575,9 @@ export default function DhyanKakshaPage() {
 
                     <div className={pageStyles.entryContent}>
                         <h1 className={pageStyles.entryTitle}>
-                            {/* Word-by-word & Letter-by-letter animation for "Transformation by the Intelligence of the Universe" */}
+                            {/* Word-by-word & Letter-by-letter animation */}
                             <div className={pageStyles.animatedTitleWrapper}>
-                                {"Transformation by the Intelligence of the Universe".split(" ").map((word, wordIndex) => (
+                                {"Connect with the Divine Intelligence".split(" ").map((word, wordIndex) => (
                                     <span key={wordIndex} style={{ display: "inline-block", whiteSpace: "nowrap", margin: "0 0.25em" }}>
                                         {word.split("").map((char, charIndex) => {
                                             // Calculate global index for staggered delay
@@ -621,14 +621,14 @@ export default function DhyanKakshaPage() {
 
                                     setIsFirstTime(true);
                                     setHasStarted(true);
-                                    setIsMantraPlaying(true); // Trigger initial mantra playback logic
+                                    // DO NOT setisMantraPlaying(true) here, let IntroVideoFlash finish first
                                 }
                             }}
                             disabled={introVideos.length === 0}
                             className={pageStyles.consecratedButton}
                             style={{ opacity: 1, pointerEvents: 'auto' }}
                         >
-                            {introVideos.length === 0 ? '🪷 प्रतीक्षा करें...' : '🪷 यात्रा आरम्भ करें'}
+                            {introVideos.length === 0 ? '🪷 प्रतीक्षा करें...' : '🪷 परिवर्तन के लिए तैयार रहें'}
                         </button>
                     </div>
                 </div>
@@ -797,7 +797,7 @@ export default function DhyanKakshaPage() {
                         left: 0,
                         width: '100vw',
                         height: '100vh',
-                        zIndex: 1,
+                        zIndex: 0,  // Lowered from 1
                         pointerEvents: 'none'
                     }}>
                         {/* LAYER 1: Meditation Sequence Video (Darshans) */}
@@ -841,11 +841,11 @@ export default function DhyanKakshaPage() {
                                 left: 0,
                                 width: '100%',
                                 height: '100%',
-                                objectFit: 'contain', // User requested no cutting
+                                objectFit: 'contain',
                                 objectPosition: 'center',
                                 transition: 'opacity 1s ease-in-out',
-                                zIndex: 10,
-                                backgroundColor: '#000' // Ensure black bars if ratio differs
+                                zIndex: 0, // Lowered behind Sri Yantra container
+                                backgroundColor: '#000'
                             }}
                         />
 
@@ -882,7 +882,7 @@ export default function DhyanKakshaPage() {
 
                     {/* Buffer A */}
                     {currentSlideA && (
-                        <div style={{ ...ambientLayerStyle, opacity: activeBuffer === 'A' ? 1 : 0, zIndex: 2 }}>
+                        <div style={{ ...ambientLayerStyle, opacity: activeBuffer === 'A' ? 1 : 0, zIndex: 0 }}>
                             {currentSlideA.type === 'video' ? (
                                 <video
                                     ref={videoRefA}
@@ -914,7 +914,7 @@ export default function DhyanKakshaPage() {
 
                     {/* Buffer B */}
                     {currentSlideB && (
-                        <div style={{ ...ambientLayerStyle, opacity: activeBuffer === 'B' ? 1 : 0, zIndex: 2 }}>
+                        <div style={{ ...ambientLayerStyle, opacity: activeBuffer === 'B' ? 1 : 0, zIndex: 0 }}>
                             {currentSlideB.type === 'video' ? (
                                 <video
                                     ref={videoRefB}
@@ -953,7 +953,7 @@ export default function DhyanKakshaPage() {
             {/* <div style={{...}} /> */}
 
             {/* Main Content Container */}
-            <div className={`${pageStyles.heroSection} ${showIntro ? pageStyles.mainContentHidden : ""}`}>
+            <div className={`${pageStyles.heroSection} ${showIntro ? pageStyles.mainContentHidden : ""}`} style={{ zIndex: 100 }}>
 
 
 

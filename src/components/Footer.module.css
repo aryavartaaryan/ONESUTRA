@@ -1,0 +1,59 @@
+.footer {
+    background: var(--bg-secondary);
+    color: var(--text-muted);
+    padding: 6rem 1.5rem 3rem;
+    text-align: center;
+    position: relative;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.brand {
+    font-family: var(--font-header);
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 2rem;
+    color: var(--text-main);
+    letter-spacing: 1px;
+}
+
+.mantra {
+    font-family: var(--font-header);
+    font-size: 1.5rem;
+    color: var(--accent-amber);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.mantraSanskrit {
+    font-family: var(--font-header);
+    font-size: 1.25rem;
+    color: var(--accent-amber);
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+}
+
+.translation {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin-bottom: 3rem;
+}
+
+.copyright {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 2rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-family: var(--font-body);
+}
+
+.highlight {
+    color: var(--accent-saffron);
+    font-weight: 500;
+}

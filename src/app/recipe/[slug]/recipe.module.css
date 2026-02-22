@@ -43,8 +43,8 @@
 }
 
 .regionTag {
-    background: var(--primary-green);
-    color: white;
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
     font-size: 0.8rem;
@@ -52,6 +52,7 @@
     text-transform: uppercase;
     display: inline-block;
     margin-bottom: 1rem;
+    border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
 .statsGrid {
@@ -62,11 +63,14 @@
 }
 
 .statCard {
-    background: white;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
     padding: 1.5rem;
-    border-radius: var(--radius);
+    border-radius: 16px;
     text-align: center;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-card-light);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -74,31 +78,33 @@
 }
 
 .statValue {
-    font-weight: 700;
+    font-weight: 800;
     font-family: var(--font-header);
     font-size: 1.5rem;
-    color: var(--text-dark);
+    color: var(--text-main);
 }
 
 .statLabel {
     font-size: 0.85rem;
     color: var(--text-light);
     text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .heritageSection {
-    background: #FFFBF0;
+    background: rgba(255, 153, 51, 0.05);
+    /* very soft saffron tint */
     padding: 2rem;
-    border-radius: var(--radius);
+    border-radius: 16px;
     margin-bottom: 2rem;
-    border-left: 4px solid var(--accent-gold);
+    border-left: 4px solid var(--accent-saffron);
 }
 
 .sectionTitle {
     font-family: var(--font-header);
     font-size: 1.75rem;
     margin-bottom: 1.5rem;
-    color: var(--text-dark);
+    color: var(--text-main);
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -106,7 +112,7 @@
 
 .storyText {
     line-height: 1.7;
-    color: var(--text-dark);
+    color: var(--text-light);
     font-style: italic;
 }
 
@@ -117,10 +123,13 @@
 }
 
 .stepsContainer {
-    background: white;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
     padding: 2rem;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
+    border-radius: 16px;
+    box-shadow: var(--shadow-card-light);
 }
 
 .step {
@@ -133,8 +142,8 @@
     flex-shrink: 0;
     width: 32px;
     height: 32px;
-    background: var(--primary-green);
-    color: white;
+    background: var(--accent-amber);
+    color: #1a0f05;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -145,13 +154,17 @@
 
 .stepText {
     line-height: 1.6;
+    color: var(--text-main);
 }
 
 .nutritionCard {
-    background: white;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
     padding: 2rem;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
+    border-radius: 16px;
+    box-shadow: var(--shadow-card-light);
     margin-top: 2rem;
 }
 
@@ -168,9 +181,9 @@
 
 .nutriValue {
     display: block;
-    font-weight: 700;
+    font-weight: 800;
     font-size: 1.2rem;
-    color: var(--primary-green);
+    color: var(--accent-amber);
 }
 
 .nutriLabel {

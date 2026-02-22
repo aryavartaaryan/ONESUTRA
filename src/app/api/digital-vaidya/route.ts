@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 
         // Use the flash model as it is the only one working for this API key.
         const model = genAI.getGenerativeModel({
-            model: "gemini-2.0-flash",
+            model: "gemini-2.5-flash",
             generationConfig: { responseMimeType: "application/json" }
         });
 

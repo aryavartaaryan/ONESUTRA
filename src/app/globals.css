@@ -1,39 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+
 :root {
-  /* Traditional Indian Palette */
-  --primary-saffron: #E35335;
-  /* Deep Saffron - Energy/Purity */
-  --primary-gold: #D4AF37;
-  /* Antique Gold - Heritage/Wealth */
-  --earth-brown: #5D4037;
-  /* Earthy Brown - Grounding */
-  --warm-cream: #FAF3E0;
-  /* Warm Cream Background */
-  --leaf-green: #4CAF50;
-  /* Natural Green - Freshness */
-  --text-dark: #3E2723;
-  /* Deep Brown Text - Softer than black */
-  --text-light: #5D4037;
-  /* Medium Brown Text */
-  --sacred-kumkum: #B71C1C;
-  --haldi-yellow: #FFD600;
-  --khadi-white: #F9F7F2;
+  /* Deep, Rich Background Palette */
+  --bg-primary: #050A30;
+  /* Deep Midnight Blue */
+  --bg-secondary: #0A1445;
+  /* Slightly lighter Midnight Blue */
+  --bg-tertiary: #132063;
+  /* Teal/Blue depth */
 
-  /* Mapped Variables for Component Compatibility */
-  --primary-green: var(--primary-saffron);
-  /* Remapping primary to Saffron */
-  --bg-cream: var(--warm-cream);
+  /* Vibrant Accents */
+  --accent-saffron: #FF7722;
+  /* Vibrant Saffron */
+  --accent-saffron-light: #FF9933;
+  /* Glowing Saffron */
+  --accent-amber: #FFBF00;
+  /* Rich glowing amber */
+  --accent-sage: #8FBC8F;
+  /* Calming sage green */
+  --accent-gold: #D4AF37;
 
-  --font-header: 'Noto Serif Devanagari', serif;
-  /* More traditional/regal feel */
-  --font-body: 'Mukta', sans-serif;
-  /* Clean but humanist */
+  /* Text Colors */
+  --text-main: #F8FAFC;
+  /* Crisp white for dark mode */
+  --text-muted: #CBD5E1;
+  /* Soft slate for secondary text */
+  --text-dark: #0F172A;
+  /* For light cards if any */
+
+  /* Utilities */
+  --font-header: 'Outfit', sans-serif;
+  --font-body: 'Inter', sans-serif;
   --font-serif: 'Playfair Display', serif;
+  /* Keep for traditional headers if needed */
 
-  --shadow-sm: 0 4px 12px rgba(93, 64, 55, 0.08);
-  /* Warm shadow */
-  --shadow-md: 0 8px 24px rgba(93, 64, 55, 0.12);
-  --radius: 8px;
-  /* Slightly less rounded for a more classic look */
+  /* Shadows and Structure */
+  --shadow-glow: 0 0 15px rgba(255, 119, 34, 0.4);
+  --shadow-amber-glow: 0 0 15px rgba(255, 191, 0, 0.4);
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --radius-soft: 16px;
+  --radius-pill: 9999px;
+
+  /* Backwards compatibility for variables used in other components temporarily */
+  --primary-saffron: var(--accent-saffron);
+  --primary-gold: var(--accent-gold);
+  --sacred-kumkum: #E11D48;
+  --haldi-yellow: var(--accent-amber);
+  --khadi-white: var(--bg-primary);
+  /* Hack to make old components dark until refactored */
 }
 
 * {
@@ -43,10 +57,13 @@
 }
 
 body {
-  background-color: var(--khadi-white);
+  background-color: var(--bg-primary);
+  background-image: radial-gradient(circle at 60% 0%, var(--bg-secondary) 0%, var(--bg-primary) 70%);
+  background-attachment: fixed;
   color: var(--text-main);
   font-family: var(--font-body);
-  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23fdb813' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+  line-height: 1.6;
+  min-height: 100vh;
 }
 
 h1,
@@ -56,11 +73,122 @@ h4,
 h5,
 h6 {
   font-family: var(--font-header);
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* =========================================
+   Utility Classes for Global Consistency
+   ========================================= */
+
+/* Glass Panels */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-soft);
+  box-shadow: var(--shadow-glass);
+}
+
+.glass-panel-heavy {
+  background: rgba(10, 20, 69, 0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 153, 51, 0.15);
+  border-radius: var(--radius-soft);
+  box-shadow: var(--shadow-glass);
+}
+
+/* Elegant Buttons */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, var(--accent-saffron), var(--accent-saffron-light));
+  color: #fff;
+  font-family: var(--font-header);
+  font-weight: 500;
+  font-size: 1rem;
+  padding: 0.75rem 2rem;
+  border-radius: var(--radius-pill);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(255, 119, 34, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+  color: #fff;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+  font-family: var(--font-header);
+  font-weight: 500;
+  font-size: 1rem;
+  padding: 0.75rem 2rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-icon:hover {
+  background: rgba(255, 153, 51, 0.15);
+  border-color: var(--accent-saffron-light);
+  color: var(--accent-saffron-light);
+  transform: translateY(-2px) rotate(5deg);
+  box-shadow: 0 0 15px rgba(255, 153, 51, 0.3);
+}
+
+/* Layout Utilities */
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .page-container {
+    padding: 1rem;
+  }
 }

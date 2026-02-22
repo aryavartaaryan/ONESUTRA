@@ -3,19 +3,16 @@
     position: relative;
     width: 100%;
     min-height: 90vh;
-    /* Reduced height to minimize empty space below */
     overflow-x: hidden;
     overflow-y: auto;
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Deep Cosmic Indigo to Void */
-    background: radial-gradient(circle at 50% 50%, #1a1a40 0%, #0d0d2b 60%, #000000 100%);
-    color: #F5F5DC;
-    /* Off-white / Cream for readability */
-    font-family: var(--font-hind), sans-serif;
+    background: transparent;
+    /* Parent .main handles background */
+    color: var(--text-main);
+    font-family: var(--font-body);
     padding: 1rem 1rem;
-    /* Reduced padding */
 }
 
 /* Background Elements */
@@ -43,29 +40,14 @@
     z-index: 10;
     text-align: center;
     max-width: 900px;
-    padding: 2rem 3rem;
+    padding: 3rem 4rem;
     width: 100%;
-
-    /* Glassmorphism */
-    background: rgba(255, 255, 255, 0.02);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border: 1px solid rgba(212, 175, 55, 0.15);
-    /* Faint Gold Border */
-    border-radius: 32px;
-    box-shadow:
-        0 20px 50px rgba(0, 0, 0, 0.6),
-        inset 0 0 30px rgba(212, 175, 55, 0.03);
-
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
+    gap: 1.5rem;
 }
 
-/* --- TYPOGRAPHY --- */
-
-/* --- SACRED HERO VISUALS --- */
 /* --- SACRED HERO VISUALS --- */
 .headerGroup {
     position: relative;
@@ -73,45 +55,31 @@
     justify-content: center;
     align-items: center;
     width: 100%;
-    margin-top: 2rem;
-    /* Spacing from top */
+    margin-top: 1rem;
 }
 
 .auroraContainer {
     position: absolute;
-    /* Changed to absolute for background placement */
     top: 50%;
-    /* Centered vertically in headerGroup */
     left: 50%;
     transform: translate(-50%, -50%);
-    /* Centered behind text */
     width: clamp(270px, 52vw, 420px);
-    /* 1.5x larger */
     height: clamp(270px, 52vw, 420px);
-    /* 1.5x larger */
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 0rem;
     z-index: 0;
-    /* Behind text */
     pointer-events: none;
-    /* Let clicks pass through to text/buttons if needed */
     opacity: 0.4;
-    /* Stronger fade for true background effect */
 }
 
 .title {
     position: relative;
-    /* Ensure it stays above the absolute background icon */
     z-index: 5;
-    /* Higher than icon */
-    font-family: var(--font-header), serif;
+    font-family: var(--font-header);
     font-size: clamp(2.5rem, 8vw, 4.5rem);
     font-weight: 700;
-    margin-top: 0;
-    /* Grid/Flex handles spacing now */
-    background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FFD700 100%);
+    background: linear-gradient(135deg, var(--accent-amber) 0%, var(--accent-saffron) 50%, var(--accent-amber) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -122,92 +90,22 @@
 .bodyText {
     position: relative;
     z-index: 5;
-    /* Ensure it stays above */
     margin-top: 2rem;
-    /* Add margin to push text down from heading */
     font-size: 1.25rem;
     line-height: 1.8;
-    color: rgba(245, 245, 220, 0.9);
-    font-weight: 300;
+    color: var(--text-muted);
+    font-weight: 400;
 }
 
 .keyword {
-    color: #FFD700;
+    color: var(--accent-amber);
     font-weight: 600;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    text-shadow: 0 0 10px rgba(255, 191, 0, 0.3);
 }
 
 .activeWord {
-    color: #FFA500;
-    /* Saffron */
+    color: var(--accent-saffron);
     font-weight: 600;
-}
-
-/* --- GEMSTONE BUTTON --- */
-.stoneSealButton {
-    position: relative;
-    /* Ensure it stays above */
-    z-index: 5;
-    margin-top: 4rem;
-    /* Increased further for separation */
-    /* Adjusted to balance with text margin */
-    /* Increased significantly to move it down */
-    padding: 1.2rem 3.5rem;
-    font-family: var(--font-rozha), serif;
-    font-size: 1.4rem;
-    font-weight: 600;
-    color: #2D1B02;
-    /* Deep Earthy Brown */
-    background: linear-gradient(135deg,
-            #EBCB8B 0%,
-            #D4AF37 40%,
-            #C5A028 60%,
-            #B8860B 100%);
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    border-radius: 8px;
-    /* More elegant rectangular-soft look */
-    cursor: pointer;
-    overflow: hidden;
-    transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-
-    /* Vedic Seal Shadow */
-    box-shadow:
-        0 10px 30px rgba(0, 0, 0, 0.4),
-        0 0 15px rgba(212, 175, 55, 0.2),
-        inset 0 1px 2px rgba(255, 255, 255, 0.5);
-}
-
-.stoneSealButton:hover {
-    transform: translateY(-5px);
-    background: linear-gradient(135deg,
-            #F4D03F 0%,
-            #EAB508 50%,
-            #D4AF37 100%);
-    box-shadow:
-        0 15px 45px rgba(0, 0, 0, 0.5),
-        0 0 30px rgba(255, 215, 0, 0.4),
-        inset 0 1px 3px rgba(255, 255, 255, 0.7);
-    color: #1a0f00;
-}
-
-.stoneSealButton::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 60%);
-    transform: scale(0);
-    transition: transform 0.6s ease-out;
-    pointer-events: none;
-}
-
-.stoneSealButton:hover::after {
-    transform: scale(1);
-    opacity: 0;
 }
 
 /* --- BRANDING FOOTER --- */
@@ -215,7 +113,6 @@
     position: relative;
     z-index: 5;
     margin-top: 3rem;
-    /* Increased spacing */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -224,19 +121,12 @@
 }
 
 .brandMain {
-    font-family: var(--font-hind), sans-serif;
-    font-weight: 600;
-    font-size: 1.1rem;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 1rem;
     letter-spacing: 1px;
     text-transform: uppercase;
-    color: #8b9bb4;
-    /* Muted blue-grey */
-}
-
-.brandSub {
-    font-family: var(--font-rozha), serif;
-    font-size: 0.8rem;
-    color: #5a6b85;
+    color: var(--text-muted);
 }
 
 .sacredGeometryBackground {
@@ -266,12 +156,6 @@
     .bodyText {
         font-size: 1.5rem;
     }
-
-    .auroraContainer {
-        /* Already handled by clamp, but can refine if needed */
-        /* width: 450px;
-        height: 450px; */
-    }
 }
 
 @media (max-width: 768px) {
@@ -282,29 +166,19 @@
     }
 
     .contentWrapper {
-        padding: 0.2rem 1rem 2rem 1rem;
-        margin-top: -15px;
-        width: 95%;
-        border-radius: 16px;
+        padding: 2rem 1.5rem;
+        margin-top: 2rem;
+        width: 100%;
+        gap: 1rem;
     }
 
-    .omAnchor {
-        font-size: 3.5rem;
-    }
-
-    .heading {
-        font-size: 2rem;
+    .title {
+        font-size: 2.2rem;
     }
 
     .bodyText {
         font-size: 1rem;
         line-height: 1.6;
-    }
-
-    .stoneSealButton {
-        padding: 0.8rem 1.5rem;
-        font-size: 1rem;
-        width: 100%;
-        /* Full width on mobile for better touch target */
+        margin-top: 1rem;
     }
 }

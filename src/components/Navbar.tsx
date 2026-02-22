@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Flame, User, Sparkles, Leaf, Home, MessageCircle, Menu, X } from 'lucide-react';
@@ -27,7 +25,7 @@ export default function Navbar() {
         <nav className={styles.navbar}>
             <div className={styles.navHeader}>
                 <Link href="/" className={styles.logoLink} onClick={closeMenu}>
-                    <Flame size={24} color="var(--sacred-kumkum)" fill="var(--sacred-kumkum)" />
+                    <Flame size={28} className={styles.logoIcon} />
                     <span>Pranav Samadhaan</span>
                 </Link>
 
@@ -36,38 +34,35 @@ export default function Navbar() {
                     onClick={toggleMenu}
                     aria-label="Toggle menu"
                 >
-                    {isMenuOpen ? <X size={28} color="#F3E5AB" /> : <Menu size={28} color="#F3E5AB" />}
+                    {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
                 </button>
             </div>
 
             {/* Desktop Links */}
             <div className={`${styles.navLinks} ${styles.desktopOnly}`}>
                 <Link href="/" className={styles.navLink}>
-                    <Home size={16} style={{ display: 'inline', marginRight: '4px', color: 'var(--primary-gold)' }} />
-                    प्रारम्भ
+                    <Home size={18} /> प्रारम्भ
                 </Link>
                 <Link href="/vedic-rasoi" className={styles.navLink}>
-                    <Sparkles size={16} style={{ display: 'inline', marginRight: '4px', color: 'var(--primary-gold)' }} />
+                    <Sparkles size={18} color="var(--accent-saffron)" />
                     <span>
                         आयुर्वेदिक भोजन
-                        <span style={{ display: 'block', fontSize: '0.65em', color: 'var(--primary-gold)', marginTop: '-2px', fontStyle: 'italic' }}>
+                        <span style={{ display: 'block', fontSize: '0.75em', marginTop: '-2px', opacity: 0.8 }}>
                             (अन्नपूर्णा)
                         </span>
                     </span>
                 </Link>
                 <Link href="/acharya-samvad" className={styles.navLink}>
-                    <MessageCircle size={16} style={{ display: 'inline', marginRight: '4px', color: 'var(--primary-gold)' }} />
-                    आचार्य संवाद
+                    <MessageCircle size={18} /> आचार्य संवाद
                 </Link>
                 <Link href="/dhyan-kshetra" className={`${styles.navLink} ${styles.dhyanLink}`}>
-                    <Leaf size={16} style={{ display: 'inline', marginRight: '4px', color: '#FF9933' }} />
-                    विशेष ध्यान क्षेत्र
+                    <Leaf size={18} color="var(--accent-amber)" /> विशेष ध्यान क्षेत्र
                 </Link>
             </div>
 
             <div className={`${styles.actions} ${styles.desktopOnly}`}>
                 <button className={styles.profileBtn} aria-label="Profile">
-                    <User size={18} />
+                    <User size={20} />
                 </button>
             </div>
 
@@ -75,16 +70,16 @@ export default function Navbar() {
             <div className={`${styles.mobileMenuOverlay} ${isMenuOpen ? styles.open : ''}`}>
                 <div className={styles.mobileLinks}>
                     <Link href="/" className={styles.mobileLink} onClick={closeMenu}>
-                        <Home size={20} /> प्रारम्भ
+                        <Home size={24} /> प्रारम्भ
                     </Link>
                     <Link href="/vedic-rasoi" className={styles.mobileLink} onClick={closeMenu}>
-                        <Sparkles size={20} /> भोजन परामर्श (अन्नपूर्णा)
+                        <Sparkles size={24} color="var(--accent-saffron)" /> भोजन परामर्श
                     </Link>
                     <Link href="/acharya-samvad" className={styles.mobileLink} onClick={closeMenu}>
-                        <MessageCircle size={20} /> आचार्य संवाद
+                        <MessageCircle size={24} /> आचार्य संवाद
                     </Link>
                     <Link href="/dhyan-kshetra" className={`${styles.mobileLink} ${styles.dhyanMobileLink}`} onClick={closeMenu}>
-                        <Leaf size={20} /> विशेष ध्यान क्षेत्र
+                        <Leaf size={24} color="var(--accent-amber)" /> विशेष ध्यान क्षेत्र
                     </Link>
                 </div>
             </div>

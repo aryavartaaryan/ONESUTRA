@@ -45,6 +45,7 @@ export default function IntroVideoFlash({ videos, onComplete, onFadeOutStart }: 
         if (!videoEl || !isMounted.current) return;
 
         try {
+            // Force unmuted because we unlock audio context on the initial "Enter" button click now
             videoEl.muted = false;
             videoEl.volume = 1.0;
             setIsMuted(false);
@@ -53,7 +54,7 @@ export default function IntroVideoFlash({ videos, onComplete, onFadeOutStart }: 
             await videoEl.play();
             console.log(`[Intro] Success: Playing video ${index + 1} with sound`);
         } catch (err: any) {
-            console.warn(`[Intro] Autoplay failed for video ${index + 1}, retrying muted...`);
+            console.warn(`[Intro] Autoplay failed for video ${index + 1}, retrying muted...`, err);
             try {
                 if (videoEl && isMounted.current) {
                     videoEl.muted = true;

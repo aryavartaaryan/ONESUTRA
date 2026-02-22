@@ -36,16 +36,16 @@ export default function RecipePage() {
     };
 
     return (
-        <main style={{ backgroundColor: '#f9f5f0', minHeight: '100vh' }}>
+        <main style={{ backgroundColor: 'var(--bg-primary)', minHeight: '100vh' }}>
             <Navbar />
 
             <div className={styles.container}>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
                     <button
                         onClick={() => setLang(lang === 'hi' ? 'en' : 'hi')}
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'white', border: '1px solid #ddd', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer' }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--glass-bg)', backdropFilter: 'blur(8px)', border: '1px solid var(--glass-border)', color: 'var(--text-main)', padding: '0.5rem 1rem', borderRadius: '12px', cursor: 'pointer', boxShadow: 'var(--shadow-card-light)' }}
                     >
-                        <Languages size={18} />
+                        <Languages size={18} color="var(--accent-amber)" />
                         {lang === 'hi' ? 'English' : 'हिन्दी'}
                     </button>
                 </div>
@@ -69,17 +69,17 @@ export default function RecipePage() {
                     <div>
                         <div className={styles.statsGrid}>
                             <div className={styles.statCard}>
-                                <Clock size={24} color="#B87333" />
+                                <Clock size={24} color="var(--accent-amber)" />
                                 <span className={styles.statValue}>{recipe.prepTime + recipe.cookTime}</span>
                                 <span className={styles.statLabel}>Minutes</span>
                             </div>
                             <div className={styles.statCard}>
-                                <Users size={24} color="#B87333" />
+                                <Users size={24} color="var(--accent-amber)" />
                                 <span className={styles.statValue}>{recipe.servings}</span>
                                 <span className={styles.statLabel}>Servings</span>
                             </div>
                             <div className={styles.statCard}>
-                                <ChefHat size={24} color="#B87333" />
+                                <ChefHat size={24} color="var(--accent-amber)" />
                                 <span className={styles.statValue}>{recipe.difficulty}</span>
                                 <span className={styles.statLabel}>Level</span>
                             </div>
@@ -104,9 +104,9 @@ export default function RecipePage() {
                         <h3 className={styles.sectionTitle}>Ingredients</h3>
                         <div className={styles.ingredientsList}>
                             {recipe.ingredients.map((ing, i) => (
-                                <div key={i} className={styles.ingredientItem}>
+                                <div key={i} className={styles.ingredientItem} style={{ marginBottom: '0.5rem', color: 'var(--text-main)' }}>
                                     <span style={{ fontWeight: '600' }}>{getText(ing.name)}</span>
-                                    <span style={{ color: '#666' }}> - {ing.quantity}</span>
+                                    <span style={{ color: 'var(--text-muted)' }}> - {ing.quantity}</span>
                                 </div>
                             ))}
                         </div>
@@ -114,7 +114,7 @@ export default function RecipePage() {
                         {recipe.nutrition && (
                             <div className={styles.nutritionCard} style={{ marginTop: '2rem' }}>
                                 <h3 className={styles.sectionTitle}>
-                                    <Flame size={20} color="#B87333" />
+                                    <Flame size={20} color="var(--accent-amber)" />
                                     Nutritional Info
                                 </h3>
                                 <div className={styles.nutriGrid}>

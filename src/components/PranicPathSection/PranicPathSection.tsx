@@ -8,8 +8,7 @@ import styles from './PranicPathSection.module.css';
 // --- 3. SACRED GEOMETRY (SRI YANTRA) ---
 const SriYantraSVG = ({ className }: { className?: string }) => (
     <svg viewBox="0 0 100 100" className={className} style={{ width: '100%', height: '100%' }}>
-        <g fill="none" stroke="#D4AF37" strokeWidth="0.3" opacity="0.6">
-            {/* Improved visibility for background "Etched" feel */}
+        <g fill="none" stroke="var(--accent-amber)" strokeWidth="0.3" opacity="0.6">
             <circle cx="50" cy="50" r="48" strokeDasharray="0.5 0.5" />
             <path d="M50 2 L85 85 L15 85 Z" />
             <path d="M50 98 L85 15 L15 15 Z" />
@@ -44,7 +43,6 @@ const PranaCanvas = () => {
             particles = [];
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
-            // Fibonacci Spiral Logic
             for (let i = 0; i < 200; i++) {
                 const angle = i * 0.4;
                 const dist = i * 3.5;
@@ -67,7 +65,6 @@ const PranaCanvas = () => {
             particles.forEach(p => {
                 p.angle += p.speed;
 
-                // Mouse Repulsion (Water Ripple)
                 const dx = p.x - mouseX;
                 const dy = p.y - mouseY;
                 const mouseDist = Math.sqrt(dx * dx + dy * dy);
@@ -80,16 +77,9 @@ const PranaCanvas = () => {
                     pushY = (dy / mouseDist) * force * 30;
                 }
 
-                // Spiral movement + Push
-                const dist = 100 + p.angle * 10; // Keeping them somewhat spiraled
-                /* To keep it simple visually: just rotate around center and apply push */
-                const currentDist = Math.sqrt(Math.pow(p.x - centerX, 2) + Math.pow(p.y - centerY, 2));
-
-                // Simple rotation
-                const originalX = p.x - pushX * 0.1; // damping push return
+                const originalX = p.x - pushX * 0.1;
                 const originalY = p.y - pushY * 0.1;
 
-                // Rotate orbit
                 const cos = Math.cos(p.speed);
                 const sin = Math.sin(p.speed);
                 const nx = (originalX - centerX) * cos - (originalY - centerY) * sin + centerX;
@@ -98,10 +88,9 @@ const PranaCanvas = () => {
                 p.x = nx + pushX * 0.05;
                 p.y = ny + pushY * 0.05;
 
-                // Draw Particle
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 215, 0, ${p.alpha})`; // Gold sparks
+                ctx.fillStyle = `rgba(255, 191, 0, ${p.alpha})`; // Accent Amber
                 ctx.fill();
             });
 
@@ -130,24 +119,6 @@ const PranaCanvas = () => {
 };
 
 // --- WRAPPERS ---
-
-const SolarFlareText = ({ children }: { children: React.ReactNode }) => {
-    const ref = useRef(null);
-    const isInView = useInView(ref, { once: true, margin: "-100px" });
-
-    return (
-        <motion.h2
-            ref={ref}
-            className={styles.heading}
-            initial={{ filter: "brightness(500%) blur(10px)", opacity: 0 }}
-            animate={isInView ? { filter: "brightness(100%) blur(0)", opacity: 1 } : {}}
-            transition={{ duration: 2.5, ease: "easeOut" }}
-        >
-            {children}
-        </motion.h2>
-    );
-};
-
 const LuminescentText = ({ children, delay = 0, loop = false }: { children: React.ReactNode, delay?: number, loop?: boolean }) => {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: "-50px" });
@@ -155,11 +126,9 @@ const LuminescentText = ({ children, delay = 0, loop = false }: { children: Reac
 
     useEffect(() => {
         if (!loop || !isInView) return;
-
         const interval = setInterval(() => {
             setKey(prev => prev + 1);
-        }, 6000); // 6s cycle (Appear -> Stay -> Disappear -> Reappear)
-
+        }, 6000);
         return () => clearInterval(interval);
     }, [loop, isInView]);
 
@@ -167,23 +136,23 @@ const LuminescentText = ({ children, delay = 0, loop = false }: { children: Reac
         <motion.div
             ref={ref}
             className={styles.bodyText}
-            key={key} // Force re-render for loop
+            key={key}
             initial={{ opacity: 0, textShadow: "0 0 0 rgba(0,0,0,0)" }}
             animate={isInView ? {
-                opacity: [0, 1, 1, 0], // Loop opacity
+                opacity: [0, 1, 1, 0],
                 transition: {
                     duration: 6,
-                    times: [0, 0.2, 0.8, 1], // Fade in (20%), Stay (60%), Fade out (20%)
-                    delay: key === 0 ? delay : 0, // Initial delay only
+                    times: [0, 0.2, 0.8, 1],
+                    delay: key === 0 ? delay : 0,
                     repeat: loop ? 0 : 0
                 }
             } : {}}
         >
             <motion.span
-                initial={{ color: "#F5F5DC", textShadow: "0 0 0 rgba(255,215,0,0)" }}
+                initial={{ color: "var(--text-main)", textShadow: "0 0 0 rgba(255,191,0,0)" }}
                 animate={isInView ? {
-                    color: ["#F5F5DC", "#FFD700", "#F5F5DC"], // Flash gold
-                    textShadow: ["0 0 0px rgba(0,0,0,0)", "0 0 20px rgba(255,215,0,0.8)", "0 0 0px rgba(0,0,0,0)"]
+                    color: ["var(--text-main)", "var(--accent-amber)", "var(--text-main)"],
+                    textShadow: ["0 0 0px rgba(0,0,0,0)", "0 0 20px rgba(255,191,0,0.8)", "0 0 0px rgba(0,0,0,0)"]
                 } : {}}
                 transition={{ duration: 1.5, delay: delay + 0.2 }}
             >
@@ -194,26 +163,17 @@ const LuminescentText = ({ children, delay = 0, loop = false }: { children: Reac
 };
 
 // --- MAIN COMPONENT ---
-
 export default function PranicPathSection() {
-    const [isHovered, setIsHovered] = useState(false);
-
     return (
-        <section className={`${styles.container} ${isHovered ? styles.buttonHovered : ''}`}>
+        <section className={styles.container}>
             <PranaCanvas />
 
-            {/* Marigolds */}
-            <div className={styles.petalContainer}>
-                {/* Petals logic can remain or be styled in CSS */}
-            </div>
-
-            <div className={styles.contentWrapper}>
-                {/* Center the Sacred Geometry strictly within the card */}
+            <div className={`glass-panel-heavy ${styles.contentWrapper}`}>
                 <motion.div
                     className={styles.sacredGeometryBackground}
                     animate={{
                         scale: [0.95, 1.1, 1.1, 0.95],
-                        opacity: [0.4, 0.6, 0.6, 0.4]
+                        opacity: [0.2, 0.3, 0.3, 0.2]
                     }}
                     transition={{
                         duration: 15,
@@ -225,11 +185,8 @@ export default function PranicPathSection() {
                     <SriYantraSVG />
                 </motion.div>
 
-                {/* Header Group to lock Icon and Title alignment */}
                 <div className={styles.headerGroup}>
-                    {/* Pranav.AI Icon - background of the heading */}
                     <div className={styles.auroraContainer}>
-                        {/* Background Rotating Sri Yantra */}
                         <div className={styles.rotatingBackgroundYantra}>
                             <img
                                 src="/images/pranav_logo.png"
@@ -237,8 +194,6 @@ export default function PranicPathSection() {
                                 alt="Pranav.AI Logo"
                             />
                         </div>
-
-                        {/* Foreground Illuminating Sri Yantra with Natural Integration & Surround Halo */}
                         <div className={styles.iconSurround}>
                             <img
                                 src="/images/pranav_logo.png"
@@ -247,28 +202,23 @@ export default function PranicPathSection() {
                             />
                         </div>
                     </div>
-
                     <h1 className={styles.title}>
                         Pranav Samadhaan
                     </h1>
                 </div>
 
-                {/* Looping Subheading */}
                 <LuminescentText delay={0.2} loop>
-                    Experience the <span style={{ color: '#FFD700', fontFamily: 'var(--font-serif)', fontStyle: 'italic', textShadow: '0 0 10px rgba(255, 215, 0, 0.5)' }}>Fusion of Artificial Intelligence & Knowledge of Rishis</span>. We provide personalized guidance for <span className={styles.keyword}>Healing</span> your body, <span className={styles.keyword}>Rejuvenating</span> your mind, and <span className={styles.keyword}>Awakening</span> your spirit through the timeless wisdom of Ayurveda and Meditation.
+                    Experience the <span style={{ color: 'var(--accent-amber)', fontFamily: 'var(--font-serif)', fontStyle: 'italic', textShadow: '0 0 10px rgba(255, 191, 0, 0.5)' }}>Fusion of Artificial Intelligence & Knowledge of Rishis</span>. We provide personalized guidance for <span className={styles.keyword}>Healing</span> your body, <span className={styles.keyword}>Rejuvenating</span> your mind, and <span className={styles.keyword}>Awakening</span> your spirit through the timeless wisdom of Ayurveda and Meditation.
                 </LuminescentText>
 
-                <Link href="/dhyan-kshetra">
-                    <button
-                        className={styles.stoneSealButton}
-                        onMouseEnter={() => setIsHovered(true)}
-                        onMouseLeave={() => setIsHovered(false)}
-                    >
-                        Begin Your Samadhaan Journey...
-                    </button>
-                </Link>
+                <div style={{ marginTop: '3rem' }}>
+                    <Link href="/dhyan-kshetra">
+                        <button className="btn-primary" style={{ padding: '1rem 3rem', fontSize: '1.2rem' }}>
+                            Begin Your Samadhaan Journey...
+                        </button>
+                    </Link>
+                </div>
 
-                {/* Branding Footer */}
                 <div className={styles.brandingFooter}>
                     <div className={styles.brandMain}>
                         A Product Crafted by the Research & Development of Pranav.AI
