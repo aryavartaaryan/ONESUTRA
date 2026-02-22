@@ -451,12 +451,9 @@ function DigitalVaidyaContent() {
                                 <div className={styles.welcomeMessage}>
                                     <p className={styles.welcomeText}>
                                         {(() => {
-                                            const userName = typeof window !== 'undefined' ? localStorage.getItem('pranav_user_name') : "";
-                                            const namePart = userName ? (lang === 'hi' ? `${userName} ` : `${userName} `) : "";
-
                                             return lang === 'hi'
-                                                ? `कैसे हो ${namePart}बेटाजी! आपको कोई भी स्वास्थ्य समस्या हो, आप यहाँ चैट पर लिखकर आयुर्वेद के अनुसार मुझसे स्वास्थ्य सलाह ले सकते हैं।`
-                                                : `How are you, ${namePart}Beta! If you have any health concerns, you can message me here for Ayurvedic health advice.`;
+                                                ? `कैसे हो बेटाजी! आपको कोई भी स्वास्थ्य समस्या हो, आप यहाँ चैट पर लिखकर आयुर्वेद के अनुसार मुझसे स्वास्थ्य सलाह ले सकते हैं।`
+                                                : `How are you, Beta! If you have any health concerns, you can message me here for Ayurvedic health advice.`;
                                         })()}
                                     </p>
                                 </div>
