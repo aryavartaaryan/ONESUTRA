@@ -369,7 +369,6 @@ export default function MantraSangrah({
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(isMutedProp || false);
     const [progress, setProgress] = useState(0);
-    const lang = langProp; // Use prop directly for reactivity
     const [duration, setDuration] = useState(0);
     const [localVolume, setLocalVolume] = useState(1); // Default volume 100%
 
