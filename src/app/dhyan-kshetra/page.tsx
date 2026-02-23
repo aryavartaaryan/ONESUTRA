@@ -653,6 +653,7 @@ export default function DhyanKakshaPage() {
                 showIntro && hasStarted && (
                     <IntroVideoFlash
                         videos={introVideos}
+                        isGlobalMuted={isMuted} // Pass global mute state
                         onFadeOutStart={() => {
                             console.log("[Intro] Fade out started, initiating background early...");
                             // REMOVED: setStartBackgroundLoop(true) - to prevent Guidance form starting too early
