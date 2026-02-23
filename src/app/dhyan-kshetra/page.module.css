@@ -641,38 +641,21 @@
 /* --- SPIRITUAL ENTRY SCREEN REDESIGN --- */
 .spiritualEntry {
     position: fixed;
-    inset: 0;
-    z-index: 9999;
-    background: radial-gradient(circle at 50% 40%,
-            rgb(18, 28, 48) 0%,
-            rgb(8, 14, 25) 50%,
-            rgb(2, 5, 10) 100%);
+    min-height: 100vh;
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    justify-content: center;
-    gap: 0.25rem;
-    /* Made very compact */
+    gap: 1.5rem;
     text-align: center;
-    padding: 1rem;
+    padding: 2rem;
     overflow: hidden;
-    /* AI-Gurukul Fusion Background + Pranav.AI Watermark */
+    position: relative;
+    z-index: 9999;
     background-color: #020617;
     background-image:
-        /* Pranav.AI Watermark (Centered, Large, Subtle) */
-        url('/images/pranav_logo.png'),
-        /* Neural Network / Circuitry Overlay */
-        linear-gradient(rgba(0, 191, 255, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(212, 175, 55, 0.05) 1px, transparent 1px),
-        /* Rishi AI Fusion Image (Bottom) */
-        url('/images/rishi_ai_fusion.png'),
-        /* Deep Cosmic Blue Gradient Base */
-        radial-gradient(circle at 50% 40%, rgba(10, 25, 60, 0.8) 0%, rgba(2, 6, 23, 0.95) 100%);
-    background-size: 60% auto, 50px 50px, 50px 50px, contain, 100% 100%;
-    background-repeat: no-repeat, repeat, repeat, no-repeat, no-repeat;
-    background-position: center, center, center, center bottom, center;
-    background-blend-mode: overlay, overlay, overlay, normal, normal;
+        radial-gradient(circle at 50% 30%, rgba(10, 25, 60, 0.4) 0%, rgba(2, 6, 23, 1) 100%);
 }
 
 .entrySub {
@@ -821,22 +804,31 @@
     z-index: 0;
 }
 
-/* ENTRY SCREEN SRI YANTRA LAYERS */
-.rotatingBackgroundYantra {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 280%;
-    /* Slightly larger */
-    height: 280%;
-    opacity: 0.12;
-    /* Softer */
-    z-index: -2;
-    animation: gentleRotate 90s linear infinite;
-    /* Slower, more hypnotic */
+/* NEW: Static Focal Sri Yantra Layout */
+.staticYantraHero {
+    position: relative;
+    width: clamp(180px, 35vw, 320px);
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+    z-index: 2;
+}
+
+.staticYantraImage {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    /* Elegant static golden glow */
+    filter: drop-shadow(0 0 35px rgba(255, 215, 0, 0.4)) brightness(1.1);
+    user-select: none;
     pointer-events: none;
-    filter: drop-shadow(0 0 40px rgba(212, 175, 55, 0.4)) blur(2px);
+}
+
+/* Cleanup old background styles */
+.rotatingBackgroundYantra {
+    display: none;
 }
 
 .entryYantraSvg {

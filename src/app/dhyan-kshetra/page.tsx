@@ -561,12 +561,12 @@ export default function DhyanKakshaPage() {
             {/* SPLASH SCREEN - Elegant Single Entry */}
             {!hasStarted && (
                 <div className={pageStyles.spiritualEntry}>
-                    {/* Background Rotating Sri Yantra */}
-                    <div className={pageStyles.rotatingBackgroundYantra}>
+                    {/* NEW: Static Sri Yantra as Center of Attraction - Above Title */}
+                    <div className={pageStyles.staticYantraHero}>
                         <img
                             src="/images/sri-yantra-side.png"
-                            className={pageStyles.entryOm}
-                            alt="Sri Yantra"
+                            className={pageStyles.staticYantraImage}
+                            alt="Sacred Sri Yantra"
                         />
                     </div>
 
