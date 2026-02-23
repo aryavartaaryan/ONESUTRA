@@ -907,12 +907,18 @@ export default function DhyanKakshaPage() {
 
 
 
-                {/* Page Title - Grand Temple Banner */}
-                <div className={pageStyles.titleContainer}>
-                    <h1 className={pageStyles.titleText}>
-                        {t.pageTitle}
-                    </h1>
-                </div>
+                {/* Floating Track Title - Top Edge */}
+                {!showIntro && startBackgroundLoop && (
+                    <div className={pageStyles.floatingTrackTitle}>
+                        <div className={pageStyles.trackTitleContent}>
+                            <Sparkles size={16} className={pageStyles.sparkleIcon} />
+                            <h2 className={pageStyles.dynamicText}>
+                                {lang === 'hi' ? currentItem.titleHi : currentItem.title}
+                            </h2>
+                            <Sparkles size={16} className={pageStyles.sparkleIcon} />
+                        </div>
+                    </div>
+                )}
 
 
                 {/* Sri Yantra - Central Focus - Size adjusted in component CSS */}

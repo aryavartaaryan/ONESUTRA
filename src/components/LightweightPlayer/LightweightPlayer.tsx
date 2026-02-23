@@ -65,13 +65,6 @@ export default function LightweightPlayer({
                     />
                 </div>
 
-                {/* 2. Track Info (Centered Top) */}
-                <div className={styles.trackInfoCentered}>
-                    <h3 className={styles.trackTitle} title={lang === 'hi' ? titleHi : title}>
-                        {lang === 'hi' ? titleHi : title}
-                    </h3>
-                </div>
-
                 {/* 3. Symmetrical Controls (Simplified Row) */}
                 <div className={styles.controlsRow}>
                     <button
@@ -112,6 +105,6 @@ export default function LightweightPlayer({
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

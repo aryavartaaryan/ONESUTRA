@@ -409,8 +409,8 @@
 /* SESSION DASHBOARD (Unified Up Next + Countdown) */
 .sessionDashboard {
     position: absolute;
-    bottom: 40px;
-    /* Securely placed at the bottom */
+    bottom: 12px;
+    /* Minimal bottom margin */
     left: 50%;
     transform: translateX(-50%);
     z-index: 100;
@@ -541,8 +541,8 @@
 
 @media (max-width: 768px) {
     .sessionDashboard {
-        bottom: 100px;
-        /* Balanced mobile position */
+        bottom: 12px;
+        /* Consistent minimal bottom margin */
         max-width: 90%;
     }
 
@@ -1140,7 +1140,7 @@
 
 .floatingLangToggle {
     position: absolute;
-    top: 20px;
+    top: 15px;
     right: 20px;
     z-index: 1000;
     background: rgba(255, 255, 255, 0.1);
@@ -1167,4 +1167,87 @@
 
 .floatingLangToggle span {
     letter-spacing: 0.5px;
+}
+
+.floatingTrackTitle {
+    position: absolute;
+    top: 24px;
+    /* Exactly double the bottom margin */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    width: auto;
+    max-width: 80vw;
+    animation: titleFadeIn 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.trackTitleContent {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 30px;
+    padding: 8px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow:
+        0 4px 15px rgba(0, 0, 0, 0.4),
+        inset 0 0 20px rgba(255, 215, 0, 0.05);
+}
+
+.dynamicText {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #FFD700;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: 'Noto Serif Devanagari', serif;
+}
+
+.sparkleIcon {
+    color: rgba(255, 215, 0, 0.6);
+    animation: sparkleSpin 4s linear infinite;
+}
+
+@keyframes titleFadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+@keyframes sparkleSpin {
+    0% {
+        transform: rotate(0deg) scale(1);
+    }
+
+    50% {
+        transform: rotate(180deg) scale(1.2);
+    }
+
+    100% {
+        transform: rotate(360deg) scale(1);
+    }
+}
+
+@media (max-width: 768px) {
+    .floatingTrackTitle {
+        top: 24px;
+        /* Proportional to bottom margin */
+        max-width: 90vw;
+    }
+
+    .dynamicText {
+        font-size: 0.9rem;
+    }
 }
