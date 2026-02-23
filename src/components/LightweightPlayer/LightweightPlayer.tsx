@@ -84,15 +84,15 @@ export default function LightweightPlayer({
 
                     <div className={styles.centerPiece}>
                         <button
-                            className={styles.primaryPlayBtn}
+                            className={`${styles.spiritualButton} ${isPlaying ? styles.playing : ''}`}
                             onClick={onTogglePlay}
-                            title={isPlaying ? (lang === 'hi' ? 'रोकें' : 'Pause') : (lang === 'hi' ? 'चलाएं' : 'Play')}
+                            title={isPlaying ? (lang === 'hi' ? 'शांति' : 'Serenity') : (lang === 'hi' ? 'चेतना' : 'Awaken')}
                         >
-                            {isPlaying ? (
-                                <Pause size={32} fill="currentColor" />
-                            ) : (
-                                <Play size={32} fill="currentColor" className={styles.playIconOffset} />
-                            )}
+                            <div className={styles.mandalaContainer}>
+                                <div className={styles.outerMandala} />
+                                <div className={styles.petalAccent} />
+                                <div className={styles.innerCore} />
+                            </div>
                         </button>
                     </div>
 

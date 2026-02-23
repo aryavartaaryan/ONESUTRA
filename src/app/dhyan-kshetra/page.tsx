@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Globe, Sparkles } from 'lucide-react';
+import { Globe, Sparkles, Languages } from 'lucide-react';
 import styles from "../vedic-rasoi/rasoi.module.css";
 import translations from '@/lib/vaidya-translations.json';
 import pageStyles from "./page.module.css";
@@ -547,7 +547,17 @@ export default function DhyanKakshaPage() {
                 overflow: 'hidden'
             }}
         >
-            <Navbar />
+            {/* Navbar REMOVED as per user request */}
+            {!showIntro && (
+                <button
+                    className={pageStyles.floatingLangToggle}
+                    onClick={toggleLanguage}
+                    title={lang === 'hi' ? 'Switch to English' : 'हिन्दी में बदलें'}
+                >
+                    <Languages size={20} />
+                    <span>{lang === 'hi' ? 'EN' : 'HI'}</span>
+                </button>
+            )}
             {/* SPLASH SCREEN - Elegant Single Entry */}
             {!hasStarted && (
                 <div className={pageStyles.spiritualEntry}>
