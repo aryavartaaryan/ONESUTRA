@@ -144,6 +144,19 @@
     }
 }
 
+@media (max-width: 480px) {
+    .heroSection {
+        gap: 1rem !important;
+        padding-bottom: 140px !important;
+    }
+
+    .sriYantraContainer {
+        height: 30vh !important;
+        margin-top: 50px !important;
+        margin-bottom: 20px !important;
+    }
+}
+
 .heroSection {
     position: relative;
     flex: 1;
