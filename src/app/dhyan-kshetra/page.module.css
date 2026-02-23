@@ -6,11 +6,22 @@
     min-height: 100dvh;
     /* Better mobile support */
     position: relative;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    /* Default Hidden */
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+}
+
+@media (max-width: 768px) {
+    .container {
+        overflow-y: auto;
+        /* Enable scroll on mobile if content overflows */
+        justify-content: flex-start;
+        height: 100vh;
+    }
 }
 
 .titleContainer {
@@ -126,10 +137,13 @@
     }
 
     .sriYantraContainer {
-        /* Balanced mobile position - pushed down to avoid title overlap */
-        margin-top: clamp(80px, 15vh, 120px) !important;
+        /* Balanced mobile position - stacking naturally */
+        margin-top: 2rem !important;
+        margin-bottom: 2rem !important;
         width: 100% !important;
-        height: 45vh !important;
+        height: auto !important;
+        aspect-ratio: 1/1;
+        max-width: 320px;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
@@ -138,22 +152,22 @@
     }
 
     .heroSection {
-        padding-top: 10px !important;
-        padding-bottom: clamp(150px, 25vh, 220px) !important;
+        padding-top: 40px !important;
+        padding-bottom: 20px !important;
         justify-content: flex-start !important;
-    }
-}
-
-@media (max-width: 480px) {
-    .heroSection {
-        gap: 1rem !important;
-        padding-bottom: 140px !important;
+        height: auto !important;
+        min-height: min-content;
+        gap: 1.5rem !important;
     }
 
-    .sriYantraContainer {
-        height: 30vh !important;
-        margin-top: 50px !important;
-        margin-bottom: 20px !important;
+    .sessionDashboard {
+        position: relative !important;
+        bottom: 0 !important;
+        margin-top: auto;
+        margin-bottom: 40px;
+        padding-top: 20px;
+        width: 100% !important;
+        max-width: 95% !important;
     }
 }
 
