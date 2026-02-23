@@ -233,7 +233,7 @@ export default function IntroVideoFlash({ videos, onComplete, onFadeOutStart, is
 
             {/* Skip/Unmute hints */}
             <div className={styles.skipHint}>
-                {isMuted ? (
+                {localIsMuted ? (
                     <button
                         className={styles.unmuteBtn}
                         onClick={(e) => {
@@ -241,7 +241,7 @@ export default function IntroVideoFlash({ videos, onComplete, onFadeOutStart, is
                             const activeEl = bufferA.active ? videoRefA.current : videoRefB.current;
                             if (activeEl) {
                                 activeEl.muted = false;
-                                setIsMuted(false);
+                                setLocalIsMuted(false);
                                 activeEl.play().catch(() => { });
                             }
                         }}
