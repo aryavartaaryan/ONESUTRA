@@ -266,6 +266,33 @@
     transform: scale(1.1);
 }
 
+.actionBtn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 215, 0, 0.6);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.actionBtn:hover {
+    color: #FFD700;
+    transform: scale(1.15) rotate(5deg);
+    background: rgba(255, 215, 0, 0.15);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+}
+
+.actionBtn:active {
+    transform: scale(0.95);
+}
+
 /* Mobile Adjustments */
 @media (max-width: 768px) {
     .playerPill {

@@ -564,18 +564,9 @@ export default function DhyanKakshaPage() {
                     {/* Background Rotating Sri Yantra */}
                     <div className={pageStyles.rotatingBackgroundYantra}>
                         <img
-                            src="/images/pranav_logo.png"
+                            src="/images/sri-yantra-side.png"
                             className={pageStyles.entryOm}
-                            alt="Pranav.AI Logo"
-                        />
-                    </div>
-
-                    {/* Foreground Illuminating Sri Yantra with Natural Integration & Surround Halo */}
-                    <div className={pageStyles.iconSurround}>
-                        <img
-                            src="/images/pranav_logo.png"
-                            className={pageStyles.entryOm}
-                            alt="Pranav.AI Logo"
+                            alt="Sri Yantra"
                         />
                     </div>
 
@@ -634,7 +625,9 @@ export default function DhyanKakshaPage() {
                             className={pageStyles.consecratedButton}
                             style={{ opacity: 1, pointerEvents: 'auto' }}
                         >
-                            {introVideos.length === 0 ? '🪷 प्रतीक्षा करें...' : '🪷 परिवर्तन के लिए तैयार रहें'}
+                            {introVideos.length === 0
+                                ? (lang === 'hi' ? '🪷 प्रतीक्षा करें...' : '🪷 Awaiting Divine Presence...')
+                                : (lang === 'hi' ? '🪷 दिव्य ध्यान में प्रवेश करें' : '🪷 Enter Divine Meditation')}
                         </button>
                     </div>
                 </div>
@@ -960,6 +953,11 @@ export default function DhyanKakshaPage() {
 
                         onNext={goNext}
                         onPrevious={goPrevious}
+                        onOpenMantraMenu={() => setIsMantraMenuOpen(true)}
+                        onOpenAcharya={() => {
+                            // Navigate to Acharya Samvad
+                            window.location.href = '/acharya-samvad';
+                        }}
                         onSeek={(time) => {
                             if (currentItem.type === 'video') {
                                 if (sequentialVideoRef.current) sequentialVideoRef.current.currentTime = time;
