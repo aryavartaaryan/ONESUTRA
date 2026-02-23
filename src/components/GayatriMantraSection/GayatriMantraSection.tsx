@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion, Variants } from 'framer-motion';
-import { Volume2 } from 'lucide-react';
 import styles from './GayatriMantraSection.module.css';
 
 const mantraLines = [
@@ -153,13 +152,6 @@ export default function GayatriMantraSection() {
                     {meaning}
                 </motion.p>
             </motion.div>
-
-            {/* Sound Interaction Tip */}
-            <div className={styles.soundButton}>
-                <Volume2 size={24} />
-                <span className={styles.tooltip}>कंपन का अनुभव करें</span>
-            </div>
-
         </section>
     );
 }
