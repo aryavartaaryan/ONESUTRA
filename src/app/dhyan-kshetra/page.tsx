@@ -898,31 +898,24 @@ export default function DhyanKakshaPage() {
             {/* <div style={{...}} /> */}
 
             {/* Main Content Container */}
-            <div className={`${pageStyles.heroSection} ${showIntro ? pageStyles.mainContentHidden : ""}`} style={{ zIndex: 100 }}>
-
-
-
-                {/* Floating Track Title - Top Edge */}
-                {!showIntro && startBackgroundLoop && (
-                    <div className={pageStyles.floatingTrackTitle}>
-                        <div className={pageStyles.trackTitleContent}>
-                            <Sparkles size={16} className={pageStyles.sparkleIcon} />
-                            <h2 className={pageStyles.dynamicText}>
-                                {lang === 'hi' ? currentItem.titleHi : currentItem.title}
-                            </h2>
-                            <Sparkles size={16} className={pageStyles.sparkleIcon} />
-                        </div>
+            {!showIntro && startBackgroundLoop && (
+                <div className={pageStyles.floatingTrackTitle}>
+                    <div className={pageStyles.trackTitleContent}>
+                        <Sparkles size={16} className={pageStyles.sparkleIcon} />
+                        <h2 className={pageStyles.dynamicText}>
+                            {lang === 'hi' ? currentItem.titleHi : currentItem.title}
+                        </h2>
+                        <Sparkles size={16} className={pageStyles.sparkleIcon} />
                     </div>
-                )}
+                </div>
+            )}
 
-
+            {/* Main Content Container */}
+            <div className={`${pageStyles.heroSection} ${showIntro ? pageStyles.mainContentHidden : ""}`} style={{ zIndex: 100 }}>
                 {/* Sri Yantra - Central Focus - Size adjusted in component CSS */}
                 <div className={pageStyles.sriYantraContainer}>
                     <SriYantra />
                 </div>
-
-
-
             </div>
 
             {/* UNIFIED SESSION PLAYER (Replaces Old Dashboard) */}
