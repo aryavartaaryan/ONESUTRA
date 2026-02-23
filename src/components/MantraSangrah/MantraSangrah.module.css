@@ -1007,8 +1007,8 @@
 @media (max-width: 768px) {
     .triggerContainer {
         left: 12px;
-        bottom: 120px;
-        /* Moved lower from 155px to balance on mobile */
+        bottom: 180px;
+        /* Increased to stay above the media player on short screens */
         /* Fixed anchor for the button position */
         top: auto;
         transform: none;
@@ -1050,8 +1050,8 @@
 
     .acharyaContainer {
         right: 12px;
-        bottom: 120px;
-        /* Moved lower from 155px to balance on mobile */
+        bottom: 180px;
+        /* Increased to stay above the media player on short screens */
         /* Identical bottom anchor for symmetry */
         top: auto;
         transform: none;

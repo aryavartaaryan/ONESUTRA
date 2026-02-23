@@ -164,7 +164,8 @@
         position: relative !important;
         bottom: 0 !important;
         margin-top: auto;
-        margin-bottom: 40px;
+        margin-bottom: 60px;
+        /* Increased bottom margin for better clearance */
         padding-top: 20px;
         width: 100% !important;
         max-width: 95% !important;
@@ -1277,5 +1278,13 @@
 
     .dynamicText {
         font-size: 0.9rem;
+    }
+
+    .floatingLangToggle {
+        top: 85px;
+        /* Space below the track title on narrow screens */
+        right: 15px;
+        padding: 6px 10px;
+        font-size: 0.75rem;
     }
 }
