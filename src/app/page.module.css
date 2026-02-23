@@ -1,95 +1,24 @@
 .main {
-  background: radial-gradient(circle at 50% 50%, rgba(255, 148, 51, 0.1) 0%, transparent 70%);
+  background: linear-gradient(135deg, #FF9933 0%, #87CEEB 100%);
+  /* Saffron to Light Blue gradient */
   min-height: 100vh;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
+  font-family: var(--font-body);
+  color: var(--text-main);
   overflow-x: hidden;
-}
-
-/* Hero Section */
-.hero {
-  min-height: 100vh;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
   position: relative;
-  padding: 2rem;
-  text-align: center;
-}
-
-.heroContent {
-  z-index: 10;
-  max-width: 800px;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  align-items: center;
-}
-
-.heroTitle {
-  font-family: var(--font-serif);
-  font-size: clamp(3rem, 10vw, 5rem);
-  font-weight: 700;
-  line-height: 1.1;
-  background: linear-gradient(to bottom, #FFF, var(--divine-gold));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));
-  margin: 0;
-}
-
-.heroSubtitle {
-  font-family: var(--font-header);
-  font-size: clamp(1.2rem, 3vw, 1.8rem);
-  color: var(--vedic-cream);
-  opacity: 0.9;
-  letter-spacing: 0.05em;
-  max-width: 600px;
-}
-
-.ctaGroup {
-  display: flex;
-  gap: 1.5rem;
-  margin-top: 2rem;
-}
-
-/* Decorative Mandala Background */
-.mandalaBg {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 150vh;
-  height: 150vh;
-  opacity: 0.05;
-  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 0 C77.614 0 100 22.386 100 50 C100 77.614 77.614 100 50 100 C22.386 100 0 77.614 0 50 C0 22.386 22.386 0 50 0 Z M50 5 C25.147 5 5 25.147 5 50 C5 74.853 25.147 95 50 95 C74.853 95 95 74.853 95 50 C95 25.147 74.853 5 50 5 Z M50 15 C30.67 15 15 30.67 15 50 C15 69.33 30.67 85 50 85 C69.33 85 85 69.33 85 50 C85 30.67 69.33 15 50 15 Z' fill='%23FF9433'/%3E%3C/svg%3E");
-  background-size: cover;
-  animation: rotate 120s linear infinite;
-  pointer-events: none;
-}
-
-@keyframes rotate {
-  from {
-    transform: translate(-50%, -50%) rotate(0deg);
-  }
-
-  to {
-    transform: translate(-50%, -50%) rotate(360deg);
-  }
 }
 
 /* Mist Separator for Smooth Transitions */
 .fadeSeparator {
-  height: 200px;
+  height: 150px;
   width: 100%;
-  background: linear-gradient(to bottom, transparent, var(--divine-midnight) 80%);
+  margin-top: -30px;
+  /* Overlap previous section */
+  margin-bottom: -30px;
+  /* Overlap next section */
   position: relative;
-  z-index: 5;
-  margin-top: -100px;
+  z-index: 100;
+  background: radial-gradient(ellipse at center, rgba(5, 10, 48, 0.8) 0%, transparent 70%);
+  filter: blur(20px);
+  pointer-events: none;
 }

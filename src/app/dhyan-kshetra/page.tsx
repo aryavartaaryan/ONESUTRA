@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Globe, Sparkles, Languages, Play, Pause, SkipForward, SkipBack, Volume2 } from 'lucide-react';
+import { Globe, Sparkles, Languages } from 'lucide-react';
+import styles from "../vedic-rasoi/rasoi.module.css";
 import translations from '@/lib/vaidya-translations.json';
 import pageStyles from "./page.module.css";
 import Navbar from '@/components/Navbar';
@@ -549,116 +550,89 @@ export default function DhyanKakshaPage() {
         >
             {/* Navbar REMOVED as per user request */}
             {!showIntro && (
-                <>
-                    <button
-                        className={pageStyles.floatingLangToggle}
-                        onClick={toggleLanguage}
-                        title={lang === 'hi' ? 'Switch to English' : 'हिन्दी में बदलें'}
-                    >
-                        <Languages size={20} />
-                        <span>{lang === 'hi' ? 'EN' : 'HI'}</span>
-                    </button>
-
-                    <div className={pageStyles.layout}>
-                        {/* Left Side: Session Status/Info (Optional side panel) */}
-                        <aside className={pageStyles.sidePanel}>
-                            <h2 className={pageStyles.titleText}>Pranav</h2>
-                            <div className={pageStyles.dashboardShesh}>
-                                <span>{lang === 'hi' ? 'वर्तमान सत्र' : 'Current Session'}</span>
-                                <span className={pageStyles.sheshTime}>{activeItem?.title}</span>
-                            </div>
-                        </aside>
-
-                        {/* Center Side: Sri Yantra centerpiece */}
-                        <div className={pageStyles.centerpiece}>
-                            <div className={pageStyles.sriYantraContainer}>
-                                <SriYantra />
-                            </div>
-                        </div>
-
-                        {/* Right Side: Mantra Sangrah Menu acts as the side panel */}
-                        <div style={{ position: 'relative', zIndex: 50 }}>
-                            {/* MantraSangrah component will be positioned here or absolutely by the layout */}
-                        </div>
-                    </div>
-                </>
+                <button
+                    className={pageStyles.floatingLangToggle}
+                    onClick={toggleLanguage}
+                    title={lang === 'hi' ? 'Switch to English' : 'हिन्दी में बदलें'}
+                >
+                    <Languages size={20} />
+                    <span>{lang === 'hi' ? 'EN' : 'HI'}</span>
+                </button>
             )}
             {/* SPLASH SCREEN - Elegant Single Entry */}
-            {
-                !hasStarted && (
-                    <div className={pageStyles.spiritualEntry}>
-                        {/* NEW: Static Sri Yantra as Center of Attraction - Above Title */}
-                        <div className={pageStyles.staticYantraHero}>
-                            <img
-                                src="/images/Authentic Sri Yantra.jpg"
-                                className={pageStyles.staticYantraImage}
-                                alt="Authentic Sacred Sri Yantra"
-                            />
-                        </div>
-
-                        <div className={pageStyles.entryContent}>
-                            <h1 className={pageStyles.entryTitle}>
-                                {/* Word-by-word & Letter-by-letter animation */}
-                                <div className={pageStyles.animatedTitleWrapper}>
-                                    {"Connect with the Divine Intelligence".split(" ").map((word, wordIndex) => (
-                                        <span key={wordIndex} style={{ display: "inline-block", whiteSpace: "nowrap", margin: "0 0.25em" }}>
-                                            {word.split("").map((char, charIndex) => {
-                                                // Calculate global index for staggered delay
-                                                // Approximation: wordIndex * 5 + charIndex (robust enough for visual effect)
-                                                const delay = (wordIndex * 5 + charIndex) * 0.05;
-                                                return (
-                                                    <span
-                                                        key={charIndex}
-                                                        className={pageStyles.animatedLetter}
-                                                        style={{ animationDelay: `${delay}s` }}
-                                                    >
-                                                        {char}
-                                                    </span>
-                                                );
-                                            })}
-                                        </span>
-                                    ))}
-                                </div>
-                            </h1>
-                            <p className={pageStyles.entrySub}>
-                                एक दिव्य परिवर्तन की यात्रा के लिए तैयार रहें...<br />
-                                <span>
-                                    Prepare for a transformation journey...
-                                </span>
-                            </p>
-                        </div>
-
-                        {/* Divine Entry Gate - Simplified (No Name Input) */}
-                        <div className={pageStyles.nameGateContainer}>
-                            {/* Consecrated Enter Button - Always Enabled */}
-                            <button
-                                id="consecrated-enter-btn"
-                                onClick={() => {
-                                    if (introVideos.length > 0) {
-                                        // 1. UNLOCK AUDIO CONTEXT IMMEDIATELY
-                                        const unlockAudio = new Audio();
-                                        unlockAudio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAGZGF0YQAAAAA="; // Silent WAV
-                                        unlockAudio.play().then(() => {
-                                            console.log("[Audio] Global Context Unlocked");
-                                        }).catch(e => console.warn("[Audio] Unlock failed:", e));
-
-                                        setIsFirstTime(true);
-                                        setHasStarted(true);
-                                        // DO NOT setisMantraPlaying(true) here, let IntroVideoFlash finish first
-                                    }
-                                }}
-                                disabled={introVideos.length === 0}
-                                className={pageStyles.consecratedButton}
-                                style={{ opacity: 1, pointerEvents: 'auto' }}
-                            >
-                                {introVideos.length === 0
-                                    ? (lang === 'hi' ? '🪷 प्रतीक्षा करें...' : '🪷 Awaiting Divine Presence...')
-                                    : '🪷 Enter The Divinity'}
-                            </button>
-                        </div>
+            {!hasStarted && (
+                <div className={pageStyles.spiritualEntry}>
+                    {/* NEW: Static Sri Yantra as Center of Attraction - Above Title */}
+                    <div className={pageStyles.staticYantraHero}>
+                        <img
+                            src="/images/Authentic Sri Yantra.jpg"
+                            className={pageStyles.staticYantraImage}
+                            alt="Authentic Sacred Sri Yantra"
+                        />
                     </div>
-                )
-            }
+
+                    <div className={pageStyles.entryContent}>
+                        <h1 className={pageStyles.entryTitle}>
+                            {/* Word-by-word & Letter-by-letter animation */}
+                            <div className={pageStyles.animatedTitleWrapper}>
+                                {"Connect with the Divine Intelligence".split(" ").map((word, wordIndex) => (
+                                    <span key={wordIndex} style={{ display: "inline-block", whiteSpace: "nowrap", margin: "0 0.25em" }}>
+                                        {word.split("").map((char, charIndex) => {
+                                            // Calculate global index for staggered delay
+                                            // Approximation: wordIndex * 5 + charIndex (robust enough for visual effect)
+                                            const delay = (wordIndex * 5 + charIndex) * 0.05;
+                                            return (
+                                                <span
+                                                    key={charIndex}
+                                                    className={pageStyles.animatedLetter}
+                                                    style={{ animationDelay: `${delay}s` }}
+                                                >
+                                                    {char}
+                                                </span>
+                                            );
+                                        })}
+                                    </span>
+                                ))}
+                            </div>
+                        </h1>
+                        <p className={pageStyles.entrySub}>
+                            एक दिव्य परिवर्तन की यात्रा के लिए तैयार रहें...<br />
+                            <span>
+                                Prepare for a transformation journey...
+                            </span>
+                        </p>
+                    </div>
+
+                    {/* Divine Entry Gate - Simplified (No Name Input) */}
+                    <div className={pageStyles.nameGateContainer}>
+                        {/* Consecrated Enter Button - Always Enabled */}
+                        <button
+                            id="consecrated-enter-btn"
+                            onClick={() => {
+                                if (introVideos.length > 0) {
+                                    // 1. UNLOCK AUDIO CONTEXT IMMEDIATELY
+                                    const unlockAudio = new Audio();
+                                    unlockAudio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAGZGF0YQAAAAA="; // Silent WAV
+                                    unlockAudio.play().then(() => {
+                                        console.log("[Audio] Global Context Unlocked");
+                                    }).catch(e => console.warn("[Audio] Unlock failed:", e));
+
+                                    setIsFirstTime(true);
+                                    setHasStarted(true);
+                                    // DO NOT setisMantraPlaying(true) here, let IntroVideoFlash finish first
+                                }
+                            }}
+                            disabled={introVideos.length === 0}
+                            className={pageStyles.consecratedButton}
+                            style={{ opacity: 1, pointerEvents: 'auto' }}
+                        >
+                            {introVideos.length === 0
+                                ? (lang === 'hi' ? '🪷 प्रतीक्षा करें...' : '🪷 Awaiting Divine Presence...')
+                                : '🪷 Enter The Divinity'}
+                        </button>
+                    </div>
+                </div>
+            )}
             <style jsx>{`
                         @keyframes breathe {
                             0%, 100% { transform: scale(1); opacity: 0.25; }
@@ -842,82 +816,80 @@ export default function DhyanKakshaPage() {
             }
 
             {/* AMBIENT SLIDE LAYERS (Double Buffered) */}
-            {
-                startBackgroundLoop && currentItem.type === 'mantra' && (
-                    <div style={{ position: 'absolute', inset: 0, zIndex: 1, backgroundColor: '#020810' }}>
-                        {/* Fixed Fallback Background to prevent black screen */}
-                        <img
-                            src="/meditation-bg.png"
-                            style={{ ...ambientLayerStyle, opacity: 1, zIndex: 0 }}
-                            alt="Background Fallback"
-                        />
+            {startBackgroundLoop && currentItem.type === 'mantra' && (
+                <div style={{ position: 'absolute', inset: 0, zIndex: 1, backgroundColor: '#020810' }}>
+                    {/* Fixed Fallback Background to prevent black screen */}
+                    <img
+                        src="/meditation-bg.png"
+                        style={{ ...ambientLayerStyle, opacity: 1, zIndex: 0 }}
+                        alt="Background Fallback"
+                    />
 
-                        {/* Buffer A */}
-                        {currentSlideA && (
-                            <div style={{ ...ambientLayerStyle, opacity: activeBuffer === 'A' ? 1 : 0, zIndex: 0 }}>
-                                {currentSlideA.type === 'video' ? (
-                                    <video
-                                        ref={videoRefA}
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                        muted
-                                        playsInline
-                                        loop
-                                        onError={() => {
-                                            console.warn("[Ambient] Video A failed, skipping...");
-                                            pickRandomSlide();
-                                        }}
-                                    />
-                                ) : currentSlideA.type === 'logo' ? (
-                                    <div className={pageStyles.logoMovement}>
-                                        <div className={pageStyles.iconSurround}>
-                                            <img src={currentSlideA.src} className={pageStyles.entryOm} alt="Pranav.AI" />
-                                        </div>
+                    {/* Buffer A */}
+                    {currentSlideA && (
+                        <div style={{ ...ambientLayerStyle, opacity: activeBuffer === 'A' ? 1 : 0, zIndex: 0 }}>
+                            {currentSlideA.type === 'video' ? (
+                                <video
+                                    ref={videoRefA}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    muted
+                                    playsInline
+                                    loop
+                                    onError={() => {
+                                        console.warn("[Ambient] Video A failed, skipping...");
+                                        pickRandomSlide();
+                                    }}
+                                />
+                            ) : currentSlideA.type === 'logo' ? (
+                                <div className={pageStyles.logoMovement}>
+                                    <div className={pageStyles.iconSurround}>
+                                        <img src={currentSlideA.src} className={pageStyles.entryOm} alt="Pranav.AI" />
                                     </div>
-                                ) : (
-                                    <img
-                                        src={currentSlideA.src}
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                        className={pageStyles[`ambientCinematic${currentSlideA.animationIndex || 1}`]}
-                                        alt="Ambient image"
-                                    />
-                                )}
-                            </div>
-                        )}
+                                </div>
+                            ) : (
+                                <img
+                                    src={currentSlideA.src}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    className={pageStyles[`ambientCinematic${currentSlideA.animationIndex || 1}`]}
+                                    alt="Ambient image"
+                                />
+                            )}
+                        </div>
+                    )}
 
-                        {/* Buffer B */}
-                        {currentSlideB && (
-                            <div style={{ ...ambientLayerStyle, opacity: activeBuffer === 'B' ? 1 : 0, zIndex: 0 }}>
-                                {currentSlideB.type === 'video' ? (
-                                    <video
-                                        ref={videoRefB}
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                        muted
-                                        playsInline
-                                        loop
-                                        onError={() => {
-                                            console.warn("[Ambient] Video B failed, skipping...");
-                                            pickRandomSlide();
-                                        }}
-                                    />
-                                ) : currentSlideB.type === 'logo' ? (
-                                    <div className={pageStyles.logoMovement}>
-                                        <div className={pageStyles.iconSurround}>
-                                            <img src={currentSlideB.src} className={pageStyles.entryOm} alt="Pranav.AI" />
-                                        </div>
+                    {/* Buffer B */}
+                    {currentSlideB && (
+                        <div style={{ ...ambientLayerStyle, opacity: activeBuffer === 'B' ? 1 : 0, zIndex: 0 }}>
+                            {currentSlideB.type === 'video' ? (
+                                <video
+                                    ref={videoRefB}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    muted
+                                    playsInline
+                                    loop
+                                    onError={() => {
+                                        console.warn("[Ambient] Video B failed, skipping...");
+                                        pickRandomSlide();
+                                    }}
+                                />
+                            ) : currentSlideB.type === 'logo' ? (
+                                <div className={pageStyles.logoMovement}>
+                                    <div className={pageStyles.iconSurround}>
+                                        <img src={currentSlideB.src} className={pageStyles.entryOm} alt="Pranav.AI" />
                                     </div>
-                                ) : (
-                                    <img
-                                        src={currentSlideB.src}
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                        className={pageStyles[`ambientCinematic${currentSlideB.animationIndex || 1}`]}
-                                        alt="Ambient image"
-                                    />
-                                )}
-                            </div>
-                        )}
-                    </div>
-                )
-            }
+                                </div>
+                            ) : (
+                                <img
+                                    src={currentSlideB.src}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    className={pageStyles[`ambientCinematic${currentSlideB.animationIndex || 1}`]}
+                                    alt="Ambient image"
+                                />
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Dark Overlay REMOVED for brightness */}
             {/* <div style={{...}} /> */}
@@ -954,47 +926,45 @@ export default function DhyanKakshaPage() {
             </div>
 
             {/* UNIFIED SESSION PLAYER (Replaces Old Dashboard) */}
-            {
-                !showIntro && startBackgroundLoop && (
-                    <div className={pageStyles.sessionDashboard}>
-                        <LightweightPlayer
-                            lang={lang}
-                            title={currentItem.title || ''}
-                            titleHi={currentItem.titleHi || ''}
-                            type={currentItem.type as any || 'mantra'}
-                            isPlaying={currentItem.type === 'video' ? (!isSessionPaused && !isMantraPlaying) : isMantraPlaying}
-                            progress={currentItem.type === 'video' ? videoProgress : (audioDuration ? (audioTime / audioDuration) * 100 : 0)}
-                            currentTime={currentItem.type === 'video' ? videoTime : audioTime}
-                            duration={currentItem.type === 'video' ? videoDuration : audioDuration}
-                            onTogglePlay={() => {
-                                if (currentItem.type === 'video') {
-                                    if (sequentialVideoRef.current) {
-                                        if (isSessionPaused) {
-                                            sequentialVideoRef.current.play().catch(() => { });
-                                            setIsSessionPaused(false);
-                                        } else {
-                                            sequentialVideoRef.current.pause();
-                                            setIsSessionPaused(true);
-                                        }
+            {!showIntro && startBackgroundLoop && (
+                <div className={pageStyles.sessionDashboard}>
+                    <LightweightPlayer
+                        lang={lang}
+                        title={currentItem.title || ''}
+                        titleHi={currentItem.titleHi || ''}
+                        type={currentItem.type as any || 'mantra'}
+                        isPlaying={currentItem.type === 'video' ? (!isSessionPaused && !isMantraPlaying) : isMantraPlaying}
+                        progress={currentItem.type === 'video' ? videoProgress : (audioDuration ? (audioTime / audioDuration) * 100 : 0)}
+                        currentTime={currentItem.type === 'video' ? videoTime : audioTime}
+                        duration={currentItem.type === 'video' ? videoDuration : audioDuration}
+                        onTogglePlay={() => {
+                            if (currentItem.type === 'video') {
+                                if (sequentialVideoRef.current) {
+                                    if (isSessionPaused) {
+                                        sequentialVideoRef.current.play().catch(() => { });
+                                        setIsSessionPaused(false);
+                                    } else {
+                                        sequentialVideoRef.current.pause();
+                                        setIsSessionPaused(true);
                                     }
-                                } else {
-                                    setIsSessionPaused(!isSessionPaused);
                                 }
-                            }}
+                            } else {
+                                setIsSessionPaused(!isSessionPaused);
+                            }
+                        }}
 
-                            onNext={goNext}
-                            onPrevious={goPrevious}
-                            onSeek={(time) => {
-                                if (currentItem.type === 'video') {
-                                    if (sequentialVideoRef.current) sequentialVideoRef.current.currentTime = time;
-                                } else {
-                                    setAudioTime(time);
-                                }
-                            }}
-                        />
-                    </div>
-                )
-            }
+                        onNext={goNext}
+                        onPrevious={goPrevious}
+                        onSeek={(time) => {
+                            if (currentItem.type === 'video') {
+                                if (sequentialVideoRef.current) sequentialVideoRef.current.currentTime = time;
+                            } else {
+                                setAudioTime(time);
+                            }
+                        }}
+                    />
+                </div>
+            )}
 
         </main >
     );
