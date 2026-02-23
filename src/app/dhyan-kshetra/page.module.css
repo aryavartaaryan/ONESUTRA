@@ -836,14 +836,15 @@
 /* NEW: Static Focal Sri Yantra Layout */
 .staticYantraHero {
     position: relative;
-    width: clamp(200px, 35vh, 360px);
-    height: auto;
+    width: clamp(280px, 45vh, 450px);
+    height: clamp(280px, 45vh, 450px);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
     z-index: 2;
-    filter: drop-shadow(0 0 30px rgba(255, 140, 0, 0.5)) drop-shadow(0 0 60px rgba(135, 206, 235, 0.6));
+    /* Clean background, the component has its own glows */
+    background: transparent;
 }
 
 .staticYantraImage {

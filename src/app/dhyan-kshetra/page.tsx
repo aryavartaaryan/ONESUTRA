@@ -562,13 +562,9 @@ export default function DhyanKakshaPage() {
             {/* SPLASH SCREEN - Elegant Single Entry */}
             {!hasStarted && (
                 <div className={pageStyles.spiritualEntry}>
-                    {/* NEW: Static Sri Yantra as Center of Attraction - Above Title */}
+                    {/* Restored: Animated Sri Yantra Component */}
                     <div className={pageStyles.staticYantraHero}>
-                        <img
-                            src="/images/Authentic Sri Yantra.jpg"
-                            className={pageStyles.staticYantraImage}
-                            alt="Authentic Sacred Sri Yantra"
-                        />
+                        <SriYantra />
                     </div>
 
                     <div className={pageStyles.entryContent}>
