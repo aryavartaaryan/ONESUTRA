@@ -1,0 +1,251 @@
+/* ============================================
+   HERO SECTION — Time-of-Day Greeting
+   ============================================ */
+
+.heroContainer {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5rem 2rem 3rem;
+    text-align: center;
+    overflow: hidden;
+}
+
+/* Faint Sri Yantra in hero background */
+.heroBgYantra {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 500px;
+    height: 500px;
+    transform: translate(-50%, -50%);
+    opacity: 0.04;
+    pointer-events: none;
+    z-index: 0;
+    animation: heroYantraRotate 180s linear infinite;
+}
+
+@keyframes heroYantraRotate {
+    from {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* Ambient orb behind heading */
+.ambientOrb {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    width: 350px;
+    height: 350px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle,
+            rgba(255, 153, 51, 0.12) 0%,
+            rgba(212, 175, 55, 0.06) 50%,
+            transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    animation: orbBreathe 8s ease-in-out infinite;
+}
+
+@keyframes orbBreathe {
+
+    0%,
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.6;
+    }
+
+    50% {
+        transform: translate(-50%, -50%) scale(1.15);
+        opacity: 1;
+    }
+}
+
+/* Content stack */
+.heroContent {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    max-width: 800px;
+}
+
+/* Time-of-day emoji/icon */
+.timeIcon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    animation: sacredFloat 4s ease-in-out infinite;
+}
+
+@keyframes sacredFloat {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+/* Namaste greeting */
+.greeting {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 600;
+    color: #2C1810;
+    letter-spacing: 2px;
+    margin: 0;
+}
+
+.greetingHighlight {
+    background: linear-gradient(135deg, #FF9933 0%, #D4AF37 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Subtitle */
+.heroSubtitle {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1rem, 2.5vw, 1.35rem);
+    color: #5C4A3A;
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1.7;
+    max-width: 600px;
+    margin-top: 0.5rem;
+}
+
+/* CTA Button */
+.heroCta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding: 1rem 2.5rem;
+    background: linear-gradient(135deg, #FF9933, #D4AF37);
+    color: #fff;
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    box-shadow: 0 6px 24px rgba(255, 153, 51, 0.3);
+}
+
+.heroCta:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 10px 35px rgba(255, 153, 51, 0.45);
+}
+
+/* Auth trigger */
+.authTrigger {
+    margin-top: 1rem;
+    padding: 0.6rem 1.5rem;
+    background: transparent;
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 30px;
+    color: #5C4A3A;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.authTrigger:hover {
+    background: rgba(212, 175, 55, 0.08);
+    border-color: #D4AF37;
+    color: #2C1810;
+}
+
+/* Auth row — Sign In / Sign Up side by side */
+.authRow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+/* Sign Up button — filled variant */
+.signUpTrigger {
+    padding: 0.6rem 1.5rem;
+    background: linear-gradient(135deg, #FF9933, #D4AF37);
+    border: none;
+    border-radius: 30px;
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 16px rgba(255, 153, 51, 0.25);
+}
+
+.signUpTrigger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(255, 153, 51, 0.4);
+}
+
+/* Brand line */
+.brandLine {
+    margin-top: 2rem;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #9E9A91;
+    font-weight: 500;
+}
+
+.brandLine span {
+    color: #D4AF37;
+    font-weight: 600;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+    .heroContainer {
+        min-height: 50vh;
+        padding: 4rem 1.5rem 2rem;
+    }
+
+    .timeIcon {
+        font-size: 2rem;
+    }
+
+    .heroBgYantra {
+        width: 300px;
+        height: 300px;
+    }
+
+    .ambientOrb {
+        width: 250px;
+        height: 250px;
+    }
+}

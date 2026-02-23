@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Footer from "@/components/Footer";
+import ConditionalFooter from "@/components/ConditionalFooter";
 // import SevakChatbot from "@/components/SevakChatbot";
 import "./globals.css";
 
@@ -17,10 +17,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body suppressHydrationWarning>
+      <body>
         <LanguageProvider>
           {children}
-          <Footer />
+          <ConditionalFooter />
         </LanguageProvider>
       </body>
     </html>

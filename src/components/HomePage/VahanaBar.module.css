@@ -1,0 +1,240 @@
+/* ============================================
+   VAHANA BAR — Floating Bottom Navigation
+   ============================================ */
+
+.vahanaBar {
+    position: fixed;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 900;
+    display: none;
+    /* Mobile only */
+    align-items: center;
+    justify-content: space-around;
+    gap: 0.5rem;
+    padding: 0.6rem 1.5rem;
+    min-width: 260px;
+    max-width: 340px;
+    width: 80%;
+    border-radius: 50px;
+
+    /* Glassmorphism */
+    background: rgba(253, 245, 230, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    box-shadow:
+        0 8px 32px rgba(44, 24, 16, 0.15),
+        0 1px 0 rgba(255, 255, 255, 0.4) inset;
+}
+
+/* Show on mobile only */
+@media (max-width: 768px) {
+    .vahanaBar {
+        display: flex;
+    }
+}
+
+.navItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    text-decoration: none;
+    color: #5C4A3A;
+    padding: 0.4rem 0.75rem;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.navItem:hover,
+.navItemActive {
+    color: #FF9933;
+}
+
+.navItemActive::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #FF9933;
+    box-shadow: 0 0 8px rgba(255, 153, 51, 0.5);
+}
+
+.navLabel {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+/* Explorer button — inherits navItem, remove link defaults */
+.explorerBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font: inherit;
+}
+
+/* ============================================
+   EXPLORER OVERLAY & PANEL
+   ============================================ */
+
+/* Dark backdrop */
+.explorerOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 850;
+    background: rgba(20, 10, 5, 0.45);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    animation: overlayFadeIn 0.3s ease;
+}
+
+@keyframes overlayFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Slide-up panel */
+.explorerPanel {
+    position: fixed;
+    bottom: 5rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(120%);
+    z-index: 860;
+    width: 85%;
+    max-width: 380px;
+    border-radius: 24px;
+    overflow: hidden;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.35s ease;
+    opacity: 0;
+    pointer-events: none;
+
+    /* Frosted glass Vedic aesthetic */
+    background: linear-gradient(165deg,
+            rgba(253, 248, 238, 0.95) 0%,
+            rgba(255, 253, 247, 0.92) 100%);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    box-shadow:
+        0 -8px 40px rgba(44, 24, 16, 0.12),
+        0 2px 0 rgba(255, 255, 255, 0.5) inset;
+}
+
+.explorerPanelOpen {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Panel header */
+.explorerHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem 0.5rem;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.12);
+}
+
+.explorerTitle {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2C1810;
+    letter-spacing: 1px;
+}
+
+.explorerClose {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: rgba(92, 74, 58, 0.06);
+    border-radius: 50%;
+    color: #5C4A3A;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.explorerClose:hover {
+    background: rgba(255, 153, 51, 0.1);
+    color: #FF9933;
+}
+
+/* Items list */
+.explorerItems {
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem;
+}
+
+.explorerItem {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1rem;
+    border-radius: 16px;
+    text-decoration: none;
+    color: #2C1810;
+    transition: all 0.25s ease;
+}
+
+.explorerItem:hover {
+    background: rgba(255, 153, 51, 0.08);
+}
+
+.explorerItem:active {
+    transform: scale(0.98);
+}
+
+/* Icon circle */
+.explorerItemIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: linear-gradient(135deg,
+            rgba(255, 153, 51, 0.12) 0%,
+            rgba(212, 175, 55, 0.08) 100%);
+    color: #D4AF37;
+    flex-shrink: 0;
+}
+
+/* Text block */
+.explorerItemText {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.explorerItemLabel {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2C1810;
+}
+
+.explorerItemDesc {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.7rem;
+    color: #9E9A91;
+    font-weight: 400;
+}

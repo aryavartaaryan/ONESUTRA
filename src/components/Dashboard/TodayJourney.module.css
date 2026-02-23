@@ -1,0 +1,78 @@
+.journeySection {
+    margin-bottom: 2.5rem;
+}
+
+.sectionTitle {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: #8B6914;
+    margin-bottom: 1.5rem;
+    padding: 0 0.5rem;
+}
+
+.journeyCard {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(8px);
+    border-radius: 1.5rem;
+    padding: 1.75rem;
+    border: 1px solid rgba(212, 175, 55, 0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.flowTitle {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1C1209;
+    margin: 0;
+}
+
+.stepCount {
+    font-size: 0.85rem;
+    color: #E07A5F;
+    font-weight: 700;
+}
+
+.progressTrack {
+    height: 6px;
+    background: rgba(224, 122, 95, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.progressBar {
+    height: 100%;
+    background: #E07A5F;
+    border-radius: 3px;
+}
+
+.stepsGrid {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.stepLabel {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #A4895C;
+    opacity: 0.5;
+}
+
+.stepLabel.completed {
+    color: #E07A5F;
+    opacity: 1;
+}
+
+.stepLabel.active {
+    color: #8B6914;
+    opacity: 1;
+}

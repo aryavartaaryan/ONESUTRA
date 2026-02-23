@@ -1,35 +1,23 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import Navbar from '@/components/Navbar';
-import GayatriMantraSection from '@/components/GayatriMantraSection/GayatriMantraSection';
-import PranicPathSection from '@/components/PranicPathSection/PranicPathSection';
-import VoiceCallModal from '@/components/VoiceCallModal';
+// Navbar removed — bottom VahanaBar handles navigation
+import HeroSection from '@/components/HomePage/HeroSection';
+import AuthModal from '@/components/HomePage/AuthModal';
+import homeStyles from './vedic-home.module.css';
 import styles from './page.module.css';
 
 export default function Home() {
-  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
-
-  const handleTalkToUs = () => {
-    setIsCallModalOpen(true);
-  };
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   return (
-    <main className={styles.main}>
+    <main className={`${homeStyles.sacredPage} ${styles.main}`}>
 
-      <PranicPathSection />
+      {/* Full-screen splash — the only thing on the landing page */}
+      <HeroSection onOpenAuth={() => setIsAuthOpen(true)} />
 
-      {/* Daily Wisdom Section: Immersive Gayatri Mantra */}
-      <div className={styles.fadeSeparator}></div>
-      <GayatriMantraSection />
-
-      {/* Voice Call Modal */}
-      <VoiceCallModal
-        isOpen={isCallModalOpen}
-        onClose={() => setIsCallModalOpen(false)}
-      />
-
+      {/* Auth Modal */}
+      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
     </main>
   );
 }

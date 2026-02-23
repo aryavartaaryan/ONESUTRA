@@ -1,24 +1,6 @@
 .main {
-  background: linear-gradient(135deg, #FF9933 0%, #87CEEB 100%);
-  /* Saffron to Light Blue gradient */
   min-height: 100vh;
   font-family: var(--font-body);
-  color: var(--text-main);
   overflow-x: hidden;
   position: relative;
-}
-
-/* Mist Separator for Smooth Transitions */
-.fadeSeparator {
-  height: 150px;
-  width: 100%;
-  margin-top: -30px;
-  /* Overlap previous section */
-  margin-bottom: -30px;
-  /* Overlap next section */
-  position: relative;
-  z-index: 100;
-  background: radial-gradient(ellipse at center, rgba(5, 10, 48, 0.8) 0%, transparent 70%);
-  filter: blur(20px);
-  pointer-events: none;
 }

@@ -1,0 +1,178 @@
+/* ============================================
+   OJAS TRACKER — Circular Vitality Gauges
+   ============================================ */
+
+.trackerSection {
+    position: relative;
+    z-index: 1;
+    padding: 3rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+}
+
+.sectionTitle {
+    font-family: 'Cinzel', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #2C1810;
+    letter-spacing: 2px;
+    text-align: center;
+}
+
+.sectionTitleAccent {
+    color: #D4AF37;
+}
+
+/* Prakrti Badge */
+.prakrtiBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.5rem;
+    border-radius: 30px;
+    background: rgba(253, 245, 230, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #2C1810;
+    letter-spacing: 1px;
+}
+
+.doshaIcon {
+    font-size: 1rem;
+}
+
+.doshaName {
+    font-weight: 600;
+    color: #D4AF37;
+}
+
+/* Rings Grid */
+.ringsGrid {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    max-width: 700px;
+    width: 100%;
+}
+
+/* Individual Ring Card */
+.ringCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-radius: 20px;
+    background: rgba(253, 245, 230, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(212, 175, 55, 0.15);
+    flex: 1;
+    min-width: 160px;
+    max-width: 200px;
+    transition: all 0.4s ease;
+}
+
+.ringCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(212, 175, 55, 0.15);
+    border-color: rgba(212, 175, 55, 0.3);
+}
+
+/* SVG Ring */
+.ringContainer {
+    position: relative;
+    width: 110px;
+    height: 110px;
+}
+
+.ringSvg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.ringBg {
+    fill: none;
+    stroke: #E8E0D0;
+    stroke-width: 6;
+}
+
+.ringProgress {
+    fill: none;
+    stroke-width: 6;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1.5s ease-in-out;
+}
+
+.ringLabel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.ringValue {
+    font-family: 'Cinzel', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #2C1810;
+    display: block;
+}
+
+.ringUnit {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.6rem;
+    color: #9E9A91;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Ring Title */
+.ringTitle {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #5C4A3A;
+    text-align: center;
+}
+
+.ringSubtitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.7rem;
+    font-style: italic;
+    color: #9E9A91;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+    .trackerSection {
+        padding: 2rem 1rem;
+    }
+
+    .ringsGrid {
+        gap: 1rem;
+    }
+
+    .ringCard {
+        min-width: 130px;
+        padding: 1rem;
+    }
+
+    .ringContainer {
+        width: 90px;
+        height: 90px;
+    }
+
+    .ringValue {
+        font-size: 1.1rem;
+    }
+}

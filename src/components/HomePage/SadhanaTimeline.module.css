@@ -1,0 +1,173 @@
+/* ============================================
+   SADHANA TIMELINE — "Path of Light"
+   ============================================ */
+
+.timelineSection {
+    position: relative;
+    z-index: 1;
+    padding: 3rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+}
+
+.sectionTitle {
+    font-family: 'Cinzel', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #2C1810;
+    letter-spacing: 2px;
+    text-align: center;
+}
+
+.sectionTitleAccent {
+    color: #D4AF37;
+}
+
+/* Timeline Container */
+.timeline {
+    position: relative;
+    max-width: 500px;
+    width: 100%;
+    padding-left: 2.5rem;
+}
+
+/* Vertical line */
+.timeline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 18px;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(to bottom,
+            rgba(212, 175, 55, 0.1),
+            rgba(212, 175, 55, 0.3),
+            rgba(212, 175, 55, 0.1));
+}
+
+/* Timeline Item */
+.timelineItem {
+    position: relative;
+    padding: 0.75rem 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Circle Node */
+.node {
+    position: absolute;
+    left: -2.5rem;
+    top: 1rem;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #C8C3B8;
+    background: #F5EBD8;
+    transition: all 0.5s ease;
+    z-index: 2;
+}
+
+.nodeCompleted {
+    background: #FF9933;
+    border-color: #FF9933;
+    box-shadow: 0 0 12px rgba(255, 153, 51, 0.5), 0 0 24px rgba(255, 153, 51, 0.2);
+}
+
+/* Card */
+.itemCard {
+    flex: 1;
+    padding: 1rem 1.25rem;
+    border-radius: 14px;
+    background: rgba(253, 245, 230, 0.4);
+    border: 1px solid rgba(194, 178, 128, 0.2);
+    transition: all 0.4s ease;
+}
+
+.itemCardCompleted {
+    background: rgba(255, 153, 51, 0.08);
+    border-color: rgba(255, 153, 51, 0.25);
+    box-shadow: 0 2px 12px rgba(255, 153, 51, 0.1);
+}
+
+.itemCard:hover {
+    transform: translateX(4px);
+    border-color: rgba(212, 175, 55, 0.3);
+}
+
+/* Content */
+.itemHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.itemIcon {
+    font-size: 1.1rem;
+}
+
+.itemTitle {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #2C1810;
+    transition: color 0.3s ease;
+}
+
+.itemTitleCompleted {
+    color: #B35900;
+}
+
+.itemTime {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.7rem;
+    color: #9E9A91;
+    margin-top: 0.25rem;
+}
+
+/* Checkmark */
+.checkmark {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 1.5px solid #C8C3B8;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    margin-left: auto;
+    margin-top: 0.25rem;
+}
+
+.checkmarkCompleted {
+    background: linear-gradient(135deg, #FF9933, #D4AF37);
+    border-color: #FF9933;
+    color: #fff;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+    .timelineSection {
+        padding: 2rem 1rem;
+    }
+
+    .timeline {
+        padding-left: 2rem;
+    }
+
+    .node {
+        left: -2rem;
+        width: 12px;
+        height: 12px;
+    }
+
+    .itemCard {
+        padding: 0.75rem 1rem;
+    }
+}

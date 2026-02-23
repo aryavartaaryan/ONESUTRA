@@ -1,0 +1,167 @@
+/* ============================================
+   5-PILLAR GRID — Interactive Sadhana Cards
+   ============================================ */
+
+.pillarSection {
+    position: relative;
+    z-index: 1;
+    padding: 3rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+}
+
+.sectionTitle {
+    font-family: 'Cinzel', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #2C1810;
+    letter-spacing: 2px;
+    text-align: center;
+}
+
+.sectionTitleAccent {
+    color: #D4AF37;
+}
+
+/* Grid */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+    max-width: 960px;
+    width: 100%;
+}
+
+/* Individual Pillar Card */
+.card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 2.5rem 1.5rem 2rem;
+    border-radius: 20px;
+    background: rgba(253, 245, 230, 0.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(212, 175, 55, 0.15);
+    cursor: pointer;
+    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    text-decoration: none;
+    color: inherit;
+    overflow: hidden;
+}
+
+/* Aura glow on hover */
+.card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 21px;
+    background: radial-gradient(circle at 50% 50%,
+            rgba(255, 153, 51, 0.15) 0%,
+            transparent 70%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+
+.card:hover {
+    transform: translateY(-8px) scale(1.02);
+    border-color: rgba(212, 175, 55, 0.4);
+    box-shadow:
+        0 12px 40px rgba(255, 153, 51, 0.2),
+        0 0 0 1px rgba(212, 175, 55, 0.2);
+}
+
+.card:hover::before {
+    opacity: 1;
+}
+
+/* Gold line-art icon container */
+.iconWrapper {
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(212, 175, 55, 0.06);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    transition: all 0.4s ease;
+}
+
+.card:hover .iconWrapper {
+    background: rgba(212, 175, 55, 0.12);
+    border-color: rgba(212, 175, 55, 0.4);
+    box-shadow: 0 0 25px rgba(212, 175, 55, 0.2);
+    transform: scale(1.08);
+}
+
+.iconSvg {
+    width: 32px;
+    height: 32px;
+}
+
+/* Card text */
+.cardTitle {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2C1810;
+    letter-spacing: 1px;
+}
+
+.cardSubtitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.75rem;
+    font-style: italic;
+    color: #9E9A91;
+    margin-top: -0.5rem;
+}
+
+.cardDescription {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.75rem;
+    color: #5C4A3A;
+    text-align: center;
+    line-height: 1.5;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+    .pillarSection {
+        padding: 2rem 1rem;
+    }
+
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .card {
+        padding: 1.5rem 1rem;
+    }
+
+    .iconWrapper {
+        width: 56px;
+        height: 56px;
+    }
+
+    .iconSvg {
+        width: 26px;
+        height: 26px;
+    }
+
+    .cardTitle {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}

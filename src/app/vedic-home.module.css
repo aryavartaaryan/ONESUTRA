@@ -1,0 +1,196 @@
+/* ============================================
+   VEDIC HOME — "Digital Temple" Theme Library
+   Sacred Earth Palette & Glassmorphism Effects
+   ============================================ */
+
+/* --- PAGE WRAPPER --- */
+.sacredPage {
+    --sacred-saffron: #FF9933;
+    --sacred-sandalwood: #C2B280;
+    --sacred-parchment: #FDF5E6;
+    --sacred-forest: #2E473B;
+    --sacred-gold: #D4AF37;
+    --sacred-gold-light: #E8C868;
+    --sacred-stone: #9E9A91;
+    --sacred-stone-light: #C8C3B8;
+    --sacred-ink: #2C1810;
+    --sacred-ink-muted: #5C4A3A;
+    --sacred-warm-white: #FAF0E4;
+    --sacred-cream: #F5EBD8;
+    --sacred-terracotta: #C47A5A;
+
+    --font-vedic-heading: 'Cinzel', 'Playfair Display', serif;
+    --font-vedic-display: 'Playfair Display', serif;
+    --font-vedic-body: 'Montserrat', 'Inter', sans-serif;
+
+    --glass-bg: rgba(253, 245, 230, 0.65);
+    --glass-border: rgba(212, 175, 55, 0.25);
+    --glass-shadow: 0 8px 32px rgba(44, 24, 16, 0.12);
+    --glass-blur: blur(20px);
+
+    --aura-saffron: 0 0 30px rgba(255, 153, 51, 0.3), 0 0 60px rgba(255, 153, 51, 0.1);
+    --aura-gold: 0 0 25px rgba(212, 175, 55, 0.35), 0 0 50px rgba(212, 175, 55, 0.1);
+
+    background: var(--sacred-parchment);
+    background-image:
+        radial-gradient(ellipse at 20% 0%, rgba(255, 153, 51, 0.06) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 100%, rgba(46, 71, 59, 0.04) 0%, transparent 60%);
+    min-height: 100vh;
+    color: var(--sacred-ink);
+    font-family: var(--font-vedic-body);
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Sri Yantra subtle repeating pattern overlay */
+.sacredPage::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/sri-yantra-authentic.png');
+    background-repeat: repeat;
+    background-size: 400px;
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* --- SECTION DIVIDERS --- */
+.sectionDivider {
+    width: 80%;
+    max-width: 600px;
+    height: 1px;
+    margin: 0 auto;
+    background: linear-gradient(90deg,
+            transparent,
+            var(--sacred-gold) 30%,
+            var(--sacred-gold) 70%,
+            transparent);
+    opacity: 0.3;
+}
+
+/* --- GLASS CARD (Sacred Earth version) --- */
+.vedicGlass {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    box-shadow: var(--glass-shadow);
+    position: relative;
+}
+
+.vedicGlass::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--sacred-gold-light), transparent);
+    opacity: 0.5;
+}
+
+/* --- GOLD LEAF BORDER (for Auth Modal) --- */
+.goldLeafBorder {
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+}
+
+.goldLeafBorder::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(135deg,
+            var(--sacred-gold) 0%,
+            var(--sacred-sandalwood) 25%,
+            var(--sacred-gold-light) 50%,
+            var(--sacred-sandalwood) 75%,
+            var(--sacred-gold) 100%);
+    z-index: -1;
+    border-radius: 22px;
+}
+
+/* --- BREATH-LIKE ANIMATIONS --- */
+@keyframes sacredBreathe {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.7;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+}
+
+@keyframes sacredPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 153, 51, 0);
+    }
+
+    50% {
+        box-shadow: 0 0 30px 5px rgba(255, 153, 51, 0.2);
+    }
+}
+
+@keyframes sacredFloat {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+@keyframes sacredGlow {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 4px rgba(212, 175, 55, 0.2));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.5));
+    }
+}
+
+@keyframes ringProgress {
+    from {
+        stroke-dashoffset: var(--ring-circumference, 283);
+    }
+
+    to {
+        stroke-dashoffset: var(--ring-target, 0);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% center;
+    }
+
+    100% {
+        background-position: 200% center;
+    }
+}
+
+/* --- RESPONSIVE UTILITIES --- */
+@media (max-width: 768px) {
+    .sacredPage {
+        padding-bottom: 80px;
+        /* Space for Vahana bar */
+    }
+}

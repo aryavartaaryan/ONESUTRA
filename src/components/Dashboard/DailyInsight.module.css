@@ -1,0 +1,97 @@
+.insightSection {
+    margin-bottom: 2.5rem;
+}
+
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0 0.5rem;
+}
+
+.sectionLabel {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: #8B6914;
+    text-transform: uppercase;
+}
+
+.timestamp {
+    font-size: 0.75rem;
+    color: #E07A5F;
+    font-weight: 600;
+}
+
+.carouselContainer {
+    display: flex;
+    gap: 1.25rem;
+    overflow-x: auto;
+    padding: 0.5rem;
+    scrollbar-width: none;
+    /* Hide scrollbar Firefox */
+}
+
+.carouselContainer::-webkit-scrollbar {
+    display: none;
+    /* Hide scrollbar Chrome/Safari */
+}
+
+.insightCard {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(8px);
+    border-radius: 1.25rem;
+    padding: 2rem 1.5rem 1.5rem;
+    min-width: 280px;
+    flex: 0 0 280px;
+    border: 1px solid rgba(212, 175, 55, 0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.dotIcon {
+    position: absolute;
+    top: 1.25rem;
+    left: 1.5rem;
+    font-size: 1rem;
+}
+
+.insightText {
+    font-size: 1.1rem;
+    color: #1C1209;
+    line-height: 1.6;
+    margin: 1.5rem 0 2.5rem;
+    font-family: 'serif';
+    font-style: italic;
+}
+
+.cardFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.category {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #A4895C;
+    letter-spacing: 0.05em;
+}
+
+.reflectBtn {
+    background: none;
+    border: none;
+    color: #E07A5F;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.reflectBtn:hover {
+    transform: translateX(4px);
+}

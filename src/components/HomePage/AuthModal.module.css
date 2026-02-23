@@ -1,0 +1,196 @@
+/* ============================================
+   AUTH MODAL — Glassmorphism Google Sign-In
+   ============================================ */
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(44, 24, 16, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.modal {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    padding: 3rem 2.5rem;
+    border-radius: 24px;
+    text-align: center;
+
+    /* Glassmorphism */
+    background: rgba(253, 245, 230, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    box-shadow:
+        0 20px 60px rgba(44, 24, 16, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* Gold-leaf animated border */
+.modal::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 26px;
+    background: linear-gradient(135deg,
+            #D4AF37 0%,
+            #C2B280 25%,
+            #E8C868 50%,
+            #C2B280 75%,
+            #D4AF37 100%);
+    z-index: -1;
+    background-size: 300% 300%;
+    animation: goldShimmer 6s ease-in-out infinite;
+}
+
+@keyframes goldShimmer {
+
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+/* Top decorative line */
+.modal::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 15%;
+    right: 15%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.6), transparent);
+}
+
+.closeBtn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    background: rgba(253, 245, 230, 0.8);
+    color: #5C4A3A;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.closeBtn:hover {
+    background: rgba(212, 175, 55, 0.1);
+    border-color: #D4AF37;
+    color: #2C1810;
+}
+
+.omSymbol {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2C1810;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85rem;
+    color: #5C4A3A;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+/* Google Sign-In Button */
+.googleBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.9rem 1.5rem;
+    background: #fff;
+    border: 1px solid #E0D6C8;
+    border-radius: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #2C1810;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.googleBtn:hover {
+    border-color: #D4AF37;
+    box-shadow: 0 4px 16px rgba(212, 175, 55, 0.15);
+    transform: translateY(-1px);
+}
+
+.googleIcon {
+    width: 20px;
+    height: 20px;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    color: #9E9A91;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent);
+}
+
+.guestBtn {
+    width: 100%;
+    padding: 0.75rem;
+    background: transparent;
+    border: 1px solid rgba(194, 178, 128, 0.4);
+    border-radius: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85rem;
+    color: #5C4A3A;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.guestBtn:hover {
+    background: rgba(194, 178, 128, 0.1);
+    border-color: #C2B280;
+}
+
+.footer {
+    margin-top: 2rem;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.8rem;
+    font-style: italic;
+    color: #9E9A91;
+}
