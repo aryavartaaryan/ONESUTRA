@@ -19,8 +19,10 @@
     .container {
         overflow-y: auto;
         /* Enable scroll on mobile if content overflows */
-        justify-content: flex-start;
+        justify-content: center;
+        /* Re-center on mobile */
         height: 100vh;
+        min-height: 100dvh;
     }
 }
 
@@ -152,12 +154,15 @@
     }
 
     .heroSection {
-        padding-top: 40px !important;
+        padding-top: 60px !important;
+        /* More space for top-right controls */
         padding-bottom: 20px !important;
-        justify-content: flex-start !important;
+        justify-content: center !important;
+        /* Center content on mobile */
         height: auto !important;
-        min-height: min-content;
-        gap: 1.5rem !important;
+        min-height: 100%;
+        /* Ensure it can occupy full height for centering */
+        gap: 2rem !important;
     }
 
     .sessionDashboard {
@@ -1271,14 +1276,21 @@
 
 @media (max-width: 768px) {
     .floatingTrackTitle {
-        top: 24px;
-        /* Proportional to bottom margin */
-        max-width: 70vw;
-        /* Narrower max-weight to clear the top-right toggle */
+        top: 55px;
+        /* Positioned below the toggle button */
+        right: 15px;
+        left: auto;
+        transform: none;
+        max-width: 85vw;
+        text-align: right;
+    }
+
+    .trackTitleContent {
+        justify-content: flex-end;
     }
 
     .dynamicText {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
     }
 
     .floatingLangToggle {
