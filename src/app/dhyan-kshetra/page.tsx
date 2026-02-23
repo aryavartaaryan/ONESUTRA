@@ -628,7 +628,7 @@ export default function DhyanKakshaPage() {
                         >
                             {introVideos.length === 0
                                 ? (lang === 'hi' ? '🪷 प्रतीक्षा करें...' : '🪷 Awaiting Divine Presence...')
-                                : '🪷 Enter the Divine Zone'}
+                                : '🪷 Connect With The Divine Zone'}
                         </button>
                     </div>
                 </div>
