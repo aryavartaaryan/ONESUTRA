@@ -1273,7 +1273,8 @@
     .floatingTrackTitle {
         top: 24px;
         /* Proportional to bottom margin */
-        max-width: 90vw;
+        max-width: 70vw;
+        /* Narrower max-weight to clear the top-right toggle */
     }
 
     .dynamicText {
@@ -1281,8 +1282,8 @@
     }
 
     .floatingLangToggle {
-        top: 85px;
-        /* Space below the track title on narrow screens */
+        top: 15px;
+        /* Back to top as requested */
         right: 15px;
         padding: 6px 10px;
         font-size: 0.75rem;
