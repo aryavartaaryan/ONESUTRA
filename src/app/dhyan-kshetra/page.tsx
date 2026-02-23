@@ -564,9 +564,9 @@ export default function DhyanKakshaPage() {
                     {/* NEW: Static Sri Yantra as Center of Attraction - Above Title */}
                     <div className={pageStyles.staticYantraHero}>
                         <img
-                            src="/images/sri-yantra-side.png"
+                            src="/images/Authentic Sri Yantra.jpg"
                             className={pageStyles.staticYantraImage}
-                            alt="Sacred Sri Yantra"
+                            alt="Authentic Sacred Sri Yantra"
                         />
                     </div>
 
@@ -698,6 +698,7 @@ export default function DhyanKakshaPage() {
                 onSelectIndex={handleSelectIndex}
                 externalPlaylist={playlist}
                 currentIndex={currentIndex}
+                showTriggers={startBackgroundLoop}
                 onActiveTrackChange={(track) => setActiveMantra(track)}
                 onTimeUpdate={(cur, dur) => {
                     setAudioTime(cur);

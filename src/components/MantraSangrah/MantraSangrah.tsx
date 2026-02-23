@@ -291,6 +291,7 @@ interface MantraSangrahProps {
     onVolumeChange?: (vol: number) => void;
     isOpen?: boolean;
     setIsOpen?: (open: boolean) => void;
+    showTriggers?: boolean; // NEW: Control visibility of floating icons
 }
 
 // Helper to get Hindi title
@@ -355,7 +356,8 @@ export default function MantraSangrah({
     onActiveTrackChange,
     onTrackSelect,
     volume: volumeProp,
-    onVolumeChange: onVolumeChangeProp
+    onVolumeChange: onVolumeChangeProp,
+    showTriggers = true // Default to true
 }: MantraSangrahProps & { isOpen?: boolean; setIsOpen?: (open: boolean) => void }) {
     const { lang } = useLanguage();
     const [localIsOpen, setLocalIsOpen] = useState(false);
@@ -585,32 +587,36 @@ export default function MantraSangrah({
     return (
         <>
             {/* Trigger Button - Bottom Left */}
-            <div className={`${styles.triggerContainer} ${isOpen ? styles.triggerHidden : ''}`}>
-                <button
-                    className={styles.trigger}
-                    onClick={() => setIsOpen(true)}
-                    aria-label="Open Mantra Collection"
-                >
-                    <div className={styles.lotusIcon}>🪷</div>
-                </button>
-                <span className={styles.triggerLabel}>
-                    {lang === 'hi' ? 'मंत्र संग्रह' : 'Mantra Collection'}
-                </span>
-            </div>
+            {showTriggers && (
+                <div className={`${styles.triggerContainer} ${isOpen ? styles.triggerHidden : ''}`}>
+                    <button
+                        className={styles.trigger}
+                        onClick={() => setIsOpen(true)}
+                        aria-label="Open Mantra Collection"
+                    >
+                        <div className={styles.lotusIcon}>🪷</div>
+                    </button>
+                    <span className={styles.triggerLabel}>
+                        {lang === 'hi' ? 'मंत्र संग्रह' : 'Mantra Collection'}
+                    </span>
+                </div>
+            )}
 
             {/* Acharya Samvad - Top Right Temple Pillar */}
-            <div className={styles.acharyaContainer}>
-                <Link
-                    href="/acharya-samvad"
-                    className={styles.acharyaTrigger}
-                    aria-label="Ask Acharya"
-                >
-                    <div className={styles.acharyaIcon}>🔥</div>
-                </Link>
-                <span className={styles.acharyaLabel}>
-                    {lang === 'hi' ? 'आचार्य संवाद' : 'Ask Acharya'}
-                </span>
-            </div>
+            {showTriggers && (
+                <div className={styles.acharyaContainer}>
+                    <Link
+                        href="/acharya-samvad"
+                        className={styles.acharyaTrigger}
+                        aria-label="Ask Acharya"
+                    >
+                        <div className={styles.acharyaIcon}>🔥</div>
+                    </Link>
+                    <span className={styles.acharyaLabel}>
+                        {lang === 'hi' ? 'आचार्य संवाद' : 'Ask Acharya'}
+                    </span>
+                </div>
+            )}
 
             {/* Overlay */}
             {isOpen && (

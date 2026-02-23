@@ -640,22 +640,20 @@
 
 /* --- SPIRITUAL ENTRY SCREEN REDESIGN --- */
 .spiritualEntry {
-    position: fixed;
     min-height: 100vh;
     width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1.5rem;
+    gap: 2rem;
+    /* Better breathing space */
     text-align: center;
     padding: 2rem;
     overflow: hidden;
     position: relative;
-    z-index: 9999;
-    background-color: #020617;
-    background-image:
-        radial-gradient(circle at 50% 30%, rgba(10, 25, 60, 0.4) 0%, rgba(2, 6, 23, 1) 100%);
+    /* Calming Vedic Deep Cosmic Gradient */
+    background: radial-gradient(circle at 50% 30%, #0a193c 0%, #020617 100%);
 }
 
 .entrySub {
@@ -807,21 +805,26 @@
 /* NEW: Static Focal Sri Yantra Layout */
 .staticYantraHero {
     position: relative;
-    width: clamp(180px, 35vw, 320px);
+    width: clamp(200px, 40vw, 360px);
+    /* Slightly more prominent */
     height: auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
     z-index: 2;
+    /* Divine Sandalwood & Saffron Halo */
+    filter: drop-shadow(0 0 50px rgba(255, 121, 0, 0.25)) drop-shadow(0 0 100px rgba(245, 222, 179, 0.15));
 }
 
 .staticYantraImage {
     width: 100%;
     height: auto;
     object-fit: contain;
-    /* Elegant static golden glow */
-    filter: drop-shadow(0 0 35px rgba(255, 215, 0, 0.4)) brightness(1.1);
+    /* Refined spiritual glow */
+    filter: brightness(1.05) contrast(1.02);
+    border-radius: 8px;
+    /* Soft edge for the jpg */
     user-select: none;
     pointer-events: none;
 }
@@ -946,12 +949,13 @@
     filter: blur(10px);
     animation: revealLetter 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 
-    /* Blue & Gold Fusion Gradient for Text */
-    background: linear-gradient(180deg, #00BFFF 0%, #FFD700 50%, #FFD700 100%);
+    /* High-Contrast Sandalwood Cream Gradient */
+    background: linear-gradient(180deg, #FFFFFF 0%, #F5DEB3 70%, #FFD700 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 20px rgba(0, 191, 255, 0.3), 0 0 40px rgba(255, 215, 0, 0.3);
+    /* Stronger shadow for legibility against bright nebulae */
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 25px rgba(255, 215, 0, 0.3));
 }
 
 @keyframes revealLetter {
@@ -984,11 +988,13 @@
 .entrySub {
     margin-top: 2rem;
     font-family: var(--font-body);
-    font-size: 1.1rem;
-    color: rgba(255, 215, 0, 0.9);
+    font-size: 1.15rem;
+    color: #FDF5E6;
+    /* Old Lace / Cream - calming and high contrast */
     max-width: 600px;
     line-height: 1.6;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    font-weight: 500;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
 }
 
 .entrySub span {
@@ -1063,34 +1069,33 @@
 
 .consecratedButton {
     z-index: 2;
-    padding: 1.2rem 4.5rem;
+    padding: 1.3rem 5rem;
     font-family: var(--font-rozha), serif;
-    font-size: clamp(1.2rem, 3.5vw, 1.4rem);
+    font-size: clamp(1.1rem, 3.2vw, 1.3rem);
     color: #1a0f00;
-    /* Golden Silk Gradient */
-    background: linear-gradient(135deg, #FFD700 0%, #FFB347 50%, #FFD700 100%);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    /* Traditional Sandalwood & Saffron Gradient */
+    background: linear-gradient(135deg, #F5DEB3 0%, #FFB347 40%, #FF9933 60%, #F5DEB3 100%);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 50px;
-    /* More elegant rounded pill */
     cursor: pointer;
     box-shadow:
-        0 15px 35px rgba(0, 0, 0, 0.6),
-        0 0 30px rgba(255, 215, 0, 0.3);
-    transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+        0 12px 25px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(255, 121, 0, 0.2);
+    transition: all 0.7s cubic-bezier(0.19, 1, 0.22, 1);
     letter-spacing: 2px;
     position: relative;
     overflow: hidden;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
     text-transform: uppercase;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .consecratedButton:hover:not(:disabled) {
-    transform: translateY(-5px) scale(1.02);
+    transform: translateY(-3px) scale(1.03);
     box-shadow:
-        0 20px 45px rgba(0, 0, 0, 0.7),
-        0 0 50px rgba(255, 215, 0, 0.6);
-    background: linear-gradient(135deg, #FFF0A0 0%, #FFD700 50%, #FFA500 100%);
+        0 15px 40px rgba(0, 0, 0, 0.6),
+        0 0 45px rgba(255, 121, 0, 0.5);
+    background: linear-gradient(135deg, #FFF8DC 0%, #F5DEB3 30%, #FF9933 70%, #F5DEB3 100%);
     color: #000;
 }
 
