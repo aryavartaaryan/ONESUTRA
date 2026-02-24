@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Compass, PieChart, MessageCircle, Users, Flower2, X, Target } from 'lucide-react';
+import { Home, Compass, Settings, MessageCircle, Users, Flower2, X } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import styles from './VahanaBar.module.css';
 
@@ -42,7 +42,7 @@ const EXPLORER_OPTIONS: ExplorerOption[] = [
         href: '/dhyan-kshetra',
     },
     {
-        icon: Target,
+        icon: Settings,
         labelHi: '🏹 ध्यान आर्चर',
         labelEn: '🏹 Dhyana Archer',
         descHi: 'संगीत और ध्यान का खेल खेलें',
@@ -133,14 +133,14 @@ export default function VahanaBar() {
                     </span>
                 </button>
 
-                {/* Progress Analytics */}
+                {/* Settings */}
                 <Link
-                    href="/analytics"
-                    className={`${styles.navItem} ${pathname === '/analytics' ? styles.navItemActive : ''}`}
+                    href="#"
+                    className={`${styles.navItem} ${pathname === '/settings' ? styles.navItemActive : ''}`}
                 >
-                    <PieChart size={20} />
+                    <Settings size={20} />
                     <span className={styles.navLabel}>
-                        {lang === 'hi' ? 'प्रगति' : 'Analytics'}
+                        {lang === 'hi' ? 'सेटिंग्स' : 'Settings'}
                     </span>
                 </Link>
             </nav>
