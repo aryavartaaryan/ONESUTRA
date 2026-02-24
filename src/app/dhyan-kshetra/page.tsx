@@ -562,7 +562,7 @@ export default function DhyanKakshaPage() {
             {/* SPLASH SCREEN - Elegant Single Entry */}
             {!hasStarted && (
                 <div className={pageStyles.spiritualEntry}>
-                    {/* NEW: Static Sri Yantra as Center of Attraction - Above Title */}
+                    {/* Sri Yantra hero — glows golden */}
                     <div className={pageStyles.staticYantraHero}>
                         <img
                             src="/images/Authentic Sri Yantra.jpg"
@@ -571,15 +571,21 @@ export default function DhyanKakshaPage() {
                         />
                     </div>
 
+                    {/* Golden sacred divider */}
+                    <div className={pageStyles.entryDivider} />
+
                     <div className={pageStyles.entryContent}>
+                        {/* Sanskrit tagline */}
+                        <p className={pageStyles.entrySanskrit}>
+                            ध्यानं परमं सुखम् • Dhyānam Paramam Sukham
+                        </p>
+
+                        {/* Animated main title */}
                         <h1 className={pageStyles.entryTitle}>
-                            {/* Word-by-word & Letter-by-letter animation */}
                             <div className={pageStyles.animatedTitleWrapper}>
                                 {"Connect with the Divine Intelligence".split(" ").map((word, wordIndex) => (
                                     <span key={wordIndex} style={{ display: "inline-block", whiteSpace: "nowrap", margin: "0 0.25em" }}>
                                         {word.split("").map((char, charIndex) => {
-                                            // Calculate global index for staggered delay
-                                            // Approximation: wordIndex * 5 + charIndex (robust enough for visual effect)
                                             const delay = (wordIndex * 5 + charIndex) * 0.05;
                                             return (
                                                 <span
@@ -595,31 +601,43 @@ export default function DhyanKakshaPage() {
                                 ))}
                             </div>
                         </h1>
+
                         <p className={pageStyles.entrySub}>
-                            एक दिव्य परिवर्तन की यात्रा के लिए तैयार रहें...<br />
-                            <span>
-                                Prepare for a transformation journey...
-                            </span>
+                            एक दिव्य परिवर्तन की यात्रा के लिए तैयार रहें।
+                            <span>Ancient wisdom. Sacred sound. Inner stillness.</span>
                         </p>
                     </div>
 
-                    {/* Divine Entry Gate - Simplified (No Name Input) */}
+                    {/* Three sacred experience pillars */}
+                    <div className={pageStyles.entryPillars}>
+                        <div className={pageStyles.entryPillar}>
+                            <span className={pageStyles.entryPillarIcon}>🎵</span>
+                            <span className={pageStyles.entryPillarLabel}>Sacred Sound</span>
+                        </div>
+                        <div className={pageStyles.entryPillar}>
+                            <span className={pageStyles.entryPillarIcon}>🪷</span>
+                            <span className={pageStyles.entryPillarLabel}>Dhyana</span>
+                        </div>
+                        <div className={pageStyles.entryPillar}>
+                            <span className={pageStyles.entryPillarIcon}>☸️</span>
+                            <span className={pageStyles.entryPillarLabel}>Moksha</span>
+                        </div>
+                    </div>
+
+                    {/* Enter button */}
                     <div className={pageStyles.nameGateContainer}>
-                        {/* Consecrated Enter Button - Always Enabled */}
                         <button
                             id="consecrated-enter-btn"
                             onClick={() => {
                                 if (introVideos.length > 0) {
-                                    // 1. UNLOCK AUDIO CONTEXT IMMEDIATELY
                                     const unlockAudio = new Audio();
-                                    unlockAudio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAGZGF0YQAAAAA="; // Silent WAV
+                                    unlockAudio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAGZGF0YQAAAAA=";
                                     unlockAudio.play().then(() => {
                                         console.log("[Audio] Global Context Unlocked");
                                     }).catch(e => console.warn("[Audio] Unlock failed:", e));
 
                                     setIsFirstTime(true);
                                     setHasStarted(true);
-                                    // DO NOT setisMantraPlaying(true) here, let IntroVideoFlash finish first
                                 }
                             }}
                             disabled={introVideos.length === 0}
@@ -632,6 +650,7 @@ export default function DhyanKakshaPage() {
                         </button>
                     </div>
                 </div>
+
             )}
             <style jsx>{`
                         @keyframes breathe {
