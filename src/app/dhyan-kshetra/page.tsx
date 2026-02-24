@@ -559,109 +559,121 @@ export default function DhyanKakshaPage() {
                     <span>{lang === 'hi' ? 'EN' : 'HI'}</span>
                 </button>
             )}
-            {/* SPLASH SCREEN - Elegant Single Entry */}
+            {/* ══════════════════════════════════════════════════
+                  ENTRY ROOM — Sattvic Minimal (New Design)
+                  Canvas-drawn Sri Yantra · One Sanskrit line · No clutter
+             ══════════════════════════════════════════════════ */}
             {!hasStarted && (
-                <div className={pageStyles.spiritualEntry}>
-                    {/* Sri Yantra hero — glows golden */}
-                    <div className={pageStyles.staticYantraHero}>
-                        <img
-                            src="/images/Authentic Sri Yantra.jpg"
-                            className={pageStyles.staticYantraImage}
-                            alt="Authentic Sacred Sri Yantra"
-                        />
-                    </div>
+                <div className={pageStyles.entryRoom}>
+                    {/* Ambient particle layer */}
+                    <div className={pageStyles.entryParticles} />
 
-                    {/* Golden sacred divider */}
-                    <div className={pageStyles.entryDivider} />
+                    {/* Canvas Sri Yantra */}
+                    <canvas
+                        className={pageStyles.yantaCanvas}
+                        ref={(canvas) => {
+                            if (!canvas) return;
+                            const size = Math.min(canvas.offsetWidth || 320, 320);
+                            canvas.width = size;
+                            canvas.height = size;
+                            const ctx = canvas.getContext('2d');
+                            if (!ctx) return;
+                            const cx = size / 2, cy = size / 2;
 
-                    <div className={pageStyles.entryContent}>
-                        {/* Sanskrit tagline */}
-                        <p className={pageStyles.entrySanskrit}>
-                            ध्यानं परमं सुखम् • Dhyānam Paramam Sukham
-                        </p>
+                            ctx.clearRect(0, 0, size, size);
+                            ctx.strokeStyle = 'rgba(255,200,100,0.18)';
+                            ctx.lineWidth = 0.8;
 
-                        {/* Animated main title */}
-                        <h1 className={pageStyles.entryTitle}>
-                            <div className={pageStyles.animatedTitleWrapper}>
-                                {"Connect with the Divine Intelligence".split(" ").map((word, wordIndex) => (
-                                    <span key={wordIndex} style={{ display: "inline-block", whiteSpace: "nowrap", margin: "0 0.25em" }}>
-                                        {word.split("").map((char, charIndex) => {
-                                            const delay = (wordIndex * 5 + charIndex) * 0.05;
-                                            return (
-                                                <span
-                                                    key={charIndex}
-                                                    className={pageStyles.animatedLetter}
-                                                    style={{ animationDelay: `${delay}s` }}
-                                                >
-                                                    {char}
-                                                </span>
-                                            );
-                                        })}
-                                    </span>
-                                ))}
-                            </div>
-                        </h1>
+                            // Outer circles
+                            [0.95, 0.88].forEach(r => {
+                                ctx.beginPath();
+                                ctx.arc(cx, cy, r * size / 2, 0, Math.PI * 2);
+                                ctx.strokeStyle = 'rgba(255,200,80,0.25)';
+                                ctx.stroke();
+                            });
 
-                        <p className={pageStyles.entrySub}>
-                            एक दिव्य परिवर्तन की यात्रा के लिए तैयार रहें।
-                            <span>Ancient wisdom. Sacred sound. Inner stillness.</span>
-                        </p>
-                    </div>
+                            // 16-petal lotus ring
+                            ctx.save();
+                            for (let i = 0; i < 16; i++) {
+                                const angle = (i / 16) * Math.PI * 2;
+                                const r1 = size * 0.34, r2 = size * 0.42;
+                                const ax = cx + Math.cos(angle) * r1;
+                                const ay = cy + Math.sin(angle) * r1;
+                                const bx = cx + Math.cos(angle + Math.PI / 16) * r2;
+                                const by = cy + Math.sin(angle + Math.PI / 16) * r2;
+                                const dx = cx + Math.cos(angle + Math.PI / 8) * r1;
+                                const dy = cy + Math.sin(angle + Math.PI / 8) * r1;
+                                ctx.beginPath();
+                                ctx.moveTo(ax, ay);
+                                ctx.quadraticCurveTo(bx, by, dx, dy);
+                                ctx.strokeStyle = 'rgba(255,180,60,0.35)';
+                                ctx.lineWidth = 0.7;
+                                ctx.stroke();
+                            }
+                            ctx.restore();
 
-                    {/* Three sacred experience pillars */}
-                    <div className={pageStyles.entryPillars}>
-                        <div className={pageStyles.entryPillar}>
-                            <span className={pageStyles.entryPillarIcon}>🎵</span>
-                            <span className={pageStyles.entryPillarLabel}>Sacred Sound</span>
-                        </div>
-                        <div className={pageStyles.entryPillar}>
-                            <span className={pageStyles.entryPillarIcon}>🪷</span>
-                            <span className={pageStyles.entryPillarLabel}>Dhyana</span>
-                        </div>
-                        <div className={pageStyles.entryPillar}>
-                            <span className={pageStyles.entryPillarIcon}>☸️</span>
-                            <span className={pageStyles.entryPillarLabel}>Moksha</span>
-                        </div>
+                            // 9 interlocking triangles (simplified as 4 upward + 5 downward)
+                            const triangleSets = [
+                                { n: 4, up: true, scale: [0.78, 0.60, 0.44, 0.30] },
+                                { n: 5, up: false, scale: [0.72, 0.56, 0.40, 0.26, 0.15] },
+                            ];
+                            triangleSets.forEach(({ up, scale }) => {
+                                scale.forEach((s, idx) => {
+                                    const R = s * size / 2;
+                                    ctx.beginPath();
+                                    for (let j = 0; j < 3; j++) {
+                                        const angle = (j / 3) * Math.PI * 2 + (up ? -Math.PI / 2 : Math.PI / 2);
+                                        const x = cx + Math.cos(angle) * R;
+                                        const y = cy + Math.sin(angle) * R;
+                                        if (j === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                                    }
+                                    ctx.closePath();
+                                    const alpha = 0.2 + idx * 0.04;
+                                    ctx.strokeStyle = up
+                                        ? `rgba(255,220,120,${alpha})`
+                                        : `rgba(255,140,80,${alpha})`;
+                                    ctx.lineWidth = 0.9;
+                                    ctx.stroke();
+                                });
+                            });
+
+                            // Central bindu (glowing dot)
+                            const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 10);
+                            grad.addColorStop(0, 'rgba(255,220,100,0.95)');
+                            grad.addColorStop(0.4, 'rgba(255,140,0,0.6)');
+                            grad.addColorStop(1, 'rgba(255,100,0,0)');
+                            ctx.beginPath();
+                            ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+                            ctx.fillStyle = grad;
+                            ctx.fill();
+                        }}
+                    />
+
+                    {/* Brand + Sanskrit line */}
+                    <div className={pageStyles.entryText}>
+                        <p className={pageStyles.entryMantra}>ॐ</p>
+                        <h1 className={pageStyles.entryBrand}>ध्यान क्षेत्र</h1>
+                        <p className={pageStyles.entryTagline}>Enter the Divine Zone</p>
                     </div>
 
                     {/* Enter button */}
-                    <div className={pageStyles.nameGateContainer}>
-                        <button
-                            id="consecrated-enter-btn"
-                            onClick={() => {
-                                if (introVideos.length > 0) {
-                                    const unlockAudio = new Audio();
-                                    unlockAudio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAGZGF0YQAAAAA=";
-                                    unlockAudio.play().then(() => {
-                                        console.log("[Audio] Global Context Unlocked");
-                                    }).catch(e => console.warn("[Audio] Unlock failed:", e));
-
-                                    setIsFirstTime(true);
-                                    setHasStarted(true);
-                                }
-                            }}
-                            disabled={introVideos.length === 0}
-                            className={pageStyles.consecratedButton}
-                            style={{ opacity: 1, pointerEvents: 'auto' }}
-                        >
-                            {introVideos.length === 0
-                                ? (lang === 'hi' ? '🪷 प्रतीक्षा करें...' : '🪷 Awaiting Divine Presence...')
-                                : '🪷 Enter The Divinity'}
-                        </button>
-                    </div>
+                    <button
+                        className={pageStyles.entryBtn}
+                        disabled={introVideos.length === 0}
+                        onClick={() => {
+                            if (introVideos.length === 0) return;
+                            const unlock = new Audio();
+                            unlock.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAGZGF0YQAAAAA=";
+                            unlock.play().catch(() => { });
+                            setIsFirstTime(true);
+                            setHasStarted(true);
+                        }}
+                    >
+                        {introVideos.length === 0 ? '🪷 प्रतीक्षा करें…' : '🪷 प्रवेश करें'}
+                    </button>
                 </div>
-
             )}
-            <style jsx>{`
-                        @keyframes breathe {
-                            0%, 100% { transform: scale(1); opacity: 0.25; }
-                            50% { transform: scale(1.08); opacity: 0.4; }
-                        }
-                        @keyframes gentlePulse {
-                            0%, 100% { box-shadow: 0 8px 32px rgba(255, 215, 0, 0.2); }
-                            50% { box-shadow: 0 8px 40px rgba(255, 215, 0, 0.4), 0 0 60px rgba(255, 153, 51, 0.15); }
-                        }
-                    `}</style>
+
 
 
             {/* INTRO VIDEO FLASH (Now activates after user interaction) */}
