@@ -5,7 +5,6 @@ import OjasTracker from '@/components/HomePage/OjasTracker';
 import PillarGrid from '@/components/HomePage/PillarGrid';
 import SadhanaTimeline from '@/components/HomePage/SadhanaTimeline';
 import GayatriMantraSection from '@/components/GayatriMantraSection/GayatriMantraSection';
-import VahanaBar from '@/components/HomePage/VahanaBar';
 import VoiceCallModal from '@/components/VoiceCallModal';
 import DailyInsight from '@/components/Dashboard/DailyInsight';
 import QuickRituals from '@/components/Dashboard/QuickRituals';
@@ -74,9 +73,6 @@ export default function DashboardPage() {
 
             {/* 4. Gayatri Mantra */}
             <GayatriMantraSection />
-
-            {/* Floating bottom nav (mobile only) */}
-            <VahanaBar />
 
             {/* Voice Call Modal */}
             <VoiceCallModal

@@ -9,6 +9,7 @@ export const metadata: Metadata = {
 };
 
 import { LanguageProvider } from "@/context/LanguageContext";
+import ConditionalVahanaBar from "@/components/ConditionalVahanaBar";
 
 export default function RootLayout({
   children,
@@ -19,6 +20,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <LanguageProvider>
+          <ConditionalVahanaBar />
           {children}
         </LanguageProvider>
       </body>
