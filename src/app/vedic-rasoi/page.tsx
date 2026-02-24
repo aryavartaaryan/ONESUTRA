@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from 'react';
 import Image from 'next/image';
-import Navbar from '@/components/Navbar';
 import { useLanguage } from '@/context/LanguageContext';
 import RecipeCard from '@/components/RecipeCard';
 import {
