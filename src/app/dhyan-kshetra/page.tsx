@@ -563,10 +563,10 @@ export default function DhyanKakshaPage() {
              ══════════════════════════════════════════════════ */}
             {!hasStarted && (
                 <div className={pageStyles.entryRoom}>
-                    {/* Ambient particle layer */}
+                    {/* Cosmic particle layer */}
                     <div className={pageStyles.entryParticles} />
 
-                    {/* Canvas Sri Yantra */}
+                    {/* Sacred Yantra canvas */}
                     <canvas
                         className={pageStyles.yantaCanvas}
                         ref={(canvas) => {
@@ -579,14 +579,13 @@ export default function DhyanKakshaPage() {
                             const cx = size / 2, cy = size / 2;
 
                             ctx.clearRect(0, 0, size, size);
-                            ctx.strokeStyle = 'rgba(255,200,100,0.18)';
-                            ctx.lineWidth = 0.8;
 
-                            // Outer circles
-                            [0.95, 0.88].forEach(r => {
+                            // Outer sacred circles
+                            [0.95, 0.88, 0.80].forEach((r, i) => {
                                 ctx.beginPath();
                                 ctx.arc(cx, cy, r * size / 2, 0, Math.PI * 2);
-                                ctx.strokeStyle = 'rgba(255,200,80,0.25)';
+                                ctx.strokeStyle = `rgba(255,200,80,${0.20 - i * 0.04})`;
+                                ctx.lineWidth = 0.8;
                                 ctx.stroke();
                             });
 
@@ -604,16 +603,16 @@ export default function DhyanKakshaPage() {
                                 ctx.beginPath();
                                 ctx.moveTo(ax, ay);
                                 ctx.quadraticCurveTo(bx, by, dx, dy);
-                                ctx.strokeStyle = 'rgba(255,180,60,0.35)';
-                                ctx.lineWidth = 0.7;
+                                ctx.strokeStyle = 'rgba(255,180,60,0.40)';
+                                ctx.lineWidth = 0.9;
                                 ctx.stroke();
                             }
                             ctx.restore();
 
-                            // 9 interlocking triangles (simplified as 4 upward + 5 downward)
+                            // 9 interlocking triangles
                             const triangleSets = [
-                                { n: 4, up: true, scale: [0.78, 0.60, 0.44, 0.30] },
-                                { n: 5, up: false, scale: [0.72, 0.56, 0.40, 0.26, 0.15] },
+                                { up: true, scale: [0.78, 0.60, 0.44, 0.30] },
+                                { up: false, scale: [0.72, 0.56, 0.40, 0.26, 0.15] },
                             ];
                             triangleSets.forEach(({ up, scale }) => {
                                 scale.forEach((s, idx) => {
@@ -626,32 +625,51 @@ export default function DhyanKakshaPage() {
                                         if (j === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
                                     }
                                     ctx.closePath();
-                                    const alpha = 0.2 + idx * 0.04;
+                                    const alpha = 0.22 + idx * 0.06;
                                     ctx.strokeStyle = up
                                         ? `rgba(255,220,120,${alpha})`
                                         : `rgba(255,140,80,${alpha})`;
-                                    ctx.lineWidth = 0.9;
+                                    ctx.lineWidth = 1.0;
                                     ctx.stroke();
                                 });
                             });
 
-                            // Central bindu (glowing dot)
-                            const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 10);
-                            grad.addColorStop(0, 'rgba(255,220,100,0.95)');
-                            grad.addColorStop(0.4, 'rgba(255,140,0,0.6)');
+                            // 8-petal innermost lotus
+                            for (let i = 0; i < 8; i++) {
+                                const ang = (i / 8) * Math.PI * 2;
+                                const r1 = size * 0.12, r2 = size * 0.17;
+                                const ax = cx + Math.cos(ang) * r1;
+                                const ay = cy + Math.sin(ang) * r1;
+                                const bx = cx + Math.cos(ang + Math.PI / 8) * r2;
+                                const by = cy + Math.sin(ang + Math.PI / 8) * r2;
+                                const dx = cx + Math.cos(ang + Math.PI / 4) * r1;
+                                const dy = cy + Math.sin(ang + Math.PI / 4) * r1;
+                                ctx.beginPath();
+                                ctx.moveTo(ax, ay);
+                                ctx.quadraticCurveTo(bx, by, dx, dy);
+                                ctx.strokeStyle = 'rgba(255,215,0,0.55)';
+                                ctx.lineWidth = 0.8;
+                                ctx.stroke();
+                            }
+
+                            // Central bindu (glowing)
+                            const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 12);
+                            grad.addColorStop(0, 'rgba(255,230,100,1)');
+                            grad.addColorStop(0.4, 'rgba(255,140,0,0.7)');
                             grad.addColorStop(1, 'rgba(255,100,0,0)');
                             ctx.beginPath();
-                            ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+                            ctx.arc(cx, cy, 12, 0, Math.PI * 2);
                             ctx.fillStyle = grad;
                             ctx.fill();
                         }}
                     />
 
-                    {/* Brand + Sanskrit line */}
+                    {/* Text block */}
                     <div className={pageStyles.entryText}>
                         <p className={pageStyles.entryMantra}>ॐ</p>
-                        <h1 className={pageStyles.entryBrand}>ध्यान क्षेत्र</h1>
-                        <p className={pageStyles.entryTagline}>Enter the Divine Zone</p>
+                        <h1 className={pageStyles.entryBrand}>Dhyan Kshetra</h1>
+                        <p className={pageStyles.entrySubBrand}>ध्यान क्षेत्र</p>
+                        <p className={pageStyles.entryTagline}>Sacred Space · Divine Meditation</p>
                     </div>
 
                     {/* Enter button */}
@@ -667,7 +685,10 @@ export default function DhyanKakshaPage() {
                             setHasStarted(true);
                         }}
                     >
-                        {introVideos.length === 0 ? '🪷 प्रतीक्षा करें…' : '🪷 प्रवेश करें'}
+                        {introVideos.length === 0
+                            ? <><span>🪷</span> Preparing…</>
+                            : <><span>🪷</span> Enter</>
+                        }
                     </button>
                 </div>
             )}

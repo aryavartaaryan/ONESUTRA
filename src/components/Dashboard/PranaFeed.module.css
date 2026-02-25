@@ -1,0 +1,471 @@
+/* ══════════════════════════════════════════════════
+   PRANA FEED — Vertical social feed
+   ══════════════════════════════════════════════════ */
+
+.feed {
+    max-width: 580px;
+    width: calc(100% - 2rem);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    padding-bottom: 1rem;
+}
+
+.sectionLabel {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: rgba(139, 90, 43, 0.7);
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+    padding-left: 0.25rem;
+}
+
+/* ── Glass card ── */
+.card {
+    background: rgba(255, 255, 255, 0.62);
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.82);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow:
+        0 4px 6px rgba(50, 30, 10, 0.04),
+        0 12px 40px rgba(50, 30, 10, 0.07),
+        0 1px 0 rgba(255, 255, 255, 0.9) inset;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 50px rgba(50, 30, 10, 0.11);
+}
+
+/* ── Cover art ── */
+.coverArt {
+    width: 100%;
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.coverArt::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 40%, rgba(0, 0, 0, 0.25) 100%);
+}
+
+.coverLabel {
+    position: absolute;
+    top: 0.85rem;
+    left: 1rem;
+    font-family: 'Noto Serif Devanagari', serif;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.8);
+    letter-spacing: 0.05em;
+    z-index: 1;
+}
+
+.coverEmoji {
+    font-size: 3.5rem;
+    z-index: 1;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+/* ── Card body ── */
+.cardBody {
+    padding: 1.1rem 1.25rem 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.cardMeta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cardTag {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #C97B3A;
+    background: rgba(201, 123, 58, 0.1);
+    border: 1px solid rgba(201, 123, 58, 0.2);
+    padding: 0.2rem 0.55rem;
+    border-radius: 99px;
+}
+
+.cardTitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1C1005;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.cardDesc {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    color: rgba(92, 60, 25, 0.65);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* ── Diya like button ── */
+.diyaBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(201, 123, 58, 0.2);
+    border-radius: 99px;
+    padding: 0.25rem 0.6rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-size: 0.75rem;
+    color: rgba(92, 60, 25, 0.6);
+}
+
+.diyaBtn:hover {
+    background: rgba(201, 123, 58, 0.08);
+}
+
+.diyaLit {
+    border-color: rgba(255, 140, 0, 0.5);
+    color: #E07A00;
+}
+
+.diyaIcon {
+    font-size: 1rem;
+    display: block;
+}
+
+.diyaCount {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 500;
+}
+
+/* ── Waveform ── */
+.playerRow {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-top: 0.35rem;
+}
+
+.playBtn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, #C97B3A, #E8A44A);
+    color: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(201, 123, 58, 0.4);
+    transition: transform 0.2s ease;
+}
+
+.playBtn:hover {
+    transform: scale(1.08);
+}
+
+.playing {
+    background: linear-gradient(135deg, #7E57C2, #B39DDB);
+}
+
+.waveform {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 32px;
+    flex: 1;
+}
+
+.bar {
+    flex: 1;
+    max-width: 5px;
+    background: linear-gradient(to top, #C97B3A, #E8A44A);
+    border-radius: 2px;
+    transform-origin: bottom;
+    height: 100%;
+}
+
+.flatWave {
+    flex: 1;
+    height: 2px;
+    background: rgba(201, 123, 58, 0.2);
+    border-radius: 1px;
+}
+
+.leelaHint {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.62rem;
+    color: rgba(201, 123, 58, 0.65);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+/* ── Start Practice button ── */
+.startBtn {
+    width: 100%;
+    padding: 0.75rem;
+    background: linear-gradient(135deg, #134e5e, #71b280);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    margin-top: 0.35rem;
+    letter-spacing: 0.03em;
+    box-shadow: 0 6px 20px rgba(19, 78, 94, 0.3);
+}
+
+.startBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(19, 78, 94, 0.38);
+}
+
+/* ── Community card ── */
+.avatarSection {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin: 0.5rem 0;
+}
+
+.avatarStack {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 2.5px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+.memberList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    flex: 1;
+    overflow: hidden;
+}
+
+.memberRow {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.memberFlag {
+    font-size: 0.85rem;
+}
+
+.memberName {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #1C1005;
+}
+
+.memberCountry {
+    font-size: 0.68rem;
+    color: rgba(92, 60, 25, 0.5);
+}
+
+.joinBtn {
+    width: 100%;
+    padding: 0.75rem;
+    background: linear-gradient(135deg, #5C3D2E, #8B5E3C);
+    color: #FFD99A;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    margin-top: 0.5rem;
+    letter-spacing: 0.05em;
+    box-shadow: 0 6px 20px rgba(92, 61, 46, 0.3);
+}
+
+.joinBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(92, 61, 46, 0.4);
+}
+
+/* ── Play choice overlay ── */
+.choiceRow {
+    display: flex;
+    gap: 0.65rem;
+    margin-top: 0.5rem;
+}
+
+.choiceBtn {
+    flex: 1;
+    padding: 0.65rem 0.5rem;
+    border-radius: 12px;
+    border: 1.5px solid rgba(201, 123, 58, 0.3);
+    background: rgba(255, 255, 255, 0.6);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #5C3D1A;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    backdrop-filter: blur(8px);
+}
+
+.choiceBtn:hover {
+    background: rgba(201, 123, 58, 0.1);
+    border-color: rgba(201, 123, 58, 0.55);
+    transform: translateY(-1px);
+}
+
+.choiceBtnPrimary {
+    background: linear-gradient(135deg, #C97B3A, #E8A44A);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(201, 123, 58, 0.35);
+}
+
+.choiceBtnPrimary:hover {
+    background: linear-gradient(135deg, #b86c2e, #d99440);
+    box-shadow: 0 6px 20px rgba(201, 123, 58, 0.45);
+}
+
+/* ── Habit Tracker ── */
+.habitGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.35rem;
+}
+
+.habitChip {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: 99px;
+    border: 1.5px solid rgba(201, 123, 58, 0.2);
+    background: rgba(255, 255, 255, 0.55);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: rgba(92, 60, 25, 0.7);
+    cursor: pointer;
+    transition: all 0.22s ease;
+}
+
+.habitChip:hover {
+    background: rgba(201, 123, 58, 0.07);
+}
+
+.habitDone {
+    background: linear-gradient(135deg, rgba(201, 123, 58, 0.15), rgba(232, 164, 74, 0.2));
+    border-color: rgba(201, 123, 58, 0.5);
+    color: #8B4A0A;
+    font-weight: 600;
+    text-decoration: line-through;
+    text-decoration-color: rgba(201, 123, 58, 0.5);
+}
+
+/* ── Elegant Raag Player Buttons ── */
+.raagActions {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 0.85rem;
+}
+
+.raagBtn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.6rem 0.5rem;
+    border-radius: 12px;
+    border: 1.5px solid rgba(201, 123, 58, 0.22);
+    background: rgba(255, 255, 255, 0.6);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #5C3D1A;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    min-height: 42px;
+}
+
+.raagBtn:hover {
+    background: rgba(201, 123, 58, 0.08);
+    border-color: rgba(201, 123, 58, 0.4);
+}
+
+.raagBtnActive {
+    background: rgba(201, 123, 58, 0.12);
+    border-color: rgba(201, 123, 58, 0.5);
+    color: #8B4A0A;
+    animation: raagPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes raagPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(201, 123, 58, 0.35);
+    }
+
+    50% {
+        box-shadow: 0 0 0 6px rgba(201, 123, 58, 0);
+    }
+}
+
+
+.raagBtnLeela {
+    background: linear-gradient(135deg, rgba(201, 123, 58, 0.85), rgba(232, 164, 74, 0.9));
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(201, 123, 58, 0.3);
+}
+
+.raagBtnLeela:hover {
+    background: linear-gradient(135deg, #b86c2e, #d99440);
+    box-shadow: 0 6px 20px rgba(201, 123, 58, 0.45);
+}
+
+.raagBtnIcon {
+    font-size: 0.85rem;
+    line-height: 1;
+}

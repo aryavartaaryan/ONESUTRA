@@ -1,0 +1,355 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap');
+
+/* ═══════════════════════════════════════════════════════════
+   DIGITAL ASHRAM — dashboard.module.css
+   Light Sattvik · Saffron-Cream · Balanced
+   ═══════════════════════════════════════════════════════════ */
+
+@keyframes ashramBreathe {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes sacredSpin {
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes omPulse {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 4px rgba(201, 123, 58, 0.45));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 12px rgba(201, 123, 58, 0.80));
+    }
+}
+
+@keyframes nameShimmer {
+    0% {
+        background-position: -200% center;
+    }
+
+    100% {
+        background-position: 200% center;
+    }
+}
+
+@keyframes avatarRing {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 2px rgba(201, 123, 58, 0.45), 0 4px 14px rgba(201, 123, 58, 0.15);
+    }
+
+    50% {
+        box-shadow: 0 0 0 3px rgba(201, 123, 58, 0.70), 0 4px 20px rgba(201, 123, 58, 0.28);
+    }
+}
+
+/* ── Page canvas — semi-transparent so SacredCanvas shows through ── */
+.dashboardPage {
+    min-height: 100vh;
+    background: linear-gradient(160deg,
+            rgba(253, 247, 238, 0.80) 0%,
+            rgba(254, 249, 242, 0.78) 40%,
+            rgba(253, 244, 228, 0.80) 100%);
+    padding: 0 0 7rem;
+    position: relative;
+    overflow-x: hidden;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Sacred geometry watermark */
+.dashboardPage::before {
+    content: '';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: min(90vw, 560px);
+    height: min(90vw, 560px);
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='100' cy='100' r='95' stroke='%23c97b3a' stroke-width='0.6'/%3E%3Ccircle cx='100' cy='100' r='66' stroke='%23c97b3a' stroke-width='0.5'/%3E%3Ccircle cx='100' cy='35' r='66' stroke='%23c97b3a' stroke-width='0.4'/%3E%3Ccircle cx='100' cy='165' r='66' stroke='%23c97b3a' stroke-width='0.4'/%3E%3Ccircle cx='44' cy='67' r='66' stroke='%23c97b3a' stroke-width='0.4'/%3E%3Ccircle cx='156' cy='67' r='66' stroke='%23c97b3a' stroke-width='0.4'/%3E%3Ccircle cx='44' cy='133' r='66' stroke='%23c97b3a' stroke-width='0.4'/%3E%3Ccircle cx='156' cy='133' r='66' stroke='%23c97b3a' stroke-width='0.4'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.035;
+    pointer-events: none;
+    z-index: 0;
+    animation: sacredSpin 140s linear infinite;
+    transform: translate(-50%, -50%);
+}
+
+.dashboardPage>* {
+    position: relative;
+    z-index: 1;
+}
+
+/* ── Section divider ── */
+.sectionDivider {
+    width: 40px;
+    height: 1px;
+    margin: 0.65rem auto;
+    background: linear-gradient(90deg, transparent, rgba(201, 123, 58, 0.22), transparent);
+}
+
+/* ── 3-column Desktop Grid ── */
+.dashboardGrid {
+    display: flex;
+    flex-direction: column;
+    padding: 0 1rem;
+}
+
+@media (min-width: 900px) {
+    .dashboardGrid {
+        display: grid;
+        grid-template-columns: 270px 1fr 270px;
+        gap: 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+        align-items: start;
+    }
+
+    .sidebarLeft,
+    .sidebarRight {
+        position: sticky;
+        top: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .feedCenter {
+        min-width: 0;
+    }
+}
+
+@media (max-width: 899px) {
+
+    /* Priority: Feed → Sankalpa (actionable) → Widgets */
+    .feedCenter {
+        order: 1;
+    }
+
+    .sidebarRight {
+        order: 2;
+        padding: 0 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .sidebarLeft {
+        order: 3;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 0 1rem;
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GREETING HEADER — Light Sattvik Glass
+   ══════════════════════════════════════════════════════════════ */
+
+.greetingHeader {
+    margin: 1rem 1rem 0;
+    padding: 1rem 1.2rem;
+    border-radius: 20px;
+    background: rgba(255, 253, 248, 0.78);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    border: 1px solid rgba(201, 123, 58, 0.16);
+    box-shadow:
+        0 2px 20px rgba(201, 123, 58, 0.07),
+        0 1px 0 rgba(255, 255, 255, 0.95) inset;
+    animation: fadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+/* warm saffron shimmer top edge */
+.greetingHeader::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 8%;
+    right: 8%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201, 123, 58, 0.30), transparent);
+    pointer-events: none;
+}
+
+/* ── Left: avatar + text ── */
+.greetingLeft {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.avatarBadge {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #FFE4B5 0%, #FFDAA5 50%, #FFD080 100%);
+    border: 1.5px solid rgba(201, 123, 58, 0.30);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    animation: avatarRing 4.5s ease-in-out infinite;
+    transition: transform 0.22s ease;
+    user-select: none;
+    text-decoration: none;
+}
+
+.avatarBadge:hover {
+    transform: scale(1.08);
+}
+
+.greetingTextBlock {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.greetingTitle {
+    font-family: 'Cormorant Garamond', 'Playfair Display', serif;
+    font-size: clamp(1rem, 3.8vw, 1.28rem);
+    font-weight: 600;
+    color: #2C1A0E;
+    margin: 0;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.greetingName {
+    font-style: italic;
+    font-weight: 600;
+    background: linear-gradient(100deg, #B85C00 0%, #E07A20 40%, #C97B3A 70%, #B85C00 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: nameShimmer 5s linear infinite;
+}
+
+.greetingSubtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.67rem;
+    font-weight: 400;
+    color: rgba(92, 60, 25, 0.52);
+    margin: 0;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── Center: lang pill ── */
+.langPill {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 248, 235, 0.80);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(201, 123, 58, 0.18);
+    border-radius: 99px;
+    padding: 3px 4px;
+    gap: 2px;
+    flex-shrink: 0;
+    margin: 0 0.7rem;
+    box-shadow: 0 1px 6px rgba(201, 123, 58, 0.08);
+}
+
+.langOption {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    padding: 0.26rem 0.65rem;
+    border-radius: 99px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+    color: rgba(92, 60, 25, 0.42);
+    background: transparent;
+}
+
+.langOptionActive {
+    background: linear-gradient(135deg, #C97B3A, #A85D20);
+    color: rgba(255, 255, 255, 0.97);
+    box-shadow: 0 2px 8px rgba(201, 123, 58, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.20);
+    transform: scale(1.06);
+}
+
+/* ── Right: OM ── */
+.omArea {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.omGlyph {
+    font-family: 'Noto Serif Devanagari', serif;
+    font-size: 1.85rem;
+    color: #C97B3A;
+    animation: omPulse 3.5s ease-in-out infinite;
+    cursor: pointer;
+    line-height: 1;
+    user-select: none;
+    padding: 0 0.1rem;
+}
+
+@media (max-width: 360px) {
+    .greetingHeader {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.85rem 0.9rem;
+    }
+
+    .langPill {
+        margin: 0 auto;
+    }
+
+    .greetingLeft {
+        flex: 0 0 100%;
+    }
+
+    .omArea {
+        display: none;
+    }
+}

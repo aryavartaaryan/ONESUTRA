@@ -1,0 +1,424 @@
+/* ══════════════════════════════════════════════════════
+   USER PROFILE — Vedic Profile Bottom Sheet
+   ══════════════════════════════════════════════════════ */
+
+.backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 5, 2, 0.55);
+    backdrop-filter: blur(6px);
+    z-index: 1500;
+}
+
+.sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 88vh;
+    background: linear-gradient(180deg, #fffbf5 0%, #fdf5e8 100%);
+    border-radius: 28px 28px 0 0;
+    z-index: 1600;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 -20px 60px rgba(50, 20, 0, 0.18);
+}
+
+.handle {
+    width: 44px;
+    height: 4px;
+    background: rgba(201, 123, 58, 0.25);
+    border-radius: 99px;
+    margin: 12px auto 0;
+    flex-shrink: 0;
+}
+
+.closeBtn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(201, 123, 58, 0.2);
+    background: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #5C3D1A;
+    transition: all 0.2s ease;
+}
+
+.closeBtn:hover {
+    background: rgba(201, 123, 58, 0.1);
+}
+
+.scrollArea {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem 1.25rem 5rem;
+    -webkit-overflow-scrolling: touch;
+}
+
+.scrollArea::-webkit-scrollbar {
+    width: 3px;
+}
+
+.scrollArea::-webkit-scrollbar-thumb {
+    background: rgba(201, 123, 58, 0.2);
+    border-radius: 99px;
+}
+
+/* ── Avatar / Hero ── */
+.hero {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    padding: 0.5rem 0 1.25rem;
+    border-bottom: 1px solid rgba(201, 123, 58, 0.1);
+    margin-bottom: 1rem;
+}
+
+.avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FFD700 0%, #FF9933 50%, #FF6B35 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow:
+        0 0 0 3px rgba(255, 165, 0, 0.2),
+        0 0 0 6px rgba(255, 165, 0, 0.08),
+        0 8px 24px rgba(201, 123, 58, 0.35);
+}
+
+.avatarOm {
+    font-family: 'Noto Serif Devanagari', serif;
+    font-size: 2.4rem;
+    color: rgba(255, 255, 255, 0.95);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    line-height: 1;
+}
+
+.heroInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.heroName {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1C1005;
+    margin: 0;
+}
+
+.heroTitle,
+.heroPrakriti,
+.heroJoined {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+}
+
+.heroTitle {
+    color: #C97B3A;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+.heroPrakriti {
+    color: rgba(92, 60, 25, 0.7);
+}
+
+.heroJoined {
+    color: rgba(92, 60, 25, 0.45);
+    font-size: 0.62rem;
+    margin-top: 0.15rem;
+}
+
+/* ── Tabs ── */
+.tabs {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+}
+
+.tab {
+    flex: 1;
+    padding: 0.5rem 0.3rem;
+    border: 1px solid rgba(201, 123, 58, 0.18);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.55);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: rgba(92, 60, 25, 0.6);
+    cursor: pointer;
+    transition: all 0.22s ease;
+    white-space: nowrap;
+}
+
+.tab:hover {
+    background: rgba(201, 123, 58, 0.06);
+}
+
+.tabActive {
+    background: rgba(201, 123, 58, 0.12);
+    border-color: rgba(201, 123, 58, 0.4);
+    color: #8B4A0A;
+    font-weight: 700;
+}
+
+.tabContent {
+    padding-top: 0.25rem;
+}
+
+/* ── Dosha ── */
+.doshaIntro {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    color: rgba(92, 60, 25, 0.55);
+    font-style: italic;
+    margin: 0 0 1rem;
+}
+
+.doshaRow {
+    display: grid;
+    grid-template-columns: 110px 1fr 36px;
+    grid-template-rows: auto auto;
+    gap: 0.15rem 0.6rem;
+    align-items: center;
+    margin-bottom: 0.9rem;
+}
+
+.doshaLabel {
+    grid-column: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.doshaName {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1C1005;
+}
+
+.doshaElement {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6rem;
+    color: rgba(92, 60, 25, 0.5);
+}
+
+.doshaBarTrack {
+    grid-column: 2;
+    height: 7px;
+    background: rgba(201, 123, 58, 0.09);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.doshaBarFill {
+    height: 100%;
+    border-radius: 99px;
+}
+
+.doshaPct {
+    grid-column: 3;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: rgba(92, 60, 25, 0.6);
+    text-align: right;
+}
+
+.doshaTrait {
+    grid-column: 1 / -1;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.67rem;
+    color: rgba(92, 60, 25, 0.5);
+    margin: 0 0 0.2rem;
+    font-style: italic;
+}
+
+.personalityBox {
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(201, 123, 58, 0.15);
+    border-radius: 14px;
+    padding: 0.85rem 1rem;
+    margin-top: 0.5rem;
+}
+
+.personalityLabel {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #C97B3A;
+    margin-bottom: 0.4rem;
+}
+
+.personalityText {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    color: #2C1810;
+    line-height: 1.65;
+    margin: 0;
+}
+
+/* ── Badges ── */
+.badgeGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem;
+    margin-top: 0.5rem;
+}
+
+.badge {
+    background: rgba(255, 255, 255, 0.65);
+    border: 1.5px solid rgba(201, 123, 58, 0.2);
+    border-radius: 14px;
+    padding: 0.75rem 0.4rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    position: relative;
+    transition: transform 0.2s ease;
+}
+
+.badge:hover {
+    transform: scale(1.04);
+}
+
+.badgeLocked {
+    opacity: 0.4;
+    filter: grayscale(1);
+}
+
+.badgeEmoji {
+    font-size: 1.5rem;
+}
+
+.badgeLabel {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: #3D2010;
+    line-height: 1.3;
+}
+
+.badgeLock {
+    position: absolute;
+    top: 0.3rem;
+    right: 0.3rem;
+    font-size: 0.65rem;
+}
+
+/* ── Progress ── */
+.statsGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+}
+
+.statCard {
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid rgba(201, 123, 58, 0.15);
+    border-radius: 14px;
+    padding: 0.85rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+}
+
+.statValue {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #C97B3A;
+    line-height: 1;
+}
+
+.statUnit {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6rem;
+    color: rgba(92, 60, 25, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.statLabel {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.65rem;
+    color: rgba(92, 60, 25, 0.65);
+    font-weight: 500;
+    margin-top: 0.15rem;
+}
+
+/* Weekly chart */
+.chartSection {
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(201, 123, 58, 0.15);
+    border-radius: 14px;
+    padding: 1rem;
+}
+
+.chartTitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.85rem;
+    color: #1C1005;
+    margin: 0 0 0.75rem;
+}
+
+.chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.4rem;
+    height: 80px;
+}
+
+.chartCol {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    height: 100%;
+    justify-content: flex-end;
+}
+
+.chartBarTrack {
+    flex: 1;
+    width: 100%;
+    background: rgba(201, 123, 58, 0.09);
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+}
+
+.chartBar {
+    width: 100%;
+    background: linear-gradient(to top, #C97B3A, #E8A44A);
+    border-radius: 6px;
+    min-height: 4px;
+}
+
+.chartDay {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.58rem;
+    color: rgba(92, 60, 25, 0.45);
+    font-weight: 600;
+}

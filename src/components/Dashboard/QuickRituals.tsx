@@ -2,15 +2,16 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Flame, BookOpen, Music, Wind, Heart } from 'lucide-react';
+import { Flame, BookOpen, Zap, Users, MessageCircle } from 'lucide-react';
+import Link from 'next/link';
 import styles from './QuickRituals.module.css';
 
+// Home page quick-access grid:
 const RITUALS = [
-    { id: 'meditate', icon: <Flame size={20} />, label: 'Meditate' },
-    { id: 'journal', icon: <BookOpen size={20} />, label: 'Journal' },
-    { id: 'chant', icon: <Music size={20} />, label: 'Chant' },
-    { id: 'breathe', icon: <Wind size={20} />, label: 'Breathe' },
-    { id: 'gratitude', icon: <Heart size={20} />, label: 'Gratitude' },
+    { id: 'meditate', icon: <Flame size={20} />, label: 'Meditate', href: '/dhyan-kshetra' },
+    { id: 'journal', icon: <BookOpen size={20} />, label: 'Journal', href: '/journal' },
+    { id: 'leela', icon: <Zap size={20} />, label: 'Project Leela', href: '/project-leela' },
+    { id: 'community', icon: <Users size={20} />, label: 'Community', href: '#' },
 ];
 
 export default function QuickRituals() {
@@ -29,10 +30,12 @@ export default function QuickRituals() {
                         viewport={{ once: true }}
                         transition={{ delay: idx * 0.1 }}
                     >
-                        <div className={styles.iconCircle}>
-                            {ritual.icon}
-                        </div>
-                        <span className={styles.label}>{ritual.label}</span>
+                        <Link href={ritual.href} className={styles.ritualLink}>
+                            <div className={styles.iconCircle}>
+                                {ritual.icon}
+                            </div>
+                            <span className={styles.label}>{ritual.label}</span>
+                        </Link>
                     </motion.div>
                 ))}
             </div>

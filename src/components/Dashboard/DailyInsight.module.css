@@ -1,97 +1,137 @@
+/* ══════════════════════════════════════════════
+   DAILY INSIGHT — River Flow / Parchment Cards
+   ══════════════════════════════════════════════ */
+
 .insightSection {
-    margin-bottom: 2.5rem;
+    max-width: 580px;
+    margin: 0 auto 2rem;
+    width: 100%;
+    animation: fadeUp 0.7s ease-in-out 0.6s both;
 }
 
-.sectionHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-    padding: 0 0.5rem;
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .sectionLabel {
-    font-size: 0.75rem;
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.68rem;
     font-weight: 600;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.14em;
     color: #8B6914;
     text-transform: uppercase;
+    margin-bottom: 1rem;
+    opacity: 0.8;
 }
 
-.timestamp {
-    font-size: 0.75rem;
-    color: #E07A5F;
-    font-weight: 600;
-}
-
-.carouselContainer {
-    display: flex;
-    gap: 1.25rem;
-    overflow-x: auto;
-    padding: 0.5rem;
-    scrollbar-width: none;
-    /* Hide scrollbar Firefox */
-}
-
-.carouselContainer::-webkit-scrollbar {
-    display: none;
-    /* Hide scrollbar Chrome/Safari */
-}
-
-.insightCard {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(8px);
-    border-radius: 1.25rem;
-    padding: 2rem 1.5rem 1.5rem;
-    min-width: 280px;
-    flex: 0 0 280px;
-    border: 1px solid rgba(212, 175, 55, 0.15);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
-    position: relative;
+/* ── Single-column river flow ── */
+.riverFlow {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 1.25rem;
 }
 
-.dotIcon {
+/* ── Parchment card ── */
+.insightCard {
+    position: relative;
+    background: rgba(255, 250, 235, 0.92);
+    border: 1px solid rgba(212, 175, 55, 0.18);
+    border-radius: 24px;
+    padding: 2.2rem 1.75rem 1.5rem;
+    box-shadow:
+        0 4px 6px rgba(62, 39, 35, 0.04),
+        0 12px 40px rgba(62, 39, 35, 0.07),
+        0 1px 0 rgba(255, 255, 255, 0.8) inset;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Large background watermark quote mark */
+.insightCard::before {
+    content: '"';
     position: absolute;
-    top: 1.25rem;
-    left: 1.5rem;
-    font-size: 1rem;
+    top: -0.5rem;
+    left: 1rem;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 8rem;
+    line-height: 1;
+    color: rgba(139, 105, 20, 0.07);
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Vedic card — slightly different tint */
+.insightCard.vedic {
+    background: rgba(255, 248, 225, 0.94);
+}
+
+.categoryTag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: #A4895C;
+    text-transform: uppercase;
+    background: rgba(212, 175, 55, 0.1);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    padding: 0.25rem 0.65rem;
+    border-radius: 99px;
+    align-self: flex-start;
 }
 
 .insightText {
-    font-size: 1.1rem;
-    color: #1C1209;
-    line-height: 1.6;
-    margin: 1.5rem 0 2.5rem;
-    font-family: 'serif';
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(1rem, 2.8vw, 1.15rem);
     font-style: italic;
+    color: #1C1209;
+    line-height: 1.65;
+    margin: 0;
+    position: relative;
+    z-index: 1;
 }
 
+/* Card footer: lotus btn right-aligned */
 .cardFooter {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
 }
 
-.category {
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: #A4895C;
-    letter-spacing: 0.05em;
-}
-
-.reflectBtn {
-    background: none;
-    border: none;
-    color: #E07A5F;
-    font-size: 0.85rem;
-    font-weight: 600;
+/* Circular lotus action button */
+.lotusBtn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(224, 122, 95, 0.35);
+    background: rgba(224, 122, 95, 0.06);
+    color: #C05A35;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    transition: transform 0.2s ease;
+    transition: all 0.35s ease-in-out;
+    line-height: 1;
 }
 
-.reflectBtn:hover {
-    transform: translateX(4px);
+.lotusBtn:hover {
+    background: #E07A5F;
+    color: #fff;
+    border-color: #E07A5F;
+    transform: scale(1.12) rotate(15deg);
+    box-shadow: 0 4px 14px rgba(224, 122, 95, 0.35);
 }

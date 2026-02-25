@@ -235,3 +235,61 @@
     font-size: 0.75rem;
     color: rgba(255, 255, 255, 0.5);
 }
+
+/* ── Explorer empty state ── */
+.explorerEmpty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 2rem 1.5rem 2.5rem;
+    text-align: center;
+}
+
+.explorerEmptyIcon {
+    font-size: 2.5rem;
+    filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.4));
+    animation: floatIcon 4s ease-in-out infinite;
+}
+
+@keyframes floatIcon {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+.explorerEmptyText {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.55);
+    line-height: 1.5;
+    margin: 0;
+    max-width: 240px;
+}
+
+.explorerHomeLink {
+    display: inline-block;
+    margin-top: 0.25rem;
+    padding: 0.5rem 1.5rem;
+    background: rgba(255, 215, 0, 0.12);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 30px;
+    color: #FFD700;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.explorerHomeLink:hover {
+    background: rgba(255, 215, 0, 0.22);
+    border-color: rgba(255, 215, 0, 0.6);
+}

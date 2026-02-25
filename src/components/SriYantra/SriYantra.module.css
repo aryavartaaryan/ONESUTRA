@@ -19,12 +19,30 @@
     justify-content: center;
 }
 
+/* Sapphire-to-indigo ambient nebula */
 .nebula {
+    position: absolute;
     width: 80%;
     height: 80%;
-    background: radial-gradient(circle, rgba(0, 80, 255, 0.15) 0%, rgba(20, 0, 80, 0.05) 50%, transparent 70%);
-    filter: blur(60px);
-    animation: nebulaPulse 10s ease-in-out infinite;
+    background: radial-gradient(circle,
+            rgba(80, 40, 200, 0.20) 0%,
+            rgba(20, 0, 80, 0.10) 45%,
+            transparent 70%);
+    filter: blur(55px);
+    animation: nebulaPulse 12s ease-in-out infinite;
+}
+
+/* New: gold nebula layer */
+.nebulaGold {
+    position: absolute;
+    width: 60%;
+    height: 60%;
+    background: radial-gradient(circle,
+            rgba(212, 175, 55, 0.18) 0%,
+            rgba(255, 120, 0, 0.10) 45%,
+            transparent 70%);
+    filter: blur(40px);
+    animation: nebulaPulse 8s ease-in-out infinite reverse;
 }
 
 @keyframes nebulaPulse {
@@ -32,19 +50,19 @@
     0%,
     100% {
         transform: scale(1) rotate(0deg);
-        opacity: 0.4;
+        opacity: 0.5;
     }
 
     50% {
         transform: scale(1.3) rotate(180deg);
-        opacity: 0.7;
+        opacity: 0.9;
     }
 }
 
 .geometryWrapper {
     position: relative;
-    width: clamp(280px, 80vw, 550px);
-    height: clamp(280px, 80vw, 550px);
+    width: clamp(260px, 80vw, 520px);
+    height: clamp(260px, 80vw, 520px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -54,7 +72,9 @@
 .mainSvg {
     width: 100%;
     height: 100%;
-    filter: drop-shadow(0 0 15px rgba(0, 100, 255, 0.4));
+    /* Gold glow instead of blue */
+    filter:
+        drop-shadow(0 0 12px rgba(212, 175, 55, 0.55)) drop-shadow(0 0 40px rgba(255, 120, 0, 0.25));
 }
 
 .authenticOverlay {
@@ -71,18 +91,27 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
-    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.3));
+    filter:
+        drop-shadow(0 0 18px rgba(255, 215, 0, 0.5)) drop-shadow(0 0 40px rgba(212, 100, 0, 0.3));
 }
 
-/* Responsive adjustments */
+/* Responsive */
 @media (max-width: 768px) {
     .geometryWrapper {
-        width: 85vw;
-        height: 85vw;
+        width: clamp(220px, 82vw, 380px);
+        height: clamp(220px, 82vw, 380px);
     }
 
-    .nebula {
+    .nebula,
+    .nebulaGold {
         width: 100%;
         height: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .geometryWrapper {
+        width: clamp(180px, 85vw, 300px);
+        height: clamp(180px, 85vw, 300px);
     }
 }

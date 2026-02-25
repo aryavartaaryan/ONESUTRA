@@ -2,59 +2,69 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useLanguage } from '@/context/LanguageContext';
 import styles from './DailyInsight.module.css';
 
-interface InsightCard {
-    id: string;
-    category: string;
-    text: string;
-    categoryHi: string;
-    textHi: string;
-    timestamp: string;
-}
-
-const INSIGHTS: InsightCard[] = [
+const INSIGHTS = [
     {
         id: '1',
-        category: 'VEDIC SUTRA',
-        text: '"The quiet mind is not empty; it is full of the universe."',
+        category: 'Vedic Sutra',
         categoryHi: 'वैदिक सूत्र',
+        text: '"The quiet mind is not empty; it is full of the universe."',
         textHi: '"शांत मन रिक्त नहीं है; यह ब्रह्मांड से भरा है।"',
-        timestamp: '09:46 PM',
     },
     {
         id: '2',
-        category: 'PROVERB',
-        text: '"Happiness is when what you think, what you say, and what you do are in harmony."',
+        category: 'Proverb',
         categoryHi: 'कहावत',
+        text: '"Happiness is when what you think, what you say, and what you do are in harmony."',
         textHi: '"सुख तब होता है जब आप जो सोचते हैं, जो कहते हैं और जो करते हैं वह सामंजस्य में हो।"',
-        timestamp: '10:00 PM',
-    }
+    },
 ];
 
+const fadeUp = {
+    hidden: { opacity: 0, y: 22 },
+    visible: (i: number) => ({
+        opacity: 1, y: 0,
+        transition: { delay: 0.6 + i * 0.18, duration: 0.7, ease: 'easeInOut' as const },
+    }),
+};
+
 export default function DailyInsight() {
+    const { lang } = useLanguage();
     return (
         <section className={styles.insightSection}>
-            <div className={styles.sectionHeader}>
-                <span className={styles.sectionLabel}>DAILY INSIGHT</span>
-                <span className={styles.timestamp}>{INSIGHTS[0].timestamp}</span>
-            </div>
+            <span className={styles.sectionLabel}>
+                {lang === 'hi' ? 'दैनिक अंतर्दृष्टि' : 'Daily Insight'}
+            </span>
 
-            <div className={styles.carouselContainer}>
+            {/* River flow — single column */}
+            <div className={styles.riverFlow}>
                 {INSIGHTS.map((insight, idx) => (
                     <motion.div
                         key={insight.id}
                         className={styles.insightCard}
-                        initial={{ opacity: 0, x: 20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: idx * 0.2 }}
+                        custom={idx}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, margin: '-40px' }}
+                        variants={fadeUp}
                     >
-                        <div className={styles.dotIcon}>🔆</div>
-                        <p className={styles.insightText}>{insight.text}</p>
+                        {/* Category pill */}
+                        <span className={styles.categoryTag}>
+                            {lang === 'hi' ? insight.categoryHi : insight.category}
+                        </span>
+
+                        {/* Quote text */}
+                        <p className={styles.insightText}>
+                            {lang === 'hi' ? insight.textHi : insight.text}
+                        </p>
+
+                        {/* Lotus action button — bottom right */}
                         <div className={styles.cardFooter}>
-                            <span className={styles.category}>{insight.category}</span>
-                            <button className={styles.reflectBtn}>Reflect →</button>
+                            <button className={styles.lotusBtn} aria-label="Reflect">
+                                ✿
+                            </button>
                         </div>
                     </motion.div>
                 ))}

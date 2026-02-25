@@ -1,0 +1,155 @@
+/* ══════════════════════════════════════════════
+   ABOUT MODAL — Dharma Bottom Sheet
+   ══════════════════════════════════════════════ */
+
+.backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 12, 4, 0.55);
+    backdrop-filter: blur(4px);
+    z-index: 500;
+}
+
+.sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80vh;
+    z-index: 501;
+    border-radius: 28px 28px 0 0;
+    background: linear-gradient(160deg, #FEFBF3 0%, #FDF5E0 60%, #FFFDF7 100%);
+    box-shadow:
+        0 -20px 60px rgba(62, 39, 35, 0.2),
+        0 -1px 0 rgba(212, 175, 55, 0.25);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Drag handle */
+.handle {
+    width: 40px;
+    height: 4px;
+    background: rgba(139, 105, 20, 0.2);
+    border-radius: 99px;
+    margin: 0.85rem auto 0;
+    flex-shrink: 0;
+    cursor: grab;
+}
+
+/* Close */
+.closeBtn {
+    position: absolute;
+    top: 1rem;
+    right: 1.25rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid rgba(139, 105, 20, 0.18);
+    background: rgba(255, 255, 255, 0.6);
+    color: #5C4A33;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.closeBtn:hover {
+    background: #E07A5F;
+    color: #fff;
+    border-color: #E07A5F;
+}
+
+/* Content area */
+.content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem 1.75rem 1.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(139, 105, 20, 0.2) transparent;
+    position: relative;
+}
+
+/* OM watermark */
+.omWatermark {
+    position: absolute;
+    top: -1rem;
+    right: 1.5rem;
+    font-family: 'Noto Serif Devanagari', serif;
+    font-size: 7rem;
+    color: rgba(139, 105, 20, 0.055);
+    pointer-events: none;
+    user-select: none;
+    line-height: 1;
+}
+
+.eyebrow {
+    display: block;
+    font-family: 'Noto Serif Devanagari', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    color: rgba(139, 105, 20, 0.6);
+    margin-bottom: 0.3rem;
+}
+
+.title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(1.6rem, 5vw, 2rem);
+    font-weight: 700;
+    color: #1C1209;
+    margin: 0 0 1.5rem;
+    line-height: 1.2;
+}
+
+.body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.body p {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: #3D2B1A;
+    margin: 0;
+}
+
+.body strong {
+    color: #1C1209;
+    font-weight: 600;
+}
+
+.body em {
+    font-style: italic;
+    color: #6B4C2A;
+}
+
+.divider {
+    height: 1.5px;
+    background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.35), transparent);
+    margin: 0.5rem 0;
+}
+
+.creator {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    color: #8B6914;
+    text-align: center;
+    letter-spacing: 0.03em;
+}
+
+/* Footer — pinned at bottom */
+.footer {
+    flex-shrink: 0;
+    padding: 0.75rem 1rem 1.5rem;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    color: rgba(92, 74, 51, 0.45);
+    border-top: 1px solid rgba(212, 175, 55, 0.12);
+    background: rgba(255, 250, 235, 0.6);
+}

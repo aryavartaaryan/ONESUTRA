@@ -1,0 +1,72 @@
+/* ══════════════════════════════════════
+   WISDOM TICKER — slim glass quote strip
+   ══════════════════════════════════════ */
+
+.strip {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    max-width: 580px;
+    width: calc(100% - 2rem);
+    margin: 0 auto 1.25rem;
+    padding: 0.7rem 1.1rem;
+    min-height: 52px;
+
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    border-radius: 99px;
+    box-shadow:
+        0 4px 20px rgba(62, 39, 10, 0.06),
+        0 1px 0 rgba(255, 255, 255, 0.9) inset;
+    overflow: hidden;
+}
+
+.leaf {
+    color: rgba(201, 123, 58, 0.45);
+    font-size: 1rem;
+    flex-shrink: 0;
+    user-select: none;
+}
+
+.textWrap {
+    flex: 1;
+    overflow: hidden;
+    height: 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quote {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-size: clamp(0.68rem, 2.2vw, 0.8rem);
+    color: #3D2010;
+    text-align: center;
+    margin: 0;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+@media (max-width: 480px) {
+    .strip {
+        padding: 0.6rem 0.85rem;
+        border-radius: 16px;
+    }
+
+    .quote {
+        white-space: normal;
+        text-align: center;
+        font-size: 0.65rem;
+    }
+
+    .textWrap {
+        height: auto;
+        min-height: 2.2rem;
+    }
+}
