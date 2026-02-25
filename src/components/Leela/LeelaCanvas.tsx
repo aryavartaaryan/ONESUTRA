@@ -48,7 +48,7 @@ function SafePostProcessing({ bloomIntensity }: { bloomIntensity: number }) {
             try {
                 if (gl && scene && camera) {
                     const ctx = gl.getContext() as WebGLRenderingContext | null;
-                    if (ctx && ctx.getContextAttributes) { setCtxReady(true); return; }
+                    if (ctx && ctx.getContextAttributes()) { setCtxReady(true); return; }
                 }
             } catch { /* not ready */ }
             raf = requestAnimationFrame(check);
