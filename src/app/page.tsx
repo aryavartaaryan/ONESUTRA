@@ -9,37 +9,37 @@ import PillarGrid from '@/components/HomePage/PillarGrid';
 import SadhanaTimeline from '@/components/HomePage/SadhanaTimeline';
 import GayatriMantraSection from '@/components/GayatriMantraSection/GayatriMantraSection';
 import VoiceCallModal from '@/components/VoiceCallModal';
-import QuickRituals from '@/components/Dashboard/QuickRituals';
-import VedicClock from '@/components/Dashboard/VedicClock';
 import WisdomTicker from '@/components/Dashboard/WisdomTicker';
-import PranaFeed from '@/components/Dashboard/PranaFeed';
-import AboutModal from '@/components/Dashboard/AboutModal';
-
-import DailyInsights from '@/components/Dashboard/DailyInsights';
+import AbountModal from '@/components/Dashboard/AboutModal';
 import UserProfile from '@/components/Dashboard/UserProfile';
-import PranaVerseMini from '@/components/PranaVerseMini/PranaVerseMini';
+import JustVibePortals from '@/components/Dashboard/JustVibePortals';
 import SacredCanvas from '@/components/SacredCanvas/SacredCanvas';
+import ReelPlayer from '@/components/Dashboard/ReelPlayer';
+import VedicDashboard from '@/components/Dashboard/VedicDashboard';
 import { useLanguage } from '@/context/LanguageContext';
 import homeStyles from './vedic-home.module.css';
 import dashStyles from './dashboard.module.css';
 import styles from './page.module.css';
 
-// ─── Pure helper — no hooks ───────────────────────────────────────────────────
+// ─── Greeting helpers ─────────────────────────────────────────────────────────
 function buildGreeting(lang: 'en' | 'hi', h: number) {
-  const en = h < 12
-    ? { emoji: '🌅', text: 'Good Morning', period: 'Morning blessings to you.' }
-    : h < 16
-      ? { emoji: '☀️', text: 'Good Afternoon', period: 'A peaceful afternoon awaits.' }
-      : h < 20
-        ? { emoji: '🪔', text: 'Good Evening', period: 'Let the dusk restore you.' }
-        : { emoji: '🌙', text: 'Good Night', period: 'Rest deep, sleep peacefully.' };
-  const hi = h < 12
-    ? { emoji: '🌅', text: 'शुभ प्रभात', period: 'प्रभात की मंगलकामना।' }
-    : h < 16
-      ? { emoji: '☀️', text: 'शुभ दोपहर', period: 'शांत दोपहर की शुभकामना।' }
-      : h < 20
-        ? { emoji: '🪔', text: 'शुभ संध्या', period: 'सन्ध्याकाल मंगलमय हो।' }
-        : { emoji: '🌙', text: 'शुभ रात्रि', period: 'गहरी नींद, शांत विश्राम।' };
+  const isNight = h < 3 || h >= 21;
+  const en = isNight
+    ? { emoji: '🌙', text: 'Shubh Ratri', period: 'Night Blessings' }
+    : h < 12
+      ? { emoji: '🙏', text: 'Shubhodaya', period: 'Morning Blessings' }
+      : h < 17
+        ? { emoji: '☀️', text: 'Shubh Madhyahna', period: 'Midday Blessings' }
+        : { emoji: '🪔', text: 'Shubh Sandhya', period: 'Evening Blessings' };
+
+  const hi = isNight
+    ? { emoji: '🌙', text: 'शुभ रात्रि', period: 'रात्रि विश्राम' }
+    : h < 12
+      ? { emoji: '🙏', text: 'शुभोदय', period: 'शुभ प्रभात' }
+      : h < 17
+        ? { emoji: '☀️', text: 'शुभ मध्याह्न', period: 'मध्याह्न वंदना' }
+        : { emoji: '🪔', text: 'शुभ सन्ध्या', period: 'सन्ध्या वंदना' };
+
   return lang === 'hi' ? hi : en;
 }
 
@@ -49,8 +49,48 @@ const fadeUp = (delay = 0) => ({
   transition: { delay, duration: 0.7, ease: easeIO },
 });
 
+// ─── Panchang helpers ─────────────────────────────────────────────────────────
+const VARA_EN = ['Ravivāra', 'Somavāra', 'Maṅgalavāra', 'Budhavāra', 'Guruvāra', 'Śukravāra', 'Śanivāra'];
+const PAKSHA_EN = ['Śukla Pakṣa', 'Kṛṣṇa Pakṣa'];
+const TITHI_EN = [
+  'Pratipada', 'Dvitīyā', 'Tṛtīyā', 'Caturthī', 'Pañcamī', 'Ṣaṣṭhī', 'Saptamī',
+  'Aṣṭamī', 'Navamī', 'Daśamī', 'Ekādaśī', 'Dvādaśī', 'Trayodaśī', 'Caturdaśī', 'Pūrṇimā',
+];
+const VARA_HI = ['रविवार', 'सोमवार', 'मंगलवार', 'बुधवार', 'गुरुवार', 'शुक्रवार', 'शनिवार'];
+const PAKSHA_HI = ['शुक्ल पक्ष', 'कृष्ण पक्ष'];
+const TITHI_HI = [
+  'प्रतिपदा', 'द्वितीया', 'तृतीया', 'चतुर्थी', 'पञ्चमी', 'षष्ठी', 'सप्तमी',
+  'अष्टमी', 'नवमी', 'दशमी', 'एकादशी', 'द्वादशी', 'त्रयोदशी', 'चतुर्दशी', 'पूर्णिमा',
+];
+
+function getLunarInfo(date: Date) {
+  const newMoon = new Date('2000-01-06T18:14:00Z').getTime();
+  const lunation = 29.53058867 * 86400000;
+  const age = ((date.getTime() - newMoon) % lunation + lunation) % lunation;
+  const idx = Math.floor((age / lunation) * 30);
+  return { paksha: idx >= 15 ? 1 : 0, tithi: idx % 15 };
+}
+
+function fmt12h(h: number, m: number) {
+  const p = h >= 12 ? 'PM' : 'AM';
+  return { time: `${String(h % 12 || 12).padStart(2, '0')}:${String(m).padStart(2, '0')}`, period: p };
+}
+
+// Panchang builder — used to pass structured data to ReelPlayer
+function usePanchang(lang: 'en' | 'hi') {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => { const id = setInterval(() => setNow(new Date()), 30000); return () => clearInterval(id); }, []);
+  const { time, period } = fmt12h(now.getHours(), now.getMinutes());
+  const vara = (lang === 'hi' ? VARA_HI : VARA_EN)[now.getDay()];
+  const { paksha, tithi } = getLunarInfo(now);
+  const pakshaStr = (lang === 'hi' ? PAKSHA_HI : PAKSHA_EN)[paksha];
+  const tithiStr = (lang === 'hi' ? TITHI_HI : TITHI_EN)[tithi];
+  const dateStr = now.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  return { time, period, vara, paksha: pakshaStr, tithi: tithiStr, dateStr };
+}
+
 export default function Home() {
-  // ── ALL hooks unconditionally at top ─────────────────────────────────────────
+  const panchangData = usePanchang('en');
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
@@ -85,14 +125,21 @@ export default function Home() {
     setGreeting(buildGreeting(lang, new Date().getHours()));
   }, [lang]);
 
-  // ── Derived (no hooks below) ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (hasStarted) {
+      document.documentElement.classList.add('app-zoomed');
+    } else {
+      document.documentElement.classList.remove('app-zoomed');
+    }
+  }, [hasStarted]);
+
   const handleBeginJourney = () => { localStorage.setItem('pranav_has_started', 'true'); setHasStarted(true); };
   const handleAuthSuccess = (name: string) => { setUserName(name); handleBeginJourney(); };
   const displayName = userName || 'Traveller';
 
-  // ── Guards ───────────────────────────────────────────────────────────────────
   if (isLoading) return null;
 
+  // ── Splash / Onboarding ──────────────────────────────────────────────────────
   if (!hasStarted) return (
     <main className={`${homeStyles.sacredPage} ${styles.main}`}>
       <HeroSection onOpenAuth={() => setIsAuthOpen(true)} onBegin={handleBeginJourney} />
@@ -100,97 +147,58 @@ export default function Home() {
     </main>
   );
 
-  // ── Dashboard — Fragment wraps <main> + modals so modals escape main's stacking context ──
+  // ── Grounding Pad Dashboard ──────────────────────────────────────────────────
   return (
     <>
-
       <main className={dashStyles.dashboardPage}>
         <SacredCanvas />
-        {/* ══ LEELA GLASS HEADER ══ */}
-        <motion.header className={dashStyles.greetingHeader}
-          initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.75, ease: easeIO }}
-        >
-          {/* Left: avatar orb + greeting text */}
-          <div className={dashStyles.greetingLeft}>
-            <div
-              className={dashStyles.avatarBadge}
-              onClick={() => window.dispatchEvent(new Event('openProfileModal'))}
-              title="View your Vedic profile"
-            >
-              🧘
-            </div>
-            <div className={dashStyles.greetingTextBlock}>
-              <h1 className={dashStyles.greetingTitle}>
-                {greeting?.text}{' '}
-                <span className={dashStyles.greetingName}>{displayName}</span>
-              </h1>
-              <p className={dashStyles.greetingSubtitle}>{greeting?.period ?? ''}</p>
-              <VedicClock compact />
-            </div>
-          </div>
 
-          {/* Center: language toggle */}
-          <div className={dashStyles.langPill}>
-            <button className={`${dashStyles.langOption} ${lang === 'en' ? dashStyles.langOptionActive : ''}`}
-              onClick={() => lang !== 'en' && toggleLanguage()}>EN</button>
-            <button className={`${dashStyles.langOption} ${lang === 'hi' ? dashStyles.langOptionActive : ''}`}
-              onClick={() => lang !== 'hi' && toggleLanguage()}>हिं</button>
-          </div>
+        {/* ══ VEDIC DASHBOARD — greeting, panchang & sankalpa (above reels) ══ */}
+        <VedicDashboard greeting={greeting} displayName={displayName} />
 
-          {/* Right: breathing OM */}
-          <div className={dashStyles.omArea}>
-            <motion.span className={dashStyles.omGlyph}
-              animate={{ scale: [1, 1.06, 1] }}
-              transition={{ duration: 3.5, repeat: Infinity, repeatDelay: 1, ease: easeIO }}>
-              ॐ
-            </motion.span>
-          </div>
-        </motion.header>
+        {/* ══ REEL PLAYER — ReZo audio reels (shifted below dashboard) ══ */}
+        <ReelPlayer
+          greeting={greeting}
+          displayName={displayName}
+          panchangData={panchangData}
+        />
 
-        {/* ══ DAILY INSIGHTS ══ */}
-        <motion.div {...fadeUp(0.12)}>
-          <DailyInsights />
-        </motion.div>
-
-        {/* ══ 3-COLUMN GRID ══ */}
+        {/* ══ 3-COLUMN GRID — below the reel ══ */}
         <div className={dashStyles.dashboardGrid}>
 
-          {/* ── LEFT SIDEBAR: Ticker · Focus Timer ── */}
+          {/* LEFT SIDEBAR */}
           <aside className={dashStyles.sidebarLeft}>
-            <motion.div {...fadeUp(0.2)}><WisdomTicker /></motion.div>
+            <motion.div {...fadeUp(0.22)}><WisdomTicker /></motion.div>
           </aside>
 
-          {/* ── CENTER: Prana Feed → Sankalpa → rest ── */}
+          {/* CENTER FEED */}
           <div className={dashStyles.feedCenter}>
-            <motion.div {...fadeUp(0.14)}><PranaFeed /></motion.div>
+
+            {/* JustVibe portal cards */}
+            <motion.div {...fadeUp(0.2)}><JustVibePortals /></motion.div>
 
             <div className={dashStyles.sectionDivider} />
 
-            <motion.div {...fadeUp(0.16)}><PranaVerseMini /></motion.div>
-
-            <div className={dashStyles.sectionDivider} />
-
-
-
-            {[QuickRituals, OjasTracker, PillarGrid, SadhanaTimeline, GayatriMantraSection].map((Comp, i) => (
+            {/* Remaining wellness sections — below fold */}
+            {[OjasTracker, PillarGrid, SadhanaTimeline, GayatriMantraSection].map((Comp, i) => (
               <motion.div key={i}
                 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }} transition={{ duration: 0.7, ease: easeIO }}>
                 <Comp />
-                {i < 4 && <div className={dashStyles.sectionDivider} />}
+                {i < 3 && <div className={dashStyles.sectionDivider} />}
               </motion.div>
             ))}
           </div>
 
-          {/* ── RIGHT SIDEBAR: empty on mobile, hidden slot on desktop ── */}
+          {/* RIGHT SIDEBAR */}
           <aside className={dashStyles.sidebarRight} />
         </div>
+
       </main>
 
-      {/* ══ MODALS — outside <main> to escape its stacking context ══ */}
+      {/* MODALS */}
       <VoiceCallModal isOpen={isCallModalOpen} onClose={() => setIsCallModalOpen(false)} />
-      <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
+      <AbountModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
       <UserProfile isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} userName={userName} />
     </>
   );

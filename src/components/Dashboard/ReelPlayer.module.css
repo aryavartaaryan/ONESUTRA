@@ -1,0 +1,598 @@
+/* ═══════════════════════════════════════════════════════════
+   ReelPlayer.module.css — Instagram Reel × Vedic Vibes
+   Full-screen, glassmorphism, time-dynamic backgrounds
+   ═══════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&display=swap');
+
+/* ── Keyframes ──────────────────────────────────────────────────────────────── */
+@keyframes bgShift {
+    0% {
+        background-position: 50% 0%;
+    }
+
+    50% {
+        background-position: 50% 100%;
+    }
+
+    100% {
+        background-position: 50% 0%;
+    }
+}
+
+@keyframes floatUp {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-12px);
+    }
+}
+
+@keyframes pulseGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.25), inset 0 0 16px rgba(255, 255, 255, 0.08);
+    }
+
+    50% {
+        box-shadow: 0 0 0 18px rgba(255, 255, 255, 0.00), inset 0 0 28px rgba(255, 255, 255, 0.13);
+    }
+}
+
+@keyframes nameShimmer {
+    0% {
+        background-position: -200% center;
+    }
+
+    100% {
+        background-position: 200% center;
+    }
+}
+
+@keyframes starTwinkle {
+
+    0%,
+    100% {
+        opacity: 0.15;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+/* ── Root container ─────────────────────────────────────────────────────────── */
+.reelContainer {
+    position: relative;
+    width: 100%;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* prevent body scroll interference */
+    isolation: isolate;
+}
+
+/* ── Animated gradient background ────────────────────────────────────────────── */
+.reelBg {
+    position: absolute;
+    inset: 0;
+    background: var(--reel-bg);
+    background-size: 200% 300%;
+    animation: bgShift 18s ease-in-out infinite;
+    z-index: 0;
+}
+
+/* Subtle sacred geometry overlay */
+.reelBg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(ellipse at 30% 70%, rgba(255, 255, 255, 0.03) 0%, transparent 60%),
+        radial-gradient(ellipse at 70% 20%, rgba(255, 255, 255, 0.025) 0%, transparent 55%);
+    pointer-events: none;
+}
+
+/* ── Celestial visual (paused state) ─────────────────────────────────────────── */
+.celestialWrap {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.celestialIcon {
+    font-size: clamp(6rem, 20vw, 11rem);
+    line-height: 1;
+    animation: floatUp 5s ease-in-out infinite;
+    filter: drop-shadow(0 0 28px var(--reel-accent, #fff8));
+    user-select: none;
+}
+
+.starParticle {
+    position: absolute;
+    color: rgba(255, 255, 255, 0.6);
+    animation: starTwinkle 3s ease-in-out infinite;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* ── Visualizer (playing state) ───────────────────────────────────────────────── */
+.vizWrap {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* ── Header overlay ─────────────────────────────────────────────────────────────
+   Floats over the reel at the very top — translucent glass strip
+   ───────────────────────────────────────────────────────────────────────────── */
+.headerOverlay {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1.1rem 0.75rem;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.52) 0%, rgba(0, 0, 0, 0.12) 100%);
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.hdrLeft {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+    flex: 1;
+}
+
+.hdrLogo {
+    flex-shrink: 0;
+    opacity: 0.88;
+    filter: brightness(0) invert(1) drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));
+}
+
+.hdrGreeting {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+}
+
+.hdrEmoji {
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+
+.hdrTitle {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(0.8rem, 3.5vw, 1.05rem);
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.92);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.hdrName {
+    font-style: italic;
+    background: linear-gradient(100deg, #FFD580 0%, #FFA040 50%, #FFD580 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: nameShimmer 5s linear infinite;
+}
+
+.hdrSub {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.58rem;
+    color: rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
+    letter-spacing: 0.02em;
+}
+
+.hdrRight {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.3rem;
+    flex-shrink: 0;
+}
+
+.timePill {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 12px;
+    padding: 0.22rem 0.65rem;
+}
+
+.timeDigits {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(1.0rem, 4vw, 1.4rem);
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.95);
+    letter-spacing: 0.03em;
+    line-height: 1;
+}
+
+.timePeriod {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.55rem;
+    font-weight: 700;
+    color: var(--reel-accent, #FFD580);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.panchangRow {
+    display: flex;
+    align-items: center;
+    gap: 0.28rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.pTag {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.5rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 0.12rem 0.45rem;
+    white-space: nowrap;
+    letter-spacing: 0.03em;
+}
+
+.pDot {
+    font-size: 0.45rem;
+    color: rgba(255, 255, 255, 0.28);
+}
+
+.dateStr {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.48rem;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+/* ── Center area: prev/next arrows + big play button ─────────────────────────── */
+.centerArea {
+    position: relative;
+    z-index: 5;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.2rem;
+    min-height: 200px;
+}
+
+/* Ghost navigation arrows */
+.navL,
+.navR {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: rgba(255, 255, 255, 0.80);
+    font-size: 1.5rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.18s, transform 0.15s, opacity 0.2s;
+    flex-shrink: 0;
+}
+
+.navL:hover,
+.navR:hover {
+    background: rgba(0, 0, 0, 0.50);
+    transform: scale(1.08);
+}
+
+.playZone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
+/* ── Big glassmorphism play/pause button ─────────────────────────────────────── */
+.playBtn {
+    position: relative;
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.22s, border-color 0.22s, transform 0.15s;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.35),
+        0 1px 0 rgba(255, 255, 255, 0.20) inset;
+    overflow: visible;
+}
+
+.playBtn:hover {
+    background: rgba(255, 255, 255, 0.20);
+    border-color: rgba(255, 255, 255, 0.55);
+}
+
+.playBtnActive {
+    border-color: var(--reel-accent, #FFD580);
+    background: rgba(255, 255, 255, 0.15);
+    animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.playIcon {
+    font-size: 1.85rem;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* nudge play icon slightly right to center optical illusion */
+    padding-left: 3px;
+}
+
+.pulseRing {
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    border: 2px solid var(--reel-accent, rgba(255, 255, 255, 0.5));
+    pointer-events: none;
+}
+
+/* ── Bottom panel ─────────────────────────────────────────────────────────────── */
+.bottomPanel {
+    position: relative;
+    z-index: 10;
+    padding: 0.85rem 1.1rem 1.4rem;
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.32) 60%, rgba(0, 0, 0, 0.00) 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+/* Raag time-based heading */
+.raagLine {
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+}
+
+.raagTitle {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(1.05rem, 4.5vw, 1.4rem);
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.96);
+    font-style: italic;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+}
+
+.raagSub {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.66rem;
+    color: var(--reel-accent, rgba(255, 255, 255, 0.55));
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+/* Track info row */
+.trackInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.trackBadge {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.52rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--reel-accent, #FFD580);
+    opacity: 0.85;
+}
+
+.trackTitleRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.trackTitle {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(1rem, 4.5vw, 1.25rem);
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.97);
+    line-height: 1.2;
+}
+
+.trackLikes {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.70);
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 20px;
+    padding: 0.18rem 0.6rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* ── Daily Insight card ────────────────────────────────────────────────────────── */
+.insightCard {
+    position: relative;
+    background: rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 16px;
+    padding: 0.85rem 1rem 0.85rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.insightClose {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.6rem;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.40);
+    font-size: 1rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0.1rem 0.3rem;
+    transition: color 0.15s;
+}
+
+.insightClose:hover {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.insightIcon {
+    font-size: 0.8rem;
+    color: var(--reel-accent, #FFD580);
+    opacity: 0.85;
+}
+
+.insightQuote {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(0.82rem, 3.2vw, 0.98rem);
+    font-weight: 400;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.90);
+    margin: 0;
+    line-height: 1.5;
+    padding-right: 1.2rem;
+}
+
+.insightSource {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--reel-accent, #FFD580);
+    text-transform: uppercase;
+    opacity: 0.75;
+}
+
+/* ── Track dots ─────────────────────────────────────────────────────────────── */
+.dots {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.22);
+    cursor: pointer;
+    transition: background 0.2s, width 0.22s;
+    padding: 0;
+}
+
+.dotOn {
+    background: var(--reel-accent, rgba(255, 255, 255, 0.9));
+    width: 20px;
+    border-radius: 4px;
+    box-shadow: 0 0 8px var(--reel-accent, rgba(255, 255, 255, 0.5));
+}
+
+/* ── Open Leela link ────────────────────────────────────────────────────────── */
+.leelaLink {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    text-decoration: none;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.55);
+    transition: color 0.2s;
+    padding-top: 0.1rem;
+}
+
+.leelaLink:hover {
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.leelaIcon {
+    opacity: 0.55;
+    filter: brightness(0) invert(1);
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+}
+
+.leelaLink:hover .leelaIcon {
+    opacity: 0.9;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────────── */
+@media (min-width: 768px) {
+    .reelContainer {
+        max-width: 480px;
+        margin: 0 auto;
+        min-height: 100svh;
+        border-radius: 0;
+        box-shadow: 0 0 60px rgba(0, 0, 0, 0.35);
+    }
+}
+
+@media (min-width: 1024px) {
+    .reelContainer {
+        max-width: 520px;
+        border-radius: 24px;
+        margin: 1.5rem auto 0;
+        min-height: calc(100svh - 3rem);
+        overflow: hidden;
+    }
+
+    .headerOverlay {
+        border-radius: 24px 24px 0 0;
+    }
+}

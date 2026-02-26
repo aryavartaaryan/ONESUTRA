@@ -74,6 +74,7 @@ export default function DailyInsights() {
                 </span>
             </div>
 
+
             {/* Sliding cards track */}
             <div
                 className={styles.track}

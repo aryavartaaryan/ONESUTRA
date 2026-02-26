@@ -1,0 +1,200 @@
+/* ════════════════════════════════════════════
+   AMBIENT PLAYER — Floating pill raag player
+   ════════════════════════════════════════════ */
+
+.pill {
+    background: rgba(18, 12, 40, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(212, 160, 23, 0.28);
+    border-radius: 60px;
+    padding: 0.5rem 0.85rem 0.5rem 0.7rem;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.45),
+        0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+        0 0 20px rgba(212, 160, 23, 0.08);
+    overflow: hidden;
+    cursor: pointer;
+    max-width: 340px;
+    width: 100%;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.trackEmoji {
+    font-size: 1.15rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.trackInfo {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
+.trackTitle {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: rgba(255, 248, 220, 0.95);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.01em;
+}
+
+.trackMood {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.58rem;
+    color: rgba(212, 160, 23, 0.65);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+/* Waveform bars */
+.waveRow {
+    display: flex;
+    align-items: center;
+    gap: 1.5px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.waveBar {
+    width: 2px;
+    border-radius: 2px;
+    background: rgba(212, 160, 23, 0.35);
+    transition: height 0.3s ease;
+    flex-shrink: 0;
+}
+
+@keyframes wavePop {
+
+    0%,
+    100% {
+        transform: scaleY(0.4);
+    }
+
+    50% {
+        transform: scaleY(1);
+    }
+}
+
+.waveBarPlaying {
+    background: var(--jv-gold, #D4A017);
+    animation: wavePop ease-in-out infinite;
+    transform-origin: center;
+}
+
+/* Play/Pause button */
+.playBtn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(212, 160, 23, 0.14);
+    border: 1px solid rgba(212, 160, 23, 0.3);
+    color: rgba(212, 160, 23, 0.85);
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.25s ease;
+}
+
+.playBtnActive {
+    background: var(--jv-gold, #D4A017);
+    border-color: var(--jv-gold, #D4A017);
+    color: #1a0c02;
+    box-shadow: 0 0 12px rgba(212, 160, 23, 0.5);
+}
+
+/* Expanded panel */
+.expandedPanel {
+    overflow: hidden;
+    border-top: 1px solid rgba(212, 160, 23, 0.12);
+    margin-top: 0.6rem;
+    padding-top: 0.5rem;
+}
+
+.expandedHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+}
+
+.expandedLabel {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.62rem;
+    color: rgba(212, 160, 23, 0.6);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.navBtns {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.navBtn {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid rgba(212, 160, 23, 0.25);
+    background: transparent;
+    color: rgba(212, 160, 23, 0.6);
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: all 0.2s ease;
+}
+
+.navBtn:hover {
+    border-color: var(--jv-gold, #D4A017);
+    color: var(--jv-gold-light, #F0C040);
+}
+
+.trackRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.38rem 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+    color: rgba(255, 248, 220, 0.7);
+    text-align: left;
+    border-radius: 6px;
+    transition: all 0.18s ease;
+}
+
+.trackRow:hover {
+    color: rgba(255, 248, 220, 0.95);
+    background: rgba(212, 160, 23, 0.06);
+    padding-left: 0.35rem;
+}
+
+.trackRowActive {
+    color: var(--jv-gold-light, #F0C040) !important;
+    font-weight: 600;
+}
+
+.trackRowMood {
+    font-size: 0.58rem;
+    color: rgba(212, 160, 23, 0.45);
+    flex-shrink: 0;
+}

@@ -115,9 +115,11 @@
 .compactRow {
     display: flex;
     align-items: center;
-    gap: 0.3rem;
+    justify-content: flex-start;
+    gap: 0.28rem;
     flex-wrap: wrap;
     margin-top: 0.22rem;
+    width: 100%;
 }
 
 .compactTime {
@@ -152,4 +154,16 @@
     font-weight: 500;
     color: rgba(92, 60, 25, 0.42);
     font-style: italic;
+}
+
+.compactTithi {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.56rem;
+    font-weight: 600;
+    color: #C97B3A;
+    background: rgba(201, 123, 58, 0.09);
+    border: 1px solid rgba(201, 123, 58, 0.20);
+    border-radius: 20px;
+    padding: 0.1rem 0.45rem;
+    letter-spacing: 0.02em;
 }

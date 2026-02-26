@@ -1,0 +1,213 @@
+/* JustVibePortals.module.css — matches PranaVerseMini card style exactly */
+
+.wrapper {
+    border-radius: 20px;
+    overflow: hidden;
+    background: rgba(10, 6, 2, 0.55);
+    border: 1px solid rgba(255, 200, 80, 0.10);
+    padding: 1rem 0 1rem;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.1rem 0.85rem;
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+@keyframes livePulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.55;
+        transform: scale(1.35);
+    }
+}
+
+.liveDot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #ffd060;
+    box-shadow: 0 0 8px rgba(255, 210, 90, 0.7);
+    animation: livePulse 2s ease-in-out infinite;
+    flex-shrink: 0;
+}
+
+.title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: rgba(255, 235, 170, 0.95);
+    letter-spacing: 0.03em;
+}
+
+.sub {
+    font-size: 0.58rem;
+    color: rgba(200, 165, 90, 0.50);
+    letter-spacing: 0.06em;
+}
+
+/* Horizontal scroll */
+.scroll {
+    display: flex;
+    gap: 0.7rem;
+    overflow-x: auto;
+    padding: 0.1rem 1.1rem 0.2rem;
+    scrollbar-width: none;
+}
+
+.scroll::-webkit-scrollbar {
+    display: none;
+}
+
+/* Card link wrapper (no underline, no blue) */
+.cardLink {
+    text-decoration: none;
+    display: block;
+    flex-shrink: 0;
+}
+
+/* Post card — identical to PranaVerseMini .card */
+.card {
+    width: 186px;
+    /* Increased by 20% from 155px */
+    border-radius: 18px;
+    padding: 1rem 0.95rem 0.9rem;
+    /* Increased padding */
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    border: 1px solid rgba(255, 200, 80, 0.25);
+    /* brighter border */
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+    background: linear-gradient(145deg, rgba(25, 20, 15, 0.9), rgba(10, 8, 5, 0.95));
+    /* darker base to make text pop */
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 12px 35px rgba(255, 200, 80, 0.15), 0 4px 15px rgba(0, 0, 0, 0.8);
+    border-color: rgba(255, 200, 80, 0.5);
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 200, 80, 0.05) 0%, rgba(0, 0, 0, 0.6) 100%);
+    pointer-events: none;
+}
+
+.typeTag {
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-radius: 99px;
+    border: 1px solid;
+    padding: 0.25rem 0.6rem;
+    width: fit-content;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.thumbArea {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 60px;
+    /* Increased from 52px */
+    position: relative;
+    z-index: 1;
+}
+
+.thumbEmoji {
+    font-size: 3rem;
+    /* Increased from 2.5rem */
+    display: block;
+    filter: drop-shadow(0 4px 12px rgba(255, 200, 80, 0.3));
+    transition: transform 0.3s ease;
+}
+
+.card:hover .thumbEmoji {
+    transform: scale(1.15) rotate(5deg);
+}
+
+.excerpt {
+    font-size: 0.75rem;
+    /* Increased size */
+    line-height: 1.55;
+    color: rgba(255, 240, 210, 0.95);
+    /* High contrast */
+    font-weight: 500;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+
+.cardFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    position: relative;
+    z-index: 1;
+}
+
+.miniProfile {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.miniRing {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    background: rgba(0, 0, 0, 0.4);
+    flex-shrink: 0;
+}
+
+.miniHandle {
+    font-size: 0.5rem;
+    font-weight: 600;
+    color: rgba(255, 240, 200, 0.88);
+    display: block;
+}
+
+.miniBadge {
+    font-size: 0.42rem;
+    color: rgba(200, 170, 100, 0.55);
+    display: block;
+    letter-spacing: 0.04em;
+}
+
+.miniLikes {
+    font-size: 0.5rem;
+    font-weight: 600;
+    color: rgba(255, 180, 200, 0.65);
+}

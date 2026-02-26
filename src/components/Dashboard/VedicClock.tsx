@@ -9,11 +9,26 @@ const VARA_HI = ['रविवार', 'सोमवार', 'मंगलवा
 const PAKSHA_EN = ['Śukla Pakṣa', 'Kṛṣṇa Pakṣa'];
 const PAKSHA_HI = ['शुक्ल पक्ष', 'कृष्ण पक्ष'];
 
-function getLunarPaksha(date: Date): number {
+// Tithi names (Sanskrit / English)
+const TITHI_EN = [
+    'Pratipada', 'Dvitīyā', 'Tṛtīyā', 'Caturthī', 'Pañcamī',
+    'Ṣaṣṭhī', 'Saptamī', 'Aṣṭamī', 'Navamī', 'Daśamī',
+    'Ekādaśī', 'Dvādaśī', 'Trayodaśī', 'Caturdaśī', 'Pūrṇimā / Amāvāsyā',
+];
+const TITHI_HI = [
+    'प्रतिपदा', 'द्वितीया', 'तृतीया', 'चतुर्थी', 'पञ्चमी',
+    'षष्ठी', 'सप्तमी', 'अष्टमी', 'नवमी', 'दशमी',
+    'एकादशी', 'द्वादशी', 'त्रयोदशी', 'चतुर्दशी', 'पूर्णिमा / अमावस्या',
+];
+
+function getLunarInfo(date: Date): { paksha: number; tithi: number } {
     const newMoon = new Date('2000-01-06T18:14:00Z').getTime();
     const lunation = 29.53058867 * 86400000;
     const age = ((date.getTime() - newMoon) % lunation + lunation) % lunation;
-    return Math.floor((age / lunation) * 30) >= 15 ? 1 : 0;
+    const tithiIndex = Math.floor((age / lunation) * 30); // 0–29
+    const paksha = tithiIndex >= 15 ? 1 : 0;
+    const tithi = tithiIndex % 15; // 0–14
+    return { paksha, tithi };
 }
 
 function formatTime12h(h: number, m: number) {
@@ -37,10 +52,12 @@ export default function VedicClock({ compact }: { compact?: boolean }) {
 
     const { time, period } = formatTime12h(now.getHours(), now.getMinutes());
     const vara = (lang === 'hi' ? VARA_HI : VARA_EN)[now.getDay()];
-    const paksha = (lang === 'hi' ? PAKSHA_HI : PAKSHA_EN)[getLunarPaksha(now)];
+    const { paksha: pakshaIdx, tithi: tithiIdx } = getLunarInfo(now);
+    const paksha = (lang === 'hi' ? PAKSHA_HI : PAKSHA_EN)[pakshaIdx];
+    const tithi = (lang === 'hi' ? TITHI_HI : TITHI_EN)[tithiIdx];
     const dateStr = getDateStr(now);
 
-    // ── Compact inline mode (used inside greeting header) ──────────────────────
+    // ── Compact inline mode (inside greeting header) ────────────────────────
     if (compact) {
         return (
             <div className={styles.compactRow}>
@@ -49,6 +66,8 @@ export default function VedicClock({ compact }: { compact?: boolean }) {
                 <span className={styles.compactDate}>{dateStr}</span>
                 <span className={styles.compactDot}>·</span>
                 <span className={styles.compactPaksha}>{paksha}</span>
+                <span className={styles.compactDot}>·</span>
+                <span className={styles.compactTithi}>{tithi}</span>
             </div>
         );
     }
@@ -72,4 +91,3 @@ export default function VedicClock({ compact }: { compact?: boolean }) {
         </div>
     );
 }
-

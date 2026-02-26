@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import styles from './AuthModal.module.css';
+import OmInfinityLogo from '../OmInfinityLogo';
 
 interface AuthModalProps {
     isOpen: boolean;
@@ -113,7 +114,9 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                             <X size={18} />
                         </button>
 
-                        <span className={styles.omSymbol}>🙏</span>
+                        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                            <OmInfinityLogo size={70} />
+                        </div>
                         <h2 className={styles.title}>{t.title}</h2>
                         <p className={styles.subtitle}>{t.subtitle}</p>
 

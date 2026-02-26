@@ -1,6 +1,25 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Cinzel:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700;900&family=Montserrat:wght@300;400;500;600;700&display=swap');
 
 :root {
+  /* ═══════════════════════════════════════
+     JUST VIBE — Brand Tokens
+     Gold (Spanda/Spirit) + Blue (Flow/Water)
+     ═══════════════════════════════════════ */
+  --jv-gold: #D4A017;
+  /* Radiant Spanda Gold — left loop of ∞ */
+  --jv-gold-light: #F0C040;
+  /* Lighter gold for glows */
+  --jv-gold-glow: rgba(212, 160, 23, 0.35);
+  --jv-blue: #1E3A5F;
+  /* Deep Flow Blue — right loop of ∞ */
+  --jv-blue-light: #2E6BA8;
+  /* Lighter blue for accents */
+  --jv-blue-glow: rgba(30, 58, 95, 0.35);
+  --jv-alabaster: #F5F3EE;
+  /* Clean alabaster for ripple backgrounds */
+  --jv-ripple-color: rgba(30, 58, 95, 0.15);
+  /* Water ripple tint */
+
   /* Deep, Rich Background Palette */
   --bg-primary: #050A30;
   /* Deep Midnight Blue */
@@ -50,6 +69,47 @@
   /* Hack to make old components dark until refactored */
 }
 
+/* ═══════════════════════════════════════
+   JUST VIBE — Global Ripple Animation
+   ═══════════════════════════════════════ */
+@keyframes jv-ripple-expand {
+  0% {
+    transform: scale(0.1);
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: scale(3.5);
+    opacity: 0;
+  }
+}
+
+@keyframes jv-vibe-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--jv-gold-glow);
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+}
+
+@keyframes jv-breathe {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+
+  50% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+}
+
 * {
   box-sizing: border-box;
   padding: 0;
@@ -64,6 +124,19 @@ body {
   font-family: var(--font-body);
   line-height: 1.6;
   min-height: 100vh;
+}
+
+/* ── App Zoom for Inside App ── */
+html.app-zoomed {
+  font-size: 115%;
+  /* Default ~18.4px (15% increase to mitigate mobile overflow) */
+}
+
+@media (min-width: 768px) {
+  html.app-zoomed {
+    font-size: 120%;
+    /* Desktop 20% increase */
+  }
 }
 
 h1,

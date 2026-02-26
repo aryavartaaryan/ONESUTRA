@@ -2,21 +2,23 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import styles from './page.module.css';
 
 // ════════════════════════════════════════════════════════
-//  AURA CANVAS (in Profile Sheet)
+//  TYPES
 // ════════════════════════════════════════════════════════
 type Dosha = 'vata' | 'pitta' | 'kapha';
 
+// ════════════════════════════════════════════════════════
+//  AURA CANVAS (profile sheet)
+// ════════════════════════════════════════════════════════
 function drawAura(canvas: HTMLCanvasElement, dosha: Dosha, time: number) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     const W = canvas.width, H = canvas.height;
     const cx = W / 2, cy = H / 2;
-
     ctx.clearRect(0, 0, W, H);
-
     const baseColor = dosha === 'vata' ? '#9d4edd' : dosha === 'pitta' ? '#ff6b35' : '#40916c';
     const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, W * 0.48);
     g.addColorStop(0, baseColor + '33');
@@ -31,17 +33,13 @@ function drawAura(canvas: HTMLCanvasElement, dosha: Dosha, time: number) {
                 const t = i / 80;
                 const spiral = t * 4 + time * 0.7 + (a / 4) * Math.PI * 2;
                 const r = t * W * 0.42 + Math.sin(time * 2 + a) * 4;
-                const px = cx + Math.cos(spiral) * r;
-                const py = cy + Math.sin(spiral) * r;
-                if (i === 0) ctx.moveTo(px, py);
-                else ctx.lineTo(px, py);
+                ctx.lineTo(cx + Math.cos(spiral) * r, cy + Math.sin(spiral) * r);
             }
             ctx.strokeStyle = ['#9d4edd', '#c77dff', '#64b5f6', '#00d4ff'][a] + '66';
             ctx.lineWidth = 1;
             ctx.stroke();
         }
     }
-
     if (dosha === 'pitta') {
         for (let r = 1; r < 5; r++) {
             const phase = (time * 1.8 + r * 0.6) % (Math.PI * 2);
@@ -53,7 +51,6 @@ function drawAura(canvas: HTMLCanvasElement, dosha: Dosha, time: number) {
             ctx.stroke();
         }
     }
-
     if (dosha === 'kapha') {
         for (let b = 0; b < 4; b++) {
             const t = time * 0.22 + b * 1.4;
@@ -69,8 +66,6 @@ function drawAura(canvas: HTMLCanvasElement, dosha: Dosha, time: number) {
             ctx.fill();
         }
     }
-
-    // Clip to circle
     ctx.globalCompositeOperation = 'destination-in';
     const clip = ctx.createRadialGradient(cx, cy, W * 0.28, cx, cy, W * 0.5);
     clip.addColorStop(0, 'rgba(0,0,0,1)');
@@ -84,7 +79,6 @@ function AuraCanvas({ dosha }: { dosha: Dosha }) {
     const ref = useRef<HTMLCanvasElement>(null);
     const raf = useRef<number>(0);
     const t = useRef(0);
-
     useEffect(() => {
         const c = ref.current;
         if (!c) return;
@@ -93,22 +87,19 @@ function AuraCanvas({ dosha }: { dosha: Dosha }) {
         raf.current = requestAnimationFrame(loop);
         return () => cancelAnimationFrame(raf.current);
     }, [dosha]);
-
     return <canvas ref={ref} className={styles.auraCanvas} />;
 }
 
 // ════════════════════════════════════════════════════════
-//  VOICE WAVEFORM BARS
+//  WAVEFORM for Visual Raag posts
 // ════════════════════════════════════════════════════════
 const BAR_HEIGHTS = [0.35, 0.7, 0.55, 1.0, 0.8, 0.45, 0.65, 0.9, 0.5, 0.75, 1.0, 0.6, 0.85, 0.4, 0.7, 0.55, 0.9, 0.65, 0.45, 0.8, 0.35, 0.7, 0.6, 1.0];
 
-function VoiceWave() {
+function VisualRaagWave() {
     return (
         <div className={styles.waveBarRow}>
             {BAR_HEIGHTS.map((h, i) => (
-                <div
-                    key={i}
-                    className={styles.waveBar}
+                <div key={i} className={styles.waveBar}
                     style={{
                         height: `${h * 100}%`,
                         '--h': h * 2.2,
@@ -125,154 +116,134 @@ function VoiceWave() {
 //  DATA
 // ════════════════════════════════════════════════════════
 interface User {
-    id: number;
-    handle: string;
-    displayName: string;
-    avatar: string;
-    dosha: Dosha;
+    id: number; handle: string; displayName: string;
+    avatar: string; dosha: Dosha;
     roles: { label: string; chip: string }[];
-    bio: string;
-    badge: string;
-    ringClass: string;
-    avatarClass: string;
-    resonances: number;
-    seeds: number;
-    days: number;
+    bio: string; badge: string; ringClass: string; avatarClass: string;
+    resonances: number; seeds: number; days: number;
 }
 
 const USERS: User[] = [
     {
-        id: 1, handle: '@Aryan.Creates', displayName: 'Aryan Sharma',
-        avatar: '🧘', dosha: 'vata',
-        roles: [
-            { label: 'Founder', chip: styles.chipFounder },
-            { label: 'Vibe Coder', chip: styles.chipCoder },
-        ],
+        id: 1, handle: '@Aryan.Creates', displayName: 'Aryan Sharma', avatar: '🧘', dosha: 'vata',
+        roles: [{ label: 'Founder', chip: styles.chipFounder }, { label: 'Vibe Coder', chip: styles.chipCoder }],
         bio: 'Building conscious tech at the intersection of Vedanta & software. Morning sadhana → late-night code → repeat.',
         badge: '🌱 Level 7 Seed', ringClass: styles.ringGold, avatarClass: styles.avatarGold,
-        resonances: 4218, seeds: 892, days: 41,
+        resonances: 4218, seeds: 892, days: 41
     },
     {
-        id: 2, handle: '@Lakshmi.Flow', displayName: 'Lakshmi Patel',
-        avatar: '🌿', dosha: 'kapha',
-        roles: [
-            { label: 'Designer', chip: styles.chipDesigner },
-            { label: 'Builder', chip: styles.chipBuilder },
-        ],
+        id: 2, handle: '@Lakshmi.Flow', displayName: 'Lakshmi Patel', avatar: '🌿', dosha: 'kapha',
+        roles: [{ label: 'Designer', chip: styles.chipDesigner }, { label: 'Builder', chip: styles.chipBuilder }],
         bio: 'UX Designer & Sacred Artist. I design products that feel like a deep breath. Nature is my mood board.',
         badge: '🪷 Level 6 Lotus', ringClass: styles.ringGreen, avatarClass: styles.avatarForest,
-        resonances: 3105, seeds: 641, days: 33,
+        resonances: 3105, seeds: 641, days: 33
     },
     {
-        id: 3, handle: '@Rishi.Dharma', displayName: 'Rishi Iyer',
-        avatar: '🔮', dosha: 'pitta',
-        roles: [
-            { label: 'Professional', chip: styles.chipFounder },
-            { label: 'Vedic Learner', chip: styles.chipDesigner },
-        ],
+        id: 3, handle: '@Rishi.Dharma', displayName: 'Rishi Iyer', avatar: '🔮', dosha: 'pitta',
+        roles: [{ label: 'Professional', chip: styles.chipFounder }, { label: 'Vedic Learner', chip: styles.chipDesigner }],
         bio: 'Neuroscientist by day, Vedic astrology student by moonlight. Consciousness is the final frontier.',
         badge: '✦ Level 5 Star', ringClass: styles.ringPurple, avatarClass: styles.avatarCosmic,
-        resonances: 2788, seeds: 503, days: 28,
+        resonances: 2788, seeds: 503, days: 28
     },
     {
-        id: 4, handle: '@Nisha.Waves', displayName: 'Nisha Varma',
-        avatar: '🌊', dosha: 'kapha',
-        roles: [
-            { label: 'Builder', chip: styles.chipBuilder },
-            { label: 'Founder', chip: styles.chipFounder },
-        ],
+        id: 4, handle: '@Nisha.Waves', displayName: 'Nisha Varma', avatar: '🌊', dosha: 'kapha',
+        roles: [{ label: 'Builder', chip: styles.chipBuilder }, { label: 'Founder', chip: styles.chipFounder }],
         bio: 'Sustainable tech founder. We make every byte count for the planet. 40% of our profits plant forests.',
         badge: '💎 Level 8 Crystal', ringClass: styles.ringBlue, avatarClass: styles.avatarOcean,
-        resonances: 6540, seeds: 1240, days: 67,
+        resonances: 6540, seeds: 1240, days: 67
     },
 ];
 
 interface PostAction { lotus: boolean; cloud: boolean; prism: boolean; seed: boolean; }
-
 interface Post {
     id: number;
-    type: 'lapse' | 'voice' | 'reflect' | 'ocean';
-    bgClass: string;
-    tagClass: string;
-    tagLabel: string;
-    userId: number;
-    caption: string;
-    hashtags: string[];
-    emoji?: string;
-    lapseCaption?: string;
-    voiceLines?: string[];
-    quote?: string;
-    quoteSource?: string;
+    type: 'dristi' | 'visualraag' | 'reflect' | 'moment';
+    bgClass: string; tagClass: string; tagLabel: string;
+    userId: number; caption: string; hashtags: string[];
+    emoji?: string; lapseCaption?: string;
+    voiceLines?: string[]; quote?: string; quoteSource?: string;
     likes: number;
 }
 
 const POSTS: Post[] = [
     {
-        id: 1, type: 'lapse', bgClass: styles.bgGolden, tagClass: styles.tagLapse, tagLabel: '📸 Lapse',
-        userId: 1, caption: 'Watched the sun paint the whole sky. 90-minute golden hour time-lapse. This is why we wake up early. ✨',
-        hashtags: ['#GoldenHour', '#Sadhana'], emoji: '🌅', lapseCaption: 'golden hour · 5:48 AM', likes: 1284,
+        id: 1, type: 'dristi', bgClass: styles.bgGolden, tagClass: styles.tagLapse, tagLabel: '📸 Dristi',
+        userId: 1, caption: 'Watched the sun paint the whole sky. 90-minute golden hour. This is why we wake up early. ✨',
+        hashtags: ['#GoldenHour', '#Sadhana'], emoji: '🌅', lapseCaption: 'golden hour · 5:48 AM', likes: 1284
     },
     {
-        id: 2, type: 'voice', bgClass: styles.bgForest, tagClass: styles.tagVoice, tagLabel: '🎙️ Voice Note',
-        userId: 2, caption: 'Recorded this thought mid-walk. Sharing my morning realization on stillness.',
+        id: 2, type: 'visualraag', bgClass: styles.bgForest, tagClass: styles.tagVoice, tagLabel: '🎵 Visual Raag',
+        userId: 2, caption: 'Sharing my morning realization — a voice note on stillness, set to Raag Bhairav.',
         hashtags: ['#FlowState', '#Mindful'],
-        voiceLines: [
-            'When I stopped trying to be productive this morning, I realised that the creative downloads come',
-            'not when you chase them — but when you become very, very still.',
-        ],
-        likes: 892,
+        voiceLines: ['When I stopped trying to be productive this morning, I realised that the creative downloads come', 'not when you chase them — but when you become very, very still.'],
+        likes: 892
     },
     {
         id: 3, type: 'reflect', bgClass: styles.bgCosmic, tagClass: styles.tagReflect, tagLabel: '✦ Reflection',
         userId: 3, caption: 'This line from Rumi has been living in my chest for three days now.',
         hashtags: ['#Vedanta', '#Rumi'], emoji: '🪐',
         quote: '"Yesterday I was clever, I wanted to change the world. Today I am wise, I am changing myself."',
-        quoteSource: '— Rumi',
-        likes: 3401,
+        quoteSource: '— Rumi', likes: 3401
     },
     {
-        id: 4, type: 'ocean', bgClass: styles.bgOcean, tagClass: styles.tagOcean, tagLabel: '🌊 Moment',
+        id: 4, type: 'moment', bgClass: styles.bgOcean, tagClass: styles.tagOcean, tagLabel: '🌊 Moment',
         userId: 4, caption: '6 AM beach meditation. The ocean keeps the most honest rhythm.',
-        hashtags: ['#Ocean', '#PranaVerse'], emoji: '🌊', likes: 2105,
+        hashtags: ['#Ocean', '#JustVibe'], emoji: '🌊', likes: 2105
     },
 ];
 
 // ════════════════════════════════════════════════════════
-//  POST COMPONENT
+//  RIPPLE EFFECT on Vibed You
+// ════════════════════════════════════════════════════════
+function VibedRipple() {
+    return (
+        <motion.div
+            style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,160,23,0.6) 0%, transparent 70%)' }}
+            initial={{ scale: 0.3, opacity: 0.9 }}
+            animate={{ scale: 2.5, opacity: 0 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+        />
+    );
+}
+
+// ════════════════════════════════════════════════════════
+//  POST CARD
 // ════════════════════════════════════════════════════════
 function PostCard({ post, onUserClick }: { post: Post; onUserClick: (id: number) => void }) {
     const user = USERS.find(u => u.id === post.userId)!;
     const [actions, setActions] = useState<PostAction>({ lotus: false, cloud: false, prism: false, seed: false });
     const [likeCount, setLikeCount] = useState(post.likes);
-    const [burst, setBurst] = useState(false);
+    const [ripple, setRipple] = useState(false);
 
     const tap = useCallback((k: keyof PostAction) => {
         setActions(prev => {
             const next = { ...prev, [k]: !prev[k] };
-            if (k === 'lotus') { setLikeCount(c => prev.lotus ? c - 1 : c + 1); if (!prev.lotus) { setBurst(true); setTimeout(() => setBurst(false), 700); } }
+            if (k === 'lotus') {
+                setLikeCount(c => prev.lotus ? c - 1 : c + 1);
+                if (!prev.lotus) { setRipple(true); setTimeout(() => setRipple(false), 700); }
+            }
             return next;
         });
     }, []);
 
     return (
-        <div className={styles.post}>
-            {/* Background */}
+        <article className={styles.post}>
             <div className={post.bgClass} />
-            {post.type === 'lapse' && <div className={styles.mist} />}
+            {post.type === 'dristi' && <div className={styles.mist} />}
             <div className={styles.vignette} />
 
-            {/* Top bar */}
+            {/* Top bar — JustVibe branding */}
             <div className={styles.topBar}>
-                <span className={styles.wordmark}>The PranaVerse</span>
+                <span className={styles.wordmark}>JustVibe</span>
                 <span className={`${styles.postTypeTag} ${post.tagClass}`}>{post.tagLabel}</span>
             </div>
 
             {/* Content */}
-            {post.type === 'lapse' && (
+            {post.type === 'dristi' && (
                 <div className={styles.lapseFrame}>
                     <div className={styles.polaroidStack}>
-                        <div className={`${styles.polaroidCard}`} style={{ transform: 'rotate(-4deg)', position: 'absolute', top: -10, left: -12, right: 12, zIndex: 0, opacity: 0.55 }}>
-                            <div className={styles.polaroidImg} style={{ background: 'linear-gradient(135deg, #a06020, #7a4010)' }}><span style={{ fontSize: '2.5rem' }}>🌄</span></div>
+                        <div className={styles.polaroidCard} style={{ transform: 'rotate(-4deg)', position: 'absolute', top: -10, left: -12, right: 12, zIndex: 0, opacity: 0.55 }}>
+                            <div className={styles.polaroidImg} style={{ background: 'linear-gradient(135deg,#a06020,#7a4010)' }}><span style={{ fontSize: '2.5rem' }}>🌄</span></div>
                             <p className={styles.polaroidCaption}>5:32 AM</p>
                         </div>
                         <div className={styles.polaroidCard} style={{ position: 'relative', zIndex: 1 }}>
@@ -283,20 +254,18 @@ function PostCard({ post, onUserClick }: { post: Post; onUserClick: (id: number)
                 </div>
             )}
 
-            {post.type === 'voice' && (
+            {post.type === 'visualraag' && (
                 <div className={styles.voiceCard}>
                     <div className={styles.voiceHeader}>
-                        <div className={styles.voiceIcon}>🎙️</div>
+                        <div className={styles.voiceIcon}>🎵</div>
                         <div>
-                            <div className={styles.voiceTitle}>Voice Reflection · Morning Walk</div>
-                            <div className={styles.voiceDuration}>2:14 · 🌿 Forest Mode</div>
+                            <div className={styles.voiceTitle}>Visual Raag · Raag Bhairav</div>
+                            <div className={styles.voiceDuration}>2:14 · 🌿 Dawn Mode</div>
                         </div>
                     </div>
-                    <VoiceWave />
+                    <VisualRaagWave />
                     <div className={styles.transcriptCard}>
-                        <p className={styles.transcriptLine}>
-                            {post.voiceLines![0]} <strong>{post.voiceLines![1]}</strong>
-                        </p>
+                        <p className={styles.transcriptLine}>{post.voiceLines![0]} <strong>{post.voiceLines![1]}</strong></p>
                     </div>
                 </div>
             )}
@@ -309,27 +278,26 @@ function PostCard({ post, onUserClick }: { post: Post; onUserClick: (id: number)
                 </div>
             )}
 
-            {post.type === 'ocean' && (
+            {post.type === 'moment' && (
                 <div className={styles.oceanFrame}>
                     <div className={styles.oceanEmoji}>{post.emoji}</div>
                     <p className={styles.oceanCaption}>
-                        "The ocean doesn't apologise for its depth.<br />
-                        Neither should you for yours."
+                        "The ocean doesn't apologise for its depth.<br />Neither should you for yours."
                     </p>
                 </div>
             )}
 
-            {/* Growth Stack */}
+            {/* Growth Stack — Vibed You replaces Likes */}
             <div className={styles.growthStack}>
                 {[
-                    { k: 'lotus' as const, on: actions.lotus, onClass: styles.actionIconLotusOn, icon: actions.lotus ? '🪷' : '🌸', label: likeCount.toLocaleString() },
+                    { k: 'lotus' as const, on: actions.lotus, onClass: styles.actionIconLotusOn, icon: actions.lotus ? '✨' : '🌊', label: likeCount.toLocaleString() + (actions.lotus ? ' Vibed' : ' Vibe') },
                     { k: 'cloud' as const, on: actions.cloud, onClass: '', icon: '☁️', label: '218' },
                     { k: 'prism' as const, on: actions.prism, onClass: styles.actionIconPrismOn, icon: actions.prism ? '💎' : '✦', label: 'Radiate' },
                     { k: 'seed' as const, on: actions.seed, onClass: styles.actionIconSeedOn, icon: actions.seed ? '🌱' : '🌿', label: actions.seed ? 'Planted' : 'Plant' },
                 ].map(item => (
                     <div key={item.k} className={styles.actionItem} onClick={() => tap(item.k)}>
-                        <div className={`${styles.actionIcon} ${item.on ? item.onClass : ''}`}>
-                            {item.k === 'lotus' && burst && <div className={styles.petalBurst} />}
+                        <div className={`${styles.actionIcon} ${item.on ? item.onClass : ''}`} style={{ position: 'relative', overflow: 'visible' }}>
+                            {item.k === 'lotus' && ripple && <VibedRipple />}
                             <span>{item.icon}</span>
                         </div>
                         <span className={styles.actionCount}>{item.label}</span>
@@ -337,7 +305,7 @@ function PostCard({ post, onUserClick }: { post: Post; onUserClick: (id: number)
                 ))}
             </div>
 
-            {/* Profile Zone */}
+            {/* Profile Zone + Connect with the Vibe */}
             <div className={styles.profileZone}>
                 <div className={styles.profileRow} onClick={() => onUserClick(user.id)}>
                     <div className={styles.vibeRingWrap}>
@@ -355,13 +323,14 @@ function PostCard({ post, onUserClick }: { post: Post; onUserClick: (id: number)
                 <div className={styles.tagPills}>
                     {post.hashtags.map(h => <span key={h} className={styles.pill}>{h}</span>)}
                 </div>
+                {/* Connect with the Vibe button */}
+                <button className={styles.connectVibeBtn}>
+                    <span>〰️</span> Connect with the Vibe
+                </button>
             </div>
 
-            {/* Breath Bar */}
-            <div className={styles.breathBar}>
-                <div className={styles.breathFill} />
-            </div>
-        </div>
+            <div className={styles.breathBar}><div className={styles.breathFill} /></div>
+        </article>
     );
 }
 
@@ -375,57 +344,107 @@ function ProfileSheet({ user, onClose }: { user: User; onClose: () => void }) {
             <div className={styles.profileSheet}>
                 <div className={styles.sheetHandle} />
                 <div className={styles.sheetProfile}>
-                    <div className={styles.auraAvatarWrap}>
-                        <AuraCanvas dosha={user.dosha} />
-                    </div>
+                    <div className={styles.auraAvatarWrap}><AuraCanvas dosha={user.dosha} /></div>
                     <div>
                         <div className={styles.sheetName}>{user.displayName}</div>
                         <div className={styles.sheetHandle}>{user.handle}</div>
                     </div>
                     <div className={styles.sheetRoles}>
-                        {user.roles.map(r => (
-                            <span key={r.label} className={`${styles.roleChip} ${r.chip}`}>{r.label}</span>
-                        ))}
+                        {user.roles.map(r => <span key={r.label} className={`${styles.roleChip} ${r.chip}`}>{r.label}</span>)}
                     </div>
                 </div>
                 <p className={styles.sheetBio}>{user.bio}</p>
                 <div className={styles.sheetStats}>
-                    <div className={styles.statBox}>
-                        <span className={styles.statVal}>{user.resonances.toLocaleString()}</span>
-                        <span className={styles.statLbl}>Resonances</span>
-                    </div>
-                    <div className={styles.statBox}>
-                        <span className={styles.statVal}>{user.seeds.toLocaleString()}</span>
-                        <span className={styles.statLbl}>Seeds</span>
-                    </div>
-                    <div className={styles.statBox}>
-                        <span className={styles.statVal}>{user.days}</span>
-                        <span className={styles.statLbl}>Day Streak</span>
-                    </div>
+                    <div className={styles.statBox}><span className={styles.statVal}>{user.resonances.toLocaleString()}</span><span className={styles.statLbl}>Resonances</span></div>
+                    <div className={styles.statBox}><span className={styles.statVal}>{user.seeds.toLocaleString()}</span><span className={styles.statLbl}>Seeds</span></div>
+                    <div className={styles.statBox}><span className={styles.statVal}>{user.days}</span><span className={styles.statLbl}>Day Streak</span></div>
                 </div>
-                <button className={styles.resonateBtn}>🕉️ &nbsp;Send Resonance</button>
+                <button className={styles.resonateBtn}>〰️ &nbsp;Connect with the Vibe</button>
             </div>
         </>
     );
 }
 
 // ════════════════════════════════════════════════════════
+//  VIBE MATCH FILTER BAR
+// ════════════════════════════════════════════════════════
+const FILTERS = ['Everyone', 'Creators', 'Founders', 'Healers', 'Students'];
+
+function VibeMatchBar({ active, setActive }: { active: string; setActive: (v: string) => void }) {
+    return (
+        <div className={styles.vibeMatchBar}>
+            <span className={styles.vibeMatchLabel}>✨ Vibe Match</span>
+            <div className={styles.vibeMatchFilters}>
+                {FILTERS.map(f => (
+                    <button
+                        key={f}
+                        className={`${styles.vibeFilter} ${active === f ? styles.vibeFilterActive : ''}`}
+                        onClick={() => setActive(f)}
+                    >
+                        {f}
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+// ════════════════════════════════════════════════════════
 //  MAIN PAGE
 // ════════════════════════════════════════════════════════
-export default function PranaVersePage() {
+export default function JustVibePage() {
     const router = useRouter();
+    const [activeFilter, setActiveFilter] = useState('Everyone');
+    const [activeUser, setActiveUser] = useState<User | null>(null);
 
     const handleUserClick = useCallback((id: number) => {
-        router.push(`/pranaverse/user/${id}`);
-    }, [router]);
+        const u = USERS.find(u => u.id === id);
+        if (u) setActiveUser(u);
+    }, []);
 
     return (
         <div className={styles.feed}>
-            <div className={styles.snapScroll}>
+            {/* Page header */}
+            <div className={styles.pageHeader}>
+                <div className={styles.pageHeaderInner}>
+                    <span className={styles.pageHeaderTitle}>JustVibe</span>
+                    <span className={styles.pageHeaderSub}>The Vibe · High-Frequency Feed</span>
+                </div>
+                {/* Add to the Vibe FAB */}
+                <motion.button
+                    className={styles.addVibeFab}
+                    whileHover={{ scale: 1.08 }}
+                    whileTap={{ scale: 0.93 }}
+                    title="Add to the Vibe"
+                >
+                    <span className={styles.fabPlus}>+</span>
+                    <span className={styles.fabLabel}>Add to the Vibe</span>
+                </motion.button>
+            </div>
+
+            {/* Vibe Match Algorithm filter */}
+            <VibeMatchBar active={activeFilter} setActive={setActiveFilter} />
+
+            {/* Masonry feed */}
+            <div className={styles.masonryFeed}>
                 {POSTS.map(post => (
                     <PostCard key={post.id} post={post} onUserClick={handleUserClick} />
                 ))}
             </div>
+
+            {/* Profile sheet overlay */}
+            <AnimatePresence>
+                {activeUser && (
+                    <motion.div
+                        key="profile-sheet"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <ProfileSheet user={activeUser} onClose={() => setActiveUser(null)} />
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

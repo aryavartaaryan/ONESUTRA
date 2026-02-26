@@ -7,18 +7,18 @@ import styles from './SankalpaList.module.css';
 
 interface Task { id: string; text: string; done: boolean; }
 
-const DEFAULTS: Task[] = [
-    { id: 'm1', text: 'Morning meditation 🧘', done: false },
-    { id: 'm2', text: 'Drink 8 glasses of water 💧', done: false },
-    { id: 'm3', text: 'Gratitude journaling ✍️', done: false },
+const DEFAULT_ITEMS: Task[] = [
+    { id: 'm1', text: 'Morning System reboot (15 mins mediation)', done: false },
+    { id: 'n1', text: 'Enter Deep Work 9 pm', done: false },
+    { id: 'j1', text: 'Unproductive apps disconnection', done: false },
+    { id: 'l1', text: 'Listen ragas at least one time morning,evening & Noon to improve productivity', done: false },
 ];
 
 const todayKey = () => `sankalpa_v2_${new Date().toISOString().slice(0, 10)}`;
 
 function load(): Task[] {
-    if (typeof window === 'undefined') return DEFAULTS;
-    try { const s = localStorage.getItem(todayKey()); return s ? JSON.parse(s) : DEFAULTS; }
-    catch { return DEFAULTS; }
+    try { const s = localStorage.getItem(todayKey()); return s ? JSON.parse(s) : DEFAULT_ITEMS; }
+    catch { return DEFAULT_ITEMS; }
 }
 
 export default function SankalpaList() {

@@ -16,18 +16,25 @@
     overflow: hidden;
 }
 
-/* Faint Sri Yantra in hero background */
+/* Faint OmInfinityLogo in hero background */
 .heroBgYantra {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 500px;
-    height: 500px;
+    width: 420px;
+    height: 420px;
     transform: translate(-50%, -50%);
-    opacity: 0.04;
+    opacity: 0.12;
+    /* slightly more visible since it's an SVG */
     pointer-events: none;
     z-index: 0;
-    animation: heroYantraRotate 180s linear infinite;
+    animation: heroYantraRotate 120s linear infinite;
+    /* slower spin */
+}
+
+.heroLogo {
+    width: 100%;
+    height: 100%;
 }
 
 @keyframes heroYantraRotate {

@@ -5,33 +5,33 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import styles from './PranaVerseMini.module.css';
 
-// ── Mini feed posts ──────────────────────────────────────────
+// Mini feed posts with updated JustVibe terminology
 const MINI_POSTS = [
     {
         id: 1,
-        type: 'lapse',
+        type: 'dristi',
         emoji: '🌅',
         bg: 'linear-gradient(135deg, #2d1a06 0%, #4a2c0a 100%)',
         handle: '@Aryan.Creates',
         badge: 'Founder · Vibe Coder',
         ringColor: '#ffd060',
         excerpt: 'Watched the sun paint the whole sky. 90-min golden hour time-lapse.',
-        tag: '📸 Lapse',
+        tag: '📸 Dristi',
         tagColor: '#ffd060',
-        likes: '1.2k',
+        vibed: '1.2k',
     },
     {
         id: 2,
-        type: 'voice',
-        emoji: '🎙️',
+        type: 'raag',
+        emoji: '🎵',
         bg: 'linear-gradient(135deg, #050e05 0%, #0b1a0a 100%)',
         handle: '@Lakshmi.Flow',
         badge: 'Designer · Builder',
         ringColor: '#52e89a',
-        excerpt: '"…the creative downloads come not when you chase them, but when you become very still."',
-        tag: '🎙️ Voice',
+        excerpt: '\"…the creative downloads come not when you chase them, but when you become very still.\"',
+        tag: '🎵 Visual Raag',
         tagColor: '#80e4b0',
-        likes: '892',
+        vibed: '892',
     },
     {
         id: 3,
@@ -41,22 +41,22 @@ const MINI_POSTS = [
         handle: '@Rishi.Dharma',
         badge: 'Professional',
         ringColor: '#c77dff',
-        excerpt: '"Yesterday I was clever. Today I am wise — I am changing myself." — Rumi',
+        excerpt: '\"Yesterday I was clever. Today I am wise — I am changing myself.\" — Rumi',
         tag: '✦ Reflection',
         tagColor: '#b4aaff',
-        likes: '3.4k',
+        vibed: '3.4k',
     },
 ];
 
 export default function PranaVerseMini() {
     return (
         <section className={styles.wrapper}>
-            {/* Header */}
+            {/* Header — now JustVibe */}
             <div className={styles.header}>
                 <div className={styles.headerLeft}>
                     <span className={styles.liveDot} />
-                    <span className={styles.title}>PranaVerse</span>
-                    <span className={styles.sub}>Flow Feed</span>
+                    <span className={styles.title}>JustVibe</span>
+                    <span className={styles.sub}>The Vibe Feed</span>
                 </div>
                 <Link href="/pranaverse" className={styles.seeAll}>
                     See All →
@@ -81,7 +81,7 @@ export default function PranaVerseMini() {
                             {p.tag}
                         </span>
 
-                        {/* Big emoji / lapse thumbnail */}
+                        {/* Big emoji / thumbnail */}
                         <div className={styles.thumbArea}>
                             <span className={styles.thumbEmoji}>{p.emoji}</span>
                         </div>
@@ -91,7 +91,6 @@ export default function PranaVerseMini() {
 
                         {/* Footer row */}
                         <div className={styles.cardFooter}>
-                            {/* Tiny vibe ring + handle */}
                             <div className={styles.miniProfile}>
                                 <span
                                     className={styles.miniRing}
@@ -104,8 +103,8 @@ export default function PranaVerseMini() {
                                     <span className={styles.miniBadge}>{p.badge}</span>
                                 </div>
                             </div>
-                            {/* Lotus count */}
-                            <span className={styles.miniLikes}>🌸 {p.likes}</span>
+                            {/* "Vibed" count (replaces Likes) */}
+                            <span className={styles.miniLikes}>✨ {p.vibed} Vibed</span>
                         </div>
                     </motion.div>
                 ))}
@@ -113,7 +112,7 @@ export default function PranaVerseMini() {
                 {/* CTA card */}
                 <Link href="/pranaverse" className={styles.ctaCard}>
                     <span className={styles.ctaEmoji}>⚡</span>
-                    <span className={styles.ctaText}>Enter<br />PranaVerse</span>
+                    <span className={styles.ctaText}>Enter<br />JustVibe</span>
                 </Link>
             </div>
         </section>

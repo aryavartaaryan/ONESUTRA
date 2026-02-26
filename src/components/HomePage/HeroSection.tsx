@@ -5,18 +5,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, LogIn, UserPlus } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import styles from './HeroSection.module.css';
+import OmInfinityLogo from '../OmInfinityLogo';
 
 // ── Time-of-day greeting ────────────────────────────────────────────────────
 function getTimeGreeting(lang: 'en' | 'hi') {
     const h = new Date().getHours();
-    const greetEn = h < 12 ? { emoji: '🙏', text: 'Shubhodaya', period: 'Morning Blessings' }
-        : h < 17 ? { emoji: '☀️', text: 'Shubh Madhyahna', period: 'Midday Blessings' }
-            : h < 21 ? { emoji: '🪔', text: 'Shubh Sandhya', period: 'Evening Blessings' }
-                : { emoji: '🌙', text: 'Shubh Ratri', period: 'Night Blessings' };
-    const greetHi = h < 12 ? { emoji: '🙏', text: 'शुभोदय', period: 'शुभ प्रभात' }
-        : h < 17 ? { emoji: '☀️', text: 'शुभ मध्याह्न', period: 'मध्याह्न वंदना' }
-            : h < 21 ? { emoji: '🪔', text: 'शुभ सन्ध्या', period: 'सन्ध्या वंदना' }
-                : { emoji: '🌙', text: 'शुभ रात्रि', period: 'रात्रि विश्राम' };
+    const isNight = h < 3 || h >= 21;
+
+    const greetEn = isNight ? { emoji: '🌙', text: 'Shubh Ratri', period: 'Night Blessings' }
+        : h < 12 ? { emoji: '🙏', text: 'Shubhodaya', period: 'Morning Blessings' }
+            : h < 17 ? { emoji: '☀️', text: 'Shubh Madhyahna', period: 'Midday Blessings' }
+                : { emoji: '🪔', text: 'Shubh Sandhya', period: 'Evening Blessings' };
+
+    const greetHi = isNight ? { emoji: '🌙', text: 'शुभ रात्रि', period: 'रात्रि विश्राम' }
+        : h < 12 ? { emoji: '🙏', text: 'शुभोदय', period: 'शुभ प्रभात' }
+            : h < 17 ? { emoji: '☀️', text: 'शुभ मध्याह्न', period: 'मध्याह्न वंदना' }
+                : { emoji: '🪔', text: 'शुभ सन्ध्या', period: 'सन्ध्या वंदना' };
+
     return lang === 'hi' ? greetHi : greetEn;
 }
 
@@ -50,9 +55,9 @@ export default function HeroSection({ onOpenAuth, onBegin }: HeroSectionProps) {
 
     return (
         <section className={styles.heroContainer}>
-            {/* Background Sri Yantra */}
+            {/* Background Brand Logo */}
             <div className={styles.heroBgYantra}>
-                <img src="/sri-yantra-authentic.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                <OmInfinityLogo size={420} className={styles.heroLogo} />
             </div>
 
             {/* Ambient orb */}
