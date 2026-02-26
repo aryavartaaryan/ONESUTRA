@@ -203,7 +203,7 @@ export default function PranicPathSection() {
                         </div>
                     </div>
                     <h1 className={styles.title}>
-                        Pranav Samadhaan
+                        JustVibe
                     </h1>
                 </div>
 

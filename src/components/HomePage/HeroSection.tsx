@@ -42,7 +42,7 @@ export default function HeroSection({ onOpenAuth, onBegin }: HeroSectionProps) {
         langToggle: 'EN',
     } : {
         subtitle: 'A sacred fusion of Artificial Intelligence & Wisdom of the Rishis — healing your body, mind & spirit',
-        cta: 'Begin Your Samadhaan Journey',
+        cta: 'JustVibe and Transform',
         signIn: 'Sign In',
         signUp: 'Sign Up',
         langToggle: 'हिं',

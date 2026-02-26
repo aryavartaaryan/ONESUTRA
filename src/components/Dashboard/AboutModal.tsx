@@ -82,7 +82,7 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
                                 transition={{ delay: 0.3, duration: 0.7, ease: 'easeInOut' }}
                             >
                                 <p>
-                                    Welcome to <strong>Pranav Samdhaan</strong>. We are on a mission to harmonize the
+                                    Welcome to <strong>JustVibe</strong>. We are on a mission to harmonize the
                                     ancient wisdom of the great Rishis with the limitless potential of modern
                                     Artificial Intelligence.
                                 </p>

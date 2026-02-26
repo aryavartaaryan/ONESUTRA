@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Pranav Samadhaan | Ancient Wisdom for Modern Living",
+  title: "JustVibe | Ancient Wisdom for Modern Living",
   description: "Experience the convergence of Ancient Vedic Science and Advanced AI. Personalized guidance for healing, rejuvenation, and spiritual awakening.",
 };
 
