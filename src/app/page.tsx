@@ -101,6 +101,25 @@ export default function Home() {
   const [greeting, setGreeting] = useState<{ emoji: string; text: string; period: string } | null>(null);
   const { lang, toggleLanguage } = useLanguage();
 
+  // Sankalpa (to-do) state — lifted here so ReelPlayer can receive it
+  interface Sankalp { id: string; text: string; done: boolean; }
+  const DEFAULT_SANKALPA: Sankalp[] = [
+    { id: '1', text: 'Morning meditation — 20 mins', done: false },
+    { id: '2', text: 'Enter Deep Work 9 pm', done: false },
+    { id: '3', text: 'Drink copper-vessel water', done: false },
+    { id: '4', text: 'Gratitude entry in journal', done: false },
+  ];
+  const [sankalpaItems, setSankalpaItems] = useState<Sankalp[]>(() => {
+    if (typeof window !== 'undefined') {
+      try { const s = localStorage.getItem('vedic_sankalpa'); if (s) return JSON.parse(s); } catch { /* ignore */ }
+    }
+    return DEFAULT_SANKALPA;
+  });
+  useEffect(() => { localStorage.setItem('vedic_sankalpa', JSON.stringify(sankalpaItems)); }, [sankalpaItems]);
+  const handleSankalpaToggle = (id: string) => setSankalpaItems(p => p.map(s => s.id === id ? { ...s, done: !s.done } : s));
+  const handleSankalpaRemove = (id: string) => setSankalpaItems(p => p.filter(s => s.id !== id));
+  const handleSankalpaAdd = (text: string) => setSankalpaItems(p => [...p, { id: Date.now().toString(), text, done: false }]);
+
   useEffect(() => {
     const started = localStorage.getItem('pranav_has_started');
     const stored = localStorage.getItem('vedic_user_name');
@@ -156,11 +175,15 @@ export default function Home() {
         {/* ══ VEDIC DASHBOARD — greeting, panchang & sankalpa (above reels) ══ */}
         <VedicDashboard greeting={greeting} displayName={displayName} />
 
-        {/* ══ REEL PLAYER — ReZo audio reels (shifted below dashboard) ══ */}
+        {/* ══ REEL PLAYER — Sankalpa slide + ReZo audio reels ══ */}
         <ReelPlayer
           greeting={greeting}
           displayName={displayName}
           panchangData={panchangData}
+          sankalpaItems={sankalpaItems}
+          onSankalpaToggle={handleSankalpaToggle}
+          onSankalpaRemove={handleSankalpaRemove}
+          onSankalpaAdd={handleSankalpaAdd}
         />
 
         {/* ══ 3-COLUMN GRID — below the reel ══ */}
