@@ -80,11 +80,13 @@ export default function TodaysMission({
                 style={{ background: isDay ? 'rgba(5,15,35,0.38)' : 'rgba(0,2,12,0.62)' }}
             />
 
-            {/* ── Phase badge ───────────────────────────────────────────── */}
-            <div className={styles.phaseBadge} style={{ color: phase.accentHex }}>
-                <span className={styles.phaseLabel}>{phase.label}</span>
-                <span className={styles.phaseTagline}>{phase.tagline}</span>
-            </div>
+            {/* ── Phase badge — only in full-screen reel, home header already shows it ── */}
+            {isFullScreen && (
+                <div className={styles.phaseBadge} style={{ color: phase.accentHex }}>
+                    <span className={styles.phaseLabel}>{phase.label}</span>
+                    <span className={styles.phaseTagline}>{phase.tagline}</span>
+                </div>
+            )}
 
             {/* Dismiss button (only in full-screen reel mode) */}
             {isFullScreen && onExpand && (
@@ -166,11 +168,6 @@ export default function TodaysMission({
                     </AnimatePresence>
                 </div>
 
-                {!isFullScreen && (
-                    <div className={styles.tapHint}>
-                        <span style={{ color: `${phase.accentHex}88` }}>✦ Your daily intentions, beautifully set</span>
-                    </div>
-                )}
             </div>
         </div>
     );

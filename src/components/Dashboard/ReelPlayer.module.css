@@ -929,8 +929,11 @@
 /* ── TodaysMission standalone (home page) ── */
 .missionStandalone {
     position: relative;
-    min-height: 420px;
-    max-height: 560px;
+    height: auto;
+    max-height: 80vh;
+    /* never taller than 80% of viewport */
+    overflow-y: auto;
+    /* scroll if many tasks */
     border-radius: 24px;
     overflow: hidden;
     margin: 0 0 1.2rem 0;
