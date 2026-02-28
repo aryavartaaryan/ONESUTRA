@@ -1,11 +1,8 @@
 /* JustVibePortals.module.css — matches PranaVerseMini card style exactly */
 
 .wrapper {
-    border-radius: 20px;
     overflow: hidden;
-    background: rgba(10, 6, 2, 0.55);
-    border: 1px solid rgba(255, 200, 80, 0.10);
-    padding: 1rem 0 1rem;
+    padding: 0 0 1rem;
 }
 
 .header {

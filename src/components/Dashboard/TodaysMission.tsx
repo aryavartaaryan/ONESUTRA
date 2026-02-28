@@ -47,29 +47,36 @@ export default function TodaysMission({
 
     return (
         <div
-            className={`relative w-full overflow-hidden rounded-none flex flex-col justify-between ${isFullScreen ? 'h-[100svh]' : 'h-[calc(100vh-80px)]'}`}
+            className={`w-full flex flex-col justify-between ${isFullScreen ? 'h-[100svh] relative overflow-hidden' : 'h-full shrink-0'}`}
             onClick={onExpand}
         >
-            {/* 1. Full-Bleed Background Image bg layer */}
-            <div className="absolute inset-0 w-full h-full z-0 overflow-hidden bg-[#14120E] pointer-events-none">
-                <img
-                    src="https://picsum.photos/1080/1920?nature,calm"
-                    className="absolute inset-0 w-full h-full object-cover rounded-none pointer-events-none opacity-90 block"
-                    alt="Nature Background"
-                />
-            </div>
+            {/* If Full Screen (JustVibe Reel), render local background */}
+            {isFullScreen && (
+                <div className="absolute inset-0 w-full h-full z-0 overflow-hidden bg-[#14120E] pointer-events-none">
+                    <img
+                        src="https://picsum.photos/1080/1920?nature,calm"
+                        className="absolute inset-0 w-full h-full object-cover rounded-none pointer-events-none opacity-90 block"
+                        alt="Nature Background"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-[#14120E]/70 via-transparent to-[#14120E]/90 pointer-events-none" />
+                </div>
+            )}
 
             {/* 2. Delicate Top Insight */}
-            <div className="relative z-10 w-full pt-16 px-8 flex flex-col items-center bg-gradient-to-b from-black/60 via-black/30 to-transparent pb-10 pointer-events-none shrink-0">
-                <div className="text-white/80 text-center">
-                    <p className="font-serif italic text-sm md:text-base leading-relaxed drop-shadow-md">
+            <div className={`w-full pt-8 px-8 flex flex-col items-center pb-10 pointer-events-none shrink-0 ${isFullScreen ? 'relative z-10 pt-16' : ''}`}>
+                <div className="text-white/90 text-center flex flex-col items-center">
+                    <svg className="opacity-80 mb-3 drop-shadow-md" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v2h-2zm0 4h2v6h-2z" fill="currentColor" />
+                    </svg>
+                    <p className="font-serif italic text-base md:text-lg leading-relaxed drop-shadow-md font-light">
                         "{DAILY_QUOTE.text}"
                     </p>
-                    <p className="text-[10px] tracking-widest uppercase mt-3 text-white/50">{DAILY_QUOTE.author}</p>
+                    <p className="text-[10px] tracking-[0.2em] uppercase mt-4 text-white/50">{DAILY_QUOTE.source}</p>
+                    <p className="text-xs font-serif italic mt-1 text-white/70">{DAILY_QUOTE.author}</p>
                 </div>
             </div>
 
-            {onExpand && (
+            {onExpand && isFullScreen && (
                 <button
                     className="absolute top-16 right-6 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white flex items-center justify-center text-xl z-30"
                     onClick={onExpand}
@@ -80,7 +87,7 @@ export default function TodaysMission({
             )}
 
             {/* Spacer to push content to edges */}
-            <div className="flex-1 min-h-0 pointer-events-none relative z-10">
+            <div className="flex-1 min-h-[40px] pointer-events-none relative z-10 w-full">
                 {/* Swipe Up Cue if full-screen */}
                 {isFullScreen && (
                     <div className="absolute top-[30%] left-0 w-full flex flex-col items-center gap-1 pointer-events-none opacity-80">
@@ -92,7 +99,7 @@ export default function TodaysMission({
 
             {/* 3. Bottom Anchored Sankalpa */}
             <div
-                className="relative z-10 w-full px-5 pb-24 bg-gradient-to-t from-[#14120E] via-[#14120E]/90 to-transparent pt-16 shrink-0"
+                className={`w-full px-5 ${isFullScreen ? 'pb-24 relative z-10 pt-16 shrink-0' : 'pb-4 shrink-0'}`}
                 onClick={e => e.stopPropagation()} // prevent expanding when tapping tasks
             >
                 <div className="flex justify-between items-end mb-4">

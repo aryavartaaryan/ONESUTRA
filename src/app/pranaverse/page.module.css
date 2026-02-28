@@ -9,8 +9,7 @@
 .feed {
     position: relative;
     min-height: 100vh;
-    background: #1C1A17;
-    /* Warm premium dark theme */
+    background: #0a0806;
     font-family: 'Inter', sans-serif;
     padding-bottom: 6rem;
 }
