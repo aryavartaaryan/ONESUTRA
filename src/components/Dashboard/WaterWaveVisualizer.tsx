@@ -260,39 +260,23 @@ export default function WaterWaveVisualizer({ audioRef, playing, height = 600, a
             const an = analyserRef.current;
             const d = dataRef.current;
 
-            /* ── SITAR HARMONIC MODES ───────────────────────────────────────
-               Each mode amplitude is read from a specific FFT frequency band.
-               This gives instant, note-accurate sync with the mantra.
-            ─────────────────────────────────────────────────── */
-            let m1 = 0, m2 = 0, m3 = 0, m4 = 0, m5 = 0, m6 = 0, m7 = 0, m8 = 0;
+            /* Audio ────────────────────────────────────────────────────
+               Three broad bands drive wave amplitude directly.
+               smoothingTimeConstant=0.80 keeps motion smooth but responsive.
+            ──────────────────────────────────────────────────── */
             let bass = 0, mid = 0, treble = 0;
-
             if (an && playing) {
                 an.getByteFrequencyData(d);
                 const L = d.length;
-                // Each mode maps to a progressively higher frequency band
-                m1 = avg(d, 0, Math.floor(L * 0.015)) / 255; // sub-bass / drone
-                m2 = avg(d, Math.floor(L * 0.015), Math.floor(L * 0.035)) / 255; // bass / fundamental
-                m3 = avg(d, Math.floor(L * 0.035), Math.floor(L * 0.075)) / 255; // low-mid / body
-                m4 = avg(d, Math.floor(L * 0.075), Math.floor(L * 0.13)) / 255; // mid / presence
-                m5 = avg(d, Math.floor(L * 0.13), Math.floor(L * 0.22)) / 255; // upper-mid / attack
-                m6 = avg(d, Math.floor(L * 0.22), Math.floor(L * 0.38)) / 255; // brilliance
-                m7 = avg(d, Math.floor(L * 0.38), Math.floor(L * 0.58)) / 255; // air
-                m8 = avg(d, Math.floor(L * 0.58), Math.floor(L * 0.85)) / 255; // sitar jawari buzz
-                // Derived broadband values for sky/water/UI coloring (unchanged)
-                bass = m1 * 0.5 + m2 * 0.5;
-                mid = m3 * 0.4 + m4 * 0.4 + m5 * 0.2;
-                treble = m6 * 0.35 + m7 * 0.35 + m8 * 0.3;
+                bass = avg(d, 0, Math.floor(L * 0.04)) / 255;
+                mid = avg(d, Math.floor(L * 0.04), Math.floor(L * 0.22)) / 255;
+                treble = avg(d, Math.floor(L * 0.22), Math.floor(L * 0.55)) / 255;
             } else {
-                // Idle gentle OM vibration — simulated sitar drone
+                // Gentle idle pulse so wave is always alive even when paused
                 const s = synthRef.current;
-                s.bass = clamp01(s.bass + (Math.sin(t * 1.1) * 0.5 + 0.5) * 0.04 - 0.015);
-                s.mid = clamp01(s.mid + (Math.sin(t * 1.8 + 1.2) * 0.5 + 0.5) * 0.03 - 0.012);
-                s.treble = clamp01(s.treble + (Math.sin(t * 2.9 + 2.4) * 0.5 + 0.5) * 0.02 - 0.009);
-                // Distribute into mode amplitudes for a living idle state
-                m1 = s.bass * 0.7; m2 = s.bass * 0.5;
-                m3 = s.mid * 0.6; m4 = s.mid * 0.4; m5 = s.mid * 0.25;
-                m6 = s.treble * 0.4; m7 = s.treble * 0.25; m8 = s.treble * 0.15;
+                s.bass = clamp01(s.bass + (Math.sin(t * 1.2) * 0.5 + 0.5) * 0.05 - 0.018);
+                s.mid = clamp01(s.mid + (Math.sin(t * 1.9 + 1.3) * 0.5 + 0.5) * 0.04 - 0.015);
+                s.treble = clamp01(s.treble + (Math.sin(t * 3.1 + 2.6) * 0.5 + 0.5) * 0.03 - 0.011);
                 bass = s.bass; mid = s.mid; treble = s.treble;
             }
             const energy = bass * 0.55 + mid * 0.30 + treble * 0.15;
@@ -432,52 +416,40 @@ export default function WaterWaveVisualizer({ audioRef, playing, height = 600, a
             // This is the KEY element — single glowing wave crest that vibrates with mantra mathematically
             const crestBaseY = waterTop;
 
-            // Build the crest path — SITAR STRING: MANY RAPID WAVES in sync with mantra
-            // sin(n·π·x) is 0 at x=0 and x=1 (string fixed at both ends).
-            // High mode numbers (n=6–16) create 6–16 visible oscillation cycles across
-            // the canvas, giving the "many waves vibrating" look the user wants.
-            // Each mode is driven by its corresponding FFT frequency band for instant sync.
-            const ω0 = 3.2; // controls vibration speed; higher = faster oscillation
+            // Build the crest path — TRAVELLING SINE WAVES
+            // Three overlapping sinusoidal waves produce 4–6 visible crests
+            // across the full width. No nodes-at-edges constraint, so the wave
+            // is clearly visible at ALL positions on the horizon line.
+            // Amplitude grows with audio energy for instant visual sync.
             const crestPath: number[] = [];
 
             for (let px = 0; px <= W; px += 2) {
-                const nx = px / W;   // 0 → 1 across canvas width
+                const nx = px / W;         // 0 → 1
                 let y = crestBaseY;
 
-                /* ── Sitar Standing Wave: y = Σ Aₙ · sin(n·π·x) · cos(n·ω₀·t + φₙ) ──
-                   Higher mode numbers = more wave cycles visible.
-                   Primary visual modes: 5–14 (creates 5–14 half-cycle bumps across width)
-                   Low modes provide the slow swell underneath for depth.
-                ─────────────────────────────────────────────────────────────────────── */
-                const sinX = (n: number) => Math.sin(n * Math.PI * nx);
-                const cosT = (n: number, phi: number) => Math.cos(n * ω0 * t + phi);
+                /* ── 3 Travelling waves ─────────────────────────────────────
+                   y = A₁·sin(k₁·2π·nx − ω₁·t)
+                      + A₂·sin(k₂·2π·nx − ω₂·t + φ)
+                      + A₃·sin(kゃ·2π·nx + ω₃·t + φ₂)  ← opposite dir for interference
 
-                let disp = 0;
+                   k = number of full wave cycles across the canvas.
+                   Visible bumps ≈ 2k (peaks + troughs visible as bumps in the crest).
+                ───────────────────────────────────── */
 
-                // ── Slow swell (1–2 cycles) — bass gives depth ──────────────────
-                disp += sinX(1) * m1 * 0.018 * cosT(1, 0.00);
-                disp += sinX(2) * m2 * 0.015 * cosT(2, 0.52);
+                // Wave 1: primary swell (2.2 full cycles = ~4-5 bumps) — bass-driven
+                const A1 = 0.016 + bass * 0.030;
+                const w1 = Math.sin(nx * Math.PI * 4.4 - t * 1.9) * A1;
 
-                // ── Medium ripple (3–5 cycles) — mid-body of the note ───────────
-                disp += sinX(3) * m3 * 0.020 * cosT(3, 1.05);
-                disp += sinX(4) * m3 * 0.016 * cosT(4, 0.80);
-                disp += sinX(5) * m4 * 0.022 * cosT(5, 1.40);
+                // Wave 2: rhythm ripple (3 full cycles = ~6 bumps) — mid-driven
+                const A2 = 0.010 + mid * 0.022;
+                const w2 = Math.sin(nx * Math.PI * 6.0 - t * 2.7 + 1.1) * A2;
 
-                // ── PRIMARY VISUAL: many rapid waves (6–10 cycles) ──────────────
-                // These are the DOMINANT modes — they create the "sitar vibration" look
-                disp += sinX(6) * m4 * 0.030 * cosT(6, 1.80);
-                disp += sinX(7) * m5 * 0.032 * cosT(7, 2.10);
-                disp += sinX(8) * m5 * 0.030 * cosT(8, 0.60);
-                disp += sinX(9) * m6 * 0.028 * cosT(9, 2.50);
-                disp += sinX(10) * m6 * 0.025 * cosT(10, 1.15);
+                // Wave 3: fine shimmer (4 full cycles, opposite direction) — energy-driven
+                const A3 = 0.006 + energy * 0.016;
+                const w3 = Math.sin(nx * Math.PI * 8.0 + t * 1.6 + 2.3) * A3;
 
-                // ── Fine shimmer (12–16 cycles) — brilliance & jawari buzz ──────
-                disp += sinX(12) * m7 * 0.018 * cosT(12, 3.10);
-                disp += sinX(14) * m7 * 0.013 * cosT(14, 0.95);
-                disp += sinX(16) * m8 * 0.009 * cosT(16, 2.20);
-
-                // Project onto canvas — modest height, many visible cycles
-                y += disp * H;
+                // Sum — scale to canvas height
+                y += (w1 + w2 + w3) * H;
 
                 crestPath.push(y);
             }
