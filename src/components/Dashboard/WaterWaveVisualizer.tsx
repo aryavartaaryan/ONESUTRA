@@ -220,7 +220,7 @@ export default function WaterWaveVisualizer({ audioRef, playing, height = 600, a
             }
             const source = SHARED_ACTX.createMediaElementSource(audio);
             const an = SHARED_ACTX.createAnalyser();
-            an.fftSize = 2048; an.smoothingTimeConstant = 0.72;
+            an.fftSize = 2048; an.smoothingTimeConstant = 0.60;
             source.connect(an); an.connect(SHARED_ACTX.destination);
             analyserRef.current = an;
             dataRef.current = new Uint8Array(an.frequencyBinCount) as Uint8Array<ArrayBuffer>;
@@ -260,19 +260,39 @@ export default function WaterWaveVisualizer({ audioRef, playing, height = 600, a
             const an = analyserRef.current;
             const d = dataRef.current;
 
-            /* Audio */
+            /* ── SITAR HARMONIC MODES ───────────────────────────────────────
+               Each mode amplitude is read from a specific FFT frequency band.
+               This gives instant, note-accurate sync with the mantra.
+            ─────────────────────────────────────────────────── */
+            let m1 = 0, m2 = 0, m3 = 0, m4 = 0, m5 = 0, m6 = 0, m7 = 0, m8 = 0;
             let bass = 0, mid = 0, treble = 0;
+
             if (an && playing) {
                 an.getByteFrequencyData(d);
                 const L = d.length;
-                bass = avg(d, 0, Math.floor(L * 0.04)) / 255;
-                mid = avg(d, Math.floor(L * 0.04), Math.floor(L * 0.22)) / 255;
-                treble = avg(d, Math.floor(L * 0.22), Math.floor(L * 0.55)) / 255;
-            } else if (playing) {
+                // Each mode maps to a progressively higher frequency band
+                m1 = avg(d, 0, Math.floor(L * 0.015)) / 255; // sub-bass / drone
+                m2 = avg(d, Math.floor(L * 0.015), Math.floor(L * 0.035)) / 255; // bass / fundamental
+                m3 = avg(d, Math.floor(L * 0.035), Math.floor(L * 0.075)) / 255; // low-mid / body
+                m4 = avg(d, Math.floor(L * 0.075), Math.floor(L * 0.13)) / 255; // mid / presence
+                m5 = avg(d, Math.floor(L * 0.13), Math.floor(L * 0.22)) / 255; // upper-mid / attack
+                m6 = avg(d, Math.floor(L * 0.22), Math.floor(L * 0.38)) / 255; // brilliance
+                m7 = avg(d, Math.floor(L * 0.38), Math.floor(L * 0.58)) / 255; // air
+                m8 = avg(d, Math.floor(L * 0.58), Math.floor(L * 0.85)) / 255; // sitar jawari buzz
+                // Derived broadband values for sky/water/UI coloring (unchanged)
+                bass = m1 * 0.5 + m2 * 0.5;
+                mid = m3 * 0.4 + m4 * 0.4 + m5 * 0.2;
+                treble = m6 * 0.35 + m7 * 0.35 + m8 * 0.3;
+            } else {
+                // Idle gentle OM vibration — simulated sitar drone
                 const s = synthRef.current;
-                s.bass = clamp01(s.bass + (Math.sin(t * 1.4) * 0.5 + 0.5) * 0.07 - 0.025);
-                s.mid = clamp01(s.mid + (Math.sin(t * 2.1 + 1.2) * 0.5 + 0.5) * 0.06 - 0.022);
-                s.treble = clamp01(s.treble + (Math.sin(t * 3.5 + 2.4) * 0.5 + 0.5) * 0.05 - 0.018);
+                s.bass = clamp01(s.bass + (Math.sin(t * 1.1) * 0.5 + 0.5) * 0.04 - 0.015);
+                s.mid = clamp01(s.mid + (Math.sin(t * 1.8 + 1.2) * 0.5 + 0.5) * 0.03 - 0.012);
+                s.treble = clamp01(s.treble + (Math.sin(t * 2.9 + 2.4) * 0.5 + 0.5) * 0.02 - 0.009);
+                // Distribute into mode amplitudes for a living idle state
+                m1 = s.bass * 0.7; m2 = s.bass * 0.5;
+                m3 = s.mid * 0.6; m4 = s.mid * 0.4; m5 = s.mid * 0.25;
+                m6 = s.treble * 0.4; m7 = s.treble * 0.25; m8 = s.treble * 0.15;
                 bass = s.bass; mid = s.mid; treble = s.treble;
             }
             const energy = bass * 0.55 + mid * 0.30 + treble * 0.15;
@@ -412,57 +432,45 @@ export default function WaterWaveVisualizer({ audioRef, playing, height = 600, a
             // This is the KEY element — single glowing wave crest that vibrates with mantra mathematically
             const crestBaseY = waterTop;
 
-            // Build the crest path — Mathematically synced harmonic wave (Fourier Series)
+            // Build the crest path — SITAR STANDING WAVE PHYSICS
+            // sin(n·π·x) is 0 at x=0 and x=1: the string is fixed at both bridge and fret.
+            // Each harmonic n vibrates at angular frequency ω_n = n · ω₀ (overtone series).
+            // Amplitude A_n is the FFT energy of mode n — instant audio response.
+            const ω0 = 2.6; // fundamental angular frequency (controls overall vibration speed)
             const crestPath: number[] = [];
+
             for (let px = 0; px <= W; px += 2) {
-                const nx = px / W;
+                const nx = px / W;  // normalized x: 0 → 1
                 let y = crestBaseY;
 
-                // ─── Uniform travelling wave surface (no center peak) ─────────────────
-                // Strategy: combine multiple sinusoidal wave trains that propagate
-                // uniformly across the full canvas width. Amplitude is governed by
-                // the audio band energies, giving instant visual sync with the mantra.
+                /* ── Standing wave harmonic sum ────────────────────────────────────
+                   Formula: y = Σ A_n · sin(n·π·x) · cos(n·ω₀·t + φ_n)
+                   This is the exact solution to the wave equation for a
+                   string fixed at both ends — sitar / veena standing wave.
+                ───────────────────────────────────────────────── */
+                const sinX = (n: number) => Math.sin(n * Math.PI * nx);
+                const cosT = (n: number, phi: number) => Math.cos(n * ω0 * t + phi);
 
-                // FFT per-pixel mapping: sample the frequency bin that corresponds
-                // to this horizontal position on the canvas. This makes the entire
-                // width respond directly to the mantra's spectral content.
-                const binIndex = Math.floor(nx * (d.length * 0.35));  // map 0→1 to lower 35% of spectrum
-                const rawBin = (an && playing) ? d[binIndex] / 255.0 : 0;
+                let disp = 0;
+                // Mode 1 (fundamental) — driven by sub-bass / drone energy
+                disp += sinX(1) * m1 * 0.048 * cosT(1, 0.00);
+                // Mode 2 (1st overtone) — bass attack, creates 2-belly shape
+                disp += sinX(2) * m2 * 0.038 * cosT(2, 0.45);
+                // Mode 3 (2nd overtone) — body of the note, 3 bellies
+                disp += sinX(3) * m3 * 0.028 * cosT(3, 0.90);
+                // Mode 4 (3rd overtone) — mid presence, 4 bellies
+                disp += sinX(4) * m4 * 0.020 * cosT(4, 1.30);
+                // Mode 5 (4th overtone) — upper attack, 5 bellies
+                disp += sinX(5) * m5 * 0.014 * cosT(5, 1.70);
+                // Mode 6 (5th overtone) — brilliance, 6 fine bellies
+                disp += sinX(6) * m6 * 0.010 * cosT(6, 2.10);
+                // Mode 8 (7th overtone) — air & shimmer
+                disp += sinX(8) * m7 * 0.006 * cosT(8, 2.60);
+                // Mode 12 (jawari buzz) — sitar’s iconic bridge buzz (very fine, low amp)
+                disp += sinX(12) * m8 * 0.003 * cosT(12, 3.20);
 
-                // 1. Slow ocean swell — driven by bass energy
-                //    Low frequency, travels left-to-right
-                const swellAmp = 0.012 + bass * 0.032;
-                const swell = Math.sin(nx * Math.PI * 3.0 - t * 1.8) * swellAmp
-                    + Math.sin(nx * Math.PI * 1.6 - t * 1.1 + 0.8) * swellAmp * 0.55;
-
-                // 2. Mid-frequency mantra ripples — driven by mid energy
-                //    These travel right-to-left, creating a crossing-wave interference pattern
-                const midAmp = 0.007 + mid * 0.022;
-                const midRipple = Math.sin(nx * Math.PI * 6.5 + t * 2.5 + 1.4) * midAmp
-                    + Math.sin(nx * Math.PI * 9.2 - t * 3.0 + 2.8) * midAmp * 0.65;
-
-                // 3. Treble micro-shimmer — very fine fast ripples across the whole surface
-                const shimmerAmp = treble * 0.012;
-                const shimmer = Math.sin(nx * Math.PI * 18.0 - t * 5.5) * shimmerAmp
-                    + Math.sin(nx * Math.PI * 24.0 + t * 4.2 + 1.7) * shimmerAmp * 0.5;
-
-                // 4. Direct FFT bin → ripple: this is the magic "instant sync" element.
-                //    Each pixel reads its own frequency bin, then multiplies by a
-                //    travelling sine so it creates actual wave motion (not bar-chart spikes).
-                const directSync = Math.sin(nx * Math.PI * 12.0 - t * 4.0) * rawBin * 0.018;
-
-                // 5. Subtle standing-wave node pattern (gives the "string plucked" look)
-                const standingAmp = energy * 0.008;
-                const standing = Math.sin(nx * Math.PI * 4.0) * Math.sin(t * 2.2) * standingAmp;
-
-                // Sum all waves — no edge dampening → uniform response across full length
-                let harmonicSum = swell + midRipple + shimmer + directSync + standing;
-
-                // Scale to canvas height — kept deliberately modest for a water-surface look
-                y += harmonicSum * H * 0.85;
-
-                // Physical transient drops (bass hits)
-                for (const dp of dropsRef.current) y += dropY(dp, nx) * H * 0.018;
+                // Project displacement onto canvas height
+                y += disp * H;
 
                 crestPath.push(y);
             }
