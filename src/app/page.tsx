@@ -16,7 +16,6 @@ import JustVibePortals from '@/components/Dashboard/JustVibePortals';
 import SacredCanvas from '@/components/SacredCanvas/SacredCanvas';
 
 import VedicDashboard from '@/components/Dashboard/VedicDashboard';
-import LivingInsightHero from '@/components/Dashboard/LivingInsightHero';
 import TodaysMission from '@/components/Dashboard/TodaysMission';
 
 
@@ -168,18 +167,17 @@ export default function Home() {
         {/* ══ VEDIC DASHBOARD — panchang strip below header ══ */}
         <VedicDashboard greeting={greeting} displayName={displayName} />
 
-        {/* ══ LIVING INSIGHT HERO ══ */}
-        <LivingInsightHero />
-
-        {/* ══ TODAY’S MISSION — full circadian background + frosted glass tasks ══ */}
-        <TodaysMission
-          items={sankalpaItems}
-          onToggle={handleSankalpaToggle}
-          onRemove={handleSankalpaRemove}
-          onAdd={handleSankalpaAdd}
-          variant="vedic"
-          isFullScreen={false}
-        />
+        {/* ══ LIVING SANCTUARY REEL (Full Screen Interactive Canvas) ══ */}
+        <div className="w-full relative">
+          <TodaysMission
+            items={sankalpaItems}
+            onToggle={handleSankalpaToggle}
+            onRemove={handleSankalpaRemove}
+            onAdd={handleSankalpaAdd}
+            variant="nature"
+            isFullScreen={true}
+          />
+        </div>
 
 
 
