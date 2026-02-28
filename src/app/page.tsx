@@ -167,17 +167,15 @@ export default function Home() {
         {/* ══ VEDIC DASHBOARD — panchang strip below header ══ */}
         <VedicDashboard greeting={greeting} displayName={displayName} />
 
-        {/* ══ LIVING SANCTUARY REEL (Full Screen Interactive Canvas) ══ */}
-        <div className="w-full relative">
-          <TodaysMission
-            items={sankalpaItems}
-            onToggle={handleSankalpaToggle}
-            onRemove={handleSankalpaRemove}
-            onAdd={handleSankalpaAdd}
-            variant="nature"
-            isFullScreen={true}
-          />
-        </div>
+        {/* ══ TODAY’S MISSION — full circadian background + frosted glass tasks ══ */}
+        <TodaysMission
+          items={sankalpaItems}
+          onToggle={handleSankalpaToggle}
+          onRemove={handleSankalpaRemove}
+          onAdd={handleSankalpaAdd}
+          variant="vedic"
+          isFullScreen={false}
+        />
 
 
 
