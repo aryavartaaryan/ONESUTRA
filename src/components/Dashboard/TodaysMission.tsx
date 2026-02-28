@@ -87,11 +87,13 @@ export default function TodaysMission({
                 </>
             )}
 
-            {/* ── Phase badge ───────────────────────────────────────────── */}
-            <div className={styles.phaseBadge} style={{ color: phase.accentHex }}>
-                <span className={styles.phaseLabel}>{phase.label}</span>
-                <span className={styles.phaseTagline}>{phase.tagline}</span>
-            </div>
+            {/* ── Phase badge (Only in Full-Screen Reels) ── */}
+            {isFullScreen && (
+                <div className={styles.phaseBadge} style={{ color: phase.accentHex }}>
+                    <span className={styles.phaseLabel}>{phase.label}</span>
+                    <span className={styles.phaseTagline}>{phase.tagline}</span>
+                </div>
+            )}
 
             {/* Dismiss button (only in full-screen reel mode) */}
             {isFullScreen && onExpand && (
