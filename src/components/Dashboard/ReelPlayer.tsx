@@ -80,18 +80,44 @@ function getTimeScene(h: number) {
 }
 
 // ── Tracks ───────────────────────────────────────────────────────────────────
+// ── Unified Feed: all Slide Videos, Flash Videos, and Dhyan Mantras ──
 const TRACKS = [
-    {
-        id: 'fusion', title: 'SuperFusion', likes: 1008,
-        src: 'https://ik.imagekit.io/rcsesr4xf/flute.mp3?updatedAt=1771983487495',
-        dualSrc: 'https://ik.imagekit.io/rcsesr4xf/sitar.mp3?updatedAt=1771983562343'
-    },
-    { id: 'gayatri', title: 'Gayatri Ghanpaath', likes: 248, src: 'https://ik.imagekit.io/rcsesr4xf/gayatri-mantra-ghanpaath.mp3', dualSrc: '' },
-    { id: 'lalitha', title: 'Lalitha Sahasranamam', likes: 312, src: 'https://ik.imagekit.io/rcsesr4xf/Lalitha-Sahasranamam.mp3', dualSrc: '' },
-    { id: 'shiva', title: 'Shiva Tandava Stotram', likes: 521, src: 'https://ik.imagekit.io/rcsesr4xf/Shiva-Tandav.mp3', dualSrc: '' },
-    { id: 'brahma', title: 'Brahma Yagya', likes: 189, src: 'https://ik.imagekit.io/aup4wh6lq/BrahmaYagya.mp3', dualSrc: '' },
-    { id: 'shanti', title: 'Shanti Path', likes: 403, src: 'https://ik.imagekit.io/rcsesr4xf/shanti-path.mp3', dualSrc: '' },
-    { id: 'dainik', title: 'Dainik Agnihotra', likes: 167, src: 'https://ik.imagekit.io/aup4wh6lq/DainikAgnihotra.mp3?updatedAt=1771246817070', dualSrc: '' },
+    // ── Slide Videos (ambient Krishna/Shiva/Nature visuals) ──
+    { id: 'sv-dhyan2', title: 'Sacred River', likes: 812, videoSrc: '/Slide%20Videos/Dhyan2.mp4', src: '' },
+    { id: 'sv-dhyan4', title: 'Mount Kailash I', likes: 634, videoSrc: '/Slide%20Videos/Dhyan4.mp4', src: '' },
+    { id: 'sv-dhyan5', title: 'Serene Forest', likes: 509, videoSrc: '/Slide%20Videos/Dhyan5.mp4', src: '' },
+    { id: 'sv-dhyan7', title: 'Vedic Horizon', likes: 741, videoSrc: '/Slide%20Videos/Dhyan7.mp4', src: '' },
+    { id: 'sv-dhyan10', title: 'Dawn Meditation', likes: 928, videoSrc: '/Slide%20Videos/Dhyan10.mp4', src: '' },
+    { id: 'sv-dhyan11', title: 'Sacred Waters', likes: 863, videoSrc: '/Slide%20Videos/Dhyan11.mp4', src: '' },
+    { id: 'sv-kedar', title: 'Kedarnath Darshan', likes: 1204, videoSrc: '/Slide%20Videos/Kedar.mp4', src: '' },
+    { id: 'sv-shiva', title: 'Shiva Lingam', likes: 987, videoSrc: '/Slide%20Videos/Shiva.mp4', src: '' },
+    { id: 'sv-sunset', title: 'Sacred Sunset', likes: 756, videoSrc: '/Slide%20Videos/sunset.mp4', src: '' },
+    { id: 'sv-kailash2', title: 'Kailash Yatra II', likes: 678, videoSrc: '/Slide%20Videos/kailash2.mp4', src: '' },
+    { id: 'sv-kailash10', title: 'Kailash Journey', likes: 832, videoSrc: '/Slide%20Videos/kailash10.mp4', src: '' },
+    { id: 'sv-kailash11', title: 'Holy Peak', likes: 719, videoSrc: '/Slide%20Videos/kailash11.mp4', src: '' },
+    { id: 'sv-kailash12', title: 'Divine Mountain', likes: 903, videoSrc: '/Slide%20Videos/kaolash12.mp4', src: '' },
+    { id: 'sv-shreyantra', title: 'Shri Yantra', likes: 1089, videoSrc: encodeURI('/Slide Videos/🔱 श्री यंत्र — सिर्फ एक प्रतीक नहीं…ये है चेतना का Blueprint।4 त्रिकोण — शिव।5 त्रिकोण — शक्ति।.mp4'), src: '' },
+    { id: 'sv-om-shiv', title: 'Om Namah Shivaya', likes: 1341, videoSrc: encodeURI('/Slide Videos/Om Namah Shivaay🙏🏻🛕...📍📌 Timbersaim Mahadev ( Chota Kailash ) ..#temple #shiv #shiva #mahad.mp4'), src: '' },
+    { id: 'sv-sc1', title: 'Vedic Vision I', likes: 588, videoSrc: '/Slide%20Videos/SaveClip.App_AQNNfA3VTBjMRS0DKZ2tv3-vhevWxwrMPZKhPI1H9xoLpaHrHIJx3ci5R1abFzFby8aZYL9-YQ5vxtaHUmwHUzuh.mp4', src: '' },
+    { id: 'sv-sc2', title: 'Vedic Vision II', likes: 621, videoSrc: '/Slide%20Videos/SaveClip.App_AQO00LBqdJg_L4Nm4P8HiJPBZYaOlGFEgj32vsgzjb3hcuQ0xDkNYBSDdt7nymEfx9ATsU9C-A_Dcr0eSO5ZVDT0g9jiaWlZ3OpxDAI.mp4', src: '' },
+    { id: 'sv-sc3', title: 'Vedic Vision III', likes: 544, videoSrc: '/Slide%20Videos/SaveClip.App_AQP8N4Skw0SXoFQ7nc9oyvI7KrnvzlivBE6xiEhoNFv-pNRCjmdED51KsXE3jxoDmGBwhbCCd-jS16GMLLWwlHBi.mp4', src: '' },
+    { id: 'sv-sc4', title: 'Vedic Vision IV', likes: 567, videoSrc: '/Slide%20Videos/SaveClip.App_AQP9f7S1Rp42JmgD6FCdl2L7_ym9OeWZ8FJt6Qc0fjXcyoCNqU6QxXZzLiTjT-5v2-16R1mzx0VAsRzyVhf-vfybov5XARoPy6RCRP4.mp4', src: '' },
+    // ── Flash Videos ──
+    { id: 'fv-kailash', title: 'Kailash Flash', likes: 1102, videoSrc: '/Flash%20Videos/kailash.mp4', src: '' },
+    { id: 'fv-kailash2', title: 'Kailash Ascent', likes: 956, videoSrc: '/Flash%20Videos/kailash2.mp4', src: '' },
+    // ── Dhyan Mantras (from Dhyan Kshetra) ──
+    { id: 'fusion', title: 'SuperFusion', likes: 1008, videoSrc: '', src: 'https://ik.imagekit.io/rcsesr4xf/flute.mp3?updatedAt=1771983487495' },
+    { id: 'gayatri', title: 'Gayatri Ghanpaath', likes: 248, videoSrc: '', src: 'https://ik.imagekit.io/rcsesr4xf/gayatri-mantra-ghanpaath.mp3' },
+    { id: 'lalitha', title: 'Lalitha Sahasranamam', likes: 312, videoSrc: '', src: 'https://ik.imagekit.io/rcsesr4xf/Lalitha-Sahasranamam.mp3' },
+    { id: 'shiva', title: 'Shiva Tandava Stotram', likes: 521, videoSrc: '', src: 'https://ik.imagekit.io/rcsesr4xf/Shiva-Tandav.mp3' },
+    { id: 'brahma', title: 'Brahma Yagya', likes: 189, videoSrc: '', src: 'https://ik.imagekit.io/aup4wh6lq/BrahmaYagya.mp3' },
+    { id: 'shanti', title: 'Shanti Path', likes: 403, videoSrc: '', src: 'https://ik.imagekit.io/rcsesr4xf/shanti-path.mp3' },
+    { id: 'dainik', title: 'Dainik Agnihotra', likes: 167, videoSrc: '', src: 'https://ik.imagekit.io/aup4wh6lq/DainikAgnihotra.mp3?updatedAt=1771246817070' },
+    { id: 'sahana', title: 'Guru Shishya Mantra', likes: 290, videoSrc: '', src: '/audio/Om_Sahana_Vavatu_Shanti_Mantra.mp3' },
+    { id: 'agnihotra', title: 'Agnihotra Shantipath', likes: 215, videoSrc: '', src: '/audio/Agnihotra_Shantipath_-_Vedic_Chants_for_Universal_Peace_and_Well-Being_part_2_(mp3.pm).mp3' },
+    { id: 'shrisuktam', title: 'Shri Suktam', likes: 334, videoSrc: '', src: '/audio/Challakere_Brothers_vedic_chanting_-_Shri_suktam_(mp3.pm).mp3' },
+    { id: 'narayana', title: 'Narayana Suktam', likes: 278, videoSrc: '', src: '/audio/Anant_-_a_collection_of_vedic_chants_-_05._Narayana_Suktam_(mp3.pm).mp3' },
+    { id: 'brahma-kanya', title: 'Brahma Yagya Kanya', likes: 198, videoSrc: '', src: 'https://ik.imagekit.io/aup4wh6lq/BrahmaYagyaKanya.mp3' },
 ];
 
 const INSIGHTS = [
@@ -334,24 +360,31 @@ function ReelSlide({ track, scene, isActive, isFullScreen, muted, onActivate, on
     const [progress, setProgress] = useState(0);
     const [showInsight, setShowInsight] = useState(true);
     const audioRef = useRef<HTMLAudioElement | null>(null);
+    const videoRef = useRef<HTMLVideoElement | null>(null);
     const dualRef = useRef<HTMLAudioElement | null>(null);
-    const playingRef = useRef(false); // mirror of `playing` accessible synchronously
+    const playingRef = useRef(false);
     const insight = getDailyInsight();
+    const isVideoTrack = Boolean(track.videoSrc);
 
     useEffect(() => {
-        // Set crossOrigin BEFORE assigning src so CORS headers are sent
-        // with the very first request — prevents 'already connected node' errors.
+        // For video tracks: mute state manages the HTML video element directly
+        if (isVideoTrack) {
+            if (videoRef.current) videoRef.current.muted = muted;
+            return;
+        }
+        // Audio-only tracks: create Audio elements
         const a = new Audio();
         a.crossOrigin = 'anonymous';
         a.preload = 'metadata';
         a.src = track.src;
         audioRef.current = a;
 
-        if (track.dualSrc) {
+        const dualSrc = (track as any).dualSrc as string | undefined;
+        if (dualSrc) {
             const d = new Audio();
             d.crossOrigin = 'anonymous';
             d.preload = 'metadata';
-            d.src = track.dualSrc;
+            d.src = dualSrc;
             dualRef.current = d;
         }
 
@@ -361,7 +394,7 @@ function ReelSlide({ track, scene, isActive, isFullScreen, muted, onActivate, on
         a.addEventListener('ended', () => { a.currentTime = 0; setPlaying(false); playingRef.current = false; setProgress(0); });
 
         return () => { a.pause(); a.src = ''; dualRef.current?.pause(); };
-    }, [track]);
+    }, [track, isVideoTrack]);
 
     // ── Register an instant-pause callback with the parent.  ─────────────────
     // This runs synchronously in the scroll handler (no React render cycle).
@@ -407,7 +440,7 @@ function ReelSlide({ track, scene, isActive, isFullScreen, muted, onActivate, on
             const actx: AudioContext | undefined = win.__sharedActx;
             if (actx && actx.state === 'suspended') actx.resume().catch(() => { });
             a.play().catch(err => console.warn('[ReelSlide] play failed:', err));
-            if (track.dualSrc && d) d.play().catch(() => { });
+            if ((track as any).dualSrc && d) d.play().catch(() => { });
             setPlaying(true); playingRef.current = true;
         }
     }, [playing, track, muted]);
@@ -418,10 +451,24 @@ function ReelSlide({ track, scene, isActive, isFullScreen, muted, onActivate, on
             style={{ '--reel-bg': scene.bg, '--reel-accent': scene.accent } as React.CSSProperties}
             onClick={!isFullScreen ? onActivate : undefined}
         >
-            {/* Audio-reactive WaterWave visualizer */}
-            <div className={styles.vizWrap}>
-                <WaterWaveVisualizer audioRef={audioRef} playing={playing} height={600} accentColor={scene.accent} />
-            </div>
+            {isVideoTrack ? (
+                /* ── VIDEO TRACK: fullscreen looping video ── */
+                <video
+                    ref={videoRef}
+                    src={track.videoSrc}
+                    className={styles.reelVideo}
+                    autoPlay
+                    loop
+                    playsInline
+                    muted={muted}
+                    onClick={e => e.stopPropagation()}
+                />
+            ) : (
+                /* ── AUDIO TRACK: water wave visualizer ── */
+                <div className={styles.vizWrap}>
+                    <WaterWaveVisualizer audioRef={audioRef} playing={playing} height={600} accentColor={scene.accent} />
+                </div>
+            )}
 
             {/* Top scene label — Playfair Display serif */}
             <div className={styles.slideTopLabel}>
@@ -544,15 +591,18 @@ export default function ReelPlayer({ greeting: _greeting, displayName: _displayN
         pauseRegistry.current.forEach(fn => fn());
     }, []);
 
-    // ── Infinite feed: append when user is 2 slides from the end ──
+    // ── Infinite feed: append ONLY when scrolling down near the end ──
+    const prevIdxRef = useRef(0);
     useEffect(() => {
-        if (activeIdx >= feed.length - 2) {
-            // Shuffle TRACKS before appending for variety
+        const scrollingDown = activeIdx > prevIdxRef.current;
+        prevIdxRef.current = activeIdx;
+        // Only append when scrolling down AND near the end
+        if (scrollingDown && activeIdx >= feed.length - 3) {
             const shuffled = [...TRACKS].sort(() => Math.random() - 0.5);
-            const newSlides = shuffled.map((t, i) => ({ ...t, type: 'mantra' as const, id: `${t.id}-${feed.length + i}` }));
+            const newSlides = shuffled.map((t, i) => ({ ...t, type: 'mantra' as const, id: `${t.id}-ext${feed.length + i}` }));
             setFeed(prev => [...prev, ...newSlides]);
         }
-    }, [activeIdx, feed.length]);
+    }, [activeIdx]);
 
 
     useEffect(() => {
@@ -608,8 +658,41 @@ export default function ReelPlayer({ greeting: _greeting, displayName: _displayN
 
     return (
         <div className={styles.reelWrapper}>
-            {/* Desktop left placeholder */}
-            <div className={styles.desktopLeftSidebar} aria-hidden />
+            {/* Desktop left sidebar — nav links, hidden on mobile */}
+            <div className={styles.desktopLeftSidebar}>
+                {/* Brand */}
+                <div className={styles.sidebarBrandMark}>
+                    <span className={styles.sidebarBrandText}>PranaVerse</span>
+                </div>
+
+                {/* Nav links */}
+                <Link href="/" className={styles.sidebarNavLink}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                        <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg>
+                    <span>Home</span>
+                </Link>
+                <Link href="/pranaverse" className={`${styles.sidebarNavLink} ${styles.sidebarNavLinkActive}`}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3" />
+                    </svg>
+                    <span>Vibes</span>
+                </Link>
+                <Link href="/acharya-samvad" className={styles.sidebarNavLink}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    </svg>
+                    <span>Acharya</span>
+                </Link>
+                <Link href="/profile" className={styles.sidebarNavLink}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    <span>Profile</span>
+                </Link>
+            </div>
 
             {/* ── Audio Gate: browser auto-play requires a user gesture ── */}
             <AnimatePresence>
@@ -647,49 +730,51 @@ export default function ReelPlayer({ greeting: _greeting, displayName: _displayN
                 )}
             </AnimatePresence>
 
-            {/* Snap scroll container */}
-            <div className={styles.reelScroller} ref={scrollerRef}>
-                {feed.map((item, i) => {
-                    // ── Virtualization: only render ±2 slides from active ──
-                    const isNear = Math.abs(i - activeIdx) <= 2;
+            {/* Snap scroll container — wrapped in reelCenterCol for desktop ambient bg */}
+            <div className={styles.reelCenterCol}>
+                <div className={styles.reelScroller} ref={scrollerRef}>
+                    {feed.map((item, i) => {
+                        // ── Virtualization: only render ±2 slides from active ──
+                        const isNear = Math.abs(i - activeIdx) <= 2;
 
-                    return (
-                        <div
-                            key={item.id}
-                            className={styles.reelSlideWrapper}
-                            ref={el => { slideRefs.current[i] = el; }}
-                        >
-                            {item.type === 'sankalpa' ? (
-                                // Sankalpa reel is always rendered (it's index 0, always near)
-                                <TodaysMission
-                                    items={sankalpaItems}
-                                    onToggle={onSankalpaToggle}
-                                    onRemove={onSankalpaRemove}
-                                    onAdd={onSankalpaAdd}
-                                    isFullScreen={true}
-                                />
-                            ) : isNear ? (
-                                // Mantra reel — only rendered if within ±2 of active
-                                <ReelSlide
-                                    track={item}
-                                    scene={scene}
-                                    isActive={activeIdx === i}
-                                    isFullScreen={fullScreenIdx === i}
-                                    muted={muted}
-                                    onActivate={() => handleTap(i)}
-                                    onRegisterPause={(fn) => {
-                                        pauseRegistry.current.set(i, fn);
-                                        return () => { pauseRegistry.current.delete(i); };
-                                    }}
-                                />
-                            ) : (
-                                // Virtualized placeholder — keeps scroll height correct
-                                <div className={styles.reelSlidePlaceholder} />
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
+                        return (
+                            <div
+                                key={item.id}
+                                className={styles.reelSlideWrapper}
+                                ref={el => { slideRefs.current[i] = el; }}
+                            >
+                                {item.type === 'sankalpa' ? (
+                                    // Sankalpa reel is always rendered (it's index 0, always near)
+                                    <TodaysMission
+                                        items={sankalpaItems}
+                                        onToggle={onSankalpaToggle}
+                                        onRemove={onSankalpaRemove}
+                                        onAdd={onSankalpaAdd}
+                                        isFullScreen={true}
+                                    />
+                                ) : isNear ? (
+                                    // Mantra reel — only rendered if within ±2 of active
+                                    <ReelSlide
+                                        track={item}
+                                        scene={scene}
+                                        isActive={activeIdx === i}
+                                        isFullScreen={fullScreenIdx === i}
+                                        muted={muted}
+                                        onActivate={() => handleTap(i)}
+                                        onRegisterPause={(fn) => {
+                                            pauseRegistry.current.set(i, fn);
+                                            return () => { pauseRegistry.current.delete(i); };
+                                        }}
+                                    />
+                                ) : (
+                                    // Virtualized placeholder — keeps scroll height correct
+                                    <div className={styles.reelSlidePlaceholder} />
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>{/* end reelScroller */}
+            </div>{/* end reelCenterCol */}
 
             {/* ── Floating Mute Toggle ── */}
             <button
@@ -700,7 +785,9 @@ export default function ReelPlayer({ greeting: _greeting, displayName: _displayN
                         pauseRegistry.current.forEach((_, idx) => {
                             const slide = slideRefs.current[idx];
                             if (slide) {
-                                slide.querySelectorAll('audio').forEach(a => { a.muted = next; });
+                                slide.querySelectorAll('audio,video').forEach((el: Element) => {
+                                    (el as HTMLMediaElement).muted = next;
+                                });
                             }
                         });
                         return next;
@@ -723,7 +810,7 @@ export default function ReelPlayer({ greeting: _greeting, displayName: _displayN
                 )}
             </button>
 
-            {/* Dot indicators — show only first N base slides */}
+            {/* Dot indicators */}
             <div className={styles.dots}>
                 {Array.from({ length: Math.min(TRACKS.length + 1, 8) }).map((_, i) => (
                     <button
@@ -744,3 +831,4 @@ export default function ReelPlayer({ greeting: _greeting, displayName: _displayN
         </div>
     );
 }
+

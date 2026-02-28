@@ -1182,12 +1182,23 @@
 ══════════════════════════════════════════════════ */
 .justVibePage {
     position: relative;
-    min-height: 100vh;
+    min-height: 100dvh;
     background: #0a0806;
     font-family: 'Inter', sans-serif;
-    padding-bottom: 6rem;
+    padding-bottom: 4.5rem;
+    /* space for mobile tab bar */
     display: flex;
     flex-direction: column;
+}
+
+/* Desktop: exact height so the grid children can fill 100svh */
+@media (min-width: 1024px) {
+    .justVibePage {
+        height: 100svh;
+        min-height: unset;
+        overflow: hidden;
+        padding-bottom: 0;
+    }
 }
 
 /* ══════════════════════════════════════════════════
