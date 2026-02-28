@@ -17,6 +17,7 @@ import SacredCanvas from '@/components/SacredCanvas/SacredCanvas';
 
 import VedicDashboard from '@/components/Dashboard/VedicDashboard';
 import TodaysMission from '@/components/Dashboard/TodaysMission';
+import PremiumHeader from '@/components/PremiumHeader/PremiumHeader';
 
 
 import { useLanguage } from '@/context/LanguageContext';
@@ -163,12 +164,17 @@ export default function Home() {
   return (
     <>
       <main className={dashStyles.dashboardPage}>
-        <SacredCanvas />
 
-        {/* ══ VEDIC DASHBOARD — greeting, panchang ══ */}
+        {/* ══ PREMIUM STICKY HEADER ══ */}
+        <PremiumHeader
+          greeting={greeting}
+          displayName={displayName}
+        />
+
+        {/* ══ VEDIC DASHBOARD — panchang strip below header ══ */}
         <VedicDashboard greeting={greeting} displayName={displayName} />
 
-        {/* ══ TODAY'S MISSION — full circadian background + frosted glass tasks ══ */}
+        {/* ══ TODAY’S MISSION — full circadian background + frosted glass tasks ══ */}
         <TodaysMission
           items={sankalpaItems}
           onToggle={handleSankalpaToggle}

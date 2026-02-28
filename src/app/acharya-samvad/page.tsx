@@ -9,6 +9,8 @@ import { useSearchParams } from 'next/navigation';
 import TypewriterMessage from '@/components/TypewriterMessage';
 import VaidyaVoiceModal from '@/components/VaidyaVoiceModal';
 import { useLanguage } from '@/context/LanguageContext';
+import PremiumHeader from '@/components/PremiumHeader/PremiumHeader';
+
 
 interface DiagnosisResult {
     diagnosis: BilingualString;
@@ -229,7 +231,28 @@ function DigitalVaidyaContent() {
 
     return (
         <main className={styles.container}>
-            {/* BACKGROUND LAYER: SRI YANTRA PULSE */}
+            {/* PREMIUM STICKY HEADER */}
+            <PremiumHeader
+                title={lang === 'hi' ? 'आचार्य संवाद' : 'Acharya Samvad'}
+                subtitle={lang === 'hi' ? 'आयुर्वेद · ज्ञान · संवाद' : 'Ayurveda · Wisdom · Dialogue'}
+                rightSlot={
+                    <button
+                        onClick={() => setIsVoiceCallOpen(true)}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: '0.4rem',
+                            padding: '6px 14px', background: 'linear-gradient(135deg, #C49102, #FFD700)',
+                            color: '#1a0f05', border: 'none', borderRadius: '20px',
+                            fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer',
+                            boxShadow: '0 4px 12px rgba(196, 145, 2, 0.35)',
+                        }}
+                    >
+                        <Mic size={13} />
+                        {lang === 'hi' ? 'बोलें' : 'Voice'}
+                    </button>
+                }
+            />
+
+            {/* BACKGROUND LAYER */}
             <div className={styles.sriYantraLayer}>
                 {/* Simple SVG representation of Sri Yantra geometry for the background */}
                 <svg viewBox="0 0 100 100" fill="none" stroke="#C49102" strokeWidth="0.5" style={{ width: '100%', height: '100%' }}>

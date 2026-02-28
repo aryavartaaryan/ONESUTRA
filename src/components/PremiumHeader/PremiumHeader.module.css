@@ -1,0 +1,164 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
+
+/* ══════════════════════════════════════════════════════
+   PREMIUM HEADER — Sticky, 8pt grid, OLED dark
+   Matches the approved Dribbble-quality mockup design
+══════════════════════════════════════════════════════ */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    /* 8pt grid */
+    background: rgba(8, 5, 2, 0.92);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    border-bottom: 1px solid rgba(212, 160, 23, 0.14);
+    box-shadow: 0 1px 0 rgba(255, 200, 80, 0.06), 0 4px 24px rgba(0, 0, 0, 0.4);
+    min-height: 56px;
+    /* 7 × 8pt */
+}
+
+/* ── LEFT: greeting / page title ── */
+.left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.greetingEmoji {
+    font-size: 1.2rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.greetingBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.greetingText {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: rgba(240, 210, 140, 0.7);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.greetingName {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: rgba(255, 235, 170, 0.96);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.15;
+}
+
+.pageTitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: rgba(255, 235, 170, 0.96);
+    letter-spacing: 0.02em;
+    line-height: 1.15;
+}
+
+.pageSub {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.58rem;
+    color: rgba(212, 160, 23, 0.5);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 1px;
+}
+
+/* ── CENTER: Sanskrit wordmark ── */
+.center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    flex-shrink: 0;
+    padding: 0 8px;
+}
+
+.wordmark {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.28rem;
+    font-weight: 600;
+    color: rgba(255, 230, 120, 0.95);
+    letter-spacing: 0.04em;
+    text-shadow: 0 0 20px rgba(212, 160, 23, 0.4);
+    line-height: 1;
+}
+
+.wordmarkSub {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.46rem;
+    color: rgba(212, 160, 23, 0.45);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 1px;
+}
+
+/* ── RIGHT: bell + avatar ── */
+.right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    justify-content: flex-end;
+}
+
+.bellBtn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(255, 200, 80, 0.06);
+    border: 1px solid rgba(212, 160, 23, 0.16);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(240, 210, 140, 0.75);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.bellBtn:hover {
+    background: rgba(255, 200, 80, 0.12);
+    border-color: rgba(212, 160, 23, 0.35);
+}
+
+.avatarBtn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(212, 160, 23, 0.2), rgba(180, 120, 10, 0.15));
+    border: 1.5px solid rgba(212, 160, 23, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    text-decoration: none;
+    box-shadow: 0 0 12px rgba(212, 160, 23, 0.15);
+}
+
+.avatarBtn:hover {
+    border-color: rgba(212, 160, 23, 0.6);
+    box-shadow: 0 0 20px rgba(212, 160, 23, 0.28);
+}

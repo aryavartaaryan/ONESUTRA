@@ -6,7 +6,9 @@ import Link from 'next/link';
 import { ArrowLeft, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import JustVibeLogo from '@/components/JustVibeLogo';
+import PremiumHeader from '@/components/PremiumHeader/PremiumHeader';
 import styles from './page.module.css';
+
 
 // ════════════════════════════════════════════════════════
 //  VIBE ENERGY BODY — generative animated avatar canvas
@@ -188,15 +190,17 @@ export default function ProfilePage() {
 
     return (
         <main className={styles.page}>
-            {/* Top bar */}
-            <div className={styles.topBar}>
-                <Link href="/" className={styles.backBtn}>
-                    <ArrowLeft size={16} strokeWidth={1.8} />
-                    <span>ReZo</span>
-                </Link>
-                <span className={styles.topTitle}>Your RezoVibe</span>
-                <div style={{ width: 60 }} />
-            </div>
+            {/* Premium Sticky Header */}
+            <PremiumHeader
+                title="Your Sanctuary"
+                subtitle="Prakriti · Vibe · Journey"
+                rightSlot={
+                    <button className={styles.logoutBtn} onClick={handleLogout} title="Log Out" style={{ margin: 0, padding: '6px 12px', fontSize: '0.7rem' }}>
+                        <LogOut size={14} />
+                        Exit
+                    </button>
+                }
+            />
 
             <div className={styles.content}>
                 {/* ── Vibe Avatar Body (Energy Body) ── */}

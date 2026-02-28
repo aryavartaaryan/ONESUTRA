@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReelPlayer from '@/components/Dashboard/ReelPlayer';
 import { useLanguage } from '@/context/LanguageContext';
+import PremiumHeader from '@/components/PremiumHeader/PremiumHeader';
 import styles from './page.module.css';
 
 
@@ -293,17 +294,11 @@ export default function JustVibePage() {
     return (
         <div className={styles.justVibePage}>
 
-            {/* ══ PREMIUM HEADER ══ */}
-            <div className={styles.pageHeader}>
-                <div className={styles.pageHeaderInner}>
-                    <span className={styles.pageHeaderTitle}>JustVibe</span>
-                    <span className={styles.pageHeaderSub}>The Vibe · High-Frequency Feed</span>
-                </div>
-                <motion.button className={styles.addVibeFab} whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.93 }} title="Add to the Vibe">
-                    <span className={styles.fabPlus}>+</span>
-                    <span className={styles.fabLabel}>Add to the Vibe</span>
-                </motion.button>
-            </div>
+            {/* ══ PREMIUM STICKY HEADER ══ */}
+            <PremiumHeader
+                greeting={greeting}
+                displayName={displayName}
+            />
 
             {/* ══ TAB BAR — Reels | Feed ══ */}
             <div className={styles.tabBar}>
