@@ -930,10 +930,7 @@
 .missionStandalone {
     position: relative;
     height: auto;
-    max-height: 80vh;
-    /* never taller than 80% of viewport */
-    overflow-y: auto;
-    /* scroll if many tasks */
+    min-height: 400px;
     border-radius: 24px;
     overflow: hidden;
     margin: 0 0 1.2rem 0;

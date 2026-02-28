@@ -58,6 +58,26 @@ const PHASES: Record<VibeName, VibePhase> = {
     },
 };
 
+// ─── Alternative queries for the 'vedic' variant (home page) ─────────────────
+const PHASES_VEDIC: Record<VibeName, { query: string; fallbackUrl: string }> = {
+    dawn: {
+        query: 'himalaya sunrise sacred temple morning golden spiritual',
+        fallbackUrl: 'https://images.unsplash.com/photo-1565019011521-b0575b7d1e60?w=1080&q=85&auto=format&fit=crop',
+    },
+    day: {
+        query: 'ancient temple india sun forest sacred vibrant',
+        fallbackUrl: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=1080&q=85&auto=format&fit=crop',
+    },
+    dusk: {
+        query: 'ganga river ghats dusk golden india spiritual sunset',
+        fallbackUrl: 'https://images.unsplash.com/photo-1537944434965-cf4679d1a598?w=1080&q=85&auto=format&fit=crop',
+    },
+    night: {
+        query: 'india himalaya night stars milky way traditional lamp',
+        fallbackUrl: 'https://images.unsplash.com/photo-1502209524164-acea936639a2?w=1080&q=85&auto=format&fit=crop',
+    },
+};
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function getVibePhase(hourF: number): VibePhase {
     if (hourF >= 5 && hourF < 7) return PHASES.dawn;
@@ -69,20 +89,20 @@ function getVibePhase(hourF: number): VibePhase {
 const CACHE_KEY_PREFIX = 'circadian_bg_v2_';
 const CACHE_TTL_MS = 90 * 60 * 1000; // 90 minutes
 
-function getCached(vibe: VibeName): string | null {
+function getCached(key: string): string | null {
     try {
-        const raw = localStorage.getItem(CACHE_KEY_PREFIX + vibe);
+        const raw = localStorage.getItem(key);
         if (!raw) return null;
         const { url, ts }: { url: string; ts: number } = JSON.parse(raw);
         if (Date.now() - ts < CACHE_TTL_MS) return url;
-        localStorage.removeItem(CACHE_KEY_PREFIX + vibe);
+        localStorage.removeItem(key);
     } catch { /* ignore */ }
     return null;
 }
 
-function setCache(vibe: VibeName, url: string) {
+function setCache(key: string, url: string) {
     try {
-        localStorage.setItem(CACHE_KEY_PREFIX + vibe, JSON.stringify({ url, ts: Date.now() }));
+        localStorage.setItem(key, JSON.stringify({ url, ts: Date.now() }));
     } catch { /* ignore */ }
 }
 
@@ -94,14 +114,21 @@ export interface CircadianBackground {
 }
 
 // Public Unsplash access key (read-only — safe to embed in client bundles)
-// Replace with your own key from https://unsplash.com/developers
 const UNSPLASH_ACCESS_KEY = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY ?? '';
 
-export function useCircadianBackground(): CircadianBackground {
+/**
+ * variant = 'nature' (default) — lush nature/ocean for JustVibe
+ * variant = 'vedic'  — sacred temples/Himalaya/Ganga for home page Mission card
+ */
+export function useCircadianBackground(variant: 'nature' | 'vedic' = 'nature'): CircadianBackground {
     const hour = new Date().getHours() + new Date().getMinutes() / 60;
     const phase = getVibePhase(hour);
+    const vData = variant === 'vedic' ? PHASES_VEDIC[phase.name] : null;
+    const cacheKey = `${CACHE_KEY_PREFIX}${variant}_${phase.name}`;
+    const queryStr = vData?.query ?? phase.query;
+    const fallback = vData?.fallbackUrl ?? phase.fallbackUrl;
 
-    const [imageUrl, setImageUrl] = useState<string>(phase.fallbackUrl);
+    const [imageUrl, setImageUrl] = useState<string>(fallback);
     const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
@@ -109,7 +136,7 @@ export function useCircadianBackground(): CircadianBackground {
 
         async function fetchImage() {
             // 1. Try cache first
-            const cached = getCached(phase.name);
+            const cached = getCached(cacheKey);
             if (cached) {
                 if (!cancelled) { setImageUrl(cached); setLoaded(true); }
                 return;
@@ -119,7 +146,7 @@ export function useCircadianBackground(): CircadianBackground {
             if (UNSPLASH_ACCESS_KEY) {
                 try {
                     const url = new URL('https://api.unsplash.com/photos/random');
-                    url.searchParams.set('query', phase.query);
+                    url.searchParams.set('query', queryStr);
                     url.searchParams.set('orientation', 'portrait');
                     url.searchParams.set('content_filter', 'high');
                     url.searchParams.set('client_id', UNSPLASH_ACCESS_KEY);
@@ -130,7 +157,7 @@ export function useCircadianBackground(): CircadianBackground {
                         const photoUrl: string =
                             data?.urls?.regular ?? data?.urls?.full ?? '';
                         if (photoUrl && !cancelled) {
-                            setCache(phase.name, photoUrl);
+                            setCache(cacheKey, photoUrl);
                             setImageUrl(photoUrl);
                             setLoaded(true);
                             return;
@@ -141,7 +168,7 @@ export function useCircadianBackground(): CircadianBackground {
 
             // 3. Hardcoded fallback
             if (!cancelled) {
-                setImageUrl(phase.fallbackUrl);
+                setImageUrl(fallback);
                 setLoaded(true);
             }
         }
@@ -150,7 +177,7 @@ export function useCircadianBackground(): CircadianBackground {
         fetchImage();
         return () => { cancelled = true; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [phase.name]);
+    }, [phase.name, variant]);
 
     return { phase, imageUrl, loaded };
 }

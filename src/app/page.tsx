@@ -174,6 +174,7 @@ export default function Home() {
           onToggle={handleSankalpaToggle}
           onRemove={handleSankalpaRemove}
           onAdd={handleSankalpaAdd}
+          variant="vedic"
           isFullScreen={false}
         />
 

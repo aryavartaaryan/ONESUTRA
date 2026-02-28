@@ -13,6 +13,8 @@ export interface TodaysMissionProps {
     onToggle: (id: string) => void;
     onRemove: (id: string) => void;
     onAdd: (text: string) => void;
+    /** 'vedic' = sacred temple/Himalaya images (home page). 'nature' = ocean/forest (JustVibe). */
+    variant?: 'vedic' | 'nature';
     /** When true, renders as a full-screen overlay (inside the reel). Default: false (stand-alone on home). */
     isFullScreen?: boolean;
     onExpand?: () => void;
@@ -38,6 +40,7 @@ export default function TodaysMission({
     onToggle,
     onRemove,
     onAdd,
+    variant = 'nature',
     isFullScreen = false,
     onExpand,
 }: TodaysMissionProps) {
@@ -48,7 +51,7 @@ export default function TodaysMission({
     const tagline = MISSION_TAGLINES[new Date().getDay() % MISSION_TAGLINES.length];
 
     // ── Circadian background ─────────────────────────────────────────────────
-    const { phase, imageUrl, loaded } = useCircadianBackground();
+    const { phase, imageUrl, loaded } = useCircadianBackground(variant);
     const isDay = phase.name === 'day';
 
     const add = () => {
@@ -80,13 +83,11 @@ export default function TodaysMission({
                 style={{ background: isDay ? 'rgba(5,15,35,0.38)' : 'rgba(0,2,12,0.62)' }}
             />
 
-            {/* ── Phase badge — only in full-screen reel, home header already shows it ── */}
-            {isFullScreen && (
-                <div className={styles.phaseBadge} style={{ color: phase.accentHex }}>
-                    <span className={styles.phaseLabel}>{phase.label}</span>
-                    <span className={styles.phaseTagline}>{phase.tagline}</span>
-                </div>
-            )}
+            {/* ── Phase badge ───────────────────────────────────────────── */}
+            <div className={styles.phaseBadge} style={{ color: phase.accentHex }}>
+                <span className={styles.phaseLabel}>{phase.label}</span>
+                <span className={styles.phaseTagline}>{phase.tagline}</span>
+            </div>
 
             {/* Dismiss button (only in full-screen reel mode) */}
             {isFullScreen && onExpand && (
@@ -168,6 +169,11 @@ export default function TodaysMission({
                     </AnimatePresence>
                 </div>
 
+                {!isFullScreen && (
+                    <div className={styles.tapHint}>
+                        <span style={{ color: `${phase.accentHex}88` }}>✦ Your daily intentions, beautifully set</span>
+                    </div>
+                )}
             </div>
         </div>
     );
