@@ -47,18 +47,20 @@ export default function TodaysMission({
 
     return (
         <div
-            className={`relative w-full overflow-hidden rounded-none ${isFullScreen ? 'h-full' : 'h-[calc(100vh-80px)]'}`}
+            className={`relative w-full overflow-hidden rounded-none flex flex-col justify-between ${isFullScreen ? 'h-[100svh]' : 'h-[calc(100vh-80px)]'}`}
             onClick={onExpand}
         >
-            {/* 1. Full-Bleed Background Image */}
-            <img
-                src="https://picsum.photos/1080/1920?nature,calm"
-                className="absolute inset-0 w-full h-full object-cover z-0 rounded-none pointer-events-none"
-                alt="Nature Background"
-            />
+            {/* 1. Full-Bleed Background Image bg layer */}
+            <div className="absolute inset-0 w-full h-full z-0 overflow-hidden bg-[#14120E] pointer-events-none">
+                <img
+                    src="https://picsum.photos/1080/1920?nature,calm"
+                    className="absolute inset-0 w-full h-full object-cover rounded-none pointer-events-none opacity-90 block"
+                    alt="Nature Background"
+                />
+            </div>
 
             {/* 2. Delicate Top Insight */}
-            <div className="absolute top-0 left-0 w-full z-20 pt-16 px-8 flex flex-col items-center bg-gradient-to-b from-black/50 to-transparent pb-10 pointer-events-none">
+            <div className="relative z-10 w-full pt-16 px-8 flex flex-col items-center bg-gradient-to-b from-black/60 via-black/30 to-transparent pb-10 pointer-events-none shrink-0">
                 <div className="text-white/80 text-center">
                     <p className="font-serif italic text-sm md:text-base leading-relaxed drop-shadow-md">
                         "{DAILY_QUOTE.text}"
@@ -77,17 +79,20 @@ export default function TodaysMission({
                 </button>
             )}
 
-            {/* Swipe Up Cue if full-screen */}
-            {isFullScreen && (
-                <div className="absolute top-[40%] left-0 w-full flex flex-col items-center gap-1 z-10 pointer-events-none opacity-80">
-                    <span className="text-white text-lg animate-bounce drop-shadow-md">↑</span>
-                    <span className="font-sans text-[0.65rem] text-white/80 tracking-widest uppercase font-medium drop-shadow-md">Scroll for Vibes</span>
-                </div>
-            )}
+            {/* Spacer to push content to edges */}
+            <div className="flex-1 min-h-0 pointer-events-none relative z-10">
+                {/* Swipe Up Cue if full-screen */}
+                {isFullScreen && (
+                    <div className="absolute top-[30%] left-0 w-full flex flex-col items-center gap-1 pointer-events-none opacity-80">
+                        <span className="text-white text-lg animate-bounce drop-shadow-md">↑</span>
+                        <span className="font-sans text-[0.65rem] text-white/80 tracking-widest uppercase font-medium drop-shadow-md">Scroll for Vibes</span>
+                    </div>
+                )}
+            </div>
 
             {/* 3. Bottom Anchored Sankalpa */}
             <div
-                className="absolute bottom-0 left-0 w-full z-20 px-5 pb-24 bg-gradient-to-t from-[#14120E] via-[#14120E]/90 to-transparent pt-16"
+                className="relative z-10 w-full px-5 pb-24 bg-gradient-to-t from-[#14120E] via-[#14120E]/90 to-transparent pt-16 shrink-0"
                 onClick={e => e.stopPropagation()} // prevent expanding when tapping tasks
             >
                 <div className="flex justify-between items-end mb-4">
@@ -115,8 +120,8 @@ export default function TodaysMission({
                             <motion.div
                                 key={item.id}
                                 className={`flex items-center p-3 rounded-2xl gap-3 transition-all ${item.done
-                                        ? 'bg-white/5 text-white/40 border border-transparent'
-                                        : 'bg-white/10 backdrop-blur-md border border-white/20 text-white shadow-lg'
+                                    ? 'bg-white/5 text-white/40 border border-transparent'
+                                    : 'bg-white/10 backdrop-blur-md border border-white/20 text-white shadow-lg'
                                     }`}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
