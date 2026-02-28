@@ -60,6 +60,14 @@ const PORTALS = [
 export default function JustVibePortals() {
     return (
         <div className={styles.wrapper}>
+            {/* Header — same as PranaVerseMini */}
+            <div className={styles.header}>
+                <div className={styles.headerLeft}>
+                    <span className={styles.liveDot} />
+                    <span className={styles.title}>Your Sacred Portals</span>
+                </div>
+            </div>
+
             {/* Horizontal scroll — same as PranaVerseMini */}
             <div className={styles.scroll}>
                 {PORTALS.map((p, i) => (

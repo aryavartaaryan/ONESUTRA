@@ -17,7 +17,7 @@ import SacredCanvas from '@/components/SacredCanvas/SacredCanvas';
 
 import VedicDashboard from '@/components/Dashboard/VedicDashboard';
 import TodaysMission from '@/components/Dashboard/TodaysMission';
-import { useHalfHourImage } from '@/hooks/useHalfHourImage';
+
 
 import { useLanguage } from '@/context/LanguageContext';
 import homeStyles from './vedic-home.module.css';
@@ -91,8 +91,6 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [greeting, setGreeting] = useState<{ emoji: string; text: string; period: string } | null>(null);
   const { lang, toggleLanguage } = useLanguage();
-  // Fetch universal panoramic image for the entire application
-  const { imageUrl: panoramicImage, loaded: isPanoramicLoaded } = useHalfHourImage();
 
   // ── Sankalpa/Mission state — kept here so it shows on home too ───────────────
   interface Sankalp { id: string; text: string; done: boolean; }
@@ -161,51 +159,59 @@ export default function Home() {
     </main>
   );
 
-  // ── Unified Masterpiece Dashboard ──────────────────────────────────────────────────
+  // ── Grounding Pad Dashboard ──────────────────────────────────────────────────
   return (
     <>
-      <main className="relative min-h-[100svh] w-full flex flex-col font-sans overflow-y-auto overflow-x-hidden bg-[#14120E] text-white">
+      <main className={dashStyles.dashboardPage}>
 
-        {/* ══ UNIVERSAL PANORAMIC LAYER (z-0) ══ */}
-        <div className="fixed inset-0 w-full h-full z-0 pointer-events-none">
-          <img
-            src="https://picsum.photos/1080/1920?nature,calm"
-            className="absolute inset-0 w-full h-full object-cover opacity-90 transition-opacity duration-1000 block"
-            alt="Sacred nature panorama"
-          />
-          {/* Ultra-smooth gradient over the image so light text is legible anywhere */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#14120E]/70 via-transparent to-[#14120E]/90 pointer-events-none" />
+        {/* ══ VEDIC DASHBOARD — panchang strip below header ══ */}
+        <VedicDashboard greeting={greeting} displayName={displayName} />
+
+        {/* ══ TODAY’S MISSION — full circadian background + frosted glass tasks ══ */}
+        <TodaysMission
+          items={sankalpaItems}
+          onToggle={handleSankalpaToggle}
+          onRemove={handleSankalpaRemove}
+          onAdd={handleSankalpaAdd}
+          variant="vedic"
+          isFullScreen={false}
+        />
+
+
+
+
+
+        {/* ══ 3-COLUMN GRID — below the reel ══ */}
+        <div className={dashStyles.dashboardGrid}>
+
+          {/* LEFT SIDEBAR */}
+          <aside className={dashStyles.sidebarLeft}>
+            <motion.div {...fadeUp(0.22)}><WisdomTicker /></motion.div>
+          </aside>
+
+          {/* CENTER FEED */}
+          <div className={dashStyles.feedCenter}>
+
+            {/* JustVibe portal cards */}
+            <motion.div {...fadeUp(0.2)}><JustVibePortals /></motion.div>
+
+            <div className={dashStyles.sectionDivider} />
+
+            {/* Remaining wellness sections — below fold */}
+            {[OjasTracker, PillarGrid, SadhanaTimeline, GayatriMantraSection].map((Comp, i) => (
+              <motion.div key={i}
+                initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }} transition={{ duration: 0.7, ease: easeIO }}>
+                <Comp />
+                {i < 3 && <div className={dashStyles.sectionDivider} />}
+              </motion.div>
+            ))}
+          </div>
+
+          {/* RIGHT SIDEBAR */}
+          <aside className={dashStyles.sidebarRight} />
         </div>
 
-        {/* ══ OVERLAID CONTENT STACK (z-10) ══ */}
-        <div className="relative z-10 flex flex-col w-full px-5 py-6 pb-28 gap-8 max-w-lg mx-auto h-full">
-
-          {/* Header */}
-          <section className="w-full shrink-0">
-            <VedicDashboard greeting={greeting} displayName={displayName} />
-          </section>
-
-          {/* Daily Insight + Sankalpa */}
-          <section className="w-full flex-1 flex flex-col justify-end">
-            <TodaysMission
-              items={sankalpaItems}
-              onToggle={handleSankalpaToggle}
-              onRemove={handleSankalpaRemove}
-              onAdd={handleSankalpaAdd}
-              variant="nature"
-              isFullScreen={false}
-            />
-          </section>
-
-          {/* Sacred Portals Horizontal List */}
-          <section className="w-full shrink-0">
-            <div className="mb-3 text-white/80 font-serif text-lg tracking-wide pl-1 font-medium drop-shadow-md">
-              Your Sacred Portals
-            </div>
-            <JustVibePortals />
-          </section>
-
-        </div>
       </main>
 
       {/* MODALS */}
