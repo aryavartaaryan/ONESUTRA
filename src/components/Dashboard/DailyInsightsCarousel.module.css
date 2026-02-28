@@ -1,0 +1,92 @@
+/* ═══════════════════════════════════════════════════
+   DailyInsightsCarousel.module.css
+   Horizontal snap-scroll glassmorphic insight cards
+   ═══════════════════════════════════════════════════ */
+
+.section {
+    padding: 0 0 0.25rem;
+}
+
+.sectionLabel {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+    padding: 0 1.5rem;
+    margin: 0 0 0.85rem;
+}
+
+/* Horizontal scroll strip */
+.track {
+    display: flex;
+    gap: 0.85rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.25rem 1.5rem 0.75rem;
+    scrollbar-width: none;
+}
+
+.track::-webkit-scrollbar {
+    display: none;
+}
+
+/* Individual card */
+.card {
+    flex: 0 0 82vw;
+    max-width: 360px;
+    scroll-snap-align: center;
+    border-radius: 24px;
+    padding: 1.5rem 1.5rem 1.75rem;
+
+    /* Glassmorphism */
+    backdrop-filter: blur(18px) saturate(180%);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.25),
+        0 0 0 0.5px rgba(255, 255, 255, 0.08) inset;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.icon {
+    font-size: 1.75rem;
+    margin-bottom: 0.25rem;
+    line-height: 1;
+}
+
+.sanskrit {
+    font-family: 'Noto Sans Devanagari', 'Kohinoor Devanagari', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #FFFFFF;
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+    margin: 0;
+    line-height: 1.4;
+}
+
+.transliteration {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+    letter-spacing: 0.03em;
+}
+
+.meaning {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.65);
+    margin: 0;
+    margin-top: 0.35rem;
+    line-height: 1.55;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding-top: 0.6rem;
+}

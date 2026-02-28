@@ -165,6 +165,31 @@
     max-width: 440px;
 }
 
+/* Affirmation quote block — sits above the task list */
+.affirmationBlock {
+    margin-bottom: 1rem;
+    padding: 0.75rem 0.25rem 0.85rem;
+    text-align: center;
+}
+
+.affirmationQuote {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1rem;
+    font-weight: 400;
+    color: #4A3728;
+    line-height: 1.65;
+    margin: 0 0 0.75rem;
+    letter-spacing: 0.015em;
+}
+
+.affirmationDivider {
+    font-size: 0.5rem;
+    color: rgba(201, 123, 58, 0.35);
+    letter-spacing: 0.5em;
+    user-select: none;
+}
+
 .item {
     display: flex;
     align-items: center;

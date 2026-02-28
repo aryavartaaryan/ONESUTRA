@@ -8,6 +8,24 @@ import styles from './TodaysMission.module.css';
 
 export interface Sankalp { id: string; text: string; done: boolean; }
 
+const AFFIRMATIONS = [
+    'Breathe deeply — your path is unfolding perfectly.',
+    'You are rooted like the Himalaya. Unmoved. Serene.',
+    'Each breath is a gift from Prana. Receive it with gratitude.',
+    'The universe is guiding you. Trust the sacred timing.',
+    'You are not your thoughts. You are the awareness behind them.',
+    'Like the river that always finds the ocean — so shall you.',
+];
+
+function getDailyAffirmation(): string {
+    const now = new Date();
+    const dayOfYear = Math.floor(
+        (Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) -
+            Date.UTC(now.getFullYear(), 0, 0)) / 86400000
+    );
+    return AFFIRMATIONS[dayOfYear % AFFIRMATIONS.length];
+}
+
 export interface TodaysMissionProps {
     items: Sankalp[];
     onToggle: (id: string) => void;
@@ -74,6 +92,14 @@ export default function TodaysMission({
                     </button>
                 )}
             </div>
+
+            {/* Affirmation Quote — only on home page, not in Reels */}
+            {!isFullScreen && isMounted && (
+                <div className={styles.affirmationBlock}>
+                    <p className={styles.affirmationQuote}>{getDailyAffirmation()}</p>
+                    <div className={styles.affirmationDivider}>✦ &nbsp; ✦ &nbsp; ✦</div>
+                </div>
+            )}
 
             <div className={styles.list}>
                 <AnimatePresence initial={false}>
