@@ -1318,3 +1318,40 @@
 .sidebarCardCta:hover {
     opacity: 0.75;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   FLOATING MUTE TOGGLE — top-right corner, always visible
+   ══════════════════════════════════════════════════════════════ */
+
+.muteBtn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1200;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    /* Pointer events should not block the reel */
+    pointer-events: all;
+}
+
+.muteBtn:hover {
+    background: rgba(0, 0, 0, 0.65);
+    border-color: rgba(255, 255, 255, 0.40);
+    transform: scale(1.06);
+}
+
+.muteBtn:active {
+    transform: scale(0.94);
+}

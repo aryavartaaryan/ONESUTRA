@@ -323,12 +323,13 @@ interface ReelSlideProps {
     scene: ReturnType<typeof getTimeScene>;
     isActive: boolean;
     isFullScreen: boolean;
+    muted: boolean;
     onActivate: () => void;
     /** Called once on mount so the parent can pause this slide's audio immediately */
     onRegisterPause: (fn: () => void) => () => void;
 }
 
-function ReelSlide({ track, scene, isActive, isFullScreen, onActivate, onRegisterPause }: ReelSlideProps) {
+function ReelSlide({ track, scene, isActive, isFullScreen, muted, onActivate, onRegisterPause }: ReelSlideProps) {
     const [playing, setPlaying] = useState(false);
     const [progress, setProgress] = useState(0);
     const [showInsight, setShowInsight] = useState(true);
@@ -398,6 +399,9 @@ function ReelSlide({ track, scene, isActive, isFullScreen, onActivate, onRegiste
             if (a.ended || (a.duration > 0 && a.currentTime >= a.duration - 0.1)) {
                 a.currentTime = 0; if (d) d.currentTime = 0;
             }
+            // Respect global muted state
+            a.muted = muted;
+            if (d) d.muted = muted;
             // Resume AudioContext if browser suspended it (required after user gesture)
             const win = window as any;
             const actx: AudioContext | undefined = win.__sharedActx;
@@ -406,7 +410,7 @@ function ReelSlide({ track, scene, isActive, isFullScreen, onActivate, onRegiste
             if (track.dualSrc && d) d.play().catch(() => { });
             setPlaying(true); playingRef.current = true;
         }
-    }, [playing, track]);
+    }, [playing, track, muted]);
 
     return (
         <div
@@ -524,9 +528,11 @@ function ReelRightSidebar({ accent }: { accent: string }) {
 export default function ReelPlayer({ greeting: _greeting, displayName: _displayName, panchangData: _panchangData, sankalpaItems, onSankalpaToggle, onSankalpaRemove, onSankalpaAdd }: ReelPlayerProps) {
     const [activeIdx, setActiveIdx] = useState(0);
     const [fullScreenIdx, setFullScreenIdx] = useState<number | null>(null);
+    const [muted, setMuted] = useState(true);  // Auto-play starts muted (TikTok/IG standard)
     const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
     const scrollerRef = useRef<HTMLDivElement | null>(null);
     const scene = getTimeScene(new Date().getHours());
+    const loopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Registry of instant-pause callbacks — one per ReelSlide.
     // Stored as a plain mutable ref (NOT state) so we can call them
@@ -538,8 +544,23 @@ export default function ReelPlayer({ greeting: _greeting, displayName: _displayN
         pauseRegistry.current.forEach(fn => fn());
     }, []);
 
-    // Total slides = sankalpa (index 0) + 7 tracks (indices 1–7)
+    // ── Total slides = sankalpa (0) + TRACKS (1–N)
     const totalCount = TRACKS.length + 1;
+
+    // ── Infinite Loop: when user hits the last slide, scroll back to slide 0 ──
+    useEffect(() => {
+        if (activeIdx === totalCount - 1) {
+            loopTimerRef.current = setTimeout(() => {
+                slideRefs.current[0]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                pauseAll();
+                setActiveIdx(0);
+            }, 2800); // pause 2.8s on last reel before looping
+        } else {
+            if (loopTimerRef.current) clearTimeout(loopTimerRef.current);
+        }
+        return () => { if (loopTimerRef.current) clearTimeout(loopTimerRef.current); };
+    }, [activeIdx, totalCount, pauseAll]);
+
 
     useEffect(() => {
         // Use the scroller element as root — slides snap-scroll inside it,
@@ -627,6 +648,7 @@ export default function ReelPlayer({ greeting: _greeting, displayName: _displayN
                                 scene={scene}
                                 isActive={activeIdx === realIdx}
                                 isFullScreen={fullScreenIdx === realIdx}
+                                muted={muted}
                                 onActivate={() => handleTap(realIdx)}
                                 onRegisterPause={(fn) => {
                                     pauseRegistry.current.set(realIdx, fn);
@@ -637,6 +659,41 @@ export default function ReelPlayer({ greeting: _greeting, displayName: _displayN
                     );
                 })}
             </div>
+
+            {/* ── Floating Mute Toggle ── */}
+            <button
+                className={styles.muteBtn}
+                onClick={() => {
+                    setMuted(m => {
+                        const next = !m;
+                        // Apply immediately to all live audio elements
+                        pauseRegistry.current.forEach((_, idx) => {
+                            const slide = slideRefs.current[idx];
+                            if (slide) {
+                                slide.querySelectorAll('audio').forEach(a => { a.muted = next; });
+                            }
+                        });
+                        return next;
+                    });
+                }}
+                aria-label={muted ? 'Unmute' : 'Mute'}
+            >
+                {muted ? (
+                    /* Muted — speaker with X */
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                        <line x1="23" y1="9" x2="17" y2="15" />
+                        <line x1="17" y1="9" x2="23" y2="15" />
+                    </svg>
+                ) : (
+                    /* Unmuted — speaker with waves */
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                    </svg>
+                )}
+            </button>
 
             {/* Dot indicators */}
             <div className={styles.dots}>

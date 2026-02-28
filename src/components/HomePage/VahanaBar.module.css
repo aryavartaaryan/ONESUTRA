@@ -48,23 +48,28 @@
     }
 }
 
-/* MOBILE POSITION & STYLE (Bottom) */
+/* MOBILE POSITION & STYLE (Bottom — Instagram-style) */
 @media (max-width: 768px) {
     .vahanaBar {
-        bottom: 20px;
+        /* Locked to absolute bottom, full width, zero gap */
+        bottom: 0;
         top: auto;
-        padding: 10px 20px;
-        gap: 4px;
-        width: auto;
-        min-width: 300px;
-        max-width: calc(100vw - 48px);
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(24px) saturate(180%);
-        -webkit-backdrop-filter: blur(24px) saturate(180%);
-        border: 1px solid rgba(255, 255, 255, 0.6);
+        left: 0;
+        right: 0;
+        width: 100%;
+        transform: none;
+        border-radius: 24px 24px 0 0;
+        padding: 10px 8px;
+        padding-bottom: calc(10px + env(safe-area-inset-bottom));
+        gap: 0;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(28px) saturate(200%);
+        -webkit-backdrop-filter: blur(28px) saturate(200%);
+        border: none;
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
         box-shadow:
-            0 12px 32px rgba(40, 35, 30, 0.08),
-            0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+            0 -8px 32px rgba(40, 35, 30, 0.06),
+            0 -1px 0 rgba(0, 0, 0, 0.04);
     }
 
     .navItem {
