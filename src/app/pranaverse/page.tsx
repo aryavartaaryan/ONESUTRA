@@ -3,7 +3,9 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReelPlayer from '@/components/Dashboard/ReelPlayer';
+import { useLanguage } from '@/context/LanguageContext';
 import styles from './page.module.css';
+
 
 // ════════════════════════════════════════════════════════
 //  PANCHANG HELPERS  (moved from home)
@@ -36,15 +38,23 @@ function usePanchang() {
 }
 
 // ════════════════════════════════════════════════════════
-//  GREETING HELPER
+//  GREETING HELPER — mirrors home page exactly
 // ════════════════════════════════════════════════════════
-function buildGreeting(h: number) {
+function buildGreeting(lang: 'en' | 'hi', h: number) {
     const isNight = h < 3 || h >= 21;
-    if (isNight) return { emoji: '🌙', text: 'Shubh Ratri', period: 'Night Blessings' };
-    if (h < 12) return { emoji: '🙏', text: 'Shubhodaya', period: 'Morning Blessings' };
-    if (h < 17) return { emoji: '☀️', text: 'Shubh Madhyahna', period: 'Midday Blessings' };
-    return { emoji: '🪔', text: 'Shubh Sandhya', period: 'Evening Blessings' };
+    const en = isNight
+        ? { emoji: '🌙', text: 'Shubh Ratri', period: 'Night Blessings' }
+        : h < 12 ? { emoji: '🙏', text: 'Shubhodaya', period: 'Morning Blessings' }
+            : h < 17 ? { emoji: '☀️', text: 'Shubh Madhyahna', period: 'Midday Blessings' }
+                : { emoji: '🪔', text: 'Shubh Sandhya', period: 'Evening Blessings' };
+    const hi = isNight
+        ? { emoji: '🌙', text: 'शुभ रात्रि', period: 'रात्रि विश्राम' }
+        : h < 12 ? { emoji: '🙏', text: 'शुभोदय', period: 'शुभ प्रभात' }
+            : h < 17 ? { emoji: '☀️', text: 'शुभ मध्याह्न', period: 'मध्याह्न वंदना' }
+                : { emoji: '🪔', text: 'शुभ सन्ध्या', period: 'सन्ध्या वंदना' };
+    return lang === 'hi' ? hi : en;
 }
+
 
 // ════════════════════════════════════════════════════════
 //  TYPES
@@ -246,25 +256,39 @@ const DEFAULT_SANKALPA: Sankalp[] = [
 // ════════════════════════════════════════════════════════
 export default function JustVibePage() {
     const panchangData = usePanchang();
+    const { lang } = useLanguage();                    // same context as home page
     const [tab, setTab] = useState<'reels' | 'feed'>('reels');
     const [activeFilter, setActiveFilter] = useState('Everyone');
     const [activeUser, setActiveUser] = useState<User | null>(null);
-    const [greeting, setGreeting] = useState(() => buildGreeting(new Date().getHours()));
+    // Greeting — identical logic + language to home page
+    const [greeting, setGreeting] = useState(() => buildGreeting(lang, new Date().getHours()));
+    useEffect(() => { setGreeting(buildGreeting(lang, new Date().getHours())); }, [lang]);
 
-    // Sankalpa state — self-contained here
+    // Sankalpa — same localStorage key as home → naturally synced on navigation
     const [sankalpaItems, setSankalpaItems] = useState<Sankalp[]>(() => {
         if (typeof window !== 'undefined') {
             try { const s = localStorage.getItem('vedic_sankalpa'); if (s) return JSON.parse(s); } catch { /* ignore */ }
         }
         return DEFAULT_SANKALPA;
     });
+    // Real-time sync: if home page writes to localStorage in another tab, pick it up instantly
+    useEffect(() => {
+        const onStorage = (e: StorageEvent) => {
+            if (e.key === 'vedic_sankalpa' && e.newValue) {
+                try { setSankalpaItems(JSON.parse(e.newValue)); } catch { /* ignore */ }
+            }
+        };
+        window.addEventListener('storage', onStorage);
+        return () => window.removeEventListener('storage', onStorage);
+    }, []);
     useEffect(() => { localStorage.setItem('vedic_sankalpa', JSON.stringify(sankalpaItems)); }, [sankalpaItems]);
     const handleSankalpaToggle = (id: string) => setSankalpaItems(p => p.map(s => s.id === id ? { ...s, done: !s.done } : s));
     const handleSankalpaRemove = (id: string) => setSankalpaItems(p => p.filter(s => s.id !== id));
     const handleSankalpaAdd = (text: string) => setSankalpaItems(p => [...p, { id: Date.now().toString(), text, done: false }]);
 
     const handleUserClick = useCallback((id: number) => { const u = USERS.find(u => u.id === id); if (u) setActiveUser(u); }, []);
-    const displayName = typeof window !== 'undefined' ? localStorage.getItem('vedic_user_name') || 'Traveller' : 'Traveller';
+    const [displayName, setDisplayName] = useState('Traveller');
+    useEffect(() => { setDisplayName(localStorage.getItem('vedic_user_name') || 'Traveller'); }, []);
 
     return (
         <div className={styles.justVibePage}>

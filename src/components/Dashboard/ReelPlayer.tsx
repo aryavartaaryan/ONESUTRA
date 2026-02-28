@@ -117,7 +117,7 @@ interface SankalpaSlideProps {
     onExpand: () => void;
 }
 
-// Rotating catchy taglines for The Mission
+// Rotating catchy taglines for Today's Mission
 const MISSION_TAGLINES = [
     'Your Sacred Intentions for Today',
     'Set Your Saṅkalpa · Rise with Purpose',
@@ -184,7 +184,7 @@ function SankalpaSlide({ items, onToggle, onRemove, onAdd, isFullScreen, onExpan
                 <div className={styles.missionHeader}>
                     <span className={styles.missionFlame}>🪔</span>
                     <div className={styles.missionTitles}>
-                        <span className={styles.missionTitle} style={{ color: phase.accentHex }}>The Mission</span>
+                        <span className={styles.missionTitle} style={{ color: phase.accentHex }}>Today's Mission</span>
                         <span className={styles.missionTagline}>{tagline}</span>
                     </div>
                     <span className={styles.sankalpaProgress}>{done}/{items.length}</span>
