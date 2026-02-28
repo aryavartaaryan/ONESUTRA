@@ -1213,24 +1213,56 @@
 .auraHeaderContent {
     position: relative;
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 44px 1.25rem 0;
-    /* pointer-events: auto lets the tabs be clickable */
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 44px 1.25rem 0.75rem;
     pointer-events: auto;
 }
 
 .auraTitle {
     font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 1.4rem;
+    font-size: 1.25rem;
     font-weight: 600;
     font-style: italic;
     color: rgba(255, 248, 220, 0.95);
     text-shadow: 0 0 24px rgba(255, 200, 80, 0.4), 0 2px 8px rgba(0, 0, 0, 0.7);
     letter-spacing: 0.02em;
-    line-height: 1.2;
-    display: block;
-    margin-bottom: 0.5rem;
+    white-space: nowrap;
+}
+
+/* Right icon cluster */
+.auraIcons {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    pointer-events: auto;
+}
+
+.auraIconBtn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: rgba(255, 255, 255, 0.82);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.18s ease, transform 0.12s ease;
+}
+
+.auraIconBtn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
+
+.auraIconBtn:active {
+    transform: scale(0.95);
 }
 
 /* Override tabBar appearance when nested inside auraHeader */

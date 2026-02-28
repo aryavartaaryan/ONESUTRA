@@ -1355,3 +1355,105 @@
 .muteBtn:active {
     transform: scale(0.94);
 }
+
+/* ══════════════════════════════════════════════════════════════
+   AUDIO GATE OVERLAY — "Tap to enter the Vibe"
+   Full-screen modal satisfying browser auto-play policy
+   ══════════════════════════════════════════════════════════════ */
+
+.audioGate {
+    position: absolute;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    background: linear-gradient(180deg,
+            rgba(5, 2, 15, 0.92) 0%,
+            rgba(15, 5, 35, 0.96) 50%,
+            rgba(5, 2, 15, 0.92) 100%);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 2rem;
+    text-align: center;
+}
+
+.audioGateOrb {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: radial-gradient(circle at center, rgba(214, 141, 58, 0.35) 0%, rgba(214, 141, 58, 0.08) 60%, transparent 100%);
+    border: 1.5px solid rgba(214, 141, 58, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 40px rgba(214, 141, 58, 0.25), 0 0 80px rgba(214, 141, 58, 0.1);
+}
+
+.audioGateEmoji {
+    font-size: 2.75rem;
+    filter: drop-shadow(0 0 16px rgba(214, 141, 58, 0.6));
+}
+
+.audioGateTitle {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.7rem;
+    font-weight: 600;
+    font-style: italic;
+    color: rgba(255, 248, 220, 0.95);
+    text-shadow: 0 0 40px rgba(214, 141, 58, 0.4);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.audioGateSub {
+    font-family: 'Outfit', 'Inter', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.45);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+.audioGateBtn {
+    margin-top: 0.5rem;
+    padding: 0.75rem 2.5rem;
+    border-radius: 999px;
+    border: 1px solid rgba(214, 141, 58, 0.55);
+    background: rgba(214, 141, 58, 0.14);
+    color: rgba(255, 220, 120, 0.95);
+    font-family: 'Outfit', 'Inter', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+    box-shadow: 0 0 24px rgba(214, 141, 58, 0.12);
+}
+
+.audioGateBtn:hover {
+    background: rgba(214, 141, 58, 0.26);
+    box-shadow: 0 0 36px rgba(214, 141, 58, 0.28);
+    transform: scale(1.03);
+}
+
+.audioGateBtn:active {
+    transform: scale(0.97);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   VIRTUALIZED SLIDE PLACEHOLDER
+   Keeps scroll height correct for out-of-window slides
+   ══════════════════════════════════════════════════════════════ */
+
+.reelSlidePlaceholder {
+    width: 100%;
+    height: 100%;
+    min-height: 100dvh;
+    background: #000;
+    scroll-snap-align: start;
+    flex-shrink: 0;
+}

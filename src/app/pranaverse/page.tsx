@@ -293,12 +293,14 @@ export default function JustVibePage() {
     return (
         <div className={styles.justVibePage}>
 
-            {/* ══ FLOATING AURA HEADER — transparent gradient, floats over the reel ══ */}
+            {/* ══ UNICORN AURA HEADER — floats transparently over reels ══ */}
             <div className={styles.auraHeader}>
                 <div className={styles.auraHeaderGradient} />
                 <div className={styles.auraHeaderContent}>
-                    <span className={styles.auraTitle}>Vibes</span>
-                    {/* ══ TAB BAR — Vibes | Feed ══ */}
+                    {/* Left: Brand */}
+                    <span className={styles.auraTitle}>PranaVerse</span>
+
+                    {/* Centre: Vibes/Feed tabs */}
                     <div className={styles.tabBar}>
                         <button
                             className={`${styles.tabBtn} ${tab === 'reels' ? styles.tabBtnActive : ''}`}
@@ -311,6 +313,31 @@ export default function JustVibePage() {
                             onClick={() => setTab('feed')}
                         >
                             <span className={styles.tabIcon}>⊞</span> Feed
+                        </button>
+                    </div>
+
+                    {/* Right: 3 custom SVG icon cluster */}
+                    <div className={styles.auraIcons}>
+                        {/* Lotus/Flame — daily streak */}
+                        <button className={styles.auraIconBtn} aria-label="Daily streak">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M12 2C12 2 7 8 7 13a5 5 0 0 0 10 0c0-5-5-11-5-11z" />
+                                <path d="M12 13c0-2 1.5-4 3-5-1 3-1 5 0 7" strokeOpacity="0.6" />
+                            </svg>
+                        </button>
+                        {/* Wave — vibe connections */}
+                        <button className={styles.auraIconBtn} aria-label="Vibe connections">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M2 12c1.5-3 3.5-4.5 6-4.5s4.5 3 7 3 4.5-1.5 6-4.5" />
+                                <path d="M2 17c1.5-3 3.5-4.5 6-4.5s4.5 3 7 3 4.5-1.5 6-4.5" strokeOpacity="0.5" />
+                            </svg>
+                        </button>
+                        {/* Bell — notifications */}
+                        <button className={styles.auraIconBtn} aria-label="Notifications">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                            </svg>
                         </button>
                     </div>
                 </div>

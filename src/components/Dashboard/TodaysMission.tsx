@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import { useCircadianBackground } from '@/hooks/useCircadianBackground';
 import { useCircadianUnsplash } from '@/hooks/useCircadianUnsplash';
 import styles from './TodaysMission.module.css';
@@ -34,6 +35,53 @@ export interface TodaysMissionProps {
     variant?: 'vedic' | 'nature';
     isFullScreen?: boolean;
     onExpand?: () => void;
+}
+
+// \u2500\u2500 Glass Pill: immersive full-screen Sankalpa task item \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+function GlassPill({ item, onToggle }: { item: Sankalp; onToggle: (id: string) => void }) {
+    const [tapped, setTapped] = useState(false);
+
+    const handleTap = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!tapped) {
+            setTapped(true);
+            // Short delay for glow animation, then toggle
+            setTimeout(() => onToggle(item.id), 350);
+        }
+    };
+
+    return (
+        <AnimatePresence>
+            {!item.done && (
+                <motion.button
+                    key={item.id}
+                    className={styles.pill}
+                    variants={{
+                        hidden: { opacity: 0, y: 20, scale: 0.95 },
+                        visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 260, damping: 22 } },
+                    }}
+                    animate={tapped
+                        ? { opacity: 0, y: -60, scale: 0.85, boxShadow: '0 0 40px rgba(255, 200, 50, 0.9)' }
+                        : { opacity: 1, y: 0, scale: 1 }
+                    }
+                    exit={{ opacity: 0, y: -40, scale: 0.8 }}
+                    transition={tapped ? { duration: 0.5, ease: 'easeOut' } : { type: 'spring', stiffness: 260, damping: 22 }}
+                    onClick={handleTap}
+                    whileHover={{ scale: 1.03, boxShadow: '0 0 16px rgba(255,200,50,0.3)' }}
+                    whileTap={{ scale: 0.97 }}
+                    layout
+                >
+                    <span className={styles.pillDot} />
+                    <span className={styles.pillText}>{item.text}</span>
+                    <span className={styles.pillCheck}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,200,80,0.7)" strokeWidth="2" strokeLinecap="round">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                    </span>
+                </motion.button>
+            )}
+        </AnimatePresence>
+    );
 }
 
 export default function TodaysMission({
@@ -117,26 +165,37 @@ export default function TodaysMission({
             )}
 
             <div className={styles.list}>
-                <AnimatePresence initial={false}>
-                    {isMounted && items.map(item => (
-                        <motion.div
-                            key={item.id}
-                            className={`${styles.item} ${isFullScreen ? styles.itemFull : ''} ${item.done ? styles.itemDone : ''}`}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
-                            transition={{ duration: 0.2 }}
-                            layout
-                        >
-                            {isFullScreen ? (
-                                <div className={`${styles.checkDecorative} ${item.done ? styles.checkDecorativeDone : ''}`}>
-                                    {item.done && (
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                            <polyline points="20 6 9 17 4 12" />
-                                        </svg>
-                                    )}
-                                </div>
-                            ) : (
+                {isFullScreen ? (
+                    // ── Full-screen mode: floating Glass Pills with Spanda animation ──
+                    <motion.div
+                        className={styles.pillsContainer}
+                        variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+                        initial="hidden"
+                        animate="visible"
+                    >
+                        <AnimatePresence>
+                            {isMounted && items.map(item => (
+                                <GlassPill
+                                    key={item.id}
+                                    item={item}
+                                    onToggle={onToggle}
+                                />
+                            ))}
+                        </AnimatePresence>
+                    </motion.div>
+                ) : (
+                    // ── Standard mode: home-page vertical list ──
+                    <AnimatePresence initial={false}>
+                        {isMounted && items.map(item => (
+                            <motion.div
+                                key={item.id}
+                                className={`${styles.item} ${item.done ? styles.itemDone : ''}`}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                                transition={{ duration: 0.2 }}
+                                layout
+                            >
                                 <button
                                     className={`${styles.checkBtn} ${item.done ? styles.checkBtnDone : ''}`}
                                     onClick={() => onToggle(item.id)}
@@ -158,20 +217,17 @@ export default function TodaysMission({
                                         )}
                                     </AnimatePresence>
                                 </button>
-                            )}
-                            <span className={`${styles.text} ${isFullScreen ? styles.textFull : ''}`}>{item.text}</span>
-                            {!isFullScreen && (
+                                <span className={`${styles.text} ${item.done ? styles.textDone : ''}`}>{item.text}</span>
                                 <button className={styles.removeBtn} onClick={() => onRemove(item.id)} aria-label="Remove">
-                                    {/* Feather-light SVG X icon */}
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                                         <line x1="18" y1="6" x2="6" y2="18" />
                                         <line x1="6" y1="6" x2="18" y2="18" />
                                     </svg>
                                 </button>
-                            )}
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+                )}
 
                 {!isFullScreen && (
                     <AnimatePresence>
@@ -203,21 +259,29 @@ export default function TodaysMission({
     if (isFullScreen) {
         return (
             <div className={styles.containerFull} onClick={onExpand}>
-                <div className={styles.reelCircadianBg} />
-                <motion.div
-                    className={styles.reelCircadianBg}
-                    style={{ backgroundImage: `url(${imageUrl})` }}
-                    animate={{ opacity: loaded ? 1 : 0 }}
-                    initial={{ opacity: 0 }}
-                    transition={{ duration: 1.5 }}
-                />
+                {/* Black fallback while image loads */}
+                <div className={styles.reelCircadianBg} style={{ background: '#050210' }} />
+
+                {/* ── Next.js Image: priority download for instant LCP ── */}
+                {imageUrl && (
+                    <div className={styles.reelCircadianBg} style={{ overflow: 'hidden' }}>
+                        <Image
+                            src={imageUrl}
+                            alt="Circadian nature background"
+                            fill
+                            priority
+                            sizes="100vw"
+                            style={{ objectFit: 'cover', objectPosition: 'center', opacity: loaded ? 1 : 0, transition: 'opacity 1.5s ease' }}
+                        />
+                    </div>
+                )}
                 <div className={styles.reelOverlay} />
 
                 {onExpand && (
                     <button className={styles.dismissBtn} onClick={onExpand} aria-label="Exit full screen">✕</button>
                 )}
 
-                {/* The Sankalpa content anchored to bottom via containerFull CSS */}
+                {/* The Sankalpa content anchored to bottom */}
                 <div style={{ width: '100%' }}>
                     {cardContent}
                 </div>

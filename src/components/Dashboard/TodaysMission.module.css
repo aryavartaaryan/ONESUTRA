@@ -486,3 +486,62 @@
     z-index: 20;
     cursor: pointer;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   GLASS PILLS — Floating Intention Orbs for full-screen Sankalpa reel
+   ══════════════════════════════════════════════════════════════ */
+
+.pillsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    width: 100%;
+    padding: 0 0.25rem;
+}
+
+.pill {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.85rem 1.1rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    color: rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+    text-align: left;
+    /* box-shadow controlled by Framer Motion */
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.pillDot {
+    flex-shrink: 0;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(214, 141, 58, 0.8);
+    box-shadow: 0 0 8px rgba(214, 141, 58, 0.5);
+}
+
+.pillText {
+    flex: 1;
+    font-family: 'Outfit', 'Inter', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.88);
+    line-height: 1.35;
+}
+
+.pillCheck {
+    flex-shrink: 0;
+    opacity: 0.5;
+}
+
+/* Home-page done item strikethrough */
+.textDone {
+    text-decoration: line-through;
+    opacity: 0.45;
+}

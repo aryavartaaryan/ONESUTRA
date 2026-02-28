@@ -528,38 +528,31 @@ function ReelRightSidebar({ accent }: { accent: string }) {
 export default function ReelPlayer({ greeting: _greeting, displayName: _displayName, panchangData: _panchangData, sankalpaItems, onSankalpaToggle, onSankalpaRemove, onSankalpaAdd }: ReelPlayerProps) {
     const [activeIdx, setActiveIdx] = useState(0);
     const [fullScreenIdx, setFullScreenIdx] = useState<number | null>(null);
-    const [muted, setMuted] = useState(true);  // Auto-play starts muted (TikTok/IG standard)
+    const [muted, setMuted] = useState(true);
+    // ── Audio Gate: starts true, user taps to enter the vibe ──
+    const [audioGateOpen, setAudioGateOpen] = useState(true);
+    // ── Infinite feed: starts as [sankalpa, ...TRACKS], appends copies near end
+    const initialFeed = [{ id: 'sankalpa-0', type: 'sankalpa' as const }, ...TRACKS.map(t => ({ ...t, type: 'mantra' as const }))];
+    const [feed, setFeed] = useState(initialFeed);
     const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
     const scrollerRef = useRef<HTMLDivElement | null>(null);
     const scene = getTimeScene(new Date().getHours());
-    const loopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Registry of instant-pause callbacks — one per ReelSlide.
-    // Stored as a plain mutable ref (NOT state) so we can call them
-    // synchronously inside the scroll handler without triggering re-renders.
     const pauseRegistry = useRef<Map<number, () => void>>(new Map());
-
-    /** Pause ALL slides immediately — call this before updating activeIdx */
     const pauseAll = useCallback(() => {
         pauseRegistry.current.forEach(fn => fn());
     }, []);
 
-    // ── Total slides = sankalpa (0) + TRACKS (1–N)
-    const totalCount = TRACKS.length + 1;
-
-    // ── Infinite Loop: when user hits the last slide, scroll back to slide 0 ──
+    // ── Infinite feed: append when user is 2 slides from the end ──
     useEffect(() => {
-        if (activeIdx === totalCount - 1) {
-            loopTimerRef.current = setTimeout(() => {
-                slideRefs.current[0]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                pauseAll();
-                setActiveIdx(0);
-            }, 2800); // pause 2.8s on last reel before looping
-        } else {
-            if (loopTimerRef.current) clearTimeout(loopTimerRef.current);
+        if (activeIdx >= feed.length - 2) {
+            // Shuffle TRACKS before appending for variety
+            const shuffled = [...TRACKS].sort(() => Math.random() - 0.5);
+            const newSlides = shuffled.map((t, i) => ({ ...t, type: 'mantra' as const, id: `${t.id}-${feed.length + i}` }));
+            setFeed(prev => [...prev, ...newSlides]);
         }
-        return () => { if (loopTimerRef.current) clearTimeout(loopTimerRef.current); };
-    }, [activeIdx, totalCount, pauseAll]);
+    }, [activeIdx, feed.length]);
 
 
     useEffect(() => {
@@ -615,46 +608,84 @@ export default function ReelPlayer({ greeting: _greeting, displayName: _displayN
 
     return (
         <div className={styles.reelWrapper}>
-            {/* Desktop left placeholder — nav is handled by VahanaBar globally */}
+            {/* Desktop left placeholder */}
             <div className={styles.desktopLeftSidebar} aria-hidden />
 
-            {/* Snap scroll container — shows exactly 1 reel at a time */}
-            <div className={styles.reelScroller} ref={scrollerRef}>
-                {/* Slide 0: Sankalpa / Mission */}
-                <div
-                    className={styles.reelSlideWrapper}
-                    ref={el => { slideRefs.current[0] = el; }}
-                >
-                    <TodaysMission
-                        items={sankalpaItems}
-                        onToggle={onSankalpaToggle}
-                        onRemove={onSankalpaRemove}
-                        onAdd={onSankalpaAdd}
-                        isFullScreen={true}
-                    />
-                </div>
+            {/* ── Audio Gate: browser auto-play requires a user gesture ── */}
+            <AnimatePresence>
+                {audioGateOpen && (
+                    <motion.div
+                        className={styles.audioGate}
+                        initial={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.8, ease: 'easeOut' }}
+                    >
+                        <motion.div
+                            className={styles.audioGateOrb}
+                            animate={{ scale: [1, 1.08, 1], opacity: [0.7, 1, 0.7] }}
+                            transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+                        >
+                            <span className={styles.audioGateEmoji}>🕉️</span>
+                        </motion.div>
+                        <h2 className={styles.audioGateTitle}>Tap to enter the Vibe</h2>
+                        <p className={styles.audioGateSub}>Begin your sacred audio journey</p>
+                        <button
+                            className={styles.audioGateBtn}
+                            onClick={() => {
+                                // Resume AudioContext (satisfies browser autoplay policy)
+                                const win = window as any;
+                                if (!win.__sharedActx) {
+                                    win.__sharedActx = new AudioContext();
+                                }
+                                win.__sharedActx?.resume?.().catch(() => { });
+                                setAudioGateOpen(false);
+                            }}
+                        >
+                            Enter ✦
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                {/* Slides 1–N: Mantra Reels */}
-                {TRACKS.map((track, i) => {
-                    const realIdx = i + 1;
+            {/* Snap scroll container */}
+            <div className={styles.reelScroller} ref={scrollerRef}>
+                {feed.map((item, i) => {
+                    // ── Virtualization: only render ±2 slides from active ──
+                    const isNear = Math.abs(i - activeIdx) <= 2;
+
                     return (
                         <div
-                            key={track.id}
+                            key={item.id}
                             className={styles.reelSlideWrapper}
-                            ref={el => { slideRefs.current[realIdx] = el; }}
+                            ref={el => { slideRefs.current[i] = el; }}
                         >
-                            <ReelSlide
-                                track={track}
-                                scene={scene}
-                                isActive={activeIdx === realIdx}
-                                isFullScreen={fullScreenIdx === realIdx}
-                                muted={muted}
-                                onActivate={() => handleTap(realIdx)}
-                                onRegisterPause={(fn) => {
-                                    pauseRegistry.current.set(realIdx, fn);
-                                    return () => { pauseRegistry.current.delete(realIdx); };
-                                }}
-                            />
+                            {item.type === 'sankalpa' ? (
+                                // Sankalpa reel is always rendered (it's index 0, always near)
+                                <TodaysMission
+                                    items={sankalpaItems}
+                                    onToggle={onSankalpaToggle}
+                                    onRemove={onSankalpaRemove}
+                                    onAdd={onSankalpaAdd}
+                                    isFullScreen={true}
+                                />
+                            ) : isNear ? (
+                                // Mantra reel — only rendered if within ±2 of active
+                                <ReelSlide
+                                    track={item}
+                                    scene={scene}
+                                    isActive={activeIdx === i}
+                                    isFullScreen={fullScreenIdx === i}
+                                    muted={muted}
+                                    onActivate={() => handleTap(i)}
+                                    onRegisterPause={(fn) => {
+                                        pauseRegistry.current.set(i, fn);
+                                        return () => { pauseRegistry.current.delete(i); };
+                                    }}
+                                />
+                            ) : (
+                                // Virtualized placeholder — keeps scroll height correct
+                                <div className={styles.reelSlidePlaceholder} />
+                            )}
                         </div>
                     );
                 })}
@@ -666,7 +697,6 @@ export default function ReelPlayer({ greeting: _greeting, displayName: _displayN
                 onClick={() => {
                     setMuted(m => {
                         const next = !m;
-                        // Apply immediately to all live audio elements
                         pauseRegistry.current.forEach((_, idx) => {
                             const slide = slideRefs.current[idx];
                             if (slide) {
@@ -679,14 +709,12 @@ export default function ReelPlayer({ greeting: _greeting, displayName: _displayN
                 aria-label={muted ? 'Unmute' : 'Mute'}
             >
                 {muted ? (
-                    /* Muted — speaker with X */
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                         <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
                         <line x1="23" y1="9" x2="17" y2="15" />
                         <line x1="17" y1="9" x2="23" y2="15" />
                     </svg>
                 ) : (
-                    /* Unmuted — speaker with waves */
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                         <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
                         <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
@@ -695,23 +723,23 @@ export default function ReelPlayer({ greeting: _greeting, displayName: _displayN
                 )}
             </button>
 
-            {/* Dot indicators */}
+            {/* Dot indicators — show only first N base slides */}
             <div className={styles.dots}>
-                {Array.from({ length: totalCount }).map((_, i) => (
+                {Array.from({ length: Math.min(TRACKS.length + 1, 8) }).map((_, i) => (
                     <button
                         key={i}
-                        className={`${styles.dot} ${i === activeIdx ? styles.dotOn : ''}`}
+                        className={`${styles.dot} ${i === activeIdx % (TRACKS.length + 1) ? styles.dotOn : ''}`}
                         style={{ '--reel-accent': scene.accent } as React.CSSProperties}
                         onClick={() => {
                             slideRefs.current[i]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                             setActiveIdx(i);
                         }}
-                        aria-label={i === 0 ? 'Mission' : TRACKS[i - 1].title}
+                        aria-label={i === 0 ? 'Mission' : (TRACKS[i - 1]?.title ?? `Track ${i}`)}
                     />
                 ))}
             </div>
 
-            {/* Desktop right sidebar — Ayurvedic wellness prompts */}
+            {/* Desktop right sidebar */}
             <ReelRightSidebar accent={scene.accent} />
         </div>
     );
