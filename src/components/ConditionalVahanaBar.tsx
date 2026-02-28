@@ -9,10 +9,10 @@ import VahanaBar from './HomePage/VahanaBar';
 export default function ConditionalVahanaBar() {
     const pathname = usePathname();
 
-    // Hide navigation in the Dhyan Kshetra experience (Meditation Room, Entry, etc)
-    const isMeditationRoom = pathname.startsWith('/dhyan-kshetra');
+    // Hide navigation in the Dhyan Kshetra experience and the immersive JustVibe Reels feed
+    const isHiddenRoute = pathname.startsWith('/dhyan-kshetra') || pathname.startsWith('/pranaverse');
 
-    if (isMeditationRoom) return null;
+    if (isHiddenRoute) return null;
 
     return <VahanaBar />;
 }
