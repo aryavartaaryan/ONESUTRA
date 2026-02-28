@@ -1191,6 +1191,62 @@
 }
 
 /* ══════════════════════════════════════════════════
+   AURA HEADER — Floating transparent brand header
+══════════════════════════════════════════════════ */
+.auraHeader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 50;
+    pointer-events: none;
+    /* clicks pass through the gradient */
+}
+
+.auraHeaderGradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0.3) 60%, transparent 100%);
+    pointer-events: none;
+}
+
+.auraHeaderContent {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 44px 1.25rem 0;
+    /* pointer-events: auto lets the tabs be clickable */
+    pointer-events: auto;
+}
+
+.auraTitle {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    font-style: italic;
+    color: rgba(255, 248, 220, 0.95);
+    text-shadow: 0 0 24px rgba(255, 200, 80, 0.4), 0 2px 8px rgba(0, 0, 0, 0.7);
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+/* Override tabBar appearance when nested inside auraHeader */
+.auraHeader .tabBar {
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-bottom: none;
+    position: static;
+    /* not sticky inside fixed parent */
+    top: unset;
+    padding: 0;
+    gap: 0.25rem;
+}
+
+/* ══════════════════════════════════════════════════
    TAB BAR — Reels | Feed pivot
 ══════════════════════════════════════════════════ */
 .tabBar {

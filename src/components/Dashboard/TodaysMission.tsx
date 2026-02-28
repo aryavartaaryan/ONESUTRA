@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCircadianBackground } from '@/hooks/useCircadianBackground';
-import { useHalfHourImage } from '@/hooks/useHalfHourImage';
+import { useCircadianUnsplash } from '@/hooks/useCircadianUnsplash';
 import styles from './TodaysMission.module.css';
 
 export interface Sankalp { id: string; text: string; done: boolean; }
@@ -55,12 +55,12 @@ export default function TodaysMission({
 
     const done = items.filter(s => s.done).length;
 
-    // In Home Page (not full screen), use classic circadian.
-    // In Reels (full screen), use our stunning 30-min Unsplash wallpapers.
+    // Home page: classic circadian background.
+    // Reels full-screen: live Unsplash image matched to time of day.
     const circadian = useCircadianBackground(variant);
-    const halfHour = useHalfHourImage();
-    const imageUrl = isFullScreen ? halfHour.imageUrl : circadian.imageUrl;
-    const loaded = isFullScreen ? halfHour.loaded : circadian.loaded;
+    const circadianUnsplash = useCircadianUnsplash();
+    const imageUrl = isFullScreen ? circadianUnsplash.imageUrl : circadian.imageUrl;
+    const loaded = isFullScreen ? circadianUnsplash.loaded : circadian.loaded;
 
     const add = () => {
         if (!draft.trim()) return;

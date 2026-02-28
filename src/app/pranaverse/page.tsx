@@ -4,7 +4,6 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReelPlayer from '@/components/Dashboard/ReelPlayer';
 import { useLanguage } from '@/context/LanguageContext';
-import PremiumHeader from '@/components/PremiumHeader/PremiumHeader';
 import styles from './page.module.css';
 
 
@@ -294,26 +293,27 @@ export default function JustVibePage() {
     return (
         <div className={styles.justVibePage}>
 
-            {/* ══ PREMIUM STICKY HEADER ══ */}
-            <PremiumHeader
-                title="JustVibe"
-                subtitle="The Vibe · High-Frequency Feed"
-            />
-
-            {/* ══ TAB BAR — Vibes | Feed ══ */}
-            <div className={styles.tabBar}>
-                <button
-                    className={`${styles.tabBtn} ${tab === 'reels' ? styles.tabBtnActive : ''}`}
-                    onClick={() => setTab('reels')}
-                >
-                    <span className={styles.tabIcon}>▶</span> Vibes
-                </button>
-                <button
-                    className={`${styles.tabBtn} ${tab === 'feed' ? styles.tabBtnActive : ''}`}
-                    onClick={() => setTab('feed')}
-                >
-                    <span className={styles.tabIcon}>⊞</span> Feed
-                </button>
+            {/* ══ FLOATING AURA HEADER — transparent gradient, floats over the reel ══ */}
+            <div className={styles.auraHeader}>
+                <div className={styles.auraHeaderGradient} />
+                <div className={styles.auraHeaderContent}>
+                    <span className={styles.auraTitle}>Vibes</span>
+                    {/* ══ TAB BAR — Vibes | Feed ══ */}
+                    <div className={styles.tabBar}>
+                        <button
+                            className={`${styles.tabBtn} ${tab === 'reels' ? styles.tabBtnActive : ''}`}
+                            onClick={() => setTab('reels')}
+                        >
+                            <span className={styles.tabIcon}>▶</span> Vibes
+                        </button>
+                        <button
+                            className={`${styles.tabBtn} ${tab === 'feed' ? styles.tabBtnActive : ''}`}
+                            onClick={() => setTab('feed')}
+                        >
+                            <span className={styles.tabIcon}>⊞</span> Feed
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {/* ══ TAB CONTENT ══ */}
