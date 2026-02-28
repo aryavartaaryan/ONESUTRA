@@ -220,7 +220,7 @@ export default function WaterWaveVisualizer({ audioRef, playing, height = 600, a
             }
             const source = SHARED_ACTX.createMediaElementSource(audio);
             const an = SHARED_ACTX.createAnalyser();
-            an.fftSize = 2048; an.smoothingTimeConstant = 0.92;
+            an.fftSize = 2048; an.smoothingTimeConstant = 0.72;
             source.connect(an); an.connect(SHARED_ACTX.destination);
             analyserRef.current = an;
             dataRef.current = new Uint8Array(an.frequencyBinCount) as Uint8Array<ArrayBuffer>;
@@ -283,11 +283,11 @@ export default function WaterWaveVisualizer({ audioRef, playing, height = 600, a
                 for (let i = 0; i < (bassRise > 0.12 ? 2 : 1); i++) {
                     dropsRef.current.push({
                         cx: 0.1 + Math.random() * 0.80,
-                        amp: 0.08 + bass * 0.28 + Math.random() * 0.08,
-                        k: 14 + Math.random() * 12, omega: 5 + Math.random() * 5,
-                        age: 0, decay: 0.012 + Math.random() * 0.012,
+                        amp: 0.04 + bass * 0.10 + Math.random() * 0.04,
+                        k: 16 + Math.random() * 10, omega: 5 + Math.random() * 5,
+                        age: 0, decay: 0.016 + Math.random() * 0.012,
                     });
-                    if (dropsRef.current.length > 14) dropsRef.current.shift();
+                    if (dropsRef.current.length > 10) dropsRef.current.shift();
                 }
             }
             prevBassRef.current = bass;
@@ -418,38 +418,51 @@ export default function WaterWaveVisualizer({ audioRef, playing, height = 600, a
                 const nx = px / W;
                 let y = crestBaseY;
 
-                // Edge dampening window function (1.0 at center, 0.0 at edges)
-                // This ensures the wave looks bounded, like a physical string or contained fluid
-                const edgeDamp = 1.0 - Math.pow(Math.abs(nx - 0.5) * 2, 2.5);
+                // ─── Uniform travelling wave surface (no center peak) ─────────────────
+                // Strategy: combine multiple sinusoidal wave trains that propagate
+                // uniformly across the full canvas width. Amplitude is governed by
+                // the audio band energies, giving instant visual sync with the mantra.
 
-                let harmonicSum = 0;
-                // 1. Fundamental Swell (Slow, driven by low bass)
-                harmonicSum += Math.sin(nx * Math.PI * 2.0 - t * 1.5) * (0.040 + bass * 0.15);
+                // FFT per-pixel mapping: sample the frequency bin that corresponds
+                // to this horizontal position on the canvas. This makes the entire
+                // width respond directly to the mantra's spectral content.
+                const binIndex = Math.floor(nx * (d.length * 0.35));  // map 0→1 to lower 35% of spectrum
+                const rawBin = (an && playing) ? d[binIndex] / 255.0 : 0;
 
-                // 2. First Harmonic (Punchy bass)
-                harmonicSum += Math.sin(nx * Math.PI * 3.5 - t * 2.1 + 0.8) * (0.025 + bass * 0.14);
+                // 1. Slow ocean swell — driven by bass energy
+                //    Low frequency, travels left-to-right
+                const swellAmp = 0.012 + bass * 0.032;
+                const swell = Math.sin(nx * Math.PI * 3.0 - t * 1.8) * swellAmp
+                    + Math.sin(nx * Math.PI * 1.6 - t * 1.1 + 0.8) * swellAmp * 0.55;
 
-                // 3. Second Harmonic (Lower mids - vocals/instruments)
-                harmonicSum += Math.sin(nx * Math.PI * 5.2 - t * 2.8 + 1.2) * (0.018 + mid * 0.12);
+                // 2. Mid-frequency mantra ripples — driven by mid energy
+                //    These travel right-to-left, creating a crossing-wave interference pattern
+                const midAmp = 0.007 + mid * 0.022;
+                const midRipple = Math.sin(nx * Math.PI * 6.5 + t * 2.5 + 1.4) * midAmp
+                    + Math.sin(nx * Math.PI * 9.2 - t * 3.0 + 2.8) * midAmp * 0.65;
 
-                // 4. Third Harmonic (Higher mids)
-                harmonicSum += Math.sin(nx * Math.PI * 8.4 - t * 3.5 + 2.4) * (mid * 0.10);
+                // 3. Treble micro-shimmer — very fine fast ripples across the whole surface
+                const shimmerAmp = treble * 0.012;
+                const shimmer = Math.sin(nx * Math.PI * 18.0 - t * 5.5) * shimmerAmp
+                    + Math.sin(nx * Math.PI * 24.0 + t * 4.2 + 1.7) * shimmerAmp * 0.5;
 
-                // 5. Fourth Harmonic (Treble/Sibilance - fast micro ripples)
-                harmonicSum += Math.sin(nx * Math.PI * 14.0 - t * 4.5 + 3.1) * (treble * 0.08);
+                // 4. Direct FFT bin → ripple: this is the magic "instant sync" element.
+                //    Each pixel reads its own frequency bin, then multiplies by a
+                //    travelling sine so it creates actual wave motion (not bar-chart spikes).
+                const directSync = Math.sin(nx * Math.PI * 12.0 - t * 4.0) * rawBin * 0.018;
 
-                // 6. Direct FFT micro-surface tension mapped mathematically
-                const fftIdx = Math.floor(nx * (d.length * 0.40));
-                const fftVal = (an && playing) ? (d[fftIdx] / 255.0) : 0;
-                const highFreqPhase = nx * Math.PI * 32.0 - t * 6.0;
-                // Multiply the raw FFT data by a fast sine wave so it produces actual ripples, not blocky bars
-                const microRipple = Math.sin(highFreqPhase) * (fftVal * 0.06);
+                // 5. Subtle standing-wave node pattern (gives the "string plucked" look)
+                const standingAmp = energy * 0.008;
+                const standing = Math.sin(nx * Math.PI * 4.0) * Math.sin(t * 2.2) * standingAmp;
 
-                // Add combined harmonic fourier series to Y, scaled by canvas height and edge dampening
-                y += (harmonicSum + microRipple) * H * edgeDamp * 1.35;
+                // Sum all waves — no edge dampening → uniform response across full length
+                let harmonicSum = swell + midRipple + shimmer + directSync + standing;
 
-                // Add transient physical drops
-                for (const dp of dropsRef.current) y += dropY(dp, nx) * H * 0.045;
+                // Scale to canvas height — kept deliberately modest for a water-surface look
+                y += harmonicSum * H * 0.85;
+
+                // Physical transient drops (bass hits)
+                for (const dp of dropsRef.current) y += dropY(dp, nx) * H * 0.018;
 
                 crestPath.push(y);
             }
