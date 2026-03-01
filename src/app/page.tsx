@@ -4,19 +4,18 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import HeroSection from '@/components/HomePage/HeroSection';
 import AuthModal from '@/components/HomePage/AuthModal';
-import PillarGrid from '@/components/HomePage/PillarGrid';
 import GayatriMantraSection from '@/components/GayatriMantraSection/GayatriMantraSection';
 import VoiceCallModal from '@/components/VoiceCallModal';
-
+import WisdomTicker from '@/components/Dashboard/WisdomTicker';
 import AbountModal from '@/components/Dashboard/AboutModal';
 import UserProfile from '@/components/Dashboard/UserProfile';
-import JustVibePortals from '@/components/Dashboard/JustVibePortals';
+import SacredPortalGrid from '@/components/HomePage/SacredPortalGrid';
 import SacredCanvas from '@/components/SacredCanvas/SacredCanvas';
 import SakhaBodhiOrb from '@/components/Dashboard/SakhaBodhiOrb';
 
 import VedicDashboard from '@/components/Dashboard/VedicDashboard';
 import MagicSyncModule from '@/components/Dashboard/MagicSyncModule';
-
+import DailyInsightsCarousel from '@/components/Dashboard/DailyInsightsCarousel';
 import { useCircadianBackground } from '@/hooks/useCircadianBackground';
 
 import { useLanguage } from '@/context/LanguageContext';
@@ -187,6 +186,8 @@ export default function Home() {
         {/* ══ VEDIC DASHBOARD — panchang strip below header ══ */}
         <VedicDashboard greeting={greeting} displayName={displayName} />
 
+        {/* ══ TODAY’S MISSION — full circadian background + frosted glass tasks ══ */}        {/* ══ DAILY INSIGHTS CAROUSEL ══ */}
+        <DailyInsightsCarousel />
 
 
         <MagicSyncModule
@@ -203,24 +204,24 @@ export default function Home() {
         {/* ══ 3-COLUMN GRID — below the reel ══ */}
         <div className={dashStyles.dashboardGrid}>
 
+          {/* LEFT SIDEBAR */}
+          <aside className={dashStyles.sidebarLeft}>
+            <motion.div {...fadeUp(0.22)}><WisdomTicker /></motion.div>
+          </aside>
 
           {/* CENTER FEED */}
           <div className={dashStyles.feedCenter}>
 
-            {/* JustVibe portal cards */}
-            <motion.div {...fadeUp(0.2)}><JustVibePortals /></motion.div>
+            {/* Sacred Portal Grid — unified hybrid bento (replaces JustVibePortals + PillarGrid) */}
+            <SacredPortalGrid />
 
-            <div className={dashStyles.sectionDivider} />
-
-            {/* Remaining wellness sections — below fold */}
-            {[PillarGrid, GayatriMantraSection].map((Comp, i) => (
-              <motion.div key={i}
-                initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }} transition={{ duration: 0.7, ease: easeIO }}>
-                <Comp />
-                {i < 1 && <div className={dashStyles.sectionDivider} />}
-              </motion.div>
-            ))}
+            {/* Gayatri Mantra section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }} transition={{ duration: 0.7, ease: easeIO }}
+            >
+              <GayatriMantraSection />
+            </motion.div>
           </div>
 
           {/* RIGHT SIDEBAR */}

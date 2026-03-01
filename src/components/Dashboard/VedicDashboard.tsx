@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import styles from './VedicDashboard.module.css';
+import CelestialHeaderIcon from '@/components/Dashboard/CelestialHeaderIcon';
 
 // ── Panchang helpers ─────────────────────────────────────────────────────────
 const PAKSHA_EN = ['Śukla Pakṣa', 'Kṛṣṇa Pakṣa'];
@@ -89,7 +90,7 @@ export default function VedicDashboard({ displayName, greeting }: Props) {
             {/* ── ROW 2: Vedic Panchang ───────────────────────────────────── */}
             <div className={styles.panchaangRow}>
                 <div className={styles.panchCard}>
-                    <span className={styles.panchIcon}>🌙</span>
+                    <CelestialHeaderIcon />
                     <div>
                         <span className={styles.panchLabel}>Tithi</span>
                         <span className={styles.panchValue}>{tithi}</span>
