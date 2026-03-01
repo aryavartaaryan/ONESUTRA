@@ -281,6 +281,124 @@ function AcharyaCard() {
     );
 }
 
+// ── 5. Dhyan Kshetra — Golden Mantra Portal (col-span-1 square) ──────────────
+function DhyanCard() {
+    return (
+        <PortalSlot
+            href="/dhyan-kshetra"
+            style={{
+                gridColumn: 'span 1',
+                gridRow: 'span 1',
+                aspectRatio: '1 / 1',
+                background: 'rgba(251,191,36,0.06)',
+                border: '1px solid rgba(251,191,36,0.15)',
+                backdropFilter: 'blur(16px)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.75rem',
+                padding: '1rem',
+            }}
+        >
+            {/* Golden aura disk */}
+            <div style={{ position: 'relative', width: 64, height: 64, flexShrink: 0 }}>
+                <motion.div
+                    animate={{ opacity: [0.45, 0.75, 0.45], scale: [1, 1.18, 1] }}
+                    transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+                    style={{
+                        position: 'absolute', inset: -10, borderRadius: '50%',
+                        background: 'radial-gradient(circle, rgba(251,191,36,0.28) 0%, transparent 70%)',
+                    }}
+                />
+                <div style={{
+                    position: 'absolute', inset: 0, borderRadius: '50%',
+                    background: 'radial-gradient(circle, rgba(251,191,36,0.22) 0%, rgba(234,179,8,0.10) 70%)',
+                    border: '1.5px solid rgba(251,191,36,0.45)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '1.5rem',
+                    boxShadow: '0 0 28px rgba(251,191,36,0.25)',
+                }}>🪔</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+                <p style={{
+                    margin: 0, fontSize: '0.6rem', letterSpacing: '0.25em',
+                    textTransform: 'uppercase', color: 'rgba(253,230,138,0.90)',
+                    fontFamily: 'monospace', fontWeight: 600,
+                }}>Dhyan</p>
+                <p style={{
+                    margin: '0.2rem 0 0', fontSize: '0.6rem',
+                    color: 'rgba(255,255,255,0.38)', letterSpacing: '0.05em',
+                }}>Sacred Mantras</p>
+            </div>
+        </PortalSlot>
+    );
+}
+
+// ── 6. Leela — Iridescent 3D Cosmic Portal (col-span-1 square) ───────────────
+function LeelaCard() {
+    return (
+        <PortalSlot
+            href="/project-leela"
+            style={{
+                gridColumn: 'span 1',
+                gridRow: 'span 1',
+                aspectRatio: '1 / 1',
+                background: 'rgba(14,165,233,0.07)',
+                border: '1px solid rgba(56,189,248,0.15)',
+                backdropFilter: 'blur(16px)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.75rem',
+                padding: '1rem',
+            }}
+        >
+            {/* Iridescent orb */}
+            <motion.div
+                animate={{
+                    boxShadow: [
+                        '0 0 28px rgba(56,189,248,0.30), inset 0 0 16px rgba(168,85,247,0.15)',
+                        '0 0 50px rgba(168,85,247,0.40), inset 0 0 28px rgba(56,189,248,0.20)',
+                        '0 0 28px rgba(56,189,248,0.30), inset 0 0 16px rgba(168,85,247,0.15)',
+                    ],
+                    rotate: [0, 360],
+                }}
+                transition={{
+                    boxShadow: { duration: 3.5, repeat: Infinity, ease: 'easeInOut' },
+                    rotate: { duration: 20, repeat: Infinity, ease: 'linear' },
+                }}
+                style={{
+                    width: 64, height: 64, borderRadius: '50%', flexShrink: 0,
+                    background: 'conic-gradient(from 0deg, #0ea5e9, #a855f7, #ec4899, #0ea5e9)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '1.3rem',
+                    position: 'relative', overflow: 'hidden',
+                }}
+            >
+                <div style={{
+                    position: 'absolute', inset: 4, borderRadius: '50%',
+                    background: 'rgba(8,8,20,0.75)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '1.3rem',
+                }}>✦</div>
+            </motion.div>
+            <div style={{ textAlign: 'center' }}>
+                <p style={{
+                    margin: 0, fontSize: '0.6rem', letterSpacing: '0.3em',
+                    textTransform: 'uppercase', color: 'rgba(125,211,252,0.90)',
+                    fontFamily: 'monospace', fontWeight: 600,
+                }}>Leela</p>
+                <p style={{
+                    margin: '0.2rem 0 0', fontSize: '0.6rem',
+                    color: 'rgba(255,255,255,0.38)', letterSpacing: '0.05em',
+                }}>3D Cosmic Canvas</p>
+            </div>
+        </PortalSlot>
+    );
+}
+
 // ── 4. Sync Engine / Sankalpa — Productivity Pill (col-span-2) ────────────────
 function SyncEngineCard() {
     return (
@@ -385,7 +503,10 @@ export default function SacredPortalGrid() {
                 {/* Row 2: SUTRA ring + Acharya orb */}
                 <SutraCard />
                 <AcharyaCard />
-                {/* Row 3: Sync Engine wide pill */}
+                {/* Row 3: Dhyan Kshetra + Leela */}
+                <DhyanCard />
+                <LeelaCard />
+                {/* Row 4: Sync Engine wide pill */}
                 <SyncEngineCard />
             </motion.div>
         </section>
