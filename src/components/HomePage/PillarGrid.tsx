@@ -173,14 +173,14 @@ export default function PillarGrid() {
             >
                 <p className={styles.manifestoEyebrow}>✦ Conscious Platform ✦</p>
                 <h2 className={styles.manifestoHeading}>
-                    The <span className={styles.manifestoAccent}>Next Generation</span>
-                    {' '}Social Platform.
+                    Your <span className={styles.manifestoAccent}>Conscious</span>
+                    {' '}Operating System.
                 </h2>
                 <p className={styles.manifestoBody}>
-                    Increase productivity and decrease confusion. While other social platforms increase
-                    noise and anxiety with addictive algorithms, ReZo increases your attention span and
-                    synchronizes your life. Manage your everyday tasks in a stress-free, automated way.
-                    Remove unnecessary confusion. Just chill and relax... we will help you manage your life.
+                    Synchronize your productivity, energy, and peace.
+                    High Signal. Zero Noise. While other apps fragment your attention with addictive algorithms,
+                    ReZo unifies your mind — managing your everyday tasks in a stress-free, automated way.
+                    This is your Mindful Life Engine. Just chill and relax... we will help you manage your life.
                 </p>
             </motion.div>
 

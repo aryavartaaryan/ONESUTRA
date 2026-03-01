@@ -6,7 +6,7 @@ import Link from 'next/link';
 import styles from './ReelPlayer.module.css';
 import WaterWaveVisualizer from './WaterWaveVisualizer';
 import { useCircadianBackground } from '@/hooks/useCircadianBackground';
-import TodaysMission from './TodaysMission';
+import CinematicIntentionReel from './CinematicIntentionReel';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 interface PanchangData {
@@ -701,11 +701,9 @@ export default function ReelPlayer({ greeting: _g, displayName: _d, panchangData
                                 ref={el => { slideRefs.current[i] = el; }}
                             >
                                 {item.type === 'sankalpa' ? (
-                                    <TodaysMission
+                                    <CinematicIntentionReel
                                         items={sankalpaItems}
                                         onToggle={onSankalpaToggle}
-                                        onRemove={onSankalpaRemove}
-                                        onAdd={onSankalpaAdd}
                                         isFullScreen={true}
                                     />
                                 ) : isNear ? (

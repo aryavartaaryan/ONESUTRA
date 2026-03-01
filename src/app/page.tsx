@@ -15,7 +15,7 @@ import SacredCanvas from '@/components/SacredCanvas/SacredCanvas';
 import SakhaBodhiOrb from '@/components/Dashboard/SakhaBodhiOrb';
 
 import VedicDashboard from '@/components/Dashboard/VedicDashboard';
-import TodaysMission from '@/components/Dashboard/TodaysMission';
+import MagicSyncModule from '@/components/Dashboard/MagicSyncModule';
 import DailyInsightsCarousel from '@/components/Dashboard/DailyInsightsCarousel';
 import { useCircadianBackground } from '@/hooks/useCircadianBackground';
 
@@ -191,13 +191,11 @@ export default function Home() {
         <DailyInsightsCarousel />
 
 
-        <TodaysMission
+        <MagicSyncModule
           items={sankalpaItems}
           onToggle={handleSankalpaToggle}
           onRemove={handleSankalpaRemove}
           onAdd={handleSankalpaAdd}
-          variant="vedic"
-          isFullScreen={false}
         />
 
 

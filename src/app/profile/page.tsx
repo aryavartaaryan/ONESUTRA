@@ -273,29 +273,7 @@ export default function ProfilePage() {
                         })}
                     </motion.div>
 
-                    {/* ── Active Sankalps compact card ── */}
-                    <motion.div
-                        className={styles.sankalpaCard}
-                        initial={{ opacity: 0, y: 14 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.18, ease: 'easeOut' }}
-                    >
-                        <div className={styles.sankalpaHeader}>
-                            <span className={styles.sankalpaIcon}>🪔</span>
-                            <span className={styles.sankalpaTitle}>Active Sankalps</span>
-                            <span className={styles.sankalpaCounter}>
-                                {PROFILE.activeSankalps.filter(s => s.done).length}/{PROFILE.activeSankalps.length}
-                            </span>
-                        </div>
-                        <div className={styles.sankalpsList}>
-                            {PROFILE.activeSankalps.map((s, i) => (
-                                <div key={i} className={`${styles.sankalpRow} ${s.done ? styles.sankalpDone : ''}`}>
-                                    <span className={styles.sankalpCheck}>{s.done ? '✓' : '○'}</span>
-                                    <span className={styles.sankalpText}>{s.text}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </motion.div>
+                    {/* Profile is intentionally clean — task list is in the Sync Engine */}
 
                     {/* ── Tabs ── */}
                     <motion.div
