@@ -1,0 +1,21 @@
+{
+    "name": "ReZo",
+    "short_name": "ReZo",
+    "description": "ReZo — your conscious digital sanctuary for mindful social connection.",
+    "start_url": "/pranaverse",
+    "display": "standalone",
+    "background_color": "#010310",
+    "theme_color": "#010310",
+    "icons": [
+        {
+            "src": "/icons/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/icons/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
