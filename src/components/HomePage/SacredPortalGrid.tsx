@@ -474,7 +474,7 @@ export default function SacredPortalGrid() {
                     fontSize: '0.58rem', letterSpacing: '0.28em',
                     textTransform: 'uppercase', color: 'rgba(245,158,11,0.65)',
                     fontFamily: 'monospace',
-                }}>✦ Sacred Portals</span>
+                }}>✦ ReZo Dimensions</span>
                 <h2 style={{
                     margin: '0.15rem 0 0',
                     fontFamily: "'Playfair Display', Georgia, serif",
@@ -482,7 +482,7 @@ export default function SacredPortalGrid() {
                     color: 'rgba(255,255,255,0.92)',
                     letterSpacing: '-0.01em',
                 }}>
-                    {lang === 'hi' ? 'आपका चेतन OS' : 'Your Sacred Portals'}
+                    {lang === 'hi' ? 'ReZo आयाम' : 'ReZo Dimensions'}
                 </h2>
             </motion.div>
 

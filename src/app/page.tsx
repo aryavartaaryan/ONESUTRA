@@ -10,6 +10,7 @@ import WisdomTicker from '@/components/Dashboard/WisdomTicker';
 import AbountModal from '@/components/Dashboard/AboutModal';
 import UserProfile from '@/components/Dashboard/UserProfile';
 import SacredPortalGrid from '@/components/HomePage/SacredPortalGrid';
+import ConsciousManifesto from '@/components/HomePage/ConsciousManifesto';
 import SacredCanvas from '@/components/SacredCanvas/SacredCanvas';
 import SakhaBodhiOrb from '@/components/Dashboard/SakhaBodhiOrb';
 
@@ -212,8 +213,11 @@ export default function Home() {
           {/* CENTER FEED */}
           <div className={dashStyles.feedCenter}>
 
-            {/* Sacred Portal Grid — unified hybrid bento (replaces JustVibePortals + PillarGrid) */}
+            {/* Sacred Portal Grid */}
             <SacredPortalGrid />
+
+            {/* Conscious OS Manifesto — philosophical bridge */}
+            <ConsciousManifesto />
 
             {/* Gayatri Mantra section */}
             <motion.div
