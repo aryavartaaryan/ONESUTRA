@@ -1,142 +1,254 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence, type Easing } from 'framer-motion';
+
+export type OrbStatus = 'idle' | 'listening' | 'speaking' | 'processing';
 
 interface AcharyaGuruOrbProps {
-    status?: 'idle' | 'processing' | 'speaking';
+    status?: OrbStatus;
+    /** When true, orb expands 1.8× to Zen Mode center */
+    zenMode?: boolean;
+    /** Size: defaults to 128 (w-32 h-32) */
+    sizePx?: number;
 }
 
-export default function AcharyaGuruOrb({ status = 'idle' }: AcharyaGuruOrbProps) {
-    const isActive = status === 'processing' || status === 'speaking';
+// ── Split animate and transition (Framer Motion TS2322 fix) ──────────────────
 
-    // Physics: 8-second Guru Pranayama breath (4s inhale, 4s exhale)
-    const idleAnim = {
-        scale: [1, 1.08, 1],
+const orbAnimate = {
+    idle: {
+        scale: [1, 1.05, 1] as number[],
         boxShadow: [
-            '0px 0px 30px 4px rgba(49,46,129,0.45)',
-            '0px 0px 80px 18px rgba(109,40,217,0.38)',
-            '0px 0px 30px 4px rgba(49,46,129,0.45)',
+            'inset 0px 0px 40px rgba(224,231,255,0.10), 0px 0px 60px rgba(67,56,202,0.30)',
+            'inset 0px 0px 55px rgba(224,231,255,0.18), 0px 0px 90px rgba(67,56,202,0.45)',
+            'inset 0px 0px 40px rgba(224,231,255,0.10), 0px 0px 60px rgba(67,56,202,0.30)',
         ],
-        transition: { duration: 8, repeat: Infinity, ease: 'easeInOut' },
-    };
+    },
+    listening: {
+        scale: [1.05, 1.08, 1.05] as number[],
+        boxShadow: [
+            'inset 0px 0px 60px rgba(224,231,255,0.30), 0px 0px 100px rgba(99,102,241,0.60)',
+            'inset 0px 0px 80px rgba(224,231,255,0.45), 0px 0px 130px rgba(99,102,241,0.75)',
+            'inset 0px 0px 60px rgba(224,231,255,0.30), 0px 0px 100px rgba(99,102,241,0.60)',
+        ],
+    },
+    speaking: {
+        scale: [1.10, 1.15, 1.12, 1.18, 1.10] as number[],
+        boxShadow: [
+            'inset 0px 0px 80px rgba(255,255,255,0.50), 0px 0px 120px rgba(79,70,229,0.80), 0px 0px 200px rgba(224,231,255,0.20)',
+            'inset 0px 0px 60px rgba(255,255,255,0.35), 0px 0px 90px rgba(79,70,229,0.60), 0px 0px 160px rgba(224,231,255,0.12)',
+            'inset 0px 0px 100px rgba(255,255,255,0.60), 0px 0px 150px rgba(79,70,229,0.90), 0px 0px 240px rgba(224,231,255,0.28)',
+        ],
+    },
+    processing: {
+        scale: [1.06, 1.02, 1.08, 1.02, 1.06] as number[],
+        boxShadow: [
+            'inset 0px 0px 60px rgba(217,119,6,0.45), 0px 0px 100px rgba(88,28,135,0.65)',
+            'inset 0px 0px 100px rgba(217,119,6,0.65), 0px 0px 150px rgba(88,28,135,0.80)',
+            'inset 0px 0px 60px rgba(217,119,6,0.45), 0px 0px 100px rgba(88,28,135,0.65)',
+        ],
+    },
+};
 
-    const processingAnim = {
-        scale: [1.06, 1.02, 1.08, 1.02, 1.06],
-        boxShadow: [
-            '0px 0px 60px 10px rgba(217,119,6,0.55)',
-            '0px 0px 110px 24px rgba(88,28,135,0.72)',
-            '0px 0px 60px 10px rgba(217,119,6,0.55)',
-        ],
-        transition: { duration: 3, repeat: Infinity, ease: 'easeInOut' },
-    };
+const orbTransition = {
+    idle: { duration: 8, repeat: Infinity, repeatType: 'reverse' as const, ease: 'easeInOut' as Easing },
+    listening: { duration: 0.8, repeat: Infinity, repeatType: 'reverse' as const, ease: 'easeInOut' as Easing },
+    speaking: { duration: 0.5, repeat: Infinity, repeatType: 'mirror' as const, ease: 'circOut' as Easing },
+    processing: { duration: 3, repeat: Infinity, repeatType: 'reverse' as const, ease: 'easeInOut' as Easing },
+};
+
+// ── Spandana Rings (Cymatic Voice Visualization) ──────────────────────────────
+
+function SpandanaRings({ isSpeaking }: { isSpeaking: boolean }) {
+    return (
+        <>
+            {[0, 1, 2].map((i) => (
+                <motion.div
+                    key={i}
+                    style={{
+                        position: 'absolute', inset: 0,
+                        borderRadius: '50%',
+                        border: '1px solid rgba(165,180,252,0.28)',
+                        pointerEvents: 'none',
+                    }}
+                    initial={{ scale: 1, opacity: 0 }}
+                    animate={isSpeaking
+                        ? { scale: 2.8 + i * 0.4, opacity: [0.7, 0] }
+                        : { scale: 1, opacity: 0 }
+                    }
+                    transition={{
+                        duration: 2.2,
+                        repeat: isSpeaking ? Infinity : 0,
+                        ease: 'easeOut',
+                        delay: i * 0.55,
+                    }}
+                />
+            ))}
+        </>
+    );
+}
+
+// ── Main Orb Component ────────────────────────────────────────────────────────
+
+export default function AcharyaGuruOrb({
+    status = 'idle',
+    zenMode = false,
+    sizePx = 128,
+}: AcharyaGuruOrbProps) {
+    const isSpeaking = status === 'speaking';
+    const isListening = status === 'listening';
+
+    const stateKey = status as keyof typeof orbAnimate;
+    const currentAnim = orbAnimate[stateKey];
+    const currentTransition = orbTransition[stateKey];
 
     return (
         <div style={{
-            width: '100%', display: 'flex', flexDirection: 'column',
+            display: 'flex', flexDirection: 'column',
             alignItems: 'center', justifyContent: 'center',
-            paddingTop: '2rem', paddingBottom: '1.5rem',
+            gap: '1.25rem',
             position: 'relative',
         }}>
-            {/* Ambient background glow */}
+            {/* ── Ambient Background Nebula ── */}
             <div style={{
-                position: 'absolute', top: '50%', left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: 240, height: 240,
-                background: 'rgba(49,46,129,0.15)',
-                filter: 'blur(70px)',
+                position: 'absolute',
+                width: sizePx * 2.5, height: sizePx * 2.5,
+                background: 'radial-gradient(ellipse, rgba(67,56,202,0.18) 0%, transparent 70%)',
+                filter: 'blur(60px)',
                 borderRadius: '50%',
                 pointerEvents: 'none',
             }} />
 
-            {/* Main orb — Guru Breath physics */}
+            {/* ── Zen Mode Wrapper: scales 1.8× and shifts up ── */}
             <motion.div
-                animate={isActive
-                    ? { scale: [1.06, 1.02, 1.08, 1.02, 1.06], boxShadow: ['0px 0px 60px 10px rgba(217,119,6,0.55)', '0px 0px 110px 24px rgba(88,28,135,0.72)', '0px 0px 60px 10px rgba(217,119,6,0.55)'] }
-                    : { scale: [1, 1.08, 1], boxShadow: ['0px 0px 30px 4px rgba(49,46,129,0.45)', '0px 0px 80px 18px rgba(109,40,217,0.38)', '0px 0px 30px 4px rgba(49,46,129,0.45)'] }
+                animate={zenMode
+                    ? { scale: 1.8, y: -40 }
+                    : { scale: 1, y: 0 }
                 }
-                transition={{ duration: isActive ? 3 : 8, repeat: Infinity, ease: 'easeInOut' }}
-                style={{
-                    position: 'relative',
-                    width: 112, height: 112,
-                    borderRadius: '50%',
-                    zIndex: 10,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}
+                transition={{ type: 'spring', stiffness: 80, damping: 18 }}
+                style={{ position: 'relative', zIndex: 20 }}
             >
-                {/* Layer 1: Outer Amethyst Nebula */}
+                {/* Spandana rings — behind the orb */}
                 <div style={{
-                    position: 'absolute', inset: 0, borderRadius: '50%',
-                    background: 'radial-gradient(circle at 40% 35%, #4c1d95 0%, #1e1b4b 55%, transparent 90%)',
-                    opacity: 0.92,
-                }} />
-
-                {/* Layer 2: Inner Sapphire Depth */}
-                <div style={{
-                    position: 'absolute', inset: 8, borderRadius: '50%',
-                    background: 'linear-gradient(to top-left, #0f172a, #1e1b4b)',
-                    opacity: 0.85,
-                }} />
-
-                {/* Layer 3: Rotating Golden Core (Prana flame) — 40s slow rotation */}
-                <motion.div
-                    animate={{
-                        rotate: [0, 360],
-                        scale: isActive ? [1, 1.22, 1] : 1,
-                    }}
-                    transition={{
-                        rotate: { duration: 40, repeat: Infinity, ease: 'linear' },
-                        scale: { duration: 3, repeat: Infinity, ease: 'easeInOut' },
-                    }}
-                    style={{
-                        position: 'absolute', inset: 24, borderRadius: '50%',
-                        background: 'conic-gradient(from 0deg, #d97706, #f59e0b, #fbbf24, #b45309, #d97706)',
-                        filter: 'blur(3px)',
-                        opacity: 0.85,
-                        mixBlendMode: 'screen',
-                    }}
-                />
-
-                {/* Layer 4: Soft Om center glyph */}
-                <span style={{
-                    position: 'relative', zIndex: 5,
-                    fontFamily: "'Noto Serif Devanagari', serif",
-                    fontSize: '1.6rem',
-                    color: 'rgba(253,230,138,0.88)',
-                    filter: 'drop-shadow(0 0 8px rgba(251,191,36,0.6))',
-                    userSelect: 'none',
-                }}>ॐ</span>
-
-                {/* Layer 5: Glass sheen */}
-                <div style={{
-                    position: 'absolute', inset: 0, borderRadius: '50%',
-                    border: '1px solid rgba(255,255,255,0.12)',
-                    boxShadow: 'inset 0 4px 12px rgba(255,255,255,0.18)',
-                }} />
-            </motion.div>
-
-            {/* Title + status */}
-            <div style={{ marginTop: '1.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem' }}>
-                <h2 style={{
-                    fontFamily: "'Playfair Display', 'Cinzel', Georgia, serif",
-                    fontSize: '1.15rem', fontWeight: 600,
-                    color: 'rgba(255,255,255,0.92)',
-                    letterSpacing: '0.03em', margin: 0,
-                    textShadow: '0 2px 12px rgba(109,40,217,0.4)',
+                    position: 'absolute', inset: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    zIndex: -1,
                 }}>
-                    Acharya Pranav
-                </h2>
-                <motion.span
-                    animate={{ opacity: [0.45, 0.9, 0.45] }}
-                    transition={{ duration: isActive ? 2 : 4, repeat: Infinity, ease: 'easeInOut' }}
+                    <div style={{ position: 'relative', width: sizePx, height: sizePx }}>
+                        <SpandanaRings isSpeaking={isSpeaking} />
+                    </div>
+                </div>
+
+                {/* ── The Cosmic Orb ── */}
+                <motion.div
+                    animate={currentAnim}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    transition={currentTransition as any}
                     style={{
-                        fontSize: '0.6rem', letterSpacing: '0.22em', textTransform: 'uppercase',
-                        color: 'rgba(196,181,253,0.72)', fontFamily: 'monospace',
+                        width: sizePx, height: sizePx,
+                        borderRadius: '50%',
+                        position: 'relative',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        // 3D base gradient — deep space center, illuminated edge
+                        background: 'radial-gradient(circle at 30% 30%, #4338ca 0%, #1e1b4b 50%, #020617 100%)',
+                        overflow: 'hidden',
+                        cursor: 'default',
                     }}
                 >
-                    {status === 'idle' ? 'Present · Listening' : 'Contemplating...'}
-                </motion.span>
-            </div>
+                    {/* Inner nebula layer */}
+                    <div style={{
+                        position: 'absolute', inset: 0, borderRadius: '50%',
+                        background: 'radial-gradient(circle at 40% 35%, rgba(99,102,241,0.55) 0%, rgba(30,27,75,0.85) 55%, transparent 90%)',
+                    }} />
+
+                    {/* Rotating golden Prana core — 40s slow burn */}
+                    <motion.div
+                        animate={{
+                            rotate: [0, 360],
+                            scale: isSpeaking ? [1, 1.25, 1] : isListening ? [1, 1.12, 1] : 1,
+                        }}
+                        transition={{
+                            rotate: { duration: 40, repeat: Infinity, ease: 'linear' },
+                            scale: { duration: isSpeaking ? 0.5 : 3, repeat: Infinity, ease: 'easeInOut' },
+                        }}
+                        style={{
+                            position: 'absolute',
+                            width: '45%', height: '45%',
+                            borderRadius: '50%',
+                            background: 'conic-gradient(from 0deg, #d97706, #f59e0b, #fbbf24, #b45309, #d97706)',
+                            filter: 'blur(4px)',
+                            opacity: isSpeaking ? 0.95 : 0.75,
+                            mixBlendMode: 'screen',
+                        }}
+                    />
+
+                    {/* Om glyph */}
+                    <motion.span
+                        animate={{ opacity: isSpeaking ? [0.7, 1, 0.7] : 0.82 }}
+                        transition={{ duration: isSpeaking ? 0.5 : 1, repeat: Infinity }}
+                        style={{
+                            position: 'relative', zIndex: 5,
+                            fontFamily: "'Noto Serif Devanagari', serif",
+                            fontSize: sizePx * 0.3 + 'px',
+                            color: 'rgba(224,231,255,0.90)',
+                            filter: 'drop-shadow(0 0 12px rgba(224,231,255,0.6))',
+                            userSelect: 'none',
+                        }}
+                    >ॐ</motion.span>
+
+                    {/* Glass sheen */}
+                    <div style={{
+                        position: 'absolute', inset: 0, borderRadius: '50%',
+                        border: '1px solid rgba(224,231,255,0.15)',
+                        boxShadow: 'inset 0 4px 16px rgba(255,255,255,0.20)',
+                    }} />
+
+                    {/* Specular highlight (top-left light bounce) */}
+                    <div style={{
+                        position: 'absolute',
+                        top: '12%', left: '15%',
+                        width: '28%', height: '18%',
+                        borderRadius: '50%',
+                        background: 'rgba(255,255,255,0.18)',
+                        filter: 'blur(6px)',
+                        transform: 'rotate(-20deg)',
+                    }} />
+                </motion.div>
+            </motion.div>
+
+            {/* ── Title + Status (hidden in zenMode) ── */}
+            <AnimatePresence>
+                {!zenMode && (
+                    <motion.div
+                        initial={{ opacity: 1 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem' }}
+                    >
+                        <h2 style={{
+                            fontFamily: "'Playfair Display', 'Cinzel', Georgia, serif",
+                            fontSize: '1.15rem', fontWeight: 600, margin: 0,
+                            color: 'rgba(255,255,255,0.90)',
+                            letterSpacing: '0.03em',
+                            textShadow: '0 2px 12px rgba(67,56,202,0.4)',
+                        }}>
+                            Acharya Pranav
+                        </h2>
+                        <motion.span
+                            animate={{ opacity: [0.45, 0.9, 0.45] }}
+                            transition={{ duration: status === 'idle' ? 4 : 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                            style={{
+                                fontSize: '0.6rem', letterSpacing: '0.22em', textTransform: 'uppercase',
+                                color: 'rgba(165,180,252,0.72)', fontFamily: 'monospace',
+                            }}
+                        >
+                            {status === 'idle' ? 'Present · Listening'
+                                : status === 'listening' ? 'Shravana · जाग्रत'
+                                    : status === 'speaking' ? 'Vani · बोल रहे हैं'
+                                        : 'Contemplating...'}
+                        </motion.span>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

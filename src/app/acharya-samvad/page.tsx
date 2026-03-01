@@ -2,17 +2,16 @@
 
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback, Suspense } from 'react';
 import styles from './digital-vaidya.module.css';
-import { Globe, Mic, MicOff, PhoneOff } from 'lucide-react';
+import { Mic, MicOff, PhoneOff, X } from 'lucide-react';
 import { BilingualString, BilingualList } from '@/lib/types';
 import translations from '@/lib/vaidya-translations.json';
 import { useSearchParams } from 'next/navigation';
 import TypewriterMessage from '@/components/TypewriterMessage';
 import { useLanguage } from '@/context/LanguageContext';
-import PremiumHeader from '@/components/PremiumHeader/PremiumHeader';
-import AcharyaGuruOrb from '@/components/Dashboard/AcharyaGuruOrb';
+import AcharyaGuruOrb, { OrbStatus } from '@/components/Dashboard/AcharyaGuruOrb';
 import { useVaidyaVoiceCall } from '@/hooks/useVaidyaVoiceCall';
 import { motion, AnimatePresence } from 'framer-motion';
-
+import { useCircadianUnsplash } from '@/hooks/useCircadianUnsplash';
 
 interface DiagnosisResult {
     diagnosis: BilingualString;
@@ -30,10 +29,11 @@ interface Message {
     isTyping?: boolean;
 }
 
-function DigitalVaidyaContent() {
+function AcharyaContent() {
     const searchParams = useSearchParams();
     const initialLang = (searchParams?.get('lang') as 'en' | 'hi') || 'hi';
 
+    // ── Text chat state (UNTOUCHED) ──────────────────────────────────────────
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [sanitizedInput, setSanitizedInput] = useState('');
@@ -43,723 +43,474 @@ function DigitalVaidyaContent() {
     const bottomRef = useRef<HTMLDivElement>(null);
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-    // ── Inline voice engine (replaces old modal) ──────────────────────────────
+    // ── Circadian background ─────────────────────────────────────────────────
+    const { imageUrl } = useCircadianUnsplash();
+
+    // ── Inline voice engine ──────────────────────────────────────────────────
     const {
-        callState, startCall, endCall, resetToIdle,
-        error: voiceError, isMuted, toggleMute,
-        volumeLevel, transcript, isSpeaking,
+        callState, startCall, endCall,
+        isMuted, toggleMute,
+        transcript, isSpeaking,
     } = useVaidyaVoiceCall({ lang });
-    const [voiceOpen, setVoiceOpen] = useState(false);
+    const [zenMode, setZenMode] = useState(false);
+
+    const orbStatus: OrbStatus =
+        loading ? 'processing'
+            : (callState === 'active' && isSpeaking) ? 'speaking'
+                : (callState === 'active') ? 'listening'
+                    : zenMode ? 'processing'
+                        : 'idle';
 
     const handleAwakenAcharya = () => {
-        if (voiceOpen) {
-            endCall();
-            setVoiceOpen(false);
-        } else {
-            setVoiceOpen(true);
-            setTimeout(() => startCall(), 100);
-        }
+        setZenMode(true);
+        setTimeout(() => startCall(), 120);
+        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([30, 50, 30]);
     };
 
-    const handleEndCall = () => {
+    const handleEndSession = () => {
         endCall();
-        setVoiceOpen(false);
+        setZenMode(false);
     };
 
     const t = translations[lang];
 
-    // const toggleLanguage = () => {
-    //     setLang(prev => prev === 'en' ? 'hi' : 'en');
-    // };
-
-    /**
-     * Sanitize text: trim whitespace, normalize Unicode, remove zero-width characters
-     * Ensures what user sees is exactly what gets sent
-     */
     const sanitizeText = useCallback((text: string): string => {
         if (!text) return '';
-
-        // Normalize Unicode (NFC form - composed characters)
-        let sanitized = text.normalize('NFC');
-
-        // Remove zero-width characters that can cause encoding issues
-        sanitized = sanitized.replace(/[\u200B-\u200D\uFEFF]/g, '');
-
-        // Trim leading/trailing whitespace but preserve internal spacing
-        sanitized = sanitized.trim();
-
-        // Replace multiple spaces with single space (but preserve intentional spacing)
-        sanitized = sanitized.replace(/\s+/g, ' ');
-
-        return sanitized;
+        let s = text.normalize('NFC');
+        s = s.replace(/[\u200B-\u200D\uFEFF]/g, '');
+        s = s.trim();
+        s = s.replace(/\s+/g, ' ');
+        return s;
     }, []);
 
-    // Zero-state: Start with empty messages array - no hardcoded greeting
-    // The greeting will come from the AI's first response based on system prompt
-
-    // Sanitize input as user types (debounced to prevent 'ghost typing')
     useEffect(() => {
-        if (debounceTimerRef.current) {
-            clearTimeout(debounceTimerRef.current);
-        }
-
+        if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
         debounceTimerRef.current = setTimeout(() => {
-            const cleaned = sanitizeText(input);
-            setSanitizedInput(cleaned);
-        }, 150); // Small debounce to prevent flickering during IME composition
-
-        return () => {
-            if (debounceTimerRef.current) {
-                clearTimeout(debounceTimerRef.current);
-            }
-        };
+            setSanitizedInput(sanitizeText(input));
+        }, 150);
+        return () => { if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current); };
     }, [input, sanitizeText]);
 
-    // Auto-scroll to bottom using useLayoutEffect to prevent flickering
     const prevMessageCountRef = useRef(0);
     useLayoutEffect(() => {
-        // Only scroll if messages were actually added (not on initial render)
         if (messages.length > prevMessageCountRef.current && prevMessageCountRef.current > 0) {
             bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }
         prevMessageCountRef.current = messages.length;
     }, [messages]);
 
-    // Stable callback for typewriter update to prevent re-renders
-    const handleScrollToBottom = React.useCallback(() => {
+    const handleScrollToBottom = useCallback(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }, []);
 
     const handleSend = async () => {
-        // Use sanitized input to ensure consistency
         const userMsg = sanitizeText(input);
         if (!userMsg) return;
-
-        // Optimistic UI Update: Push message immediately with exact input text
-        // This prevents visual jump or spelling change
-        const optimisticMessage: Message = {
-            role: 'user',
-            content: userMsg || '', // Use exact sanitized string from input
-            status: 'sending'
-        };
-
-        // Update messages optimistically BEFORE clearing input
+        const optimisticMessage: Message = { role: 'user', content: userMsg, status: 'sending' };
         setMessages(prev => [...prev, optimisticMessage]);
-
-        // Clear input immediately after pushing to list (smooth UX)
         setInput('');
         setSanitizedInput('');
         setLoading(true);
 
         try {
-            // Build messages array for API: include all previous messages + current user message
-            // Note: messages state includes the optimistic message we just added
             const messagesForAPI = [...messages, optimisticMessage]
                 .filter(m => m.content && m.content.trim() && typeof m.content === 'string')
-                .map(m => ({
-                    role: m.role === 'vaidya' ? 'assistant' : 'user',
-                    content: m.content.trim()
-                }));
+                .map(m => ({ role: m.role === 'vaidya' ? 'assistant' : 'user', content: m.content.trim() }));
 
-            // Get user name from local storage for personalization
-            const userName = localStorage.getItem('pranav_user_name') || "";
-
+            const userName = localStorage.getItem('pranav_user_name') || '';
             const res = await fetch('/api/digital-vaidya', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    messages: messagesForAPI,
-                    language: lang,
-                    userName: userName // Pass user name to API
-                })
+                body: JSON.stringify({ messages: messagesForAPI, language: lang, userName }),
             });
 
-            if (!res.ok) {
-                const errorData = await res.json().catch(() => ({}));
-                throw new Error(errorData.error || `Vaidya connection failed: ${res.status}`);
-            }
-
+            if (!res.ok) throw new Error(`Vaidya connection failed: ${res.status}`);
             const data = await res.json();
 
-            // Validate response structure
-            if (!data || (!data.activeVaidyaMessage && !data.vaidyaMessage)) {
-                console.error("Invalid API response:", data);
-                throw new Error("Invalid response format from Vaidya");
-            }
+            if (!data || (!data.activeVaidyaMessage && !data.vaidyaMessage)) throw new Error('Invalid response');
 
-            // Update optimistic message status to 'sent'
             setMessages(prev => prev.map((msg, idx) =>
-                idx === prev.length - 1 && msg.status === 'sending'
-                    ? { ...msg, status: 'sent' }
-                    : msg
+                idx === prev.length - 1 && msg.status === 'sending' ? { ...msg, status: 'sent' } : msg
             ));
 
-            // Handle Response - ensure no undefined values
-            if (data.activeVaidyaMessage) {
-                const responseText = data.activeVaidyaMessage[lang] || data.activeVaidyaMessage['hi'] || '';
-                // Check for "undefined" string literal which some models return
-                if (responseText && responseText.trim() && responseText.toLowerCase() !== 'undefined') {
-                    setMessages(prev => [...prev, { role: 'vaidya', content: responseText.trim() }]);
-                }
-            } else if (data.vaidyaMessage) {
-                const responseText = data.vaidyaMessage[lang] || data.vaidyaMessage['hi'] || '';
-                if (responseText && responseText.trim() && responseText.toLowerCase() !== 'undefined') {
-                    setMessages(prev => [...prev, { role: 'vaidya', content: responseText.trim() }]);
-                }
+            const responseText = (data.activeVaidyaMessage || data.vaidyaMessage)?.[lang]
+                || (data.activeVaidyaMessage || data.vaidyaMessage)?.['hi'] || '';
+            if (responseText && responseText.trim() && responseText.toLowerCase() !== 'undefined') {
+                setMessages(prev => [...prev, { role: 'vaidya', content: responseText.trim() }]);
             }
-
-            // Handle Diagnosis Completion
-            if (data.isComplete && data.result) {
-                setResult(data.result);
-            }
+            if (data.isComplete && data.result) setResult(data.result);
 
         } catch (error: any) {
-            console.error("Vaidya Error:", error);
-
-            // Update optimistic message status to 'error'
             setMessages(prev => prev.map((msg, idx) =>
-                idx === prev.length - 1 && msg.status === 'sending'
-                    ? { ...msg, status: 'error' }
-                    : msg
+                idx === prev.length - 1 && msg.status === 'sending' ? { ...msg, status: 'error' } : msg
             ));
-
-            // Formulate a gentle error message for the UI
-            let errorMsg = lang === 'hi'
-                ? "क्षमा करें, ब्रह्मांडीय ऊर्जा अभी तीव्र है। कृपया कुछ क्षण प्रतीक्षा करें।"
-                : "Forgive me, the cosmic energies are intense. Please wait a moment and try again.";
-
-            if (error.message.includes('High Traffic') || error.message.includes('429')) {
-                errorMsg = lang === 'hi'
-                    ? "वैद्य अभी अन्य साधकों के साथ व्यस्त हैं। कृपया एक मिनट रुककर पुनः प्रयास करें।"
-                    : "The Vaidya is attending to many seekers. Please breathe and try again in a minute.";
-            }
-
+            const errorMsg = lang === 'hi'
+                ? 'क्षमा करें, ब्रह्मांडीय ऊर्जा अभी तीव्र है। कृपया कुछ क्षण प्रतीक्षा करें।'
+                : 'Forgive me, the cosmic energies are intense. Please wait a moment.';
             setMessages(prev => [...prev, { role: 'vaidya', content: errorMsg }]);
         } finally {
             setLoading(false);
         }
     };
 
-    // Use a safe version of getText similar to previous usages
     const getText = (field: BilingualString | undefined) => {
         if (!field) return '';
         if (typeof field === 'string') return field;
         return field[lang] || field['en'] || '';
     };
-
-    const getList = (field: any) => { // Using any loosely for the structure mismatch in JSON
+    const getList = (field: any) => {
         if (!field) return [];
         if (Array.isArray(field)) return field;
         return field[lang] || field['en'] || [];
     };
 
     return (
-        <main className={styles.container}>
-            {/* PREMIUM STICKY HEADER */}
-            <PremiumHeader
-                title={lang === 'hi' ? 'आचार्य संवाद' : 'Acharya Samvad'}
-                subtitle={lang === 'hi' ? 'आयुर्वेद · ज्ञान · संवाद' : 'Ayurveda · Wisdom · Dialogue'}
-                rightSlot={
-                    <button
-                        onClick={handleAwakenAcharya}
-                        style={{
-                            display: 'flex', alignItems: 'center', gap: '0.4rem',
-                            padding: '6px 14px', background: 'linear-gradient(135deg, #C49102, #FFD700)',
-                            color: '#1a0f05', border: 'none', borderRadius: '20px',
-                            fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer',
-                            boxShadow: '0 4px 12px rgba(196, 145, 2, 0.35)',
-                        }}
-                    >
-                        <Mic size={13} />
-                        {lang === 'hi' ? 'बोलें' : 'Voice'}
-                    </button>
-                }
-            />
+        <div style={{ minHeight: '100dvh', position: 'relative', overflowX: 'hidden' }}>
 
-            {/* ── Acharya Guru Orb + Inline Voice Panel ── */}
+            {/* ── Circadian nature background ── */}
+            {imageUrl && (
+                <img
+                    src={imageUrl}
+                    alt=""
+                    style={{
+                        position: 'fixed', inset: 0,
+                        width: '100%', height: '100%',
+                        objectFit: 'cover',
+                        zIndex: -2,
+                        opacity: 0.7,
+                    }}
+                />
+            )}
+            {/* Permanent dark gradient overlay */}
             <div style={{
-                paddingTop: '4rem',
-                paddingBottom: '0.5rem',
-                background: 'linear-gradient(to bottom, rgba(30,27,75,0.65) 0%, transparent 100%)',
-            }}>
-                <AcharyaGuruOrb status={loading ? 'processing' : (callState === 'active' && isSpeaking) ? 'speaking' : voiceOpen ? 'processing' : 'idle'} />
+                position: 'fixed', inset: 0, zIndex: -1,
+                background: 'linear-gradient(to bottom, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.60) 50%, #0A0A0A 100%)',
+            }} />
 
-                {/* ── Awaken / End Call Button ── */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', paddingBottom: '1rem' }}>
-                    <motion.button
-                        whileHover={{ scale: 1.04 }}
-                        whileTap={{ scale: 0.96 }}
-                        onClick={handleAwakenAcharya}
+            {/* ── ZEN MODE: Full-screen deep blur overlay ── */}
+            <AnimatePresence>
+                {zenMode && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.6 }}
                         style={{
-                            display: 'flex', alignItems: 'center', gap: '0.7rem',
-                            padding: '0.7rem 2rem', borderRadius: 999,
-                            background: voiceOpen ? 'rgba(239,68,68,0.18)' : 'rgba(99,102,241,0.18)',
-                            border: `1px solid ${voiceOpen ? 'rgba(239,68,68,0.35)' : 'rgba(99,102,241,0.35)'}`,
-                            color: voiceOpen ? 'rgba(252,165,165,0.9)' : 'rgba(199,210,254,0.9)',
-                            backdropFilter: 'blur(12px)',
-                            fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.18em',
-                            textTransform: 'uppercase', cursor: 'pointer',
-                            fontFamily: 'inherit',
-                            transition: 'all 0.3s ease',
-                        }}
-                    >
-                        {voiceOpen
-                            ? <><PhoneOff size={15} /> {lang === 'hi' ? 'संवाद समाप्त करें' : 'End Call'}</>
-                            : <><Mic size={15} /> {lang === 'hi' ? 'आचार्य को जागृत करें' : 'Awaken Acharya'}</>
-                        }
-                    </motion.button>
-
-                    {/* ── Inline call state + transcript ── */}
-                    <AnimatePresence>
-                        {voiceOpen && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 8 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 8 }}
-                                transition={{ duration: 0.35 }}
-                                style={{
-                                    width: '100%', maxWidth: 440,
-                                    background: 'rgba(30,27,75,0.55)',
-                                    backdropFilter: 'blur(18px)',
-                                    border: '1px solid rgba(99,102,241,0.18)',
-                                    borderRadius: 20, padding: '1rem 1.25rem',
-                                    display: 'flex', flexDirection: 'column', gap: '0.6rem',
-                                }}
-                            >
-                                {/* Status */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <motion.div
-                                        animate={{ scale: [1, 1.4, 1], opacity: [0.7, 1, 0.7] }}
-                                        transition={{ duration: 1.2, repeat: Infinity }}
-                                        style={{
-                                            width: 8, height: 8, borderRadius: '50%',
-                                            background: callState === 'active' ? '#4ade80' : callState === 'connecting' ? '#fbbf24' : '#6366f1',
-                                        }}
-                                    />
-                                    <span style={{ fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(199,210,254,0.7)' }}>
-                                        {callState === 'connecting' ? (lang === 'hi' ? 'जुड़ रहे हैं...' : 'Connecting...')
-                                            : callState === 'active' ? (isSpeaking ? (lang === 'hi' ? 'आचार्य बोल रहे हैं...' : 'Acharya speaking...') : (lang === 'hi' ? 'सुन रहे हैं...' : 'Listening...'))
-                                                : callState === 'error' ? (voiceError || 'Error') : 'Ready'}
-                                    </span>
-                                    {callState === 'active' && (
-                                        <button onClick={toggleMute} style={{
-                                            marginLeft: 'auto', background: 'none', border: 'none',
-                                            color: isMuted ? 'rgba(252,165,165,0.8)' : 'rgba(199,210,254,0.6)',
-                                            cursor: 'pointer', padding: 4,
-                                        }}>
-                                            {isMuted ? <MicOff size={14} /> : <Mic size={14} />}
-                                        </button>
-                                    )}
-                                </div>
-
-                                {/* Transcript */}
-                                {transcript.length > 0 && (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', maxHeight: 120, overflowY: 'auto' }}>
-                                        {transcript.map((line, idx) => (
-                                            <p key={idx} style={{
-                                                fontSize: '0.82rem', margin: 0, lineHeight: 1.5,
-                                                color: 'rgba(255,255,255,0.78)',
-                                                fontFamily: "'Playfair Display', Georgia, serif",
-                                                fontStyle: 'italic',
-                                            }}>{line}</p>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {transcript.length === 0 && callState === 'active' && (
-                                    <p style={{ fontSize: '0.75rem', color: 'rgba(199,210,254,0.45)', fontStyle: 'italic', margin: 0 }}>
-                                        {lang === 'hi' ? 'बोलिए, आचार्य सुन रहे हैं...' : 'Speak — Acharya is listening...'}
-                                    </p>
-                                )}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-            </div>
-
-            {/* BACKGROUND LAYER */}
-            <div className={styles.sriYantraLayer}>
-                {/* Simple SVG representation of Sri Yantra geometry for the background */}
-                <svg viewBox="0 0 100 100" fill="none" stroke="#C49102" strokeWidth="0.5" style={{ width: '100%', height: '100%' }}>
-                    <circle cx="50" cy="50" r="48" opacity="0.3" />
-                    <circle cx="50" cy="50" r="40" opacity="0.4" />
-                    <path d="M50 2 L90 50 L50 98 L10 50 Z" opacity="0.3" />
-                    <path d="M50 10 L85 50 L50 90 L15 50 Z" opacity="0.3" />
-                    <circle cx="50" cy="50" r="5" fill="#C49102" opacity="0.2" />
-                </svg>
-            </div>
-
-            {/* MANTRAS: DECORATIVE SIDE PANELS */}
-            <div className={styles.mantraSidePanel} style={{ left: '2rem' }}>
-                <div className={styles.mantraPanelVertical}>
-                    <span className={styles.mantraSanskrit}>
-                        "ॐ नमो भगवते महादर्शनाय वासुदेवाय धन्वंतराये |<br />
-                        अमृतकलश हस्ताय सर्वभय विनाशाय सर्वरोगनिवारणाय |<br />
-                        त्रैलोक्यपथाय त्रैलोक्यनिधये श्री महाविष्णु स्वरूप |<br />
-                        श्री धन्वंतरी स्वरूप श्री श्री श्री औषधचक्र नारायणाय नमः ||"
-                    </span>
-                    <span className={styles.mantraMeaning}>
-                        {lang === 'hi'
-                            ? "(मैं भगवान वासुदेव धन्वंतरी को नमन करता हूं...)"
-                            : "(I bow to the Divine Lord Dhanvantari...)"}
-                    </span>
-                </div>
-            </div>
-
-            <div className={styles.mantraSidePanel} style={{ right: '2rem' }}>
-                <div className={styles.mantraPanelVertical}>
-                    <span className={styles.mantraSanskrit}>
-                        "योगेन चित्तस्य पदेन वाचां । मलं शरीरस्य च वैद्यकेन ॥<br />
-                        योऽपाकरोत्तं प्रवरं मुनीनां । पतञ्जलिं प्राञ्जलिरानतोऽस्मि ॥"
-                    </span>
-                    <span className={styles.mantraMeaning}>
-                        {lang === 'hi'
-                            ? "(जिन्होंने योग के माध्यम से मन की शुद्धि...)"
-                            : "(With hands folded, I bow to Patanjali...)"}
-                    </span>
-                </div>
-            </div>
-
-            {/* Acharya Samvad Header - Redesigned with Pranav.AI Logo */}
-            <div className={styles.desktopTitleHeader} style={{
-                position: 'absolute',
-                top: '4.5rem',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                zIndex: 15,
-                textAlign: 'center',
-                width: '100%',
-                maxWidth: '750px',
-                padding: '1.5rem 2.5rem',
-                background: 'rgba(244, 235, 208, 0.65)',
-                backdropFilter: 'blur(12px)',
-                border: '1.5px solid rgba(184, 134, 11, 0.4)',
-                borderRadius: '24px',
-                boxShadow: '0 12px 40px rgba(62, 39, 35, 0.25), inset 0 0 20px rgba(255, 215, 0, 0.1)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '1rem'
-            }}>
-                {/* Brand Logo Integration */}
-                <div style={{
-                    position: 'relative',
-                    width: '90px',
-                    height: '90px',
-                    marginBottom: '-0.5rem'
-                }}>
-                    <div style={{
-                        position: 'absolute',
-                        inset: '-5px',
-                        background: 'radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, transparent 70%)',
-                        borderRadius: '50%',
-                        animation: 'pulse 3s ease-in-out infinite'
-                    }} />
-                    <img
-                        src="/images/Pranav copy.AI.png"
-                        alt="Pranav.AI Icon"
-                        style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'contain',
-                            filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.2))',
-                            borderRadius: '16px'
+                            position: 'fixed', inset: 0, zIndex: 10,
+                            backdropFilter: 'blur(28px)',
+                            WebkitBackdropFilter: 'blur(28px)',
+                            background: 'rgba(0,0,0,0.50)',
+                            pointerEvents: 'none',
                         }}
                     />
-                </div>
+                )}
+            </AnimatePresence>
 
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <h2 style={{
-                        fontFamily: 'var(--font-header)',
-                        fontSize: '3.5rem',
-                        marginBottom: '0.2rem',
-                        fontWeight: 'bold',
-                        background: 'linear-gradient(to right, #8B4513, #B8860B, #FFD700, #B8860B, #8B4513)',
-                        WebkitBackgroundClip: 'text',
-                        backgroundClip: 'text',
-                        color: 'transparent',
-                        textShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                    }}>
-                        आचार्य संवाद
-                    </h2>
-                    <p style={{
-                        fontFamily: 'var(--font-body)',
-                        fontSize: '1.15rem',
-                        color: '#4E342E',
-                        lineHeight: '1.4',
-                        maxWidth: '90%',
-                        fontWeight: 500
-                    }}>
-                        {lang === 'hi'
-                            ? "आपकी शारीरिक, मानसिक, और आध्यात्मिक समस्याओं के समाधान हेतु आचार्य जी से संवाद करें।"
-                            : "Engage with Acharya Ji to find solutions for your physical, mental, and spiritual well-being."}
-                    </p>
-                </div>
-
-                {/* Voice Call Button - Premium Refined */}
-                <button
-                    onClick={handleAwakenAcharya}
-                    style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.6rem',
-                        padding: '0.7rem 2rem',
-                        background: 'linear-gradient(135deg, #B8860B, #FFD700, #B8860B)',
-                        color: '#1a0f05',
-                        border: 'none',
-                        borderRadius: '30px',
-                        fontFamily: 'var(--font-body)',
-                        fontSize: '1.05rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        boxShadow: '0 6px 20px rgba(184, 134, 11, 0.4)',
-                        transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'scale(1.05) translateY(-3px)';
-                        e.currentTarget.style.boxShadow = '0 10px 28px rgba(184, 134, 11, 0.6)';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'scale(1) translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(184, 134, 11, 0.4)';
-                    }}
-                >
-                    <Mic size={20} />
-                    {lang === 'hi' ? '🎙️ आचार्य जी से संवाद करें' : '🎙️ Talk to Acharya ji'}
-                </button>
-            </div>
-
-            <div className={styles.contentLayer}>
-                {/* Mobile Specific Header (Stacked) */}
-                <div className={styles.mobileTitleHeader}>
-                    {/* Mobile Text Branding */}
-                    <span style={{
-                        fontFamily: 'var(--font-body)',
-                        fontSize: '0.75rem',
-                        letterSpacing: '0.08em',
-                        textTransform: 'uppercase',
-                        color: 'rgba(255, 215, 0, 0.8)',
-                        marginBottom: '0.2rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.4rem'
-                    }}>
-                        <span style={{ width: '15px', height: '1px', background: 'rgba(255, 215, 0, 0.5)' }}></span>
-                        Powered by Pranav.AI
-                        <span style={{ width: '15px', height: '1px', background: 'rgba(255, 215, 0, 0.5)' }}></span>
-                    </span>
-
-                    <h2 className={styles.mobileMainTitle}>आचार्य संवाद</h2>
-                    <button
-                        onClick={handleAwakenAcharya}
+            {/* ── ZEN MODE: Orb-centered full-screen experience ── */}
+            <AnimatePresence>
+                {zenMode && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
                         style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.4rem',
-                            padding: '0.5rem 1.2rem',
-                            background: 'linear-gradient(135deg, #C49102, #FFD700)',
-                            color: '#1a0f05',
-                            border: 'none',
-                            borderRadius: '20px',
-                            fontFamily: 'var(--font-body)',
-                            fontSize: '0.9rem',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            boxShadow: '0 4px 12px rgba(196, 145, 2, 0.25)',
+                            position: 'fixed', inset: 0, zIndex: 30,
+                            display: 'flex', flexDirection: 'column',
+                            alignItems: 'center', justifyContent: 'center',
+                            gap: '2.5rem',
                         }}
                     >
-                        <Mic size={16} />
-                        {lang === 'hi' ? 'आचार्य जी से बात करें' : 'Talk with Acharya'}
-                    </button>
-                    <p className={styles.mobileSubtitle}>
-                        आचार्य जी से अपनी समस्याओं का समाधान प्राप्त करें।
-                    </p>
-                </div>
+                        {/* Hidden X exit button top-right */}
+                        <motion.button
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 0.3 }}
+                            whileHover={{ opacity: 0.9 }}
+                            onClick={handleEndSession}
+                            style={{
+                                position: 'absolute', top: '1.5rem', right: '1.5rem',
+                                background: 'none', border: 'none',
+                                color: 'rgba(255,255,255,0.8)', cursor: 'pointer',
+                                padding: '0.5rem',
+                            }}
+                        >
+                            <X size={22} />
+                        </motion.button>
 
-                {/* Spiritual Atmosphere: Incense Smoke Overlay */}
-                <div className={styles.incenseSmoke}></div>
+                        {/* Cosmic orb in Zen Mode — 1.8x expansion handled inside component */}
+                        <AcharyaGuruOrb
+                            status={orbStatus}
+                            zenMode={true}
+                            sizePx={148}
+                        />
 
-                {/* HEADER: MINIMAL (Desktop Language Toggle etc) */}
-                <header className={styles.headerSection}>
-                    <button onClick={toggleLanguage} className={styles.langToggle}>
-                        {lang === 'hi' ? 'English' : 'हिन्दी'}
-                    </button>
-                    <h1 className={styles.headerTitle}>
-                        {lang === 'hi' ? 'आचार्य संवाद' : 'Acharya Samvad'}
-                    </h1>
-                </header>
+                        {/* Status whisper — minimal, no transcript text */}
+                        <motion.div
+                            animate={{ opacity: [0.4, 0.85, 0.4] }}
+                            transition={{ duration: callState === 'active' ? 1.5 : 3, repeat: Infinity }}
+                            style={{
+                                fontSize: '0.65rem', letterSpacing: '0.28em',
+                                textTransform: 'uppercase',
+                                color: 'rgba(165,180,252,0.72)',
+                                fontFamily: 'monospace',
+                                marginTop: '5rem',
+                            }}
+                        >
+                            {callState === 'connecting' ? '· जुड़ रहे हैं ·'
+                                : callState === 'active' && isSpeaking ? '· आचार्य वाणी ·'
+                                    : callState === 'active' ? '· शुनियत · Listening ·'
+                                        : callState === 'error' ? '· Error — tap × to exit ·'
+                                            : '· जागृत · Awakening ·'}
+                        </motion.div>
 
-                {/* CHAT DISPLAY: OLD MANUSCRIPT CARD */}
-                <section className={styles.chatContainer}>
-                    {!result ? (
-                        <div className={styles.manuscriptCard}>
-                            {/* Zero-state: Show welcome message only when no messages exist */}
-                            {messages.length === 0 && (
-                                <div className={styles.welcomeMessage}>
-                                    <p className={styles.welcomeText}>
-                                        {(() => {
-                                            return lang === 'hi'
-                                                ? `कैसे हो बेटाजी! आपको कोई भी स्वास्थ्य समस्या हो, आप यहाँ चैट पर लिखकर आयुर्वेद के अनुसार मुझसे स्वास्थ्य सलाह ले सकते हैं।`
-                                                : `How are you, Beta! If you have any health concerns, you can message me here for Ayurvedic health advice.`;
-                                        })()}
-                                    </p>
-                                </div>
-                            )}
+                        {/* Mute control (very subtle) */}
+                        {callState === 'active' && (
+                            <motion.button
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 0.55, y: 0 }}
+                                whileHover={{ opacity: 0.9 }}
+                                onClick={toggleMute}
+                                style={{
+                                    position: 'absolute', bottom: '3rem',
+                                    background: 'rgba(255,255,255,0.06)',
+                                    backdropFilter: 'blur(10px)',
+                                    border: '1px solid rgba(255,255,255,0.10)',
+                                    borderRadius: 999, padding: '0.65rem 1.4rem',
+                                    color: isMuted ? 'rgba(252,165,165,0.85)' : 'rgba(165,180,252,0.85)',
+                                    cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                    fontSize: '0.72rem', letterSpacing: '0.1em',
+                                }}
+                            >
+                                {isMuted ? <MicOff size={14} /> : <Mic size={14} />}
+                                <span>{isMuted ? 'Unmute' : 'Mute'}</span>
+                            </motion.button>
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                            {messages
-                                .filter(msg => msg.content && msg.content.trim() && msg.content.toLowerCase() !== 'undefined') // Filter out any undefined/empty messages
-                                .map((msg, idx) => (
-                                    <div key={idx} className={styles.messageWrapper}>
-                                        {msg.role === 'vaidya' ? (
-                                            <div className={styles.vaidyaMessage} lang="hi" dir="auto">
-                                                {/* Apply Typewriter effect ONLY to the very last message if it's from Vaidya */}
-                                                {idx === messages.length - 1 ? (
-                                                    <TypewriterMessage
-                                                        content={msg.content || ''}
-                                                        speed={25}
-                                                        onUpdate={handleScrollToBottom}
-                                                    />
-                                                ) : (
-                                                    msg.content || ''
-                                                )}
-                                            </div>
-                                        ) : (
-                                            <div className={styles.userMessage}>
-                                                "{msg.content || ''}"
-                                                {msg.status === 'sending' && (
-                                                    <span className={styles.sendingIndicator}>
-                                                        {' '}({lang === 'hi' ? 'भेज रहे हैं...' : 'Sending...'})
-                                                    </span>
-                                                )}
-                                                {msg.status === 'error' && (
-                                                    <span className={styles.errorIndicator}>
-                                                        {' '}({lang === 'hi' ? 'त्रुटि' : 'Error'})
-                                                    </span>
-                                                )}
+            {/* ── NORMAL MODE: Full page content ── */}
+            <AnimatePresence>
+                {!zenMode && (
+                    <motion.div
+                        initial={{ opacity: 1 }}
+                        exit={{ opacity: 0, scale: 0.97 }}
+                        transition={{ duration: 0.4 }}
+                        style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}
+                    >
+                        {/* ── Sri Yantra decorative background ── */}
+                        <div className={styles.sriYantraLayer}>
+                            <svg viewBox="0 0 100 100" fill="none" stroke="#C49102" strokeWidth="0.5" style={{ width: '100%', height: '100%' }}>
+                                <circle cx="50" cy="50" r="48" opacity="0.3" />
+                                <circle cx="50" cy="50" r="40" opacity="0.4" />
+                                <path d="M50 2 L90 50 L50 98 L10 50 Z" opacity="0.3" />
+                                <path d="M50 10 L85 50 L50 90 L15 50 Z" opacity="0.3" />
+                                <circle cx="50" cy="50" r="5" fill="#C49102" opacity="0.2" />
+                            </svg>
+                        </div>
+
+                        {/* ── Orb + Awaken Button Header ── */}
+                        <div style={{
+                            paddingTop: '3.5rem', paddingBottom: '0.5rem',
+                            display: 'flex', flexDirection: 'column',
+                            alignItems: 'center', gap: '1.2rem',
+                            background: 'linear-gradient(to bottom, rgba(30,27,75,0.65) 0%, transparent 100%)',
+                        }}>
+                            <AcharyaGuruOrb
+                                status={orbStatus}
+                                zenMode={false}
+                                sizePx={110}
+                            />
+
+                            {/* Awaken Acharya button */}
+                            <motion.button
+                                whileHover={{ scale: 1.04 }}
+                                whileTap={{ scale: 0.96 }}
+                                onClick={handleAwakenAcharya}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: '0.7rem',
+                                    padding: '0.65rem 1.8rem', borderRadius: 999,
+                                    background: 'rgba(99,102,241,0.16)',
+                                    border: '1px solid rgba(99,102,241,0.32)',
+                                    color: 'rgba(199,210,254,0.90)',
+                                    backdropFilter: 'blur(12px)',
+                                    fontSize: '0.78rem', fontWeight: 600,
+                                    letterSpacing: '0.18em', textTransform: 'uppercase',
+                                    cursor: 'pointer', fontFamily: 'inherit',
+                                }}
+                            >
+                                <Mic size={14} />
+                                {lang === 'hi' ? 'आचार्य को जागृत करें' : 'Awaken Acharya'}
+                            </motion.button>
+                        </div>
+
+                        {/* ── Decorative side panels ── */}
+                        <div className={styles.mantraSidePanel} style={{ left: '2rem' }}>
+                            <div className={styles.mantraPanelVertical}>
+                                <span className={styles.mantraSanskrit}>
+                                    "ॐ नमो भगवते महादर्शनाय वासुदेवाय धन्वंतराये |<br />
+                                    अमृतकलश हस्ताय सर्वभय विनाशाय..."
+                                </span>
+                            </div>
+                        </div>
+                        <div className={styles.mantraSidePanel} style={{ right: '2rem' }}>
+                            <div className={styles.mantraPanelVertical}>
+                                <span className={styles.mantraSanskrit}>
+                                    "योगेन चित्तस्य पदेन वाचां । मलं शरीरस्य च वैद्यकेन ॥"
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* ── Main content layer ── */}
+                        <div className={styles.contentLayer}>
+                            {/* Language toggle header */}
+                            <header className={styles.headerSection}>
+                                <button onClick={toggleLanguage} className={styles.langToggle}>
+                                    {lang === 'hi' ? 'English' : 'हिन्दी'}
+                                </button>
+                                <h1 className={styles.headerTitle}>
+                                    {lang === 'hi' ? 'आचार्य संवाद' : 'Acharya Samvad'}
+                                </h1>
+                            </header>
+
+                            {/* ── Chat display — completely untouched ── */}
+                            <section className={styles.chatContainer}>
+                                {!result ? (
+                                    <div className={styles.manuscriptCard}>
+                                        {messages.length === 0 && (
+                                            <div className={styles.welcomeMessage}>
+                                                <p className={styles.welcomeText}>
+                                                    {lang === 'hi'
+                                                        ? 'कैसे हो बेटाजी! आपको कोई भी स्वास्थ्य समस्या हो, आप यहाँ चैट पर लिखकर आयुर्वेद के अनुसार मुझसे स्वास्थ्य सलाह ले सकते हैं।'
+                                                        : 'How are you, Beta! If you have any health concerns, you can message me here for Ayurvedic health advice.'}
+                                                </p>
                                             </div>
                                         )}
-                                    </div>
-                                ))}
 
-                            {loading && (
-                                <div className={styles.contemplating}>
-                                    <div className={styles.diyaContainer}>
-                                        <div className={styles.diyaFlame}></div>
-                                        <div className={styles.diyaBase}></div>
+                                        {messages
+                                            .filter(msg => msg.content && msg.content.trim() && msg.content.toLowerCase() !== 'undefined')
+                                            .map((msg, idx) => (
+                                                <div key={idx} className={styles.messageWrapper}>
+                                                    {msg.role === 'vaidya' ? (
+                                                        <div className={styles.vaidyaMessage} lang="hi" dir="auto">
+                                                            {idx === messages.length - 1 ? (
+                                                                <TypewriterMessage
+                                                                    content={msg.content || ''}
+                                                                    speed={25}
+                                                                    onUpdate={handleScrollToBottom}
+                                                                />
+                                                            ) : (msg.content || '')}
+                                                        </div>
+                                                    ) : (
+                                                        <div className={styles.userMessage}>
+                                                            "{msg.content || ''}"
+                                                            {msg.status === 'sending' && (
+                                                                <span className={styles.sendingIndicator}>
+                                                                    {' '}({lang === 'hi' ? 'भेज रहे हैं...' : 'Sending...'})
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+
+                                        {loading && (
+                                            <div className={styles.contemplating}>
+                                                <div className={styles.diyaContainer}>
+                                                    <div className={styles.diyaFlame} />
+                                                    <div className={styles.diyaBase} />
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div ref={bottomRef} />
                                     </div>
-                                </div>
+                                ) : (
+                                    <div className={styles.resultSheet}>
+                                        <h2 className={styles.resultTitle}>
+                                            {lang === 'hi' ? 'परीक्षण का परिणाम' : 'Diagnosis Results'}
+                                        </h2>
+                                        <div className="mb-6">
+                                            <h3 className="text-xl font-bold text-[#8A3324] mb-2">{lang === 'hi' ? 'निदान' : 'Diagnosis'}</h3>
+                                            <p className="text-lg leading-relaxed">{getText(result.diagnosis)}</p>
+                                        </div>
+                                        <div className="mb-6">
+                                            <h3 className="text-xl font-bold text-[#8A3324] mb-2">{lang === 'hi' ? 'मूल कारण' : 'Root Cause'}</h3>
+                                            <p className="text-lg leading-relaxed">{getText(result.rootCause)}</p>
+                                        </div>
+                                        <div className="mt-8 text-left">
+                                            <h3 style={{ color: '#C49102', fontFamily: 'var(--font-header)' }}>{t.dietLabel}</h3>
+                                            <ul style={{ marginBottom: '2rem', paddingLeft: '1.5rem', color: '#5D4037' }}>
+                                                {getList(result.ahara).map((item: string, i: number) => (
+                                                    <li key={i} style={{ marginBottom: '0.5rem' }}>{item}</li>
+                                                ))}
+                                            </ul>
+                                            <h3 style={{ color: '#C49102', fontFamily: 'var(--font-header)' }}>{t.routineLabel}</h3>
+                                            <ul style={{ marginBottom: '2rem', paddingLeft: '1.5rem', color: '#5D4037' }}>
+                                                {getList(result.vihara).map((item: string, i: number) => (
+                                                    <li key={i} style={{ marginBottom: '0.5rem' }}>{item}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                        <div style={{ marginTop: '2rem', fontStyle: 'italic', color: '#8A3324', fontSize: '1.2rem', textAlign: 'center' }}>
+                                            "{getText(result.closing)}"
+                                        </div>
+                                        <div className="text-center mt-8">
+                                            <button
+                                                onClick={() => window.location.reload()}
+                                                className={styles.submitButton}
+                                                style={{ position: 'relative', border: '1px solid #C49102', padding: '0.5rem 2rem', borderRadius: '4px' }}
+                                            >
+                                                {lang === 'hi' ? 'नया परामर्श' : 'New Consultation'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </section>
+
+                            {/* ── Input zone — completely untouched ── */}
+                            {!result && (
+                                <footer className={styles.inputZone}>
+                                    <div className={styles.inputWrapper}>
+                                        <textarea
+                                            className={styles.goldInput}
+                                            placeholder={lang === 'hi' ? 'अपनी समस्या यहाँ लिखें...' : 'Share your ailment here...'}
+                                            value={input}
+                                            onChange={e => setInput(e.target.value)}
+                                            onKeyDown={e => {
+                                                if (e.key === 'Enter' && !e.shiftKey && !(e.nativeEvent as any).isComposing) {
+                                                    e.preventDefault();
+                                                    handleSend();
+                                                }
+                                            }}
+                                            disabled={loading}
+                                            rows={1}
+                                            spellCheck={false}
+                                            autoCorrect="off"
+                                            autoCapitalize="none"
+                                            autoComplete="off"
+                                        />
+                                        <button
+                                            className={styles.submitButton}
+                                            onClick={handleSend}
+                                            disabled={loading || !sanitizedInput.trim()}
+                                            aria-label={lang === 'hi' ? 'भेजें' : 'Send'}
+                                        />
+                                    </div>
+                                    <div className={styles.footerDedication}>Dedicated to the Lineage of Ayurveda</div>
+                                </footer>
                             )}
-                            <div ref={bottomRef} />
                         </div>
-                    ) : (
-                        /* RESULT SHEET (If diagnosis complete) */
-                        <div className={styles.resultSheet}>
-                            <h2 className={styles.resultTitle}>
-                                {lang === 'hi' ? "परीक्षण का परिणाम " : "Diagnosis Results"}
-                            </h2>
-                            {/* Diagnosis */}
-                            <div className="mb-6">
-                                <h3 className="text-xl font-bold text-[#8A3324] mb-2">
-                                    {lang === 'hi' ? "निदान (Diagnosis)" : "Diagnosis"}
-                                </h3>
-                                <p className="text-lg leading-relaxed">
-                                    {getText(result.diagnosis)}
-                                </p>
-                            </div>
-
-                            {/* Root Cause */}
-                            <div className="mb-6">
-                                <h3 className="text-xl font-bold text-[#8A3324] mb-2">
-                                    {lang === 'hi' ? "मूल कारण (Root Cause)" : "Root Cause"}
-                                </h3>
-                                <p className="text-lg leading-relaxed">
-                                    {getText(result.rootCause)}
-                                </p>
-                            </div>
-
-                            {/* Recommendations */}
-                            <div className="mt-8 text-left">
-                                <h3 style={{ color: '#C49102', fontFamily: 'var(--font-header)' }}>{getText(result.ahara?.title as any) || t.dietLabel}</h3>
-                                <ul style={{ marginBottom: '2rem', paddingLeft: '1.5rem', color: '#5D4037' }}>
-                                    {getList(result.ahara).map((item: string, i: number) => (
-                                        <li key={i} style={{ marginBottom: '0.5rem' }}>{item}</li>
-                                    ))}
-                                </ul>
-
-                                <h3 style={{ color: '#C49102', fontFamily: 'var(--font-header)' }}>{getText(result.vihara?.title as any) || t.routineLabel}</h3>
-                                <ul style={{ marginBottom: '2rem', paddingLeft: '1.5rem', color: '#5D4037' }}>
-                                    {getList(result.vihara).map((item: string, i: number) => (
-                                        <li key={i} style={{ marginBottom: '0.5rem' }}>{item}</li>
-                                    ))}
-                                </ul>
-                            </div>
-
-                            <div style={{ marginTop: '2rem', fontStyle: 'italic', color: '#8A3324', fontSize: '1.2rem', textAlign: 'center' }}>
-                                “{getText(result.closing)}”
-                            </div>
-
-                            <div className="text-center mt-8">
-                                <button
-                                    onClick={() => window.location.reload()}
-                                    className={styles.submitButton}
-                                    style={{ position: 'relative', border: '1px solid #C49102', padding: '0.5rem 2rem', borderRadius: '4px' }}
-                                >
-                                    {lang === 'hi' ? "नया परामर्श" : "New Consultation"}
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </section>
-
-                {/* INPUT ZONE: SOFT GOLD UNDERLINE */}
-                {!result && (
-                    <footer className={styles.inputZone}>
-                        <div className={styles.inputWrapper}>
-                            <textarea
-                                className={styles.goldInput}
-                                placeholder={lang === 'hi' ? "अपनी समस्या यहाँ लिखें..." : "Share your ailment here..."}
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                onKeyDown={(e) => {
-                                    // Check if IME is composing (for Hindi/other languages)
-                                    // isComposing is critical for proper Hindi typing support
-                                    if (e.key === 'Enter' && !e.shiftKey && !(e.nativeEvent as any).isComposing) {
-                                        e.preventDefault();
-                                        handleSend();
-                                    }
-                                }}
-                                disabled={loading}
-                                rows={1}
-                                spellCheck={false}
-                                autoCorrect="off"
-                                autoCapitalize="none"
-                                autoComplete="off"
-                            />
-                            <button
-                                className={styles.submitButton}
-                                onClick={handleSend}
-                                disabled={loading || !sanitizedInput.trim()}
-                                aria-label={lang === 'hi' ? 'भेजें' : 'Send'}
-                            >
-                                {/* Shankha icon is defined in CSS background-image */}
-                            </button>
-                        </div>
-                        <div className={styles.footerDedication}>
-                            Dedicated to the Lineage of Ayurveda
-                        </div>
-                    </footer>
+                    </motion.div>
                 )}
-            </div>
-
-            {/* Voice Call Modal — REMOVED: voice is now inline below the Orb */}
-        </main>
+            </AnimatePresence>
+        </div>
     );
 }
 
-export default function DigitalVaidyaPage() {
+export default function AcharyaSamvadPage() {
     return (
-        <Suspense fallback={<div style={{ minHeight: '100vh', background: '#1a0f05' }} />}>
-            <DigitalVaidyaContent />
+        <Suspense fallback={<div style={{ minHeight: '100vh', background: '#020617' }} />}>
+            <AcharyaContent />
         </Suspense>
     );
 }
