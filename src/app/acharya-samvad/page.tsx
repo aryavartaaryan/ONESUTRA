@@ -2,15 +2,16 @@
 
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback, Suspense } from 'react';
 import styles from './digital-vaidya.module.css';
-import { Globe, Mic } from 'lucide-react';
+import { Globe, Mic, MicOff, PhoneOff } from 'lucide-react';
 import { BilingualString, BilingualList } from '@/lib/types';
 import translations from '@/lib/vaidya-translations.json';
 import { useSearchParams } from 'next/navigation';
 import TypewriterMessage from '@/components/TypewriterMessage';
-import VaidyaVoiceModal from '@/components/VaidyaVoiceModal';
 import { useLanguage } from '@/context/LanguageContext';
 import PremiumHeader from '@/components/PremiumHeader/PremiumHeader';
 import AcharyaGuruOrb from '@/components/Dashboard/AcharyaGuruOrb';
+import { useVaidyaVoiceCall } from '@/hooks/useVaidyaVoiceCall';
+import { motion, AnimatePresence } from 'framer-motion';
 
 
 interface DiagnosisResult {
@@ -39,9 +40,31 @@ function DigitalVaidyaContent() {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<DiagnosisResult | null>(null);
     const { lang, toggleLanguage } = useLanguage();
-    const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
     const bottomRef = useRef<HTMLDivElement>(null);
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+    // ── Inline voice engine (replaces old modal) ──────────────────────────────
+    const {
+        callState, startCall, endCall, resetToIdle,
+        error: voiceError, isMuted, toggleMute,
+        volumeLevel, transcript, isSpeaking,
+    } = useVaidyaVoiceCall({ lang });
+    const [voiceOpen, setVoiceOpen] = useState(false);
+
+    const handleAwakenAcharya = () => {
+        if (voiceOpen) {
+            endCall();
+            setVoiceOpen(false);
+        } else {
+            setVoiceOpen(true);
+            setTimeout(() => startCall(), 100);
+        }
+    };
+
+    const handleEndCall = () => {
+        endCall();
+        setVoiceOpen(false);
+    };
 
     const t = translations[lang];
 
@@ -238,7 +261,7 @@ function DigitalVaidyaContent() {
                 subtitle={lang === 'hi' ? 'आयुर्वेद · ज्ञान · संवाद' : 'Ayurveda · Wisdom · Dialogue'}
                 rightSlot={
                     <button
-                        onClick={() => setIsVoiceCallOpen(true)}
+                        onClick={handleAwakenAcharya}
                         style={{
                             display: 'flex', alignItems: 'center', gap: '0.4rem',
                             padding: '6px 14px', background: 'linear-gradient(135deg, #C49102, #FFD700)',
@@ -253,13 +276,105 @@ function DigitalVaidyaContent() {
                 }
             />
 
-            {/* ── Acharya Guru Orb — Visual Identity Header ── */}
+            {/* ── Acharya Guru Orb + Inline Voice Panel ── */}
             <div style={{
                 paddingTop: '4rem',
-                paddingBottom: '0.25rem',
+                paddingBottom: '0.5rem',
                 background: 'linear-gradient(to bottom, rgba(30,27,75,0.65) 0%, transparent 100%)',
             }}>
-                <AcharyaGuruOrb status={loading ? 'processing' : 'idle'} />
+                <AcharyaGuruOrb status={loading ? 'processing' : (callState === 'active' && isSpeaking) ? 'speaking' : voiceOpen ? 'processing' : 'idle'} />
+
+                {/* ── Awaken / End Call Button ── */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', paddingBottom: '1rem' }}>
+                    <motion.button
+                        whileHover={{ scale: 1.04 }}
+                        whileTap={{ scale: 0.96 }}
+                        onClick={handleAwakenAcharya}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: '0.7rem',
+                            padding: '0.7rem 2rem', borderRadius: 999,
+                            background: voiceOpen ? 'rgba(239,68,68,0.18)' : 'rgba(99,102,241,0.18)',
+                            border: `1px solid ${voiceOpen ? 'rgba(239,68,68,0.35)' : 'rgba(99,102,241,0.35)'}`,
+                            color: voiceOpen ? 'rgba(252,165,165,0.9)' : 'rgba(199,210,254,0.9)',
+                            backdropFilter: 'blur(12px)',
+                            fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.18em',
+                            textTransform: 'uppercase', cursor: 'pointer',
+                            fontFamily: 'inherit',
+                            transition: 'all 0.3s ease',
+                        }}
+                    >
+                        {voiceOpen
+                            ? <><PhoneOff size={15} /> {lang === 'hi' ? 'संवाद समाप्त करें' : 'End Call'}</>
+                            : <><Mic size={15} /> {lang === 'hi' ? 'आचार्य को जागृत करें' : 'Awaken Acharya'}</>
+                        }
+                    </motion.button>
+
+                    {/* ── Inline call state + transcript ── */}
+                    <AnimatePresence>
+                        {voiceOpen && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 8 }}
+                                transition={{ duration: 0.35 }}
+                                style={{
+                                    width: '100%', maxWidth: 440,
+                                    background: 'rgba(30,27,75,0.55)',
+                                    backdropFilter: 'blur(18px)',
+                                    border: '1px solid rgba(99,102,241,0.18)',
+                                    borderRadius: 20, padding: '1rem 1.25rem',
+                                    display: 'flex', flexDirection: 'column', gap: '0.6rem',
+                                }}
+                            >
+                                {/* Status */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <motion.div
+                                        animate={{ scale: [1, 1.4, 1], opacity: [0.7, 1, 0.7] }}
+                                        transition={{ duration: 1.2, repeat: Infinity }}
+                                        style={{
+                                            width: 8, height: 8, borderRadius: '50%',
+                                            background: callState === 'active' ? '#4ade80' : callState === 'connecting' ? '#fbbf24' : '#6366f1',
+                                        }}
+                                    />
+                                    <span style={{ fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(199,210,254,0.7)' }}>
+                                        {callState === 'connecting' ? (lang === 'hi' ? 'जुड़ रहे हैं...' : 'Connecting...')
+                                            : callState === 'active' ? (isSpeaking ? (lang === 'hi' ? 'आचार्य बोल रहे हैं...' : 'Acharya speaking...') : (lang === 'hi' ? 'सुन रहे हैं...' : 'Listening...'))
+                                                : callState === 'error' ? (voiceError || 'Error') : 'Ready'}
+                                    </span>
+                                    {callState === 'active' && (
+                                        <button onClick={toggleMute} style={{
+                                            marginLeft: 'auto', background: 'none', border: 'none',
+                                            color: isMuted ? 'rgba(252,165,165,0.8)' : 'rgba(199,210,254,0.6)',
+                                            cursor: 'pointer', padding: 4,
+                                        }}>
+                                            {isMuted ? <MicOff size={14} /> : <Mic size={14} />}
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Transcript */}
+                                {transcript.length > 0 && (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', maxHeight: 120, overflowY: 'auto' }}>
+                                        {transcript.map((line, idx) => (
+                                            <p key={idx} style={{
+                                                fontSize: '0.82rem', margin: 0, lineHeight: 1.5,
+                                                color: 'rgba(255,255,255,0.78)',
+                                                fontFamily: "'Playfair Display', Georgia, serif",
+                                                fontStyle: 'italic',
+                                            }}>{line}</p>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {transcript.length === 0 && callState === 'active' && (
+                                    <p style={{ fontSize: '0.75rem', color: 'rgba(199,210,254,0.45)', fontStyle: 'italic', margin: 0 }}>
+                                        {lang === 'hi' ? 'बोलिए, आचार्य सुन रहे हैं...' : 'Speak — Acharya is listening...'}
+                                    </p>
+                                )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </div>
 
             {/* BACKGROUND LAYER */}
@@ -383,7 +498,7 @@ function DigitalVaidyaContent() {
 
                 {/* Voice Call Button - Premium Refined */}
                 <button
-                    onClick={() => setIsVoiceCallOpen(true)}
+                    onClick={handleAwakenAcharya}
                     style={{
                         display: 'inline-flex',
                         alignItems: 'center',
@@ -436,7 +551,7 @@ function DigitalVaidyaContent() {
 
                     <h2 className={styles.mobileMainTitle}>आचार्य संवाद</h2>
                     <button
-                        onClick={() => setIsVoiceCallOpen(true)}
+                        onClick={handleAwakenAcharya}
                         style={{
                             display: 'inline-flex',
                             alignItems: 'center',
@@ -636,12 +751,7 @@ function DigitalVaidyaContent() {
                 )}
             </div>
 
-            {/* Voice Call Modal */}
-            <VaidyaVoiceModal
-                isOpen={isVoiceCallOpen}
-                onClose={() => setIsVoiceCallOpen(false)}
-                lang={lang}
-            />
+            {/* Voice Call Modal — REMOVED: voice is now inline below the Orb */}
         </main>
     );
 }

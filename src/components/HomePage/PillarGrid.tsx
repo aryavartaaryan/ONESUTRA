@@ -86,15 +86,15 @@ const DIMENSIONS = [
     {
         id: 'chat',
         icon: LotusMessageIcon,
-        label: 'Intentional Chat',
-        titleEn: 'Intentional Chat',
-        titleHi: 'सचेत संदेश',
-        descEn: 'Connect without anxiety. Mindful messaging for meaningful connections.',
+        label: 'Intentional Chat_SUTRA',
+        titleEn: 'Intentional Chat_SUTRA',
+        titleHi: 'सचेत संवाद — सूत्र',
+        descEn: 'The anti-anxiety messenger. High Signal. Zero Noise.',
         descHi: 'बिना चिंता के जुड़ें। अर्थपूर्ण संवाद।',
-        gradient: 'linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(239,68,68,0.12) 100%)',
-        glow: 'rgba(245,158,11,0.28)',
-        accent: '#fbbf24',
-        href: '#',
+        gradient: 'linear-gradient(135deg, rgba(109,40,217,0.22) 0%, rgba(245,158,11,0.12) 100%)',
+        glow: 'rgba(109,40,217,0.28)',
+        accent: '#c084fc',
+        href: '/sutra',
         span: 'normal',
     },
     {
@@ -192,8 +192,8 @@ export default function PillarGrid() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.7, delay: 0.1 }}
             >
-                {lang === 'hi' ? 'ReZo के' : 'The Dimensions of'}{' '}
-                <span className={styles.sectionTitleAccent}>{lang === 'hi' ? 'आयाम' : 'ReZo'}</span>
+                {lang === 'hi' ? 'ReZo के' : 'ReZo'}{' '}
+                <span className={styles.sectionTitleAccent}>{lang === 'hi' ? 'आयाम' : 'Dimensions'}</span>
             </motion.h3>
 
             {/* ── Bento Grid ────────────────────────────────────── */}

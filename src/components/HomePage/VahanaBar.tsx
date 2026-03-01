@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Zap, MessageCircle, UserCircle } from 'lucide-react';
+import { Home, MessageSquare, MessageCircle, UserCircle } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import styles from './VahanaBar.module.css';
 
@@ -12,10 +12,10 @@ export default function VahanaBar() {
     const pathname = usePathname();
 
     const NAV = [
-        { id: 'home', href: '/', Icon: Home, label: lang === 'hi' ? 'गृह' : 'Home', },
-        { id: 'justvibe', href: '/pranaverse', Icon: Zap, label: lang === 'hi' ? 'जस्टवाइब' : 'JustVibe', },
-        { id: 'acharya', href: '/acharya-samvad', Icon: MessageCircle, label: lang === 'hi' ? 'आचार्य' : 'Acharya', },
-        { id: 'profile', href: '/profile', Icon: UserCircle, label: lang === 'hi' ? 'प्रोफ़ाइल' : 'Profile', },
+        { id: 'home', href: '/', Icon: Home, label: lang === 'hi' ? 'गृह' : 'Home' },
+        { id: 'sutra', href: '/sutra', Icon: MessageSquare, label: lang === 'hi' ? 'सूत्र' : 'SUTRA' },
+        { id: 'acharya', href: '/acharya-samvad', Icon: MessageCircle, label: lang === 'hi' ? 'आचार्य' : 'Acharya' },
+        { id: 'profile', href: '/profile', Icon: UserCircle, label: lang === 'hi' ? 'प्रोफ़ाइल' : 'Profile' },
     ];
 
     return (
