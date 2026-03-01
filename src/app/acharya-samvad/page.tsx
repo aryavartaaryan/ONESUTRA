@@ -10,6 +10,7 @@ import TypewriterMessage from '@/components/TypewriterMessage';
 import VaidyaVoiceModal from '@/components/VaidyaVoiceModal';
 import { useLanguage } from '@/context/LanguageContext';
 import PremiumHeader from '@/components/PremiumHeader/PremiumHeader';
+import AcharyaGuruOrb from '@/components/Dashboard/AcharyaGuruOrb';
 
 
 interface DiagnosisResult {
@@ -251,6 +252,15 @@ function DigitalVaidyaContent() {
                     </button>
                 }
             />
+
+            {/* ── Acharya Guru Orb — Visual Identity Header ── */}
+            <div style={{
+                paddingTop: '4rem',
+                paddingBottom: '0.25rem',
+                background: 'linear-gradient(to bottom, rgba(30,27,75,0.65) 0%, transparent 100%)',
+            }}>
+                <AcharyaGuruOrb status={loading ? 'processing' : 'idle'} />
+            </div>
 
             {/* BACKGROUND LAYER */}
             <div className={styles.sriYantraLayer}>

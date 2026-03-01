@@ -240,72 +240,106 @@ export default function MagicSyncModule({ items, onToggle, onRemove, onAdd }: Ma
                 }}>SYNC</span>
             </motion.div>
 
-            {/* ── Prana Pills (horizontal wrap) ──────── */}
-            <motion.div
-                layout
-                style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '0.45rem',
-                    alignItems: 'flex-start',
-                    minHeight: pills.length > 0 ? 28 : 0,
-                    overflow: 'hidden',
-                }}
-            >
-                <AnimatePresence mode="popLayout">
-                    {pills.filter(p => !p.done).map(pill => {
-                        const colors = COLOR_MAP[pill.colorClass] || COLOR_MAP.gold;
-                        return (
-                            <motion.button
-                                key={pill.id}
-                                layout
-                                initial={{ opacity: 0, scale: 0.7, y: -12, filter: 'blur(8px)' }}
-                                animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
-                                exit={{ opacity: 0, scale: 0.7, filter: 'blur(12px)', boxShadow: '0 0 20px rgba(255,200,50,0.6)' }}
-                                transition={{ type: 'spring', stiffness: 380, damping: 24 }}
-                                onClick={() => handlePillTap(pill)}
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                style={{
-                                    display: 'flex', alignItems: 'center', gap: '0.4rem',
-                                    background: colors.bg,
-                                    backdropFilter: 'blur(12px)',
-                                    WebkitBackdropFilter: 'blur(12px)',
-                                    border: `1px solid ${colors.border}`,
-                                    borderRadius: 999,
-                                    padding: '0.28rem 0.75rem 0.28rem 0.55rem',
-                                    cursor: 'pointer',
-                                    color: colors.text,
-                                    fontSize: '0.72rem',
-                                    fontWeight: 500,
-                                    letterSpacing: '0.01em',
-                                    fontFamily: 'inherit',
-                                    whiteSpace: 'nowrap' as const,
-                                    maxWidth: '100%',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                }}
-                            >
-                                <span style={{ fontSize: '0.85rem' }}>{pill.icon}</span>
-                                <span style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {pill.text}
-                                </span>
-                                <span style={{ opacity: 0.45, fontSize: '0.62rem', marginLeft: 2 }}>×</span>
-                            </motion.button>
-                        );
-                    })}
-                </AnimatePresence>
+            {/* ── Prana Pills — Horizontal "Rule of 3" Snap Carousel ──────── */}
+            <div style={{ position: 'relative', width: '100%' }}>
+                {/* Right-edge fade mask — signals more content to scroll */}
+                <div style={{
+                    position: 'absolute', top: 0, right: 0, bottom: 0, width: 56,
+                    background: 'linear-gradient(to right, transparent, rgba(0,0,0,0.85))',
+                    pointerEvents: 'none', zIndex: 2,
+                    borderRadius: '0 999px 999px 0',
+                }} />
 
-                {pills.length === 0 && (
-                    <motion.span
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        style={{ fontSize: '0.66rem', color: 'rgba(255,255,255,0.25)', fontStyle: 'italic', paddingLeft: '0.3rem' }}
-                    >
-                        Type an intention above and press Enter to sync it
-                    </motion.span>
-                )}
-            </motion.div>
+                <div
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        gap: '0.5rem',
+                        overflowX: 'auto',
+                        overflowY: 'hidden',
+                        scrollSnapType: 'x mandatory',
+                        scrollBehavior: 'smooth',
+                        WebkitOverflowScrolling: 'touch',
+                        // Hide scrollbar across browsers
+                        msOverflowStyle: 'none',
+                        scrollbarWidth: 'none',
+                        paddingBottom: 2,
+                        paddingRight: 48, // room before fade mask
+                    }}
+                    className="hide-scrollbar"
+                >
+                    <AnimatePresence mode="popLayout">
+                        {pills.filter(p => !p.done).map(pill => {
+                            const colors = COLOR_MAP[pill.colorClass] || COLOR_MAP.gold;
+                            return (
+                                <motion.button
+                                    key={pill.id}
+                                    layout
+                                    initial={{ opacity: 0, scale: 0.78, filter: 'blur(8px)' }}
+                                    animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                                    exit={{ opacity: 0, scale: 0.72, filter: 'blur(12px)', boxShadow: '0 0 24px rgba(255,200,50,0.7)' }}
+                                    transition={{ type: 'spring', stiffness: 380, damping: 24 }}
+                                    onClick={() => handlePillTap(pill)}
+                                    whileHover={{ scale: 1.04 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    style={{
+                                        flexShrink: 0,
+                                        // Rule of 3: exactly 3 pills visible on mobile, 4 on tablet
+                                        width: 'calc(33.3% - 0.35rem)',
+                                        minWidth: 96,
+                                        maxWidth: 160,
+                                        scrollSnapAlign: 'center',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'flex-start',
+                                        gap: '0.25rem',
+                                        background: colors.bg,
+                                        backdropFilter: 'blur(12px)',
+                                        WebkitBackdropFilter: 'blur(12px)',
+                                        border: `1px solid ${colors.border}`,
+                                        borderRadius: 16,
+                                        padding: '0.5rem 0.65rem',
+                                        cursor: 'pointer',
+                                        color: colors.text,
+                                        fontSize: '0.7rem',
+                                        fontWeight: 500,
+                                        fontFamily: 'inherit',
+                                        textAlign: 'left',
+                                    }}
+                                >
+                                    <span style={{ fontSize: '1rem' }}>{pill.icon}</span>
+                                    <span style={{
+                                        width: '100%', overflow: 'hidden',
+                                        textOverflow: 'ellipsis', display: '-webkit-box',
+                                        WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                                        lineHeight: 1.3, wordBreak: 'break-word',
+                                    }}>
+                                        {pill.text}
+                                    </span>
+                                    <span style={{ fontSize: '0.55rem', opacity: 0.45, marginTop: 'auto' }}>
+                                        {pill.category} · tap to complete
+                                    </span>
+                                </motion.button>
+                            );
+                        })}
+                    </AnimatePresence>
+
+                    {pills.filter(p => !p.done).length === 0 && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            style={{
+                                fontSize: '0.66rem', color: 'rgba(255,255,255,0.25)',
+                                fontStyle: 'italic', paddingLeft: '0.3rem',
+                                display: 'flex', alignItems: 'center',
+                                minHeight: 64,
+                            }}
+                        >
+                            Type an intention above and press Enter to sync it
+                        </motion.div>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }

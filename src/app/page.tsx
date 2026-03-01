@@ -16,6 +16,7 @@ import SakhaBodhiOrb from '@/components/Dashboard/SakhaBodhiOrb';
 
 import VedicDashboard from '@/components/Dashboard/VedicDashboard';
 import MagicSyncModule from '@/components/Dashboard/MagicSyncModule';
+import PranaVersePortalCard from '@/components/HomePage/PranaVersePortalCard';
 import DailyInsightsCarousel from '@/components/Dashboard/DailyInsightsCarousel';
 import { useCircadianBackground } from '@/hooks/useCircadianBackground';
 
@@ -201,6 +202,11 @@ export default function Home() {
 
 
 
+
+        {/* ══ PRANAVERSE PORTAL HERO CARD ══ */}
+        <div style={{ padding: '0.6rem 0.8rem 0', width: '100%', boxSizing: 'border-box' }}>
+          <PranaVersePortalCard />
+        </div>
 
         {/* ══ 3-COLUMN GRID — below the reel ══ */}
         <div className={dashStyles.dashboardGrid}>

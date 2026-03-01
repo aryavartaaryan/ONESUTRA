@@ -267,3 +267,19 @@ a {
     padding: 1rem;
   }
 }
+
+/* ── Hide scrollbar utility (MagicSyncModule carousel) ── */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ── Amethyst accent for Acharya Orb system ── */
+:root {
+  --accent-amethyst: #7c3aed;
+  --accent-sapphire: #1e1b4b;
+}
