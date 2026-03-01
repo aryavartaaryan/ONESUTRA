@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import HeroSection from '@/components/HomePage/HeroSection';
 import AuthModal from '@/components/HomePage/AuthModal';
-import PillarGrid from '@/components/HomePage/PillarGrid';
+// PillarGrid merged into JustVibePortals (ReZo Dimensions) — import removed
 import GayatriMantraSection from '@/components/GayatriMantraSection/GayatriMantraSection';
 import VoiceCallModal from '@/components/VoiceCallModal';
 import WisdomTicker from '@/components/Dashboard/WisdomTicker';
@@ -225,12 +225,11 @@ export default function Home() {
             <div className={dashStyles.sectionDivider} />
 
             {/* Remaining wellness sections — below fold */}
-            {[PillarGrid, GayatriMantraSection].map((Comp, i) => (
+            {[GayatriMantraSection].map((Comp, i) => (
               <motion.div key={i}
                 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }} transition={{ duration: 0.7, ease: easeIO }}>
                 <Comp />
-                {i < 1 && <div className={dashStyles.sectionDivider} />}
               </motion.div>
             ))}
           </div>
