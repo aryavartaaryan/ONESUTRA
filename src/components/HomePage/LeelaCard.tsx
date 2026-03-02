@@ -464,8 +464,8 @@ export default function LeelaCard() {
                     {/* ── Productivity tagline — gold italic serif ──────── */}
                     <p style={{
                         margin: '0.45rem 0 0',
-                        fontSize: '0.72rem', fontStyle: 'italic',
-                        color: 'rgba(255,255,255,0.55)',
+                        fontSize: '0.82rem', fontStyle: 'italic',
+                        color: 'rgba(255,255,255,0.58)',
                         lineHeight: 1.55, letterSpacing: '0.01em',
                         fontFamily: "'Playfair Display', Georgia, serif",
                         overflow: 'hidden',
@@ -481,8 +481,8 @@ export default function LeelaCard() {
                         {TRACKS.map((tr, i) => (
                             <button key={tr.id} onClick={() => { setIdx(i); setIsPlaying(true); }}
                                 style={{
-                                    width: i === idx ? 20 : 8, height: 8, borderRadius: 999,
-                                    background: i === idx ? `rgba(${raagMeta.canvasPalette[0]},0.90)` : 'rgba(255,255,255,0.22)',
+                                    width: i === idx ? 22 : 9, height: 9, borderRadius: 999,
+                                    background: i === idx ? `rgba(${raagMeta.canvasPalette[0]},0.92)` : 'rgba(255,255,255,0.28)',
                                     border: 'none', cursor: 'pointer', padding: 0,
                                     transition: 'all 0.3s ease',
                                 }}
@@ -504,19 +504,19 @@ export default function LeelaCard() {
                 {/* Progress bar */}
                 <div>
                     <div onClick={seek} style={{
-                        width: '100%', height: 3, borderRadius: 999,
-                        background: 'rgba(255,255,255,0.07)', cursor: 'pointer', position: 'relative',
+                        width: '100%', height: 4, borderRadius: 999,
+                        background: 'rgba(255,255,255,0.10)', cursor: 'pointer', position: 'relative',
                     }}>
                         <div style={{
                             height: '100%', borderRadius: 999,
                             width: `${progress * 100}%`,
-                            background: `linear-gradient(90deg, rgba(${raagMeta.canvasPalette[0]},0.45), rgba(${raagMeta.canvasPalette[0]},1))`,
+                            background: `linear-gradient(90deg, rgba(${raagMeta.canvasPalette[0]},0.55), rgba(${raagMeta.canvasPalette[0]},1))`,
                             position: 'relative', transition: 'width 0.25s linear',
                         }}>
                             <div style={{
-                                position: 'absolute', right: -4, top: '50%', transform: 'translateY(-50%)',
-                                width: 9, height: 9, borderRadius: '50%', background: 'white',
-                                boxShadow: `0 0 8px 2px rgba(${raagMeta.canvasPalette[0]},0.75)`,
+                                position: 'absolute', right: -5, top: '50%', transform: 'translateY(-50%)',
+                                width: 12, height: 12, borderRadius: '50%', background: 'white',
+                                boxShadow: `0 0 10px 3px rgba(${raagMeta.canvasPalette[0]},0.80)`,
                             }} />
                         </div>
                     </div>
@@ -530,41 +530,85 @@ export default function LeelaCard() {
                     </div>
                 </div>
 
-                {/* Playback controls */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.1rem' }}>
-                    <button onClick={prev} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.36)', padding: 6, lineHeight: 0 }}>
-                        <SkipBack size={15} strokeWidth={1.6} />
+
+                    {/* ◀ Prev — solid glass circle */}
+                    <button onClick={prev} style={{
+                        background: 'rgba(255,255,255,0.14)',
+                        backdropFilter: 'blur(12px)',
+                        WebkitBackdropFilter: 'blur(12px)',
+                        border: '1.5px solid rgba(255,255,255,0.30)',
+                        borderRadius: '50%', width: 40, height: 40,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', color: 'rgba(255,255,255,0.90)', lineHeight: 0,
+                        boxShadow: '0 2px 14px rgba(0,0,0,0.35)',
+                        transition: 'all 0.2s ease',
+                    }}>
+                        <SkipBack size={17} strokeWidth={2.2} />
                     </button>
+
+                    {/* ▶ Play / Pause — THE hero button: always crystal-clear */}
                     <motion.button
                         onClick={togglePlayback}
-                        whileTap={{ scale: 0.88 }}
+                        whileTap={{ scale: 0.86 }}
+                        whileHover={{ scale: 1.08 }}
                         animate={isPlaying ? {
                             boxShadow: [
-                                `0 0 0 0 rgba(${raagMeta.canvasPalette[0]},0.40)`,
-                                `0 0 0 12px rgba(${raagMeta.canvasPalette[0]},0)`,
-                                `0 0 0 0 rgba(${raagMeta.canvasPalette[0]},0.40)`,
+                                `0 0 0 0 rgba(${raagMeta.canvasPalette[0]},0.55)`,
+                                `0 0 0 16px rgba(${raagMeta.canvasPalette[0]},0)`,
+                                `0 0 0 0 rgba(${raagMeta.canvasPalette[0]},0.55)`,
                             ],
-                        } : {}}
-                        transition={{ duration: 1.8, repeat: Infinity }}
+                        } : {
+                            boxShadow: '0 4px 24px rgba(0,0,0,0.50)',
+                        }}
+                        transition={{ duration: 1.6, repeat: Infinity }}
                         style={{
-                            width: 46, height: 46, borderRadius: '50%',
-                            background: isPlaying ? `rgba(${raagMeta.canvasPalette[0]},0.14)` : 'rgba(255,255,255,0.07)',
-                            border: isPlaying ? `1.5px solid rgba(${raagMeta.canvasPalette[0]},0.55)` : '1px solid rgba(255,255,255,0.14)',
+                            width: 58, height: 58, borderRadius: '50%',
+                            // PAUSED: solid white-glass — impossible to miss
+                            // PLAYING: vivid accent glow
+                            background: isPlaying
+                                ? `linear-gradient(145deg, rgba(${raagMeta.canvasPalette[0]},0.55), rgba(${raagMeta.canvasPalette[0]},0.28))`
+                                : 'linear-gradient(145deg, rgba(255,255,255,0.28), rgba(255,255,255,0.10))',
+                            backdropFilter: 'blur(20px)',
+                            WebkitBackdropFilter: 'blur(20px)',
+                            border: isPlaying
+                                ? `2px solid rgba(${raagMeta.canvasPalette[0]},0.85)`
+                                : '2px solid rgba(255,255,255,0.55)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            cursor: 'pointer', color: isPlaying ? raagMeta.accent : 'white',
-                            transition: 'all 0.3s ease',
+                            cursor: 'pointer',
+                            color: isPlaying ? raagMeta.accent : '#FFFFFF',
+                            transition: 'background 0.35s ease, border 0.35s ease, color 0.35s ease',
                         }}
                         aria-label={isPlaying ? 'Pause' : 'Play'}
                     >
-                        {isPlaying ? <Pause size={17} fill="currentColor" /> : <Play size={17} fill="currentColor" style={{ marginLeft: 2 }} />}
+                        {isPlaying
+                            ? <Pause size={22} fill="currentColor" />
+                            : <Play size={22} fill="currentColor" style={{ marginLeft: 3 }} />}
                     </motion.button>
-                    <button onClick={next} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.36)', padding: 6, lineHeight: 0 }}>
-                        <SkipForward size={15} strokeWidth={1.6} />
+
+                    {/* ▶▶ Next — solid glass circle */}
+                    <button onClick={next} style={{
+                        background: 'rgba(255,255,255,0.14)',
+                        backdropFilter: 'blur(12px)',
+                        WebkitBackdropFilter: 'blur(12px)',
+                        border: '1.5px solid rgba(255,255,255,0.30)',
+                        borderRadius: '50%', width: 40, height: 40,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', color: 'rgba(255,255,255,0.90)', lineHeight: 0,
+                        boxShadow: '0 2px 14px rgba(0,0,0,0.35)',
+                        transition: 'all 0.2s ease',
+                    }}>
+                        <SkipForward size={17} strokeWidth={2.2} />
                     </button>
+
                     {isLeela && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 2 }}>
-                            <Waves size={12} style={{ color: `rgba(${raagMeta.canvasPalette[0]},0.65)` }} />
-                            <span style={{ fontSize: '0.58rem', letterSpacing: '0.12em', fontFamily: 'monospace', color: `rgba(${raagMeta.canvasPalette[0]},0.65)`, textTransform: 'uppercase' }}>3 Stems</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                            <Waves size={13} style={{ color: `rgba(${raagMeta.canvasPalette[0]},0.75)` }} />
+                            <span style={{
+                                fontSize: '0.62rem', letterSpacing: '0.14em',
+                                fontFamily: 'monospace', textTransform: 'uppercase',
+                                color: `rgba(${raagMeta.canvasPalette[0]},0.75)`,
+                            }}>3 Stems</span>
                         </div>
                     )}
                 </div>

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Briefcase, Flame, Globe } from 'lucide-react';
+import { User, Briefcase, Flame, Globe, MessageCircle } from 'lucide-react';
 
 // ── Single nav link: icon + label with gold hover glow ────────────────────────
 function NavLink({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
@@ -68,6 +68,7 @@ export default function StickyTopNav() {
                 <NavLink href="/jobs" icon={<Briefcase size={12} strokeWidth={1.7} />} label="Jobs" />
                 <NavLink href="/dhyan-kshetra" icon={<Flame size={12} strokeWidth={1.7} />} label="Meditate" />
                 <NavLink href="/project-leela" icon={<Globe size={12} strokeWidth={1.7} />} label="Leela" />
+                <NavLink href="/onesutra" icon={<MessageCircle size={12} strokeWidth={1.7} />} label="Sutra" />
             </div>
         </header>
     );
