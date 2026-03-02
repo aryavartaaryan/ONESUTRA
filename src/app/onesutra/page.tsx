@@ -583,10 +583,10 @@ export default function OneSutraPage() {
                                 {/* Glass pill call buttons */}
                                 <div style={{ display: 'flex', gap: 8 }}>
                                     <button style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 999, padding: '0.4rem 0.85rem', display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', color: 'rgba(255,255,255,0.65)', fontSize: '0.7rem', fontFamily: 'inherit' }}>
-                                        <Phone size={13} /> <span style={{ display: 'none', ['@media (min-width: 400px)' as never]: { display: 'inline' } }}>Call</span>
+                                        <Phone size={13} />
                                     </button>
                                     <button style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 999, padding: '0.4rem 0.85rem', display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', color: 'rgba(255,255,255,0.65)', fontSize: '0.7rem', fontFamily: 'inherit' }}>
-                                        <Video size={13} /> <span style={{ display: 'none', ['@media (min-width: 400px)' as never]: { display: 'inline' } }}>Video</span>
+                                        <Video size={13} />
                                     </button>
                                 </div>
                             </div>
