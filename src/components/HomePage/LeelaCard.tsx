@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Pause, SkipBack, SkipForward, Waves } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Waves, Moon, Layers } from 'lucide-react';
 
 // ── Time-of-day Rāga metadata — changes the header dynamically ───────────────
 const TOD_RAAG: Record<string, { label: string; sublabel: string; tag: string; accent: string; canvasPalette: string[] }> = {
@@ -352,6 +352,134 @@ export default function LeelaCard() {
             a.currentTime = ((e.clientX - rect.left) / rect.width) * a.duration;
         }
     }, [isLeela]);
+
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        const check = () => setIsMobile(window.innerWidth < 768);
+        check();
+        window.addEventListener('resize', check);
+        return () => window.removeEventListener('resize', check);
+    }, []);
+
+    if (isMobile) {
+        return (
+            <motion.section
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                className="w-full max-w-sm mx-auto flex flex-col rounded-[2rem] backdrop-blur-2xl bg-[#0a0a0e]/90 border border-white/10 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.4)] my-6"
+            >
+                {/* 1. Top Visual Area */}
+                <div className="relative w-full h-56 bg-black/50 overflow-hidden">
+                    {/* Video backdrop */}
+                    <video
+                        ref={videoRef}
+                        src={videoSrc}
+                        autoPlay muted loop playsInline disablePictureInPicture
+                        onError={() => setVideoError(true)}
+                        style={{
+                            position: 'absolute', inset: 0, zIndex: 0,
+                            width: '100%', height: '100%', objectFit: 'cover',
+                            opacity: isLeela ? 0.35 : 0.65,
+                            transform: isPlaying ? 'scale(1.08)' : 'scale(1.01)',
+                            transition: 'transform 10s ease-out, opacity 1.4s ease',
+                        }}
+                    />
+                    {/* Dark gradient base */}
+                    <div style={{
+                        position: 'absolute', inset: 0, zIndex: 1,
+                        background: `radial-gradient(ellipse at center, transparent 0%, rgba(4,2,14,0.6) 100%)`
+                    }} />
+                    <div style={{
+                        position: 'absolute', bottom: 0, left: 0, right: 0, height: '40%', zIndex: 1,
+                        background: `linear-gradient(to top, rgba(10,10,14,1), transparent)`,
+                    }} />
+                    {/* Leela Mandala Canvas */}
+                    {isLeela && (
+                        <div style={{ position: 'absolute', inset: 0, zIndex: 2 }}>
+                            <LeelaMinCanvas isPlaying={isPlaying} palette={raagMeta.canvasPalette} />
+                        </div>
+                    )}
+
+                    {/* Meta floating tag top-right */}
+                    <div className="absolute top-4 right-4 z-10 backdrop-blur-md bg-black/40 border rounded-full px-3 py-1 flex items-center gap-2"
+                        style={{ borderColor: `rgba(${raagMeta.canvasPalette[0]},0.3)` }}>
+                        <Moon size={12} style={{ color: raagMeta.accent }} />
+                        <span className="text-[9px] font-bold tracking-widest uppercase" style={{ color: raagMeta.accent }}>{raagMeta.tag}</span>
+                    </div>
+                </div>
+
+                {/* 2. Content & Controls Area */}
+                <div className="flex flex-col p-6 gap-5 bg-[#0a0a0e]">
+
+                    {/* Typography Header */}
+                    <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 overflow-x-auto overflow-y-hidden text-[10px] tracking-[0.2em] uppercase font-bold whitespace-nowrap"
+                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', color: raagMeta.accent }}>
+                            <span>{raagMeta.label}</span>
+                        </div>
+                        <h3 className="text-2xl font-serif text-white tracking-wide mt-1 truncate">{track.title}</h3>
+                        <p className="text-xs text-white/50 font-sans line-clamp-2 mt-1 leading-relaxed">
+                            {raagMeta.sublabel}
+                        </p>
+                    </div>
+
+                    {/* Progress Bar Area */}
+                    <div className="flex flex-col gap-2 mt-2">
+                        <div className="w-full h-1 bg-white/10 rounded-full relative" onClick={seek} style={{ cursor: 'pointer' }}>
+                            <div className="absolute top-0 left-0 h-full rounded-full transition-all duration-300"
+                                style={{
+                                    width: `${progress * 100}%`,
+                                    background: `linear-gradient(90deg, rgba(${raagMeta.canvasPalette[0]},0.60), rgba(${raagMeta.canvasPalette[0]},1.00))`
+                                }}
+                            />
+                            <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full transition-all duration-300"
+                                style={{
+                                    left: `${progress * 100}%`,
+                                    transform: 'translate(-50%, -50%)',
+                                    boxShadow: `0 0 10px 2px rgba(${raagMeta.canvasPalette[0]},0.8)`
+                                }}
+                            />
+                        </div>
+                        <div className="flex justify-between w-full text-[10px] text-white/40 font-mono">
+                            <span>{fmtTime(currentTime)}</span>
+                            <span>{fmtTime(duration)}</span>
+                        </div>
+                    </div>
+
+                    {/* Playback Controls Area */}
+                    <div className="flex items-center justify-center gap-8 relative mt-1">
+                        <button onClick={prev} className="text-white/60 hover:text-white transition"><SkipBack size={24} strokeWidth={1.5} /></button>
+
+                        <button
+                            onClick={togglePlayback}
+                            className="w-16 h-16 flex items-center justify-center rounded-full border text-white hover:scale-105 transition shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+                            style={{
+                                background: isPlaying
+                                    ? `linear-gradient(145deg, rgba(${raagMeta.canvasPalette[0]},0.70), rgba(${raagMeta.canvasPalette[1]},0.45))`
+                                    : 'rgba(255,255,255,0.1)',
+                                borderColor: isPlaying ? `rgba(${raagMeta.canvasPalette[0]},0.90)` : 'rgba(255,255,255,0.2)'
+                            }}
+                        >
+                            {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" className="ml-1" />}
+                        </button>
+
+                        <button onClick={next} className="text-white/60 hover:text-white transition"><SkipForward size={24} strokeWidth={1.5} /></button>
+                    </div>
+
+                    {/* Footer Watermark */}
+                    {isLeela && (
+                        <div className="w-full flex justify-center mt-2">
+                            <span className="text-[9px] tracking-[0.3em] uppercase flex items-center gap-1 justify-center" style={{ color: `rgba(${raagMeta.canvasPalette[0]},0.6)` }}>
+                                <Layers size={10} /> 3 Stems Sakha Bodhi
+                            </span>
+                        </div>
+                    )}
+                </div>
+            </motion.section>
+        );
+    }
 
     return (
         <motion.section
