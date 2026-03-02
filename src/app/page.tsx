@@ -15,6 +15,9 @@ import SacredCanvas from '@/components/SacredCanvas/SacredCanvas';
 import SakhaBodhiOrb from '@/components/Dashboard/SakhaBodhiOrb';
 
 import DailyInsightHero from '@/components/HomePage/DailyInsightHero';
+import EphemeralGreeting from '@/components/HomePage/EphemeralGreeting';
+import StickyTopNav from '@/components/HomePage/StickyTopNav';
+import LeelaCard from '@/components/HomePage/LeelaCard';
 import MagicSyncModule from '@/components/Dashboard/MagicSyncModule';
 import DailyInsightsCarousel from '@/components/Dashboard/DailyInsightsCarousel';
 import { useTimeOfDay } from '@/hooks/useTimeOfDay';
@@ -106,16 +109,37 @@ export default function Home() {
   const [greeting, setGreeting] = useState<{ emoji: string; text: string; period: string } | null>(null);
   const { lang, toggleLanguage } = useLanguage();
 
-  // ── useTimeOfDay MUST be called unconditionally (Rules of Hooks) ─────────────
+  // ── useTimeOfDay (unconditional — Rules of Hooks) ────────────────────────────
   const tod = useTimeOfDay();
+  // TRUE during morning (5-11) and evening (17-21) — meditation / focus hours
+  const isMeditationHour = tod.period === 'morning' || tod.period === 'evening';
+
+  // ── Curated landscape-only image pools (no portraits, no single subjects) ────
   const BG_POOLS: Record<string, string[]> = {
-    morning: ['https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1400&q=80', 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1400&q=80'],
-    noon: ['https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1400&q=80', 'https://images.unsplash.com/photo-1470770903676-69b98201ea1c?w=1400&q=80'],
-    evening: ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1400&q=80', 'https://images.unsplash.com/photo-1518623489648-a173ef7824f3?w=1400&q=80'],
-    night: ['https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1400&q=80', 'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?w=1400&q=80'],
+    morning: [
+      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1400&q=80', // misty mountain range
+      'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1400&q=80', // mountain lake at dawn
+      'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=1400&q=80', // sunrise forest
+    ],
+    noon: [
+      'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1400&q=80', // aerial valley & meadow
+      'https://images.unsplash.com/photo-1470770903676-69b98201ea1c?w=1400&q=80', // sunlit mountain stream
+      'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1400&q=80', // enchanted woodland
+    ],
+    evening: [
+      'https://images.unsplash.com/photo-1518623489648-a173ef7824f3?w=1400&q=80', // dramatic sunset coast
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1400&q=80', // golden hour canyon
+      'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1400&q=80', // sunset mountain silhouette
+    ],
+    night: [
+      'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1400&q=80', // milky way mountains
+      'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?w=1400&q=80', // starry night sky
+      'https://images.unsplash.com/photo-1475274047050-1d0c0975f9f1?w=1400&q=80', // night lake reflection
+    ],
   };
   const slot = Math.floor(Date.now() / (30 * 60_000));
-  const globalBg = (BG_POOLS[tod.period] ?? BG_POOLS.morning)[slot % 2];
+  const pool = BG_POOLS[tod.period] ?? BG_POOLS.morning;
+  const globalBg = pool[slot % pool.length];
 
 
   // ── Sankalpa/Mission state — kept here so it shows on home too ───────────────
@@ -185,45 +209,92 @@ export default function Home() {
     </main>
   );
 
-  // ── Grounding Pad Dashboard ──────────────────────────────────────────────────
+  // ── Grounding Pad Dashboard ──────────────────────────────────────────────
   return (
     <>
-      {/* Fixed full-page circadian nature background — sits behind everything */}
+      {/* 3-second cinematic entrance overlay */}
+      <EphemeralGreeting displayName={displayName} />
+
+      {/* Fixed full-page circadian nature background */}
       <div style={{
         position: 'fixed', inset: 0, zIndex: -10,
         backgroundImage: `url(${globalBg})`,
         backgroundSize: 'cover', backgroundPosition: 'center',
         transition: 'background-image 2s ease',
       }} aria-hidden />
-      {/* Semi-transparent dark overlay ensures all text/cards remain legible */}
+      {/* Dark overlay */}
       <div style={{
         position: 'fixed', inset: 0, zIndex: -9,
-        background: 'linear-gradient(180deg, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.62) 100%)',
+        background: 'linear-gradient(180deg, rgba(0,0,0,0.40) 0%, rgba(0,0,0,0.60) 100%)',
         pointerEvents: 'none',
       }} aria-hidden />
 
-
       <main className={dashStyles.dashboardPage} style={{ position: 'relative', zIndex: 2, background: 'transparent' }}>
 
-        {/* ══ DAILY INSIGHT HERO — 90vh immersive circadian card ══ */}
-        <DailyInsightHero greeting={greeting} displayName={displayName} />
+        {/* ══ STICKY TOP NAV — anchors to viewport on scroll ══ */}
+        <StickyTopNav />
 
-        {/* ══ TODAY’S MISSION — full circadian background + frosted glass tasks ══ */}        {/* ══ DAILY INSIGHTS CAROUSEL ══ */}
-        <DailyInsightsCarousel />
-
-
-        <MagicSyncModule
-          items={sankalpaItems}
-          onToggle={handleSankalpaToggle}
-          onRemove={handleSankalpaRemove}
-          onAdd={handleSankalpaAdd}
+        {/* ══ DAILY INSIGHT HERO — shrinks on meditation hours ══ */}
+        <DailyInsightHero
+          greeting={greeting}
+          displayName={displayName}
+          isCompact={isMeditationHour}
         />
 
+        {/* ══ DAILY INSIGHTS CAROUSEL ══ */}
+        <DailyInsightsCarousel />
+
+        {/* ══ TIME-BASED LAYOUT ENGINE ══
+            Morning & Evening (meditation hours): LeelaCard elevated above Sync Engine
+            Noon & Night (work/rest hours):       Sync Engine above LeelaCard
+        */}
+        {isMeditationHour ? (
+          <>
+            <motion.div
+              key="leela-top"
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <LeelaCard />
+            </motion.div>
+            <motion.div
+              key="sync-bottom"
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.12 }}
+            >
+              <MagicSyncModule
+                items={sankalpaItems}
+                onToggle={handleSankalpaToggle}
+                onRemove={handleSankalpaRemove}
+                onAdd={handleSankalpaAdd}
+              />
+            </motion.div>
+          </>
+        ) : (
+          <>
+            <motion.div
+              key="sync-top"
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <MagicSyncModule
+                items={sankalpaItems}
+                onToggle={handleSankalpaToggle}
+                onRemove={handleSankalpaRemove}
+                onAdd={handleSankalpaAdd}
+              />
+            </motion.div>
+            <motion.div
+              key="leela-bottom"
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.12 }}
+            >
+              <LeelaCard />
+            </motion.div>
+          </>
+        )}
 
 
-
-
-        {/* ══ 3-COLUMN GRID — below the reel ══ */}
         <div className={dashStyles.dashboardGrid}>
 
           {/* LEFT SIDEBAR */}
