@@ -14,10 +14,10 @@ import ConsciousManifesto from '@/components/HomePage/ConsciousManifesto';
 import SacredCanvas from '@/components/SacredCanvas/SacredCanvas';
 import SakhaBodhiOrb from '@/components/Dashboard/SakhaBodhiOrb';
 
-import VedicDashboard from '@/components/Dashboard/VedicDashboard';
+import DailyInsightHero from '@/components/HomePage/DailyInsightHero';
 import MagicSyncModule from '@/components/Dashboard/MagicSyncModule';
 import DailyInsightsCarousel from '@/components/Dashboard/DailyInsightsCarousel';
-import { useCircadianBackground } from '@/hooks/useCircadianBackground';
+
 
 import { useLanguage } from '@/context/LanguageContext';
 import homeStyles from './vedic-home.module.css';
@@ -105,7 +105,7 @@ export default function Home() {
   };
   const [greeting, setGreeting] = useState<{ emoji: string; text: string; period: string } | null>(null);
   const { lang, toggleLanguage } = useLanguage();
-  const { imageUrl, loaded } = useCircadianBackground('vedic');
+
 
   // ── Sankalpa/Mission state — kept here so it shows on home too ───────────────
   interface Sankalp { id: string; text: string; done: boolean; }
@@ -177,15 +177,11 @@ export default function Home() {
   // ── Grounding Pad Dashboard ──────────────────────────────────────────────────
   return (
     <>
-      {/* Fixed circadian nature background */}
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0, backgroundImage: `url(${imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', transition: 'opacity 1.5s ease', opacity: loaded ? 1 : 0 }} aria-hidden />
-      {/* Gradient scrim overlay */}
-      <div style={{ position: 'fixed', inset: 0, zIndex: 1, background: 'linear-gradient(to bottom, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.72) 100%)', pointerEvents: 'none' }} aria-hidden />
 
       <main className={dashStyles.dashboardPage} style={{ position: 'relative', zIndex: 2, background: 'transparent' }}>
 
-        {/* ══ VEDIC DASHBOARD — panchang strip below header ══ */}
-        <VedicDashboard greeting={greeting} displayName={displayName} />
+        {/* ══ DAILY INSIGHT HERO — 90vh immersive circadian card ══ */}
+        <DailyInsightHero greeting={greeting} displayName={displayName} />
 
         {/* ══ TODAY’S MISSION — full circadian background + frosted glass tasks ══ */}        {/* ══ DAILY INSIGHTS CAROUSEL ══ */}
         <DailyInsightsCarousel />
