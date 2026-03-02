@@ -768,92 +768,92 @@ export default function OneSutraPage() {
                                 {/* Silent send toggle */}
                                 <button
                                     onClick={() => setIsSilent(s => !s)}
-                                    title={isSilent ? 'Silent mode ON — won't disturb' : 'Normal send'}
-                                style={{
-                                    width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
-                                    background: isSilent ? `rgba(${tod.glow},0.18)` : 'rgba(255,255,255,0.06)',
-                                    border: `1px solid ${isSilent ? `rgba(${tod.glow},0.40)` : 'rgba(255,255,255,0.10)'}`,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    cursor: 'pointer',
-                                    color: isSilent ? tod.accent : 'rgba(255,255,255,0.38)',
-                                }}
-                >
-                                <Moon size={14} />
-                            </button>
-
-                            {/* Attachment */}
-                            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.40)', lineHeight: 0, padding: 4, flexShrink: 0 }}>
-                                <Paperclip size={18} strokeWidth={1.8} />
-                            </button>
-
-                            {/* Text input */}
-                            <div style={{ flex: 1, position: 'relative' }}>
-                                <input
-                                    value={input}
-                                    onChange={e => setInput(e.target.value)}
-                                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-                                    placeholder={isSilent ? '🌙 Silent message — will not notify…' : 'Message…'}
+                                    title={isSilent ? 'Silent mode ON — won&apos;t disturb' : 'Normal send'}
                                     style={{
-                                        width: '100%', padding: '0.7rem 1rem',
-                                        background: 'rgba(255,255,255,0.07)',
-                                        border: `1px solid rgba(${tod.glow},0.18)`,
-                                        borderRadius: 999, color: 'rgba(255,255,255,0.88)',
-                                        fontSize: '0.88rem', outline: 'none', fontFamily: 'inherit',
-                                        boxSizing: 'border-box',
-                                        transition: 'border-color 0.2s',
+                                        width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
+                                        background: isSilent ? `rgba(${tod.glow},0.18)` : 'rgba(255,255,255,0.06)',
+                                        border: `1px solid ${isSilent ? `rgba(${tod.glow},0.40)` : 'rgba(255,255,255,0.10)'}`,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        cursor: 'pointer',
+                                        color: isSilent ? tod.accent : 'rgba(255,255,255,0.38)',
                                     }}
-                                />
+                                >
+                                    <Moon size={14} />
+                                </button>
+
+                                {/* Attachment */}
+                                <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.40)', lineHeight: 0, padding: 4, flexShrink: 0 }}>
+                                    <Paperclip size={18} strokeWidth={1.8} />
+                                </button>
+
+                                {/* Text input */}
+                                <div style={{ flex: 1, position: 'relative' }}>
+                                    <input
+                                        value={input}
+                                        onChange={e => setInput(e.target.value)}
+                                        onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                                        placeholder={isSilent ? '🌙 Silent message — will not notify…' : 'Message…'}
+                                        style={{
+                                            width: '100%', padding: '0.7rem 1rem',
+                                            background: 'rgba(255,255,255,0.07)',
+                                            border: `1px solid rgba(${tod.glow},0.18)`,
+                                            borderRadius: 999, color: 'rgba(255,255,255,0.88)',
+                                            fontSize: '0.88rem', outline: 'none', fontFamily: 'inherit',
+                                            boxSizing: 'border-box',
+                                            transition: 'border-color 0.2s',
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Emoji */}
+                                <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.38)', lineHeight: 0, padding: 4, flexShrink: 0 }}>
+                                    <Smile size={18} strokeWidth={1.8} />
+                                </button>
+
+                                {/* Send OR Mic */}
+                                {input.trim() ? (
+                                    <motion.button
+                                        onClick={sendMessage}
+                                        whileTap={{ scale: 0.88 }}
+                                        whileHover={{ scale: 1.07 }}
+                                        style={{
+                                            width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
+                                            background: `radial-gradient(circle at 35% 35%, rgba(${tod.glow},0.95), rgba(${tod.glow},0.55))`,
+                                            border: 'none', cursor: 'pointer', lineHeight: 0,
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            boxShadow: `0 0 18px rgba(${tod.glow},0.45)`,
+                                            color: 'white',
+                                        }}
+                                    >
+                                        <Send size={17} strokeWidth={2} />
+                                    </motion.button>
+                                ) : (
+                                    <motion.button
+                                        whileTap={{ scale: 0.88 }}
+                                        whileHover={{ scale: 1.07 }}
+                                        style={{
+                                            width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
+                                            background: `radial-gradient(circle at 35% 35%, rgba(${tod.glow},0.90), rgba(${tod.glow},0.50))`,
+                                            border: 'none', cursor: 'pointer', lineHeight: 0,
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            boxShadow: `0 0 20px rgba(${tod.glow},0.50)`,
+                                            color: 'white',
+                                        }}
+                                    >
+                                        <Mic size={18} strokeWidth={2} />
+                                    </motion.button>
+                                )}
                             </div>
 
-                            {/* Emoji */}
-                            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.38)', lineHeight: 0, padding: 4, flexShrink: 0 }}>
-                                <Smile size={18} strokeWidth={1.8} />
-                            </button>
-
-                            {/* Send OR Mic */}
-                            {input.trim() ? (
-                                <motion.button
-                                    onClick={sendMessage}
-                                    whileTap={{ scale: 0.88 }}
-                                    whileHover={{ scale: 1.07 }}
-                                    style={{
-                                        width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
-                                        background: `radial-gradient(circle at 35% 35%, rgba(${tod.glow},0.95), rgba(${tod.glow},0.55))`,
-                                        border: 'none', cursor: 'pointer', lineHeight: 0,
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        boxShadow: `0 0 18px rgba(${tod.glow},0.45)`,
-                                        color: 'white',
-                                    }}
-                                >
-                                    <Send size={17} strokeWidth={2} />
-                                </motion.button>
-                            ) : (
-                                <motion.button
-                                    whileTap={{ scale: 0.88 }}
-                                    whileHover={{ scale: 1.07 }}
-                                    style={{
-                                        width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
-                                        background: `radial-gradient(circle at 35% 35%, rgba(${tod.glow},0.90), rgba(${tod.glow},0.50))`,
-                                        border: 'none', cursor: 'pointer', lineHeight: 0,
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        boxShadow: `0 0 20px rgba(${tod.glow},0.50)`,
-                                        color: 'white',
-                                    }}
-                                >
-                                    <Mic size={18} strokeWidth={2} />
-                                </motion.button>
+                            {isSilent && (
+                                <p style={{ margin: '0.45rem 0 0', fontSize: '0.62rem', color: `rgba(${tod.glow},0.55)`, textAlign: 'center', fontStyle: 'italic', letterSpacing: '0.02em' }}>
+                                    🌙 Mindful Delivery — recipient will not be disturbed
+                                </p>
                             )}
                         </div>
-
-                        {isSilent && (
-                            <p style={{ margin: '0.45rem 0 0', fontSize: '0.62rem', color: `rgba(${tod.glow},0.55)`, textAlign: 'center', fontStyle: 'italic', letterSpacing: '0.02em' }}>
-                                🌙 Mindful Delivery — recipient will not be disturbed
-                            </p>
-                        )}
-                    </div>
-          </motion.div>
-        )}
-        </AnimatePresence>
-    </div >
-  );
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div >
+    );
 }

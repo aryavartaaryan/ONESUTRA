@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, MessageSquare, Search, MessageCircle, Globe } from 'lucide-react';
+import { Home, Search, MessageCircle, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -97,8 +97,9 @@ export default function VahanaBar() {
             label: lang === 'hi' ? 'गृह' : 'Home',
         },
         {
-            id: 'sutra', href: '/sutra', Icon: MessageSquare,
-            label: lang === 'hi' ? 'सूत्र' : 'SUTRA',
+            id: 'onesutra', href: '/onesutra', Icon: MessageCircle,
+            label: lang === 'hi' ? 'सूत्र' : 'OneSUTRA',
+            isOm: true,
         },
         // 'search' is rendered separately via <SearchItem />
         {

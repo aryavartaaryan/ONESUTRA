@@ -355,45 +355,52 @@ export default function LeelaCard() {
 
     return (
         <motion.section
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             style={{
                 position: 'relative',
-                maxWidth: 920,
-                margin: '0.75rem auto 1.5rem',
+                maxWidth: 900,
+                margin: '1rem auto 2rem',
                 width: 'calc(100% - 2rem)',
-                borderRadius: '1.5rem',
+                borderRadius: '2rem',
                 overflow: 'hidden',
-                minHeight: 'clamp(220px, 32vw, 280px)',
-                border: `1px solid rgba(${raagMeta.canvasPalette[0]},0.18)`,
-                boxShadow: `0 6px 50px rgba(0,0,0,0.60), 0 0 0 1px rgba(${raagMeta.canvasPalette[0]},0.07), 0 0 60px rgba(${raagMeta.canvasPalette[0]},0.06)`,
+                minHeight: 'clamp(280px, 42vw, 360px)',
+                border: `1px solid rgba(${raagMeta.canvasPalette[0]},0.22)`,
+                boxShadow: `
+                    0 8px 60px rgba(0,0,0,0.70),
+                    0 0 0 1px rgba(${raagMeta.canvasPalette[0]},0.08),
+                    0 0 80px rgba(${raagMeta.canvasPalette[0]},0.07)
+                `,
                 display: 'flex',
                 flexDirection: 'row',
                 alignItems: 'stretch',
             }}
         >
-            {/* ── FULL CARD GLASS BACKGROUND ─────────────────────────────── */}
+            {/* ── Glass base ── */}
             <div style={{
                 position: 'absolute', inset: 0, zIndex: 0,
-                background: 'rgba(5,3,16,0.88)',
-                backdropFilter: 'blur(22px)',
-                WebkitBackdropFilter: 'blur(22px)',
+                background: 'rgba(4,2,14,0.92)',
+                backdropFilter: 'blur(28px)',
+                WebkitBackdropFilter: 'blur(28px)',
             }} />
 
-            {/* TOD accent line — changes color with period */}
+            {/* ── Top shimmer line ── */}
             <div style={{
-                position: 'absolute', top: 0, left: '4%', right: '4%', height: 1.5, zIndex: 2,
-                background: `linear-gradient(90deg, transparent, rgba(${raagMeta.canvasPalette[0]},0.65), rgba(${raagMeta.canvasPalette[1]},0.40), transparent)`,
+                position: 'absolute', top: 0, left: '8%', right: '8%', height: 1, zIndex: 2,
+                background: `linear-gradient(90deg, transparent, rgba(${raagMeta.canvasPalette[0]},0.70), rgba(${raagMeta.canvasPalette[1]},0.45), transparent)`,
             }} />
 
-            {/* ── LEFT PANEL — Video always plays. Canvas overlaid for Leela ── */}
+            {/* ════ LEFT — Album Art Panel (40%) ════ */}
             <div style={{
-                position: 'relative', width: '42%', flexShrink: 0, overflow: 'hidden',
-                background: 'rgba(3,2,10,1)',
+                position: 'relative',
+                width: '40%',
+                flexShrink: 0,
+                overflow: 'hidden',
+                background: 'rgba(2,1,8,1)',
             }}>
-                {/* Video — always visible, z:0 */}
+                {/* Video backdrop */}
                 <video
                     ref={videoRef}
                     src={videoSrc}
@@ -402,72 +409,91 @@ export default function LeelaCard() {
                     style={{
                         position: 'absolute', inset: 0, zIndex: 0,
                         width: '100%', height: '100%', objectFit: 'cover',
-                        opacity: isLeela ? 0.30 : 0.62,
-                        transform: isPlaying ? 'scale(1.07)' : 'scale(1.02)',
-                        transition: 'transform 8s ease-out, opacity 1.2s ease',
+                        opacity: isLeela ? 0.28 : 0.58,
+                        transform: isPlaying ? 'scale(1.08)' : 'scale(1.01)',
+                        transition: 'transform 10s ease-out, opacity 1.4s ease',
                     }}
                 />
-                {/* Dark gradient — z:1 */}
+                {/* Deep vignette */}
                 <div style={{
                     position: 'absolute', inset: 0, zIndex: 1,
-                    background: isLeela
-                        ? `linear-gradient(to right, rgba(5,2,18,0.45) 0%, rgba(5,2,18,0.88) 100%)`
-                        : `linear-gradient(to right, rgba(8,6,22,0.12) 0%, rgba(8,6,22,0.82) 100%)`,
+                    background: `linear-gradient(
+                        to right,
+                        rgba(4,2,14,0.10) 0%,
+                        rgba(4,2,14,0.85) 100%
+                    )`,
                 }} />
-                {/* Leela Canvas — z:2, mirrors Leela page visual phase */}
+                {/* Bottom gradient to hide video edge */}
+                <div style={{
+                    position: 'absolute', bottom: 0, left: 0, right: 0, height: '45%', zIndex: 1,
+                    background: `linear-gradient(to top, rgba(4,2,14,0.80), transparent)`,
+                }} />
+                {/* Leela Mandala Canvas */}
                 {isLeela && (
                     <div style={{ position: 'absolute', inset: 0, zIndex: 2 }}>
                         <LeelaMinCanvas isPlaying={isPlaying} palette={raagMeta.canvasPalette} />
                     </div>
                 )}
-                {/* Blend edge — z:3 */}
+                {/* Blend edge into right panel */}
                 <div style={{
-                    position: 'absolute', top: 0, right: 0, bottom: 0, width: 56, zIndex: 3,
-                    background: 'linear-gradient(to right, transparent, rgba(5,3,16,0.92))',
+                    position: 'absolute', top: 0, right: 0, bottom: 0, width: 64, zIndex: 3,
+                    background: 'linear-gradient(to right, transparent, rgba(4,2,14,0.95))',
                     pointerEvents: 'none',
                 }} />
             </div>
 
-            {/* ── RIGHT PANEL — Time-aware header + controls ──────────────── */}
+            {/* ════ RIGHT — Info + Controls (60%) ════ */}
             <div style={{
-                flex: 1, position: 'relative', zIndex: 3,
-                display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-                padding: 'clamp(0.9rem,2.5vw,1.4rem) clamp(1rem,2.8vw,1.6rem)',
-                minWidth: 0, gap: '0.4rem',
+                flex: 1,
+                position: 'relative', zIndex: 3,
+                display: 'flex', flexDirection: 'column',
+                justifyContent: 'space-between',
+                padding: 'clamp(1rem,3vw,1.6rem) clamp(1rem,3vw,1.8rem)',
+                minWidth: 0,
             }}>
-                {/* Top: TOD raag label + track title */}
-                <div>
-                    {/* Time-aware raag band */}
+
+                {/* ── SECTION A: Track identity ── */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.28rem' }}>
+
+                    {/* Eyebrow — raag + period */}
                     <p style={{
-                        margin: 0, fontSize: '0.62rem', letterSpacing: '0.18em',
-                        textTransform: 'uppercase', fontFamily: 'monospace', fontWeight: 700,
-                        color: raagMeta.accent, lineHeight: 1.5,
+                        margin: 0,
+                        fontSize: 'clamp(0.55rem, 1.4vw, 0.65rem)',
+                        letterSpacing: '0.22em', textTransform: 'uppercase',
+                        fontFamily: 'monospace', fontWeight: 700,
+                        color: raagMeta.accent,
+                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                     }}>
                         {raagMeta.label}
                     </p>
-                    {/* Track title */}
+
+                    {/* Title — the BIG headline */}
                     <h3 style={{
-                        margin: '0.22rem 0 0',
+                        margin: 0,
                         fontFamily: "'Playfair Display', Georgia, serif",
-                        fontSize: 'clamp(0.92rem, 2.8vw, 1.18rem)',
-                        fontWeight: 700, color: 'rgba(255,255,255,0.96)',
-                        lineHeight: 1.15, letterSpacing: '-0.01em',
+                        fontSize: 'clamp(1.05rem, 3.2vw, 1.38rem)',
+                        fontWeight: 700, color: '#FFFFFF',
+                        lineHeight: 1.15, letterSpacing: '-0.02em',
                         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                     }}>{track.title}</h3>
-                    {/* Track artist */}
+
+                    {/* Artist */}
                     <p style={{
-                        margin: '0.1rem 0 0', fontSize: '0.65rem',
-                        color: 'rgba(255,255,255,0.50)', letterSpacing: '0.04em',
-                        textTransform: 'uppercase', fontFamily: 'monospace',
+                        margin: 0,
+                        fontSize: 'clamp(0.68rem, 1.6vw, 0.76rem)',
+                        letterSpacing: '0.06em', textTransform: 'uppercase',
+                        fontFamily: 'monospace',
+                        color: 'rgba(255,255,255,0.48)',
                         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                     }}>{track.artist}</p>
 
-                    {/* ── Productivity tagline — gold italic serif ──────── */}
+                    {/* Tagline — italic serif */}
                     <p style={{
-                        margin: '0.45rem 0 0',
-                        fontSize: '0.82rem', fontStyle: 'italic',
-                        color: 'rgba(255,255,255,0.58)',
-                        lineHeight: 1.55, letterSpacing: '0.01em',
+                        margin: '0.3rem 0 0',
+                        fontSize: 'clamp(0.78rem, 2vw, 0.90rem)',
+                        fontStyle: 'italic',
+                        color: 'rgba(255,255,255,0.55)',
+                        lineHeight: 1.55, letterSpacing: '0.005em',
                         fontFamily: "'Playfair Display', Georgia, serif",
                         overflow: 'hidden',
                         display: '-webkit-box',
@@ -476,143 +502,175 @@ export default function LeelaCard() {
                     }}>{raagMeta.sublabel}</p>
                 </div>
 
-                {/* Middle: Track dots + tag */}
+                {/* ── SECTION B: Track selector + TOD tag ── */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-                    <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '0.38rem', alignItems: 'center' }}>
                         {TRACKS.map((tr, i) => (
                             <button key={tr.id} onClick={() => { setIdx(i); setIsPlaying(true); }}
                                 style={{
-                                    width: i === idx ? 22 : 9, height: 9, borderRadius: 999,
-                                    background: i === idx ? `rgba(${raagMeta.canvasPalette[0]},0.92)` : 'rgba(255,255,255,0.28)',
+                                    width: i === idx ? 24 : 8, height: 8, borderRadius: 999,
+                                    background: i === idx
+                                        ? `rgba(${raagMeta.canvasPalette[0]},0.95)`
+                                        : 'rgba(255,255,255,0.22)',
                                     border: 'none', cursor: 'pointer', padding: 0,
-                                    transition: 'all 0.3s ease',
+                                    transition: 'all 0.35s cubic-bezier(0.22,1,0.36,1)',
                                 }}
                                 aria-label={tr.title}
                             />
                         ))}
                     </div>
-                    {/* Time tag */}
                     <span style={{
-                        fontSize: '0.58rem', letterSpacing: '0.12em', fontWeight: 700,
+                        fontSize: 'clamp(0.55rem,1.4vw,0.64rem)',
+                        letterSpacing: '0.14em', fontWeight: 700,
                         textTransform: 'uppercase', fontFamily: 'monospace',
                         color: raagMeta.accent,
                         background: `rgba(${raagMeta.canvasPalette[0]},0.12)`,
-                        border: `1px solid rgba(${raagMeta.canvasPalette[0]},0.25)`,
-                        borderRadius: 999, padding: '0.22rem 0.65rem', whiteSpace: 'nowrap',
+                        border: `1px solid rgba(${raagMeta.canvasPalette[0]},0.30)`,
+                        borderRadius: 999, padding: '0.25rem 0.70rem',
+                        whiteSpace: 'nowrap', flexShrink: 0,
                     }}>{raagMeta.tag}</span>
                 </div>
 
-                {/* Progress bar */}
+                {/* ── SECTION C: Progress bar ── */}
                 <div>
                     <div onClick={seek} style={{
-                        width: '100%', height: 4, borderRadius: 999,
-                        background: 'rgba(255,255,255,0.10)', cursor: 'pointer', position: 'relative',
+                        width: '100%', height: 5, borderRadius: 999,
+                        background: 'rgba(255,255,255,0.10)',
+                        cursor: 'pointer', position: 'relative',
                     }}>
                         <div style={{
                             height: '100%', borderRadius: 999,
                             width: `${progress * 100}%`,
-                            background: `linear-gradient(90deg, rgba(${raagMeta.canvasPalette[0]},0.55), rgba(${raagMeta.canvasPalette[0]},1))`,
-                            position: 'relative', transition: 'width 0.25s linear',
+                            background: `linear-gradient(90deg,
+                                rgba(${raagMeta.canvasPalette[0]},0.60),
+                                rgba(${raagMeta.canvasPalette[0]},1.00)
+                            )`,
+                            position: 'relative',
+                            transition: 'width 0.25s linear',
                         }}>
                             <div style={{
-                                position: 'absolute', right: -5, top: '50%', transform: 'translateY(-50%)',
-                                width: 12, height: 12, borderRadius: '50%', background: 'white',
-                                boxShadow: `0 0 10px 3px rgba(${raagMeta.canvasPalette[0]},0.80)`,
+                                position: 'absolute', right: -6, top: '50%',
+                                transform: 'translateY(-50%)',
+                                width: 14, height: 14, borderRadius: '50%',
+                                background: '#FFFFFF',
+                                boxShadow: `0 0 12px 3px rgba(${raagMeta.canvasPalette[0]},0.85)`,
                             }} />
                         </div>
                     </div>
                     <div style={{
-                        display: 'flex', justifyContent: 'space-between', marginTop: '0.28rem',
-                        fontSize: '0.60rem', color: 'rgba(255,255,255,0.40)',
-                        letterSpacing: '0.08em', fontFamily: 'monospace',
+                        display: 'flex', justifyContent: 'space-between',
+                        marginTop: '0.32rem',
+                        fontSize: 'clamp(0.58rem,1.4vw,0.64rem)',
+                        color: 'rgba(255,255,255,0.38)',
+                        letterSpacing: '0.10em', fontFamily: 'monospace',
                     }}>
                         <span>{fmtTime(currentTime)}</span>
                         <span>{fmtTime(duration)}</span>
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.1rem' }}>
+                {/* ── SECTION D: Playback controls — the hero row ── */}
+                <div style={{
+                    display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', gap: '1.4rem',
+                }}>
+                    {/* ◀ PREV */}
+                    <motion.button
+                        onClick={prev}
+                        whileHover={{ scale: 1.10, background: 'rgba(255,255,255,0.18)' }}
+                        whileTap={{ scale: 0.90 }}
+                        style={{
+                            width: 44, height: 44, borderRadius: '50%',
+                            background: 'rgba(255,255,255,0.10)',
+                            backdropFilter: 'blur(16px)',
+                            WebkitBackdropFilter: 'blur(16px)',
+                            border: '1.5px solid rgba(255,255,255,0.28)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            cursor: 'pointer', color: 'rgba(255,255,255,0.88)', lineHeight: 0,
+                            boxShadow: '0 2px 16px rgba(0,0,0,0.40)',
+                            transition: 'border 0.2s',
+                        }}
+                        aria-label="Previous"
+                    >
+                        <SkipBack size={18} strokeWidth={2.2} />
+                    </motion.button>
 
-                    {/* ◀ Prev — solid glass circle */}
-                    <button onClick={prev} style={{
-                        background: 'rgba(255,255,255,0.14)',
-                        backdropFilter: 'blur(12px)',
-                        WebkitBackdropFilter: 'blur(12px)',
-                        border: '1.5px solid rgba(255,255,255,0.30)',
-                        borderRadius: '50%', width: 40, height: 40,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer', color: 'rgba(255,255,255,0.90)', lineHeight: 0,
-                        boxShadow: '0 2px 14px rgba(0,0,0,0.35)',
-                        transition: 'all 0.2s ease',
-                    }}>
-                        <SkipBack size={17} strokeWidth={2.2} />
-                    </button>
-
-                    {/* ▶ Play / Pause — THE hero button: always crystal-clear */}
+                    {/* ▶ / ⏸  PLAY — 64px hero */}
                     <motion.button
                         onClick={togglePlayback}
-                        whileTap={{ scale: 0.86 }}
-                        whileHover={{ scale: 1.08 }}
+                        whileTap={{ scale: 0.88 }}
+                        whileHover={{ scale: 1.07 }}
                         animate={isPlaying ? {
                             boxShadow: [
-                                `0 0 0 0 rgba(${raagMeta.canvasPalette[0]},0.55)`,
-                                `0 0 0 16px rgba(${raagMeta.canvasPalette[0]},0)`,
-                                `0 0 0 0 rgba(${raagMeta.canvasPalette[0]},0.55)`,
+                                `0 0 0 0   rgba(${raagMeta.canvasPalette[0]},0.55)`,
+                                `0 0 0 18px rgba(${raagMeta.canvasPalette[0]},0.00)`,
+                                `0 0 0 0   rgba(${raagMeta.canvasPalette[0]},0.55)`,
                             ],
                         } : {
-                            boxShadow: '0 4px 24px rgba(0,0,0,0.50)',
+                            boxShadow: '0 6px 28px rgba(0,0,0,0.55)',
                         }}
-                        transition={{ duration: 1.6, repeat: Infinity }}
+                        transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
                         style={{
-                            width: 58, height: 58, borderRadius: '50%',
-                            // PAUSED: solid white-glass — impossible to miss
-                            // PLAYING: vivid accent glow
+                            width: 64, height: 64, borderRadius: '50%',
+                            /* Paused: solid frosted white — impossible to miss */
+                            /* Playing: rich accent gradient */
                             background: isPlaying
-                                ? `linear-gradient(145deg, rgba(${raagMeta.canvasPalette[0]},0.55), rgba(${raagMeta.canvasPalette[0]},0.28))`
-                                : 'linear-gradient(145deg, rgba(255,255,255,0.28), rgba(255,255,255,0.10))',
-                            backdropFilter: 'blur(20px)',
-                            WebkitBackdropFilter: 'blur(20px)',
+                                ? `linear-gradient(145deg,
+                                    rgba(${raagMeta.canvasPalette[0]},0.70),
+                                    rgba(${raagMeta.canvasPalette[1]},0.45))`
+                                : 'linear-gradient(145deg, rgba(255,255,255,0.32), rgba(255,255,255,0.14))',
+                            backdropFilter: 'blur(24px)',
+                            WebkitBackdropFilter: 'blur(24px)',
                             border: isPlaying
-                                ? `2px solid rgba(${raagMeta.canvasPalette[0]},0.85)`
-                                : '2px solid rgba(255,255,255,0.55)',
+                                ? `2.5px solid rgba(${raagMeta.canvasPalette[0]},0.90)`
+                                : '2.5px solid rgba(255,255,255,0.65)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             cursor: 'pointer',
                             color: isPlaying ? raagMeta.accent : '#FFFFFF',
-                            transition: 'background 0.35s ease, border 0.35s ease, color 0.35s ease',
+                            transition: 'background 0.4s ease, border-color 0.4s ease, color 0.4s ease',
                         }}
                         aria-label={isPlaying ? 'Pause' : 'Play'}
                     >
                         {isPlaying
-                            ? <Pause size={22} fill="currentColor" />
-                            : <Play size={22} fill="currentColor" style={{ marginLeft: 3 }} />}
+                            ? <Pause size={24} fill="currentColor" />
+                            : <Play size={24} fill="currentColor" style={{ marginLeft: 3 }} />}
                     </motion.button>
 
-                    {/* ▶▶ Next — solid glass circle */}
-                    <button onClick={next} style={{
-                        background: 'rgba(255,255,255,0.14)',
-                        backdropFilter: 'blur(12px)',
-                        WebkitBackdropFilter: 'blur(12px)',
-                        border: '1.5px solid rgba(255,255,255,0.30)',
-                        borderRadius: '50%', width: 40, height: 40,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer', color: 'rgba(255,255,255,0.90)', lineHeight: 0,
-                        boxShadow: '0 2px 14px rgba(0,0,0,0.35)',
-                        transition: 'all 0.2s ease',
-                    }}>
-                        <SkipForward size={17} strokeWidth={2.2} />
-                    </button>
+                    {/* ▶▶ NEXT */}
+                    <motion.button
+                        onClick={next}
+                        whileHover={{ scale: 1.10, background: 'rgba(255,255,255,0.18)' }}
+                        whileTap={{ scale: 0.90 }}
+                        style={{
+                            width: 44, height: 44, borderRadius: '50%',
+                            background: 'rgba(255,255,255,0.10)',
+                            backdropFilter: 'blur(16px)',
+                            WebkitBackdropFilter: 'blur(16px)',
+                            border: '1.5px solid rgba(255,255,255,0.28)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            cursor: 'pointer', color: 'rgba(255,255,255,0.88)', lineHeight: 0,
+                            boxShadow: '0 2px 16px rgba(0,0,0,0.40)',
+                            transition: 'border 0.2s',
+                        }}
+                        aria-label="Next"
+                    >
+                        <SkipForward size={18} strokeWidth={2.2} />
+                    </motion.button>
 
+                    {/* 3 Stems badge — only for Leela tracks */}
                     {isLeela && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                            <Waves size={13} style={{ color: `rgba(${raagMeta.canvasPalette[0]},0.75)` }} />
+                            <Waves size={13} style={{ color: `rgba(${raagMeta.canvasPalette[0]},0.80)` }} />
                             <span style={{
-                                fontSize: '0.62rem', letterSpacing: '0.14em',
-                                fontFamily: 'monospace', textTransform: 'uppercase',
-                                color: `rgba(${raagMeta.canvasPalette[0]},0.75)`,
+                                fontSize: 'clamp(0.56rem,1.4vw,0.62rem)',
+                                letterSpacing: '0.14em', fontFamily: 'monospace',
+                                textTransform: 'uppercase',
+                                color: `rgba(${raagMeta.canvasPalette[0]},0.80)`,
                             }}>3 Stems</span>
                         </div>
                     )}
                 </div>
+
             </div>
         </motion.section>
     );
