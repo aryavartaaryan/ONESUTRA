@@ -7,6 +7,7 @@
 // ──────────────────────────────────────────────────────────────────────────────
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import { type Auth, type GoogleAuthProvider } from 'firebase/auth';
+import { type Firestore } from 'firebase/firestore';
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -20,6 +21,7 @@ const firebaseConfig = {
 let app: FirebaseApp | null = null;
 let _auth: Auth | null = null;
 let _provider: GoogleAuthProvider | null = null;
+let _db: Firestore | null = null;
 
 /** Returns the Auth instance. Must only be called inside a browser context. */
 export async function getFirebaseAuth(): Promise<Auth> {
@@ -42,4 +44,15 @@ export async function getGoogleProvider(): Promise<GoogleAuthProvider> {
     _provider = new GoogleAuthProvider();
     _provider.setCustomParameters({ prompt: 'select_account' });
     return _provider;
+}
+
+/** Returns the Firestore instance (client-side only). */
+export async function getFirebaseFirestore(): Promise<Firestore> {
+    if (_db) return _db;
+    if (!app) {
+        app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+    }
+    const { getFirestore } = await import('firebase/firestore');
+    _db = getFirestore(app);
+    return _db;
 }

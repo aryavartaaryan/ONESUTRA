@@ -4,28 +4,90 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTimeOfDay } from '@/hooks/useTimeOfDay';
 
-// Sanskrit affirmations that rotate with the period
-const AFFIRMATIONS: Record<string, string[]> = {
-    morning: ['शुभोदय — Rise with the Sun', 'Let your light precede you.', 'A new cycle begins.'],
-    noon: ['शुभ मध्याह्न — Sustain your fire', 'Channel the midday sun.', 'Flow with intention.'],
-    evening: ['शुभ सन्ध्या — Ease into stillness', 'Let the day dissolve.', 'The dusk is yours.'],
-    night: ['शुभ रात्रि — The sacred dark', 'Rest is not surrender — it is wisdom.', 'Stars hold space for you.'],
+// ── Rich time-of-day thoughts ─────────────────────────────────────────────────
+const THOUGHTS: Record<string, { greeting: string; thought: string; sub: string }[]> = {
+    morning: [
+        {
+            greeting: 'Good Morning',
+            thought: 'The morning is not just a time — it is a rebirth.',
+            sub: 'Cortisol peaks at dawn to energise you. Ride it with intention.',
+        },
+        {
+            greeting: 'Shubh Prabhat',
+            thought: 'What you do in the first hour sets the tone for the next 23.',
+            sub: 'Ancient rishis called the Brahma Muhurta — 4 to 6 AM — the hour of creation.',
+        },
+        {
+            greeting: 'Rise and Align',
+            thought: 'Serotonin rises with sunlight. Let it fill your mind before screens do.',
+            sub: 'Your dopamine is at full capacity. Spend it on what matters most.',
+        },
+    ],
+    noon: [
+        {
+            greeting: 'Good Afternoon',
+            thought: 'The sun is at its apex. So is your capacity for deep work.',
+            sub: 'Peak cortisol has passed — your prefrontal cortex is now at maximum clarity.',
+        },
+        {
+            greeting: 'Shubh Madhyahna',
+            thought: 'Midday is not a pause — it is the culmination of your morning intention.',
+            sub: 'Rāga frequencies now can sustain your alpha waves and keep you in flow.',
+        },
+        {
+            greeting: 'Channel the Day',
+            thought: 'Every great civilisation honoured the midday hour. Be productive. Be present.',
+            sub: 'This is the optimal window for problem-solving and creative output.',
+        },
+    ],
+    evening: [
+        {
+            greeting: 'Good Evening',
+            thought: 'Sunsets are reminders that endings can be extraordinarily beautiful.',
+            sub: 'Serotonin prepares to become melatonin. Let your body move toward rest and reflection.',
+        },
+        {
+            greeting: 'Shubh Sandhya',
+            thought: 'The Sandhya hour — twilight — was always considered sacred. Pause. Reflect.',
+            sub: 'Evening Rāgas trigger theta brainwaves linked to creativity, insight, and emotional healing.',
+        },
+        {
+            greeting: 'Ease into Evening',
+            thought: 'You have done enough today. Now let ancient sound dissolve the stress you carried.',
+            sub: 'Rāga Yaman has calmed the minds of warriors, artists and scholars for 5,000 years.',
+        },
+    ],
+    night: [
+        {
+            greeting: 'Good Night',
+            thought: 'Sleep is not downtime — it is the most productive thing you will do today.',
+            sub: 'Growth hormone surges during deep sleep. Your body rebuilds. Your mind consolidates.',
+        },
+        {
+            greeting: 'Shubh Ratri',
+            thought: 'The stars are the oldest teachers. They do their greatest work in silence.',
+            sub: 'Delta brainwaves during sleep repair neural pathways. Tomorrow\'s genius is built tonight.',
+        },
+        {
+            greeting: 'Sacred Rest',
+            thought: 'Every master in history protected their sleep. Rest is not weakness — it is strategy.',
+            sub: 'Cortisol drops, melatonin rises, and ancient Rāgas can deepen your journey into delta.',
+        },
+    ],
 };
 
-interface Props {
-    displayName?: string;
-}
+interface Props { displayName?: string; }
 
 export default function EphemeralGreeting({ displayName = 'Seeker' }: Props) {
     const [isVisible, setIsVisible] = useState(true);
     const tod = useTimeOfDay();
 
-    const affirmations = AFFIRMATIONS[tod.period];
-    // Pick a stable affirmation for this session
-    const affirmation = affirmations[Math.floor(Date.now() / 86400000) % affirmations.length];
+    const thoughtPool = THOUGHTS[tod.period] ?? THOUGHTS.morning;
+    // Stable pick for the day
+    const thought = thoughtPool[Math.floor(Date.now() / 86400000) % thoughtPool.length];
 
     useEffect(() => {
-        const timer = setTimeout(() => setIsVisible(false), 3000);
+        const timer = setTimeout(() => setIsVisible(false), 4500);
         return () => clearTimeout(timer);
     }, []);
 
@@ -36,80 +98,110 @@ export default function EphemeralGreeting({ displayName = 'Seeker' }: Props) {
                     key="ephemeral-greeting"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    exit={{ opacity: 0, scale: 1.05, filter: 'blur(12px)' }}
+                    exit={{ opacity: 0, scale: 1.04, filter: 'blur(14px)' }}
                     transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
                     style={{
                         position: 'fixed', inset: 0, zIndex: 9999,
                         display: 'flex', flexDirection: 'column',
                         alignItems: 'center', justifyContent: 'center',
-                        textAlign: 'center', gap: '1.5rem',
-                        background: 'rgba(6,4,18,0.96)',
+                        textAlign: 'center', gap: '1.2rem',
+                        background: 'rgba(4,2,14,0.97)',
                         backdropFilter: 'blur(32px)',
                         WebkitBackdropFilter: 'blur(32px)',
                         padding: '2rem',
                     }}
                     aria-live="polite"
                 >
-                    {/* Period emoji pulse */}
+                    {/* Emoji */}
                     <motion.div
-                        initial={{ scale: 0.6, opacity: 0 }}
+                        initial={{ scale: 0.5, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        transition={{ delay: 0.15, duration: 1.0, ease: 'easeOut' }}
-                        style={{ fontSize: '3rem', lineHeight: 1 }}
+                        transition={{ delay: 0.1, duration: 0.9, ease: 'easeOut' }}
+                        style={{ fontSize: '3.2rem', lineHeight: 1 }}
                     >
                         {tod.emoji}
                     </motion.div>
 
-                    {/* Main greeting */}
+                    {/* Time-of-day greeting + name */}
                     <motion.h1
-                        initial={{ y: 24, opacity: 0, filter: 'blur(6px)' }}
+                        initial={{ y: 22, opacity: 0, filter: 'blur(8px)' }}
                         animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
-                        transition={{ delay: 0.3, duration: 1.5, ease: 'easeOut' }}
+                        transition={{ delay: 0.28, duration: 1.4, ease: 'easeOut' }}
                         style={{
                             margin: 0,
                             fontFamily: "'Playfair Display', Georgia, serif",
-                            fontSize: 'clamp(2rem, 6vw, 3.5rem)',
+                            fontSize: 'clamp(1.9rem, 5.5vw, 3.2rem)',
                             fontWeight: 700,
-                            letterSpacing: '-0.01em',
+                            letterSpacing: '-0.02em',
                             lineHeight: 1.15,
-                            // Gold-to-white gradient text
-                            background: 'linear-gradient(135deg, #D4AF37 0%, rgba(255,255,255,0.95) 60%, #D4AF37 100%)',
+                            background: `linear-gradient(135deg, ${tod.accent} 0%, rgba(255,255,255,0.95) 55%, ${tod.accent} 100%)`,
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent',
                             backgroundClip: 'text',
                         }}
                     >
-                        {tod.label}, {displayName}.
+                        {thought.greeting}, {displayName}.
                     </motion.h1>
 
-                    {/* Sanskrit / affirmation subtext */}
+                    {/* Main thought — prominent */}
                     <motion.p
-                        initial={{ y: 16, opacity: 0, filter: 'blur(4px)' }}
+                        initial={{ y: 16, opacity: 0, filter: 'blur(5px)' }}
                         animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
-                        transition={{ delay: 0.7, duration: 1.2, ease: 'easeOut' }}
+                        transition={{ delay: 0.55, duration: 1.2, ease: 'easeOut' }}
                         style={{
                             margin: 0,
-                            fontSize: 'clamp(0.85rem, 2.5vw, 1.1rem)',
-                            color: 'rgba(255,255,255,0.48)',
+                            fontFamily: "'Playfair Display', Georgia, serif",
+                            fontSize: 'clamp(1.0rem, 2.8vw, 1.4rem)',
+                            fontWeight: 400,
                             fontStyle: 'italic',
-                            letterSpacing: '0.06em',
-                            maxWidth: '32rem',
+                            color: 'rgba(255,255,255,0.82)',
+                            letterSpacing: '0.01em',
+                            maxWidth: '36rem',
+                            lineHeight: 1.6,
                         }}
                     >
-                        {affirmation}
+                        &ldquo;{thought.thought}&rdquo;
                     </motion.p>
 
-                    {/* Dissolve countdown bar */}
+                    {/* Science sub-line */}
+                    <motion.p
+                        initial={{ y: 10, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.90, duration: 1.0, ease: 'easeOut' }}
+                        style={{
+                            margin: 0,
+                            fontSize: 'clamp(0.64rem, 1.8vw, 0.80rem)',
+                            color: 'rgba(255,255,255,0.38)',
+                            letterSpacing: '0.06em',
+                            maxWidth: '30rem',
+                            lineHeight: 1.65,
+                            fontStyle: 'italic',
+                        }}
+                    >
+                        {thought.sub}
+                    </motion.p>
+
+                    {/* Dissolve bar */}
                     <motion.div
-                        initial={{ width: '6rem', opacity: 0 }}
-                        animate={{ width: '0rem', opacity: [0, 0.45, 0.45, 0] }}
-                        transition={{ delay: 0.8, duration: 2.2, ease: 'linear' }}
+                        initial={{ width: '8rem', opacity: 0 }}
+                        animate={{ width: '0rem', opacity: [0, 0.50, 0.50, 0] }}
+                        transition={{ delay: 0.9, duration: 3.6, ease: 'linear' }}
                         style={{
                             height: 1,
                             background: `linear-gradient(90deg, transparent, ${tod.accent}, transparent)`,
                             borderRadius: 999,
                         }}
                     />
+
+                    {/* Brand whisper */}
+                    <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 0.22 }}
+                        transition={{ delay: 1.2, duration: 1.0 }}
+                        style={{ margin: 0, fontSize: '0.50rem', letterSpacing: '0.28em', fontFamily: 'monospace', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}
+                    >
+                        Pranav Samādhān · Ancient Wisdom · Modern Life
+                    </motion.p>
                 </motion.div>
             )}
         </AnimatePresence>

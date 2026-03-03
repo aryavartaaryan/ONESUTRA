@@ -14,12 +14,12 @@ function getTimeGreeting(lang: 'en' | 'hi') {
 
     const greetEn = isNight ? { emoji: '🌙', text: 'Shubh Ratri', period: 'Night Blessings' }
         : h < 12 ? { emoji: '🙏', text: 'Shubhodaya', period: 'Morning Blessings' }
-            : h < 17 ? { emoji: '☀️', text: 'Shubh Madhyahna', period: 'Midday Blessings' }
+            : h < 16 ? { emoji: '☀️', text: 'Shubh Madhyahna', period: 'Midday Blessings' }
                 : { emoji: '🪔', text: 'Shubh Sandhya', period: 'Evening Blessings' };
 
     const greetHi = isNight ? { emoji: '🌙', text: 'शुभ रात्रि', period: 'रात्रि विश्राम' }
         : h < 12 ? { emoji: '🙏', text: 'शुभोदय', period: 'शुभ प्रभात' }
-            : h < 17 ? { emoji: '☀️', text: 'शुभ मध्याह्न', period: 'मध्याह्न वंदना' }
+            : h < 16 ? { emoji: '☀️', text: 'शुभ मध्याह्न', period: 'मध्याह्न वंदना' }
                 : { emoji: '🪔', text: 'शुभ सन्ध्या', period: 'सन्ध्या वंदना' };
 
     return lang === 'hi' ? greetHi : greetEn;

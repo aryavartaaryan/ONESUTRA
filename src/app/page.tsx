@@ -17,7 +17,6 @@ import SakhaBodhiOrb from '@/components/Dashboard/SakhaBodhiOrb';
 
 import EphemeralGreeting from '@/components/HomePage/EphemeralGreeting';
 import StickyTopNav from '@/components/HomePage/StickyTopNav';
-import LeelaCard from '@/components/HomePage/LeelaCard';
 import MagicSyncModule from '@/components/Dashboard/MagicSyncModule';
 import DailyInsightsCarousel from '@/components/Dashboard/DailyInsightsCarousel';
 import { useTimeOfDay } from '@/hooks/useTimeOfDay';
@@ -35,7 +34,7 @@ function buildGreeting(lang: 'en' | 'hi', h: number) {
     ? { emoji: '🌙', text: 'Shubh Ratri', period: 'Night Blessings' }
     : h < 12
       ? { emoji: '🙏', text: 'Shubhodaya', period: 'Morning Blessings' }
-      : h < 17
+      : h < 16
         ? { emoji: '☀️', text: 'Shubh Madhyahna', period: 'Midday Blessings' }
         : { emoji: '🪔', text: 'Shubh Sandhya', period: 'Evening Blessings' };
 
@@ -43,7 +42,7 @@ function buildGreeting(lang: 'en' | 'hi', h: number) {
     ? { emoji: '🌙', text: 'शुभ रात्रि', period: 'रात्रि विश्राम' }
     : h < 12
       ? { emoji: '🙏', text: 'शुभोदय', period: 'शुभ प्रभात' }
-      : h < 17
+      : h < 16
         ? { emoji: '☀️', text: 'शुभ मध्याह्न', period: 'मध्याह्न वंदना' }
         : { emoji: '🪔', text: 'शुभ सन्ध्या', period: 'सन्ध्या वंदना' };
 
@@ -246,53 +245,19 @@ export default function Home() {
             Morning & Evening (meditation hours): LeelaCard elevated above Sync Engine
             Noon & Night (work/rest hours):       Sync Engine above LeelaCard
         */}
-        {isMeditationHour ? (
-          <>
-            <motion.div
-              key="leela-top"
-              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <LeelaCard />
-            </motion.div>
-            <motion.div
-              key="sync-bottom"
-              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.12 }}
-              style={{ marginTop: '1.5rem' }}
-            >
-              <MagicSyncModule
-                items={sankalpaItems}
-                onToggle={handleSankalpaToggle}
-                onRemove={handleSankalpaRemove}
-                onAdd={handleSankalpaAdd}
-              />
-            </motion.div>
-          </>
-        ) : (
-          <>
-            <motion.div
-              key="sync-top"
-              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              style={{ marginTop: '1.5rem' }}
-            >
-              <MagicSyncModule
-                items={sankalpaItems}
-                onToggle={handleSankalpaToggle}
-                onRemove={handleSankalpaRemove}
-                onAdd={handleSankalpaAdd}
-              />
-            </motion.div>
-            <motion.div
-              key="leela-bottom"
-              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.12 }}
-            >
-              <LeelaCard />
-            </motion.div>
-          </>
-        )}
+        <motion.div
+          key="sync"
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          style={{ marginTop: '1.5rem' }}
+        >
+          <MagicSyncModule
+            items={sankalpaItems}
+            onToggle={handleSankalpaToggle}
+            onRemove={handleSankalpaRemove}
+            onAdd={handleSankalpaAdd}
+          />
+        </motion.div>
 
 
         <div className={dashStyles.dashboardGrid}>

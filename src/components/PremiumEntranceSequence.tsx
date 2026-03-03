@@ -79,7 +79,7 @@ const STARS = [
 function getTOD(): keyof typeof TOD_CONFIG {
     const h = new Date().getHours();
     if (h >= 5 && h < 11) return 'morning';
-    if (h >= 11 && h < 17) return 'noon';
+    if (h >= 11 && h < 16) return 'noon';
     if (h >= 17 && h < 21) return 'evening';
     return 'night';
 }

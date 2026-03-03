@@ -29,7 +29,7 @@ function classify(h: number): TimeOfDayInfo {
         query: 'sunrise misty mountains dewy forest golden',
         accent: '#fbbf24',
     };
-    if (h >= 12 && h < 17) return {
+    if (h >= 12 && h < 16) return {
         period: 'noon', hour: h,
         label: 'Shubh Madhyahna', sanskrit: 'शुभ मध्याह्न',
         emoji: '☀️', raagTitle: 'Noon Raag · Sustain Your Flow',

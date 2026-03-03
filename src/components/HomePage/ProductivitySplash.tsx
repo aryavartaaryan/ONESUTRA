@@ -67,7 +67,7 @@ const TIME_CONFIG = {
 function getTimeKey() {
     const h = new Date().getHours();
     if (h >= 5 && h < 11) return 'morning' as const;
-    if (h >= 11 && h < 17) return 'noon' as const;
+    if (h >= 11 && h < 16) return 'noon' as const;
     if (h >= 17 && h < 21) return 'evening' as const;
     return 'night' as const;
 }

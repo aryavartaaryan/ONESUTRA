@@ -15,7 +15,7 @@ function getRaagForHour(h: number) {
         gradient: 'linear-gradient(135deg, #f6d365 0%, #fda085 40%, #f093fb 100%)',
         emoji: '🌅',
     };
-    if (h >= 12 && h < 17) return {
+    if (h >= 12 && h < 16) return {
         title: 'Afternoon Raag for Clarity',
         raag: 'Bhimpalasi · Multani',
         duration: '35 min',
