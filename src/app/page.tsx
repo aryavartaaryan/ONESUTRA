@@ -239,7 +239,7 @@ export default function Home() {
         <StickyTopNav />
 
         {/* ══ DAILY INSIGHTS CAROUSEL ══ */}
-        <div style={{ marginTop: '5.5rem' }}>
+        <div style={{ marginTop: '1.25rem' }}>
           <DailyInsightsCarousel />
         </div>
 
@@ -251,7 +251,7 @@ export default function Home() {
           key="sync"
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          style={{ marginTop: '3.5rem' }}
+          style={{ marginTop: '1.25rem' }}
         >
           <MagicSyncModule
             items={sankalpaItems}
