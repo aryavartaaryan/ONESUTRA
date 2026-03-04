@@ -86,8 +86,8 @@ const DIMENSIONS = [
     {
         id: 'chat',
         icon: LotusMessageIcon,
-        label: 'OneSUTRA',
-        titleEn: 'OneSUTRA',
+        label: 'SUTRAtalk',
+        titleEn: 'SUTRAtalk',
         titleHi: 'सचेत संवाद — सूत्र',
         descEn: 'The anti-anxiety messenger. High Signal. Zero Noise.',
         descHi: 'बिना चिंता के जुड़ें। अर्थपूर्ण संवाद।',

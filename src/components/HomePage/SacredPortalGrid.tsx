@@ -45,57 +45,78 @@ function PortalSlot({
     );
 }
 
-// ── 1. PranaVerse — Consistent glass pill (col-span-2) ────────────────────────
+// ── 1. PranaVerse — Square Portal (col-span-1) ─────────────────────────────────
 function PranaVerseCard() {
     return (
         <PortalSlot
             href="/pranaverse"
             style={{
-                gridColumn: 'span 2',
+                gridColumn: 'span 1',
                 gridRow: 'span 1',
-                height: 96,
+                aspectRatio: '1 / 1',
                 background: 'rgba(6,25,30,0.55)',
                 border: '1px solid rgba(20,184,166,0.15)',
                 backdropFilter: 'blur(20px)',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
-                gap: '1rem',
-                padding: '0 1.4rem',
+                justifyContent: 'center',
+                gap: '0.75rem',
+                padding: '1rem',
             }}
         >
-            {/* Pulsing teal orb — matches SutraCard ring pattern */}
-            <div style={{ position: 'relative', width: 44, height: 44, flexShrink: 0 }}>
-                {[0, 1].map(i => (
-                    <motion.div
-                        key={i}
-                        style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '1px solid rgba(20,184,166,0.35)' }}
-                        animate={{ scale: [1, 1.55 + i * 0.25, 1], opacity: [0.6, 0, 0.6] }}
-                        transition={{ duration: 2.6, repeat: Infinity, ease: 'easeOut', delay: i * 0.65 }}
-                    />
-                ))}
-                <div style={{
-                    position: 'absolute', inset: 0, borderRadius: '50%',
-                    background: 'radial-gradient(circle, rgba(20,184,166,0.28) 0%, rgba(6,182,212,0.12) 70%)',
-                    border: '1.5px solid rgba(20,184,166,0.50)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '1.1rem', boxShadow: '0 0 24px rgba(20,184,166,0.28)',
-                }}>🌀</div>
-            </div>
+            {/* Teal orb */}
+            <div style={{
+                width: 64, height: 64, borderRadius: '50%', flexShrink: 0,
+                background: 'radial-gradient(circle, rgba(20,184,166,0.30) 0%, rgba(6,182,212,0.12) 70%)',
+                border: '1.5px solid rgba(20,184,166,0.50)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '1.5rem', boxShadow: '0 0 28px rgba(20,184,166,0.25)',
+            }}>🌀</div>
             {/* Text */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: 0, fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'rgba(20,184,166,0.85)', fontFamily: 'monospace', fontWeight: 600 }}>
-                    P R A N A V E R S E
-                </p>
-                <p style={{ margin: '0.18rem 0 0', fontSize: '0.84rem', fontWeight: 600, color: 'rgba(255,255,255,0.88)', letterSpacing: '0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    PranaVerse
-                </p>
-                <p style={{ margin: '0.12rem 0 0', fontSize: '0.62rem', color: 'rgba(255,255,255,0.38)', letterSpacing: '0.04em' }}>
-                    Conscious feed · Scroll through peace
-                </p>
+            <div style={{ textAlign: 'center' }}>
+                <p style={{ margin: 0, fontSize: '0.6rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(20,184,166,0.95)', fontFamily: 'monospace', fontWeight: 600 }}>PranaVIBEs</p>
+                <p style={{ margin: '0.2rem 0 0', fontSize: '0.6rem', color: 'rgba(255,255,255,0.38)', letterSpacing: '0.05em' }}>Conscious feed</p>
             </div>
-            {/* Badge */}
-            <div style={{ flexShrink: 0, padding: '0.28rem 0.75rem', borderRadius: 999, background: 'rgba(20,184,166,0.10)', border: '1px solid rgba(20,184,166,0.25)', fontSize: '0.58rem', letterSpacing: '0.12em', color: 'rgba(20,184,166,0.80)', textTransform: 'uppercase', fontFamily: 'monospace' }}>
-                Live
+        </PortalSlot>
+    );
+}
+
+// ── outPLUGS — Square Portal (col-span-1) ────────────────────────────────────
+function OutPlugsCard() {
+    return (
+        <PortalSlot
+            href="/outplugs"
+            style={{
+                gridColumn: 'span 1',
+                gridRow: 'span 1',
+                aspectRatio: '1 / 1',
+                background: 'rgba(232,93,4,0.07)',
+                border: '1px solid rgba(232,93,4,0.22)',
+                backdropFilter: 'blur(20px)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.75rem',
+                padding: '1rem',
+            }}
+        >
+            {/* Calm, glowing spark orb */}
+            <motion.div
+                animate={{ scale: [1, 1.05, 1], opacity: [0.85, 1, 0.85] }}
+                transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                style={{
+                    width: 64, height: 64, borderRadius: '50%', flexShrink: 0,
+                    background: 'radial-gradient(circle, rgba(232,93,4,0.35) 0%, rgba(180,50,0,0.15) 70%)',
+                    border: '1.5px solid rgba(232,93,4,0.55)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '1.8rem', boxShadow: '0 0 28px rgba(232,93,4,0.28)',
+                }}>✧</motion.div>
+            {/* Text */}
+            <div style={{ textAlign: 'center' }}>
+                <p style={{ margin: 0, fontSize: '0.6rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(232,93,4,0.95)', fontFamily: 'monospace', fontWeight: 600 }}>outPLUGS</p>
+                <p style={{ margin: '0.2rem 0 0', fontSize: '0.6rem', color: 'rgba(255,255,255,0.38)', letterSpacing: '0.05em' }}>Mindful news</p>
             </div>
         </PortalSlot>
     );
@@ -165,7 +186,7 @@ function SutraCard() {
                     fontFamily: 'monospace',
                     fontWeight: 600,
                 }}>
-                    OneSUTRA
+                    SUTRAtalk
                 </p>
                 <p style={{
                     margin: '0.2rem 0 0',
@@ -306,7 +327,7 @@ function DhyanCard() {
                     margin: 0, fontSize: '0.6rem', letterSpacing: '0.25em',
                     textTransform: 'uppercase', color: 'rgba(253,230,138,0.90)',
                     fontFamily: 'monospace', fontWeight: 600,
-                }}>Dhyan</p>
+                }}>Meditate</p>
                 <p style={{
                     margin: '0.2rem 0 0', fontSize: '0.6rem',
                     color: 'rgba(255,255,255,0.38)', letterSpacing: '0.05em',
@@ -485,7 +506,7 @@ function RaagModal({ onClose }: { onClose: () => void }) {
     );
 }
 
-// ── 6. Leela — Rich Media Card (col-span-2) ───────────────────────────────────
+// ── 6. Leela — Square Portal (col-span-1) ───────────────────────────────────
 function LeelaPortalCard() {
     const [open, setOpen] = useState(false);
     const period = getSacredTimePeriod();
@@ -498,46 +519,29 @@ function LeelaPortalCard() {
                 whileHover={{ scale: 1.012 }} whileTap={{ scale: 0.988 }}
                 transition={{ type: 'spring', stiffness: 340, damping: 28 }}
                 onClick={() => setOpen(true)}
-                style={{ gridColumn: 'span 2', borderRadius: '1.5rem', overflow: 'hidden', cursor: 'pointer', background: `rgba(${p0},0.05)`, border: `1px solid rgba(${p0},0.16)`, backdropFilter: 'blur(20px)', position: 'relative', display: 'flex', flexDirection: 'column' }}
+                style={{
+                    gridColumn: 'span 1', gridRow: 'span 1', aspectRatio: '1 / 1',
+                    borderRadius: '1.5rem', overflow: 'hidden', cursor: 'pointer',
+                    background: `rgba(${p0},0.05)`, border: `1px solid rgba(${p0},0.16)`,
+                    backdropFilter: 'blur(16px)',
+                    display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', justifyContent: 'center',
+                    gap: '0.75rem', padding: '1rem',
+                }}
             >
-                {/* Art strip — gradient + icon */}
-                <div style={{ position: 'relative', height: 110, background: `radial-gradient(ellipse at 30% 50%, rgba(${p0},0.22) 0%, rgba(0,0,0,0.0) 70%), linear-gradient(135deg, rgba(${p0},0.12) 0%, rgba(0,0,0,0.0) 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                    {/* Rotating conic gradient orb */}
-                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 22, repeat: Infinity, ease: 'linear' }}
-                        style={{ width: 88, height: 88, borderRadius: '50%', background: `conic-gradient(from 0deg, rgba(${p0},0.90), rgba(255,255,255,0.12), rgba(${p0},0.90))`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 44px rgba(${p0},0.35)`, position: 'relative' }}>
-                        <div style={{ position: 'absolute', inset: 5, borderRadius: '50%', background: 'rgba(2,1,8,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.9rem' }}>✦</div>
-                    </motion.div>
-                    {/* Pulse rings */}
-                    {[0, 1].map(i => (
-                        <motion.div key={i} animate={{ scale: [1, 1.7 + i * 0.3, 1], opacity: [0.5, 0, 0.5] }}
-                            transition={{ duration: 2.8, repeat: Infinity, ease: 'easeOut', delay: i * 0.7 }}
-                            style={{ position: 'absolute', width: 88, height: 88, borderRadius: '50%', border: `1px solid rgba(${p0},0.38)`, pointerEvents: 'none' }} />
-                    ))}
-                    {/* Play button overlay */}
-                    <div style={{ position: 'absolute', right: '1.1rem', top: '50%', transform: 'translateY(-50%)', width: 42, height: 42, borderRadius: '50%', background: `rgba(${p0},0.18)`, border: `1.5px solid rgba(${p0},0.45)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: accent }}
-                    ><Play size={18} fill="currentColor" style={{ marginLeft: 2 }} /></div>
-                    {/* TOD badge */}
-                    <div style={{ position: 'absolute', top: 12, left: 14, fontSize: '0.50rem', letterSpacing: '0.18em', fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', color: `rgba(${p0},0.85)`, background: `rgba(${p0},0.10)`, border: `1px solid rgba(${p0},0.22)`, borderRadius: 999, padding: '0.20rem 0.55rem' }}>
-                        ∿ LIVE · {meta.name.split(' ')[0].toUpperCase()}
-                    </div>
-                </div>
-
-                {/* Content area */}
-                <div style={{ padding: '0.85rem 1.1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {/* Raag name + frequency */}
-                    <div>
-                        <p style={{ margin: '0 0 0.12rem', fontSize: '0.50rem', letterSpacing: '0.22em', fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', color: `rgba(${p0},0.65)` }}>RAAG PLAYER · VEDIC NEUROSCIENCE</p>
-                        <h4 style={{ margin: 0, fontFamily: "'Playfair Display', Georgia, serif", fontSize: '0.95rem', fontWeight: 700, color: 'rgba(255,255,255,0.88)', letterSpacing: '-0.01em', lineHeight: 1.15 }}>{meta.name}</h4>
-                        <p style={{ margin: '0.16rem 0 0', fontSize: '0.58rem', letterSpacing: '0.10em', fontFamily: 'monospace', color: `rgba(${p0},0.62)`, textTransform: 'uppercase' }}>{meta.raag}</p>
-                    </div>
-                    <p style={{ margin: 0, fontSize: 'clamp(0.60rem,1.6vw,0.72rem)', color: 'rgba(255,255,255,0.38)', lineHeight: 1.55, fontStyle: 'italic' }}>{meta.science}</p>
-                    {/* Stat pills */}
-                    <div style={{ display: 'flex', gap: '0.38rem', flexWrap: 'wrap' }}>
-                        {[meta.stat1, meta.stat2, meta.stat3].map((s, i) => (
-                            <span key={i} style={{ background: `rgba(${p0},0.10)`, border: `1px solid rgba(${p0},0.20)`, borderRadius: 999, padding: '0.22rem 0.60rem', fontSize: '0.58rem', fontWeight: 700, fontFamily: 'monospace', color: `rgba(${p0},0.85)`, letterSpacing: '0.06em' }}>{s}</span>
-                        ))}
-                    </div>
-                    <p style={{ margin: '0.1rem 0 0', fontSize: '0.45rem', letterSpacing: '0.20em', fontFamily: 'monospace', color: `rgba(${p0},0.28)`, textTransform: 'uppercase' }}>Tap to open full player · Ancient frequencies await</p>
+                {/* Rotating orb */}
+                <motion.div animate={{ rotate: 360 }} transition={{ duration: 22, repeat: Infinity, ease: 'linear' }}
+                    style={{
+                        width: 64, height: 64, borderRadius: '50%', flexShrink: 0,
+                        background: `conic-gradient(from 0deg, rgba(${p0},0.90), rgba(255,255,255,0.12), rgba(${p0},0.90))`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: `0 0 28px rgba(${p0},0.35)`, position: 'relative'
+                    }}>
+                    <div style={{ position: 'absolute', inset: 4, borderRadius: '50%', background: 'rgba(2,1,8,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>✦</div>
+                </motion.div>
+                <div style={{ textAlign: 'center' }}>
+                    <p style={{ margin: 0, fontSize: '0.6rem', letterSpacing: '0.25em', fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', color: `rgba(${p0},0.90)` }}>{meta.name}</p>
+                    <p style={{ margin: '0.2rem 0 0', fontSize: '0.6rem', letterSpacing: '0.05em', color: 'rgba(255,255,255,0.38)' }}>Ancient Resonances</p>
                 </div>
             </motion.div>
 
@@ -549,58 +553,7 @@ function LeelaPortalCard() {
     );
 }
 
-// ── 4. Sync Engine / Sankalpa — Productivity Pill (col-span-2) ────────────────
-function SyncEngineCard() {
-    return (
-        <PortalSlot
-            href="/"
-            style={{
-                gridColumn: 'span 2',
-                gridRow: 'span 1',
-                height: 96,
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                backdropFilter: 'blur(20px)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '1rem',
-                padding: '0 1.4rem',
-            }}
-        >
-            {/* Icon */}
-            <div style={{
-                width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
-                background: 'linear-gradient(135deg, rgba(245,158,11,0.25), rgba(239,68,68,0.15))',
-                border: '1px solid rgba(245,158,11,0.25)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '1.2rem',
-            }}>⚡</div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{
-                    margin: 0,
-                    fontSize: '0.82rem', fontWeight: 600,
-                    color: 'rgba(255,255,255,0.88)',
-                    letterSpacing: '0.02em',
-                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                }}>Synchronize Your Day</p>
-                <p style={{
-                    margin: '0.15rem 0 0',
-                    fontSize: '0.65rem', color: 'rgba(255,255,255,0.40)',
-                    letterSpacing: '0.04em',
-                }}>Sankalpa · Daily Intention Engine</p>
-            </div>
-            {/* Badge */}
-            <div style={{
-                flexShrink: 0, padding: '0.3rem 0.8rem', borderRadius: 999,
-                background: 'rgba(245,158,11,0.13)',
-                border: '1px solid rgba(245,158,11,0.28)',
-                fontSize: '0.6rem', letterSpacing: '0.12em',
-                color: 'rgba(251,191,36,0.80)', textTransform: 'uppercase',
-                fontFamily: 'monospace',
-            }}>Active</div>
-        </PortalSlot>
-    );
-}
+
 
 // ── Main Export ───────────────────────────────────────────────────────────────
 export default function SacredPortalGrid() {
@@ -624,14 +577,14 @@ export default function SacredPortalGrid() {
                     fontSize: '0.52rem', letterSpacing: '0.28em',
                     textTransform: 'uppercase', color: 'rgba(245,158,11,0.60)',
                     fontFamily: 'monospace', fontWeight: 700,
-                }}>✦ ReZo Dimensions</span>
+                }}>✦ SUTRA Dimensions</span>
                 <h2 style={{
                     margin: '0.15rem 0 0',
                     fontFamily: "'Playfair Display', Georgia, serif",
                     fontSize: 'clamp(1.3rem,3.5vw,1.65rem)', fontWeight: 700,
                     color: 'rgba(255,255,255,0.92)', letterSpacing: '-0.015em',
                 }}>
-                    {lang === 'hi' ? 'ReZo आयाम' : 'Your Sacred Toolkit.'}
+                    {lang === 'hi' ? 'SUTRA आयाम' : 'Your Sacred Toolkit.'}
                 </h2>
             </motion.div>
 
@@ -647,17 +600,17 @@ export default function SacredPortalGrid() {
                     gap: '0.75rem',
                 }}
             >
-                {/* Row 0: Raag Player — Leela card first for maximum impact */}
+                {/* Row 0: Raag Player — compact with inline info */}
                 <LeelaPortalCard />
-                {/* Row 1: PranaVerse immersive card */}
+                {/* Row 1: outPLUGS — new mindful news aggregator */}
+                <OutPlugsCard />
+                {/* Row 2: PranaVerse compact pill */}
                 <PranaVerseCard />
-                {/* Row 2: SUTRA ring + Acharya orb */}
+                {/* Row 3: SUTRA ring + Acharya orb */}
                 <SutraCard />
                 <AcharyaCard />
-                {/* Row 3: Dhyan Kshetra */}
+                {/* Row 4: Dhyan Kshetra */}
                 <DhyanCard />
-                {/* Row 4: Sync Engine wide pill */}
-                <SyncEngineCard />
             </motion.div>
         </section>
     );

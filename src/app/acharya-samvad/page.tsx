@@ -13,6 +13,45 @@ import { useVaidyaVoiceCall } from '@/hooks/useVaidyaVoiceCall';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCircadianUnsplash } from '@/hooks/useCircadianUnsplash';
 
+// ── Firebase helpers ─────────────────────────────────────────────────────────
+function getAnonUserId(): string {
+    if (typeof window === 'undefined') return 'anon';
+    let uid = localStorage.getItem('pranaverse_uid');
+    if (!uid) {
+        uid = 'user_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+        localStorage.setItem('pranaverse_uid', uid);
+    }
+    return uid;
+}
+
+async function loadChatHistory(uid: string): Promise<{ role: 'vaidya' | 'user'; content: string }[]> {
+    try {
+        const { getFirebaseFirestore } = await import('@/lib/firebase');
+        const { collection, getDocs, query, orderBy } = await import('firebase/firestore');
+        const db = await getFirebaseFirestore();
+        const q = query(
+            collection(db, 'acharya_conversations', uid, 'messages'),
+            orderBy('createdAt', 'asc')
+        );
+        const snap = await getDocs(q);
+        return snap.docs.map(d => d.data() as { role: 'vaidya' | 'user'; content: string });
+    } catch {
+        return [];
+    }
+}
+
+async function saveChatMessages(uid: string, msgs: { role: 'vaidya' | 'user'; content: string }[]) {
+    try {
+        const { getFirebaseFirestore } = await import('@/lib/firebase');
+        const { collection, addDoc, serverTimestamp } = await import('firebase/firestore');
+        const db = await getFirebaseFirestore();
+        const colRef = collection(db, 'acharya_conversations', uid, 'messages');
+        for (const msg of msgs) {
+            await addDoc(colRef, { role: msg.role, content: msg.content, createdAt: serverTimestamp() });
+        }
+    } catch { /* silent — app works offline too */ }
+}
+
 interface DiagnosisResult {
     diagnosis: BilingualString;
     rootCause: BilingualString;
@@ -33,14 +72,16 @@ function AcharyaContent() {
     const searchParams = useSearchParams();
     const initialLang = (searchParams?.get('lang') as 'en' | 'hi') || 'hi';
 
-    // ── Text chat state (UNTOUCHED) ──────────────────────────────────────────
+    // ── Text chat state ───────────────────────────────────────────────────────
     const [messages, setMessages] = useState<Message[]>([]);
+    const [historyLoading, setHistoryLoading] = useState(true);
     const [input, setInput] = useState('');
     const [sanitizedInput, setSanitizedInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<DiagnosisResult | null>(null);
     const { lang, toggleLanguage } = useLanguage();
     const bottomRef = useRef<HTMLDivElement>(null);
+    const uidRef = useRef(getAnonUserId());
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     // ── Circadian background ─────────────────────────────────────────────────
@@ -81,6 +122,14 @@ function AcharyaContent() {
         s = s.trim();
         s = s.replace(/\s+/g, ' ');
         return s;
+    }, []);
+
+    // ── Load history from Firestore on mount ─────────────────────────────────
+    useEffect(() => {
+        loadChatHistory(uidRef.current).then(history => {
+            if (history.length > 0) setMessages(history);
+            setHistoryLoading(false);
+        });
     }, []);
 
     useEffect(() => {
@@ -137,6 +186,11 @@ function AcharyaContent() {
                 || (data.activeVaidyaMessage || data.vaidyaMessage)?.['hi'] || '';
             if (responseText && responseText.trim() && responseText.toLowerCase() !== 'undefined') {
                 setMessages(prev => [...prev, { role: 'vaidya', content: responseText.trim() }]);
+                // ── Persist exchange to Firestore ──
+                saveChatMessages(uidRef.current, [
+                    { role: 'user', content: userMsg },
+                    { role: 'vaidya', content: responseText.trim() },
+                ]);
             }
             if (data.isComplete && data.result) setResult(data.result);
 
@@ -377,7 +431,13 @@ function AcharyaContent() {
                             <section className={styles.chatContainer}>
                                 {!result ? (
                                     <div className={styles.manuscriptCard}>
-                                        {messages.length === 0 && (
+                                        {historyLoading ? (
+                                            <div className={styles.welcomeMessage}>
+                                                <p className={styles.welcomeText} style={{ opacity: 0.5 }}>
+                                                    {lang === 'hi' ? '…स्मृति जाग रही है' : '…Awakening memory'}
+                                                </p>
+                                            </div>
+                                        ) : messages.length === 0 && (
                                             <div className={styles.welcomeMessage}>
                                                 <p className={styles.welcomeText}>
                                                     {lang === 'hi'

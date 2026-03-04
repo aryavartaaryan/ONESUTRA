@@ -20,17 +20,17 @@ const PHASES: Record<VibeName, VibePhase> = {
         name: 'dawn',
         label: 'Dawn',
         tagline: 'Brahma Muhurta · A new beginning rises',
-        query: 'sunrise morning mist calm lake dawn',
+        query: 'sunrise morning mist calm lake dawn landscape no people',
         tint: 'rgba(10, 5, 25, 0.45)',
         accentHex: '#FFB86C',
         fallbackUrl:
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1080&q=85&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1080&q=85&auto=format&fit=crop',
     },
     day: {
         name: 'day',
         label: 'Day',
         tagline: 'Madhyana · Active, Vibrant, Focused',
-        query: 'majestic mountains green forest clear sky zen nature',
+        query: 'majestic mountains green forest clear sky zen nature landscape no people',
         tint: 'rgba(5, 15, 35, 0.38)',
         accentHex: '#64D8CB',
         fallbackUrl:
@@ -40,7 +40,7 @@ const PHASES: Record<VibeName, VibePhase> = {
         name: 'dusk',
         label: 'Dusk',
         tagline: 'Sandhya · Gratitude & reflection',
-        query: 'sunset golden hour warm landscape twilight',
+        query: 'sunset golden hour warm landscape twilight no people no person',
         tint: 'rgba(15, 5, 30, 0.50)',
         accentHex: '#FFD580',
         fallbackUrl:
@@ -50,7 +50,7 @@ const PHASES: Record<VibeName, VibePhase> = {
         name: 'night',
         label: 'Night',
         tagline: 'Ratri · Infinite peace · Cosmic connection',
-        query: 'night sky milky way dark forest moonlight stars',
+        query: 'night sky milky way dark forest moonlight stars landscape no people',
         tint: 'rgba(0, 2, 12, 0.62)',
         accentHex: '#9B8CFF',
         fallbackUrl:
@@ -67,7 +67,7 @@ const STATIC_POOLS: Record<'vedic' | 'nature', Record<VibeName, string[]>> = {
             'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=1080&q=85&auto=format&fit=crop',  // temple sunrise India
             'https://images.unsplash.com/photo-1505765050516-f72dcac9c60e?w=1080&q=85&auto=format&fit=crop',  // himalaya dawn mist
             'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1080&q=85&auto=format&fit=crop',  // golden mountain dawn
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1080&q=85&auto=format&fit=crop',  // misty lake sunrise
+            'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1080&q=85&auto=format&fit=crop',  // mountain peak dawn landscape
         ],
         day: [
             'https://images.unsplash.com/photo-1574482620811-1aa16ffe3c82?w=1080&q=85&auto=format&fit=crop',  // lush green mountain valley
@@ -97,7 +97,7 @@ const STATIC_POOLS: Record<'vedic' | 'nature', Record<VibeName, string[]>> = {
             'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=1080&q=85&auto=format&fit=crop',
             'https://images.unsplash.com/photo-1505765050516-f72dcac9c60e?w=1080&q=85&auto=format&fit=crop',
             'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1080&q=85&auto=format&fit=crop',
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1080&q=85&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1080&q=85&auto=format&fit=crop',  // mountain peak — replaces person photo
         ],
         day: [
             'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1080&q=85&auto=format&fit=crop',
@@ -137,7 +137,7 @@ function getVibePhase(hourF: number): VibePhase {
     return PHASES.night;
 }
 
-const CACHE_KEY_PREFIX = 'circadian_bg_v3_';
+const CACHE_KEY_PREFIX = 'circadian_bg_v4_';  // bumped to v4 — busts person-photo cache
 const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes — refreshes visuals every half hour
 
 function getCached(key: string): string | null {
@@ -204,7 +204,7 @@ export function useCircadianBackground(variant: 'nature' | 'vedic' = 'nature'): 
                 try {
                     const url = new URL('https://api.unsplash.com/photos/random');
                     url.searchParams.set('query', queryStr);
-                    url.searchParams.set('orientation', 'portrait');
+                    url.searchParams.set('orientation', 'landscape'); // landscape only — avoids portrait/face photos
                     url.searchParams.set('content_filter', 'high');
                     url.searchParams.set('client_id', UNSPLASH_ACCESS_KEY);
 

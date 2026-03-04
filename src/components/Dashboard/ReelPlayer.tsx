@@ -7,6 +7,7 @@ import styles from './ReelPlayer.module.css';
 import WaterWaveVisualizer from './WaterWaveVisualizer';
 import { useCircadianBackground } from '@/hooks/useCircadianBackground';
 import CinematicIntentionReel from './CinematicIntentionReel';
+import ReelActionSidebar from './ReelActionSidebar';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 interface PanchangData {
@@ -233,58 +234,17 @@ function SankalpaSlide({ items, onToggle, onRemove, onAdd, isFullScreen, onExpan
     );
 }
 
-// ── JustVibe Reactions ────────────────────────────────────────────────────────
-interface ReelReactionsProps { accentColor: string; likes: number; }
-function ReelReactions({ accentColor, likes }: ReelReactionsProps) {
-    const [vibed, setVibed] = useState(false);
-    const [radiated, setRadiated] = useState(false);
-    const [planted, setPlanted] = useState(false);
-    const [vibeCount, setVibeCount] = useState(likes);
-    const [ripple, setRipple] = useState(false);
 
-    return (
-        <div className={styles.reelReactions} onClick={e => e.stopPropagation()}>
-            <div className={styles.reactionItem} onClick={e => { e.stopPropagation(); setVibed(v => { if (!v) { setVibeCount(c => c + 1); setRipple(true); setTimeout(() => setRipple(false), 700); } else setVibeCount(c => c - 1); return !v; }); }}>
-                <div className={`${styles.reactionIcon} ${vibed ? styles.reactionIconVibedOn : ''}`} style={vibed ? { borderColor: `${accentColor}88`, boxShadow: `0 0 22px ${accentColor}44` } : {}}>
-                    {ripple && <motion.div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: `radial-gradient(circle, ${accentColor}99 0%, transparent 70%)` }} initial={{ scale: 0.3, opacity: 0.9 }} animate={{ scale: 2.5, opacity: 0 }} transition={{ duration: 0.6, ease: 'easeOut' }} />}
-                    <span>{vibed ? '✨' : '🌊'}</span>
-                </div>
-                <span className={styles.reactionCount}>{vibeCount.toLocaleString()}<br />{vibed ? 'Vibed' : 'Vibe'}</span>
-            </div>
-            <div className={styles.reactionItem} onClick={e => e.stopPropagation()}>
-                <div className={styles.reactionIcon}><span>☁️</span></div>
-                <span className={styles.reactionCount}>Save</span>
-            </div>
-            <div className={styles.reactionItem} onClick={e => { e.stopPropagation(); setRadiated(r => !r); }}>
-                <div className={`${styles.reactionIcon} ${radiated ? styles.reactionIconRadiateOn : ''}`}>
-                    <span>{radiated ? '💎' : '✦'}</span>
-                </div>
-                <span className={styles.reactionCount}>Radiate</span>
-            </div>
-            <div className={styles.reactionItem} onClick={e => { e.stopPropagation(); setPlanted(p => !p); }}>
-                <div className={`${styles.reactionIcon} ${planted ? styles.reactionIconPlantOn : ''}`}>
-                    <span>{planted ? '🌱' : '🌿'}</span>
-                </div>
-                <span className={styles.reactionCount}>{planted ? 'Planted' : 'Plant'}</span>
-            </div>
-        </div>
-    );
-}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MODULE 3 + 4 + 5: ReelSlide
-// - Unified play/pause driven by isActive prop (observer on OUTER WRAPPER div)
-// - safePlay() for every play() call
-// - playsInline + loop + muted on <video>
-// - loop + muted on <audio>
-// - Center tap = play/pause; bottom-right volume icon handled by parent
 // ══════════════════════════════════════════════════════════════════════════════
 interface ReelSlideProps {
     track: typeof TRACKS[0];
     scene: ReturnType<typeof getTimeScene>;
     isActive: boolean;
     isGlobalMuted: boolean;
-    onTapCenter: () => void;   // play/pause center tap
+    onTapCenter: () => void;
     onRegisterPause: (fn: () => void) => () => void;
 }
 
@@ -292,6 +252,7 @@ function ReelSlide({ track, scene, isActive, isGlobalMuted, onTapCenter, onRegis
     const [playing, setPlaying] = useState(false);
     const [progress, setProgress] = useState(0);
     const [videoProgress, setVideoProgress] = useState(0);
+    const [showComments, setShowComments] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const playingRef = useRef(false);
@@ -482,8 +443,13 @@ function ReelSlide({ track, scene, isActive, isGlobalMuted, onTapCenter, onRegis
                 />
             </div>
 
-            {/* JustVibe Reactions */}
-            <ReelReactions accentColor={scene.accent} likes={track.likes} />
+            {/* 🪩 World-class Reaction Sidebar */}
+            <ReelActionSidebar
+                trackId={track.id}
+                trackTitle={track.title}
+                onOpenComments={() => setShowComments(s => !s)}
+                showComments={showComments}
+            />
         </div>
     );
 }
@@ -713,7 +679,7 @@ export default function ReelPlayer({ greeting: _g, displayName: _d, panchangData
                                         isActive={activeIdx === i}
                                         isGlobalMuted={isGlobalMuted}
                                         onTapCenter={handleCenterTap}
-                                        onRegisterPause={fn => {
+                                        onRegisterPause={(fn: () => void) => {
                                             pauseRegistry.current.set(i, fn);
                                             return () => { pauseRegistry.current.delete(i); };
                                         }}

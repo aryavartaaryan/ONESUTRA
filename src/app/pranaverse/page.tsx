@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReelPlayer from '@/components/Dashboard/ReelPlayer';
 import { useLanguage } from '@/context/LanguageContext';
+import ReactionBar from '@/components/PranaVerse/ReactionBar';
 import styles from './page.module.css';
 
 
@@ -130,7 +131,7 @@ const USERS: User[] = [
     { id: 3, handle: '@Rishi.Dharma', displayName: 'Rishi Iyer', avatar: '🔮', dosha: 'pitta', roles: [{ label: 'Professional', chip: styles.chipFounder }, { label: 'Vedic Learner', chip: styles.chipDesigner }], bio: 'Neuroscientist by day, Vedic astrology student by moonlight. Consciousness is the final frontier.', badge: '✦ Level 5 Star', ringClass: styles.ringPurple, avatarClass: styles.avatarCosmic, resonances: 2788, seeds: 503, days: 28 },
     { id: 4, handle: '@Nisha.Waves', displayName: 'Nisha Varma', avatar: '🌊', dosha: 'kapha', roles: [{ label: 'Builder', chip: styles.chipBuilder }, { label: 'Founder', chip: styles.chipFounder }], bio: 'Sustainable tech founder. We make every byte count for the planet. 40% of our profits plant forests.', badge: '💎 Level 8 Crystal', ringClass: styles.ringBlue, avatarClass: styles.avatarOcean, resonances: 6540, seeds: 1240, days: 67 },
 ];
-interface PostAction { lotus: boolean; cloud: boolean; prism: boolean; seed: boolean; }
+
 interface Post { id: number; type: 'dristi' | 'visualraag' | 'reflect' | 'moment'; bgClass: string; tagClass: string; tagLabel: string; userId: number; caption: string; hashtags: string[]; emoji?: string; lapseCaption?: string; voiceLines?: string[]; quote?: string; quoteSource?: string; likes: number; }
 const POSTS: Post[] = [
     { id: 1, type: 'dristi', bgClass: styles.bgGolden, tagClass: styles.tagLapse, tagLabel: '📸 Dristi', userId: 1, caption: 'Watched the sun paint the whole sky. 90-minute golden hour. This is why we wake up early. ✨', hashtags: ['#GoldenHour', '#Sadhana'], emoji: '🌅', lapseCaption: 'golden hour · 5:48 AM', likes: 1284 },
@@ -139,34 +140,13 @@ const POSTS: Post[] = [
     { id: 4, type: 'moment', bgClass: styles.bgOcean, tagClass: styles.tagOcean, tagLabel: '🌊 Moment', userId: 4, caption: '6 AM beach meditation. The ocean keeps the most honest rhythm.', hashtags: ['#Ocean', '#JustVibe'], emoji: '🌊', likes: 2105 },
 ];
 
-// ════════════════════════════════════════════════════════
-//  RIPPLE
-// ════════════════════════════════════════════════════════
-function VibedRipple() {
-    return (
-        <motion.div
-            style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,160,23,0.6) 0%, transparent 70%)' }}
-            initial={{ scale: 0.3, opacity: 0.9 }} animate={{ scale: 2.5, opacity: 0 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-        />
-    );
-}
+
 
 // ════════════════════════════════════════════════════════
 //  POST CARD
 // ════════════════════════════════════════════════════════
 function PostCard({ post, onUserClick }: { post: Post; onUserClick: (id: number) => void }) {
     const user = USERS.find(u => u.id === post.userId)!;
-    const [actions, setActions] = useState<PostAction>({ lotus: false, cloud: false, prism: false, seed: false });
-    const [likeCount, setLikeCount] = useState(post.likes);
-    const [ripple, setRipple] = useState(false);
-    const tap = useCallback((k: keyof PostAction) => {
-        setActions(prev => {
-            const next = { ...prev, [k]: !prev[k] };
-            if (k === 'lotus') { setLikeCount(c => prev.lotus ? c - 1 : c + 1); if (!prev.lotus) { setRipple(true); setTimeout(() => setRipple(false), 700); } }
-            return next;
-        });
-    }, []);
     return (
         <article className={styles.post}>
             <div className={post.bgClass} />{post.type === 'dristi' && <div className={styles.mist} />}<div className={styles.vignette} />
@@ -175,16 +155,15 @@ function PostCard({ post, onUserClick }: { post: Post; onUserClick: (id: number)
             {post.type === 'visualraag' && (<div className={styles.voiceCard}><div className={styles.voiceHeader}><div className={styles.voiceIcon}>🎵</div><div><div className={styles.voiceTitle}>Visual Raag · Raag Bhairav</div><div className={styles.voiceDuration}>2:14 · 🌿 Dawn Mode</div></div></div><VisualRaagWave /><div className={styles.transcriptCard}><p className={styles.transcriptLine}>{post.voiceLines![0]} <strong>{post.voiceLines![1]}</strong></p></div></div>)}
             {post.type === 'reflect' && (<div className={styles.reflectCard}><div className={styles.reflectSymbol}>{post.emoji}</div><p className={styles.reflectQuote}>{post.quote}</p><span className={styles.reflectSource}>{post.quoteSource}</span></div>)}
             {post.type === 'moment' && (<div className={styles.oceanFrame}><div className={styles.oceanEmoji}>{post.emoji}</div><p className={styles.oceanCaption}>"The ocean doesn't apologise for its depth.<br />Neither should you for yours."</p></div>)}
-            <div className={styles.growthStack}>
-                {[{ k: 'lotus' as const, on: actions.lotus, onClass: styles.actionIconLotusOn, icon: actions.lotus ? '✨' : '🌊', label: likeCount.toLocaleString() + (actions.lotus ? ' Vibed' : ' Vibe') }, { k: 'cloud' as const, on: actions.cloud, onClass: '', icon: '☁️', label: '218' }, { k: 'prism' as const, on: actions.prism, onClass: styles.actionIconPrismOn, icon: actions.prism ? '💎' : '✦', label: 'Radiate' }, { k: 'seed' as const, on: actions.seed, onClass: styles.actionIconSeedOn, icon: actions.seed ? '🌱' : '🌿', label: actions.seed ? 'Planted' : 'Plant' }].map(item => (
-                    <div key={item.k} className={styles.actionItem} onClick={() => tap(item.k)}>
-                        <div className={`${styles.actionIcon} ${item.on ? item.onClass : ''}`} style={{ position: 'relative', overflow: 'visible' }}>
-                            {item.k === 'lotus' && ripple && <VibedRipple />}<span>{item.icon}</span>
-                        </div>
-                        <span className={styles.actionCount}>{item.label}</span>
-                    </div>
-                ))}
-            </div>
+
+            {/* ── Real-time Firebase Reactions: Prem · Echo · Radiate ── */}
+            <ReactionBar
+                postId={post.id}
+                caption={post.caption}
+                authorHandle={user.handle}
+                emoji={post.emoji}
+            />
+
             <div className={styles.profileZone}>
                 <div className={styles.profileRow} onClick={() => onUserClick(user.id)}>
                     <div className={styles.vibeRingWrap}><svg className={styles.vibeRingSvg} viewBox="0 0 66 66"><circle className={`${styles.vibeRingCircle} ${user.ringClass}`} cx="33" cy="33" r="27" strokeDasharray="7 4" /></svg><div className={`${styles.avatarCircle} ${user.avatarClass}`}>{user.avatar}</div></div>

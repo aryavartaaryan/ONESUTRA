@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Briefcase, Flame, Globe } from 'lucide-react';
+import { User, Radio, Flame, Globe } from 'lucide-react';
 
 // ── Single nav link: icon + label with gold hover glow ────────────────────────
 function NavLink({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
@@ -55,7 +55,7 @@ export default function StickyTopNav() {
                 <span style={{
                     fontFamily: "'Playfair Display', Georgia, serif",
                     fontSize: '1rem', fontWeight: 700, color: 'rgba(255,255,255,0.90)',
-                }}>ReZo</span>
+                }}>OneSUTRA</span>
                 <span style={{
                     fontSize: '0.44rem', letterSpacing: '0.2em', textTransform: 'uppercase',
                     color: 'rgba(255,255,255,0.28)', fontFamily: 'monospace',
@@ -65,7 +65,7 @@ export default function StickyTopNav() {
             {/* Nav links — Profile lives EXCLUSIVELY here */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                 <NavLink href="/profile" icon={<User size={12} strokeWidth={1.7} />} label="Profile" />
-                <NavLink href="/jobs" icon={<Briefcase size={12} strokeWidth={1.7} />} label="Jobs" />
+                <NavLink href="/outplugs" icon={<Radio size={12} strokeWidth={1.7} />} label="outPLUGS" />
                 <NavLink href="/dhyan-kshetra" icon={<Flame size={12} strokeWidth={1.7} />} label="Meditate" />
                 <NavLink href="/project-leela" icon={<Globe size={12} strokeWidth={1.7} />} label="Leela" />
             </div>

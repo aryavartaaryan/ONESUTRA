@@ -1,10 +1,4 @@
-// src/lib/firebase.ts
-// ──────────────────────────────────────────────────────────────────────────────
-// SSR-SAFE Firebase initialisation.
-// All Firebase code is gated behind `typeof window !== 'undefined'` and
-// lazy-initialised so Next.js server-side prerendering never touches it.
-// Set NEXT_PUBLIC_FIREBASE_* vars in .env.local (dev) and Vercel dashboard (prod).
-// ──────────────────────────────────────────────────────────────────────────────
+// src/lib/firebase.ts — SSR-safe, offline-persistent Firestore init
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import { type Auth, type GoogleAuthProvider } from 'firebase/auth';
 import { type Firestore } from 'firebase/firestore';
@@ -22,22 +16,21 @@ let app: FirebaseApp | null = null;
 let _auth: Auth | null = null;
 let _provider: GoogleAuthProvider | null = null;
 let _db: Firestore | null = null;
+let _persistenceEnabled = false;
 
-/** Returns the Auth instance. Must only be called inside a browser context. */
+function getOrInitApp(): FirebaseApp {
+    if (app) return app;
+    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+    return app;
+}
+
 export async function getFirebaseAuth(): Promise<Auth> {
     if (_auth) return _auth;
-
-    if (!app) {
-        app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-    }
-
-    // Dynamic import keeps firebase/auth out of the SSR bundle entirely
     const { getAuth } = await import('firebase/auth');
-    _auth = getAuth(app);
+    _auth = getAuth(getOrInitApp());
     return _auth;
 }
 
-/** Returns the GoogleAuthProvider instance (client-side only). */
 export async function getGoogleProvider(): Promise<GoogleAuthProvider> {
     if (_provider) return _provider;
     const { GoogleAuthProvider } = await import('firebase/auth');
@@ -46,13 +39,25 @@ export async function getGoogleProvider(): Promise<GoogleAuthProvider> {
     return _provider;
 }
 
-/** Returns the Firestore instance (client-side only). */
 export async function getFirebaseFirestore(): Promise<Firestore> {
     if (_db) return _db;
-    if (!app) {
-        app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+
+    const { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } = await import('firebase/firestore');
+
+    try {
+        // Enable multi-tab offline persistence so reactions work offline too
+        if (!_persistenceEnabled) {
+            _persistenceEnabled = true;
+            _db = initializeFirestore(getOrInitApp(), {
+                localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+            });
+        } else {
+            _db = getFirestore(getOrInitApp());
+        }
+    } catch {
+        // Already initialised — just get the existing instance
+        _db = getFirestore(getOrInitApp());
     }
-    const { getFirestore } = await import('firebase/firestore');
-    _db = getFirestore(app);
+
     return _db;
 }

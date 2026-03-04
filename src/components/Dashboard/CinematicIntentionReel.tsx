@@ -67,7 +67,7 @@ export default function CinematicIntentionReel({
             onClick={!isFullScreen ? onExpand : handleTap}
         >
             {/* ── Circadian nature background ── */}
-            <div style={{
+            <div suppressHydrationWarning style={{
                 position: 'absolute', inset: 0,
                 backgroundImage: `url(${imageUrl})`,
                 backgroundSize: 'cover', backgroundPosition: 'center',
@@ -102,6 +102,7 @@ export default function CinematicIntentionReel({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5, duration: 0.6 }}
+                    suppressHydrationWarning
                     style={{
                         fontSize: '0.62rem', color: 'rgba(255,255,255,0.38)',
                         fontVariantNumeric: 'tabular-nums', letterSpacing: '0.1em',
@@ -141,6 +142,7 @@ export default function CinematicIntentionReel({
                         >
                             {/* Main cinematic intention text */}
                             <motion.h1
+                                suppressHydrationWarning
                                 style={{
                                     fontFamily: "'Playfair Display', 'Cinzel', Georgia, serif",
                                     fontSize: 'clamp(1.8rem, 6vw, 3.2rem)',

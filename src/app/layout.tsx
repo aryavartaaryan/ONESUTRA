@@ -3,13 +3,13 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ReZo | Ancient Wisdom for Modern Living",
-  description: "ReZo — your conscious digital sanctuary. Personalized Vedic wellness, mindful social connection (JustVibe), and AI-powered guidance for holistic well-being.",
+  title: "SUTRAtalk | Conscious Living",
+  description: "SUTRAtalk — your conscious digital sanctuary. Personalized Vedic wellness, mindful connection, and AI-powered guidance for holistic well-being.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "ReZo",
+    title: "SUTRAtalk",
   },
 };
 

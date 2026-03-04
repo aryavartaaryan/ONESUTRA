@@ -98,7 +98,7 @@ export default function VahanaBar() {
         },
         {
             id: 'onesutra', href: '/onesutra', Icon: MessageCircle,
-            label: lang === 'hi' ? 'सूत्र' : 'OneSUTRA',
+            label: lang === 'hi' ? 'सूत्र' : 'SUTRAtalk',
             isOm: true,
         },
         // 'search' is rendered separately via <SearchItem />
@@ -108,7 +108,7 @@ export default function VahanaBar() {
         },
         {
             id: 'pranaverse', href: '/pranaverse', Icon: Globe,
-            label: lang === 'hi' ? 'ReZo' : '+VeFeeds',
+            label: lang === 'hi' ? 'ReZo' : 'PranaVIBEs',
             accent: true,
         },
     ] as const;
