@@ -1,8 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   output: 'standalone',
+
+  // firebase-admin uses native Node modules (@opentelemetry, gRPC, etc.)
+  // that must NOT be bundled by Turbopack — require them at runtime instead.
+  serverExternalPackages: [
+    'firebase-admin',
+    '@google-cloud/firestore',
+    '@google-cloud/storage',
+    '@opentelemetry/api',
+    'google-gax',
+  ],
 
   images: {
     remotePatterns: [
@@ -20,3 +29,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+

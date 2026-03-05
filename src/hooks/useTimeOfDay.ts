@@ -21,25 +21,38 @@ export interface TimeOfDayInfo {
     accent: string;
 }
 
+// Phase map — exact same boundaries as useCircadianBackground:
+//   3–7   morning  (Brahma Muhurta, Prabhata)
+//   7–12  morning  (active morning)
+//   12–16 noon     (Madhyahna)
+//   16–21 evening  (Sandhya — closes the old 16:00-16:59 'night' gap)
+//   21–3  night    (Ratri)
 function classify(h: number): TimeOfDayInfo {
-    if (h >= 5 && h < 12) return {
+    if (h >= 3 && h < 7) return {
         period: 'morning', hour: h,
         label: 'Good Morning', sanskrit: 'शुभोदय',
-        emoji: '🌅', raagTitle: 'Morning Raag · Awaken Your Prana',
+        emoji: '🌅', raagTitle: 'Brahma Muhurta · Awaken Your Prana',
         query: 'sunrise misty mountains dewy forest golden',
+        accent: '#fbbf24',
+    };
+    if (h >= 7 && h < 12) return {
+        period: 'morning', hour: h,
+        label: 'Good Morning', sanskrit: 'शुभ प्रभात',
+        emoji: '🌄', raagTitle: 'Morning Raag · Sustain Your Flow',
+        query: 'morning sunlight green hills forest calm',
         accent: '#fbbf24',
     };
     if (h >= 12 && h < 16) return {
         period: 'noon', hour: h,
         label: 'Shubh Madhyahna', sanskrit: 'शुभ मध्याह्न',
-        emoji: '☀️', raagTitle: 'Noon Raag · Sustain Your Flow',
+        emoji: '☀️', raagTitle: 'Noon Raag · Stay Focused',
         query: 'bright sky clear lake sunlit valley vibrant',
         accent: '#60a5fa',
     };
-    if (h >= 17 && h < 21) return {
+    if (h >= 16 && h < 21) return {
         period: 'evening', hour: h,
-        label: 'Shubh Sandhya', sanskrit: 'शुभ सन्ध्या',
-        emoji: '🪔', raagTitle: 'Evening Raag · Ease Into Stillness',
+        label: 'Good Evening', sanskrit: 'शुभ सन्ध्या',
+        emoji: '🪔', raagTitle: 'Sandhya Raag · Ease Into Stillness',
         query: 'golden hour sunset ocean rolling hills warm',
         accent: '#fb923c',
     };

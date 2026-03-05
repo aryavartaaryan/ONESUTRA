@@ -16,6 +16,7 @@ export const metadata: Metadata = {
 import { LanguageProvider } from "@/context/LanguageContext";
 import ConditionalVahanaBar from "@/components/ConditionalVahanaBar";
 import ZoomManager from "@/components/ZoomManager";
+import GlobalAutoPilot from "@/components/GlobalAutoPilot";
 
 export default function RootLayout({
   children,
@@ -27,6 +28,7 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <ZoomManager />
         <LanguageProvider>
+          <GlobalAutoPilot />
           <ConditionalVahanaBar />
           <main>
             {children}

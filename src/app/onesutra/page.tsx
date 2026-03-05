@@ -210,10 +210,23 @@ export default function OneSutraPage() {
         c.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const openChat = (c: typeof allContacts[0]) => {
+    const openChat = async (c: typeof allContacts[0]) => {
         setActiveContact(c);
         prevMsgCount.current = 0;
         setShowDhvani(false);
+        // Clear my unread count when I open the chat
+        if (!c.isAI && user) {
+            try {
+                const cid = getChatId(user.uid, c.uid);
+                const { getFirebaseFirestore } = await import('@/lib/firebase');
+                const { doc, setDoc } = await import('firebase/firestore');
+                const db = await getFirebaseFirestore();
+                await setDoc(doc(db, 'onesutra_chats', cid),
+                    { [`unreadCounts.${user.uid}`]: 0 },
+                    { merge: true }
+                );
+            } catch { /* ignore */ }
+        }
     };
 
     // ── Send text message ───────────────────────────────────────────────────
@@ -230,14 +243,19 @@ export default function OneSutraPage() {
     const handleAutoPilotToggle = useCallback(async () => {
         const next = !isAutoPilot;
         setIsAutoPilot(next);
+        if (!user?.uid || !chatId) return;
         try {
-            const { getApp } = await import('firebase/app');
-            const { getFirestore, doc, setDoc } = await import('firebase/firestore');
-            if (!user?.uid) return;
-            const db = getFirestore(getApp());
-            await setDoc(doc(db, 'onesutra_users', user.uid), { isAutoPilotEnabled: next }, { merge: true });
+            const { getFirebaseFirestore } = await import('@/lib/firebase');
+            const { doc, setDoc } = await import('firebase/firestore');
+            const db = await getFirebaseFirestore();
+            // Write on the user doc (for Cloud Function AutoPilot reply trigger)
+            await setDoc(doc(db, 'onesutra_users', user.uid),
+                { isAutoPilotEnabled: next }, { merge: true });
+            // Write on the chat doc (for sidebar AutoPilot amber border)
+            await setDoc(doc(db, 'onesutra_chats', chatId),
+                { [`isAutoPilotActive.${user.uid}`]: next }, { merge: true });
         } catch { /* ignore */ }
-    }, [isAutoPilot, user?.uid]);
+    }, [isAutoPilot, user?.uid, chatId]);
 
     // ── Build date-grouped messages ─────────────────────────────────────────
     type Row = { type: 'date'; label: string } | { type: 'msg'; msg: (typeof messages)[0] };

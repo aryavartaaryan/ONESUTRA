@@ -130,11 +130,16 @@ function pickFromPool(variant: 'vedic' | 'nature', phase: VibeName): string {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+// Phase map (IST-correct, morning starts at 3 AM per Brahma Muhurta):
+//   3–7   dawn   (Brahma Muhurta → sunrise)
+//   7–16  day    (active daytime)
+//   16–21 dusk   (golden hour → evening — CLOSES the old 16:00-16:59 night gap)
+//   21–3  night  (ratri)
 function getVibePhase(hourF: number): VibePhase {
-    if (hourF >= 5 && hourF < 7) return PHASES.dawn;
-    if (hourF >= 7 && hourF < 17) return PHASES.day;
-    if (hourF >= 17 && hourF < 19) return PHASES.dusk;
-    return PHASES.night;
+    if (hourF >= 3 && hourF < 7) return PHASES.dawn;
+    if (hourF >= 7 && hourF < 16) return PHASES.day;
+    if (hourF >= 16 && hourF < 21) return PHASES.dusk;
+    return PHASES.night;  // 21:00–02:59
 }
 
 const CACHE_KEY_PREFIX = 'circadian_bg_v4_';  // bumped to v4 — busts person-photo cache

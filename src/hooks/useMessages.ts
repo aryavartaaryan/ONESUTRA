@@ -88,12 +88,17 @@ export function useMessages(chatId: string | null, currentUserId: string | null)
         if ((!text.trim() && !extras?.voiceNote) || !chatId || !currentUserId) return;
         try {
             const { getFirebaseFirestore } = await import('@/lib/firebase');
-            const { collection, doc, addDoc, setDoc, serverTimestamp } = await import('firebase/firestore');
+            const { collection, doc, addDoc, setDoc, increment, serverTimestamp } = await import('firebase/firestore');
             const db = await getFirebaseFirestore();
+
+            const messageText = extras?.voiceNote ? '🎙️ Voice note' : text.trim();
+
+            // Derive recipientId from chatId (sorted uid1_uid2)
+            const recipientId = chatId.split('_').find((u: string) => u !== currentUserId) ?? '';
 
             // Write message to sub-collection
             const payload: Record<string, unknown> = {
-                text: text.trim(),
+                text: messageText,
                 senderId: currentUserId,
                 senderName,
                 createdAt: serverTimestamp(),
@@ -102,23 +107,61 @@ export function useMessages(chatId: string | null, currentUserId: string | null)
             if (extras?.sentBy) payload.sentBy = extras.sentBy;
             if (extras?.voiceNote) payload.voiceNote = extras.voiceNote;
             if (extras?.deliveryMode) payload.deliveryMode = extras.deliveryMode;
-
             await addDoc(collection(db, 'onesutra_chats', chatId, 'messages'), payload);
 
-            // Immediately update the chat metadata doc so the sidebar preview is live
-            // (Cloud Function will also do this, but this gives instant UI feedback)
-            await setDoc(doc(db, 'onesutra_chats', chatId), {
+            // ── Instant keyword Vibe classification (no CF dependency) ──────────────
+            const lower = messageText.toLowerCase();
+            let vibe: string;
+            if (/urgent|asap|emergency|now|immediately|deadline|critical|help me|!!/.test(lower)) {
+                vibe = 'URGENT';
+            } else if (/feel|miss|love|heart|soul|sad|lonely|deep|mean|beautiful|hope|life/.test(lower)) {
+                vibe = 'DEEP';
+            } else {
+                vibe = 'CALM';
+            }
+
+            // ── Atomic chat metadata update ──────────────────────────────────────────
+            const chatRef = doc(db, 'onesutra_chats', chatId);
+            const updateData: Record<string, unknown> = {
                 lastMessage: {
-                    text: extras?.voiceNote ? '🎙️ Voice note' : text.trim(),
+                    text: messageText,
                     senderId: currentUserId,
                     senderName,
                     sentBy: extras?.sentBy ?? 'user',
                     createdAt: serverTimestamp(),
                 },
-                messageCount: { _increment: 1 },   // Cloud Function will handle increment properly
-            }, { merge: true });
+                vibe,               // instant vibe (Cloud Function will refine later)
+            };
+
+            // Only increment unread for human-sent messages — not AI AutoPilot replies
+            if (recipientId && extras?.sentBy !== 'ai') {
+                updateData[`unreadCounts.${recipientId}`] = increment(1);
+            }
+
+            await setDoc(chatRef, updateData, { merge: true });
+
+            // ── AutoPilot flag: check if recipient has it enabled → enqueue job ────
+            if (recipientId && extras?.sentBy !== 'ai') {
+                try {
+                    const { getDoc } = await import('firebase/firestore');
+                    const recipientSnap = await getDoc(doc(db, 'onesutra_users', recipientId));
+                    if (recipientSnap.exists() && recipientSnap.data()?.isAutoPilotEnabled) {
+                        // Write a queue job — AutoPilotBackgroundService will pick it up
+                        await addDoc(collection(db, 'onesutra_autopilot_queue'), {
+                            chatId,
+                            messageText: messageText,
+                            senderId: currentUserId,
+                            senderName,
+                            recipientId,
+                            processed: false,
+                            createdAt: serverTimestamp(),
+                        });
+                    }
+                } catch { /* ignore — AutoPilot is best-effort */ }
+            }
         } catch { /* silent */ }
     }, [chatId, currentUserId]);
 
     return { messages, loading, sendMessage };
 }
+
