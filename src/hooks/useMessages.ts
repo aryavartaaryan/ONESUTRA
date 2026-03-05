@@ -1,20 +1,32 @@
 'use client';
 /**
- * useMessages — Real-time Firestore messages for OneSutra 1:1 chats
- *
- * chatId = [uid1, uid2].sort().join('_')
- * Collection: onesutra_chats/{chatId}/messages
- * Fields: { text, senderId, senderName, createdAt }
+ * useMessages — Extended with sentBy, voiceNote, and AutoPilot interception
  */
 import { useState, useEffect, useCallback } from 'react';
 import type { Unsubscribe } from 'firebase/firestore';
+
+export interface VoiceNote {
+    url: string;        // Firebase Storage download URL
+    durationSec: number;
+    transcript?: string;          // Full transcript text
+    words?: WordToken[];          // Word-level timing for tap-to-seek
+}
+
+export interface WordToken {
+    word: string;
+    startSec: number;
+    endSec: number;
+}
 
 export interface ChatMessage {
     id: string;
     text: string;
     senderId: string;
     senderName: string;
-    createdAt: number; // ms timestamp (converted from Firestore Timestamp)
+    createdAt: number;
+    sentBy?: 'user' | 'ai';          // 'ai' = AutoPilot generated
+    voiceNote?: VoiceNote;           // present for Dhvani audio messages
+    deliveryMode?: 'normal' | 'soft' | 'dawn';
 }
 
 export function getChatId(uid1: string, uid2: string): string {
@@ -31,7 +43,6 @@ export function useMessages(chatId: string | null, currentUserId: string | null)
             return;
         }
         setLoading(true);
-
         let unsub: Unsubscribe | null = null;
 
         (async () => {
@@ -47,7 +58,6 @@ export function useMessages(chatId: string | null, currentUserId: string | null)
                     setMessages(snap.docs.map(d => {
                         const data = d.data();
                         const ts = data.createdAt;
-                        // Convert Firestore Timestamp -> ms
                         const ms = ts?.toMillis ? ts.toMillis() : (ts?.seconds ? ts.seconds * 1000 : Date.now());
                         return {
                             id: d.id,
@@ -55,6 +65,9 @@ export function useMessages(chatId: string | null, currentUserId: string | null)
                             senderId: data.senderId ?? '',
                             senderName: data.senderName ?? 'Traveller',
                             createdAt: ms,
+                            sentBy: data.sentBy,
+                            voiceNote: data.voiceNote,
+                            deliveryMode: data.deliveryMode,
                         };
                     }));
                     setLoading(false);
@@ -67,18 +80,27 @@ export function useMessages(chatId: string | null, currentUserId: string | null)
         return () => { unsub?.(); };
     }, [chatId, currentUserId]);
 
-    const sendMessage = useCallback(async (text: string, senderName: string) => {
-        if (!text.trim() || !chatId || !currentUserId) return;
+    const sendMessage = useCallback(async (
+        text: string,
+        senderName: string,
+        extras?: { sentBy?: 'user' | 'ai'; voiceNote?: VoiceNote; deliveryMode?: string }
+    ) => {
+        if ((!text.trim() && !extras?.voiceNote) || !chatId || !currentUserId) return;
         try {
             const { getFirebaseFirestore } = await import('@/lib/firebase');
             const { collection, addDoc, serverTimestamp } = await import('firebase/firestore');
             const db = await getFirebaseFirestore();
-            await addDoc(collection(db, 'onesutra_chats', chatId, 'messages'), {
+            const payload: Record<string, unknown> = {
                 text: text.trim(),
                 senderId: currentUserId,
                 senderName,
                 createdAt: serverTimestamp(),
-            });
+            };
+            if (extras?.sentBy) payload.sentBy = extras.sentBy;
+            if (extras?.voiceNote) payload.voiceNote = extras.voiceNote;
+            if (extras?.deliveryMode) payload.deliveryMode = extras.deliveryMode;
+
+            await addDoc(collection(db, 'onesutra_chats', chatId, 'messages'), payload);
         } catch { /* silent */ }
     }, [chatId, currentUserId]);
 
