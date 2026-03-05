@@ -9,10 +9,10 @@ import VahanaBar from './HomePage/VahanaBar';
 export default function ConditionalVahanaBar() {
     const pathname = usePathname();
 
-    // Hide navigation in the Dhyan Kshetra experience (Meditation Room, Entry, etc)
-    const isMeditationRoom = pathname.startsWith('/dhyan-kshetra');
+    // Hide navigation in the Dhyan Kshetra experience and oneSUTRA chat (needs full screen)
+    const hideNav = pathname.startsWith('/dhyan-kshetra') || pathname.startsWith('/onesutra');
 
-    if (isMeditationRoom) return null;
+    if (hideNav) return null;
 
     return <VahanaBar />;
 }
