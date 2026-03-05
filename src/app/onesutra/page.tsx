@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { useUsers } from '@/hooks/useUsers';
 import { useMessages, getChatId, type VoiceNote } from '@/hooks/useMessages';
+import { useChats } from '@/hooks/useChats';
 import { useCircadianBackground } from '@/hooks/useCircadianBackground';
 import { usePranaPresence } from '@/hooks/usePranaPresence';
 import ActionDashboard from '@/components/SutraTalk/ActionDashboard';
@@ -195,11 +196,14 @@ export default function OneSutraPage() {
         auraGlow: 'rgba(80,120,200,0.28)',
         isAI: false, statusLabel: 'oneSUTRA Member', online: false,
         role: u.email ?? 'Member',
-        lastMsg: 'Say Namaste 🙏',
     }));
 
+    // Derive chatIds for realContacts so useChats can subscribe to metadata
+    const realChatIds = user ? realContacts.map(c => getChatId(user.uid, c.uid)) : [];
+    const chatMeta = useChats(realChatIds, user?.uid ?? null);
+
     const allContacts = [
-        ...AI_CONTACTS.map(c => ({ ...c, photoURL: undefined as undefined, lastMsg: c.lastMsg })),
+        ...AI_CONTACTS.map(c => ({ ...c, photoURL: undefined as undefined })),
         ...realContacts,
     ];
     const filtered = allContacts.filter(c =>
@@ -296,29 +300,136 @@ export default function OneSutraPage() {
 
                         {/* Contacts */}
                         <div style={{ flex: 1, padding: '0.8rem 0.75rem 5rem', overflowY: 'auto' }}>
-                            {filtered.map(c => (
-                                <div key={c.uid} onClick={() => openChat(c)}
-                                    style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '0.85rem 1.1rem', marginBottom: '0.55rem', cursor: 'pointer', background: activeContact?.uid === c.uid ? `${accent}18` : 'rgba(255,255,255,0.05)', backdropFilter: 'blur(24px)', border: activeContact?.uid === c.uid ? `1px solid ${accent}44` : '1px solid rgba(255,255,255,0.09)', borderRadius: 18, transition: 'all 0.15s ease' }}
-                                    onMouseEnter={e => { if (activeContact?.uid !== c.uid) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.09)'; }}
-                                    onMouseLeave={e => { if (activeContact?.uid !== c.uid) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; }}
-                                >
-                                    <div style={{ position: 'relative', flexShrink: 0 }}>
-                                        <div style={{ width: 48, height: 48, borderRadius: '50%', border: `1.5px solid ${c.aura}66`, boxShadow: `0 0 14px ${c.aura}33`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', overflow: 'hidden', background: `radial-gradient(circle at 35% 35%, ${c.aura}22, rgba(0,0,0,0.3))` }}>
-                                            {(c as { photoURL?: string | null }).photoURL ? <img src={(c as { photoURL?: string | null }).photoURL!} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span>{(c as { emoji?: string }).emoji ?? '🧘'}</span>}
+                            {filtered.map(c => {
+                                const isRealContact = !c.isAI && user;
+                                const cChatId = isRealContact ? getChatId(user!.uid, c.uid) : null;
+                                const meta = cChatId ? chatMeta.get(cChatId) : null;
+
+                                // Vibe aura color
+                                const vibeRing = meta?.vibe === 'URGENT'
+                                    ? { color: '#F59E0B', glow: 'rgba(245,158,11,0.6)' }
+                                    : meta?.vibe === 'CALM'
+                                        ? { color: '#10B981', glow: 'rgba(16,185,129,0.6)' }
+                                        : meta?.vibe === 'DEEP'
+                                            ? { color: '#3B82F6', glow: 'rgba(59,130,246,0.6)' }
+                                            : null;
+
+                                // Preview text logic
+                                const unread = meta?.unreadCount ?? 0;
+                                const hasLastMsg = meta && meta.lastMessageText;
+                                const aiHandling = meta?.isAutoPilotActive && meta.lastMessageSenderId !== user?.uid;
+
+                                let previewText: string;
+                                let previewIsAI = false;
+                                let previewIsTatva = false;
+
+                                if (!hasLastMsg || !isRealContact) {
+                                    previewText = c.isAI
+                                        ? ((c as typeof AI_CONTACTS[0]).lastMsg)
+                                        : 'Say Namaste 🙏';
+                                } else if (unread > 2 && meta?.tatvaSummary) {
+                                    previewText = meta.tatvaSummary;
+                                    previewIsTatva = true;
+                                } else if (aiHandling) {
+                                    previewText = meta!.lastMessageText;
+                                    previewIsAI = true;
+                                } else {
+                                    previewText = meta!.lastMessageText;
+                                }
+
+                                const isAutoPilotChat = meta?.isAutoPilotActive ?? false;
+                                const isActive = activeContact?.uid === c.uid;
+
+                                return (
+                                    <motion.div key={c.uid}
+                                        onClick={() => openChat(c)}
+                                        whileHover={!isActive ? { scale: 1.02 } : {}}
+                                        style={{
+                                            display: 'flex', alignItems: 'center', gap: 14,
+                                            padding: '0.85rem 1.1rem', marginBottom: '0.55rem',
+                                            cursor: 'pointer',
+                                            background: isActive ? `${accent}18` : 'rgba(255,255,255,0.08)',
+                                            backdropFilter: 'blur(24px)',
+                                            WebkitBackdropFilter: 'blur(24px)',
+                                            border: isActive
+                                                ? `1px solid ${accent}44`
+                                                : isAutoPilotChat
+                                                    ? '1px solid rgba(245,158,11,0.40)'
+                                                    : '1px solid rgba(255,255,255,0.14)',
+                                            borderRadius: 18,
+                                            boxShadow: isAutoPilotChat
+                                                ? 'inset 0 0 12px rgba(245,158,11,0.08), 0 4px 16px rgba(0,0,0,0.25)'
+                                                : '0 4px 16px rgba(0,0,0,0.2)',
+                                            transition: 'all 0.15s ease',
+                                        }}
+                                    >
+                                        {/* Avatar with Vibe ring */}
+                                        <div style={{ position: 'relative', flexShrink: 0 }}>
+                                            <div style={{
+                                                width: 48, height: 48, borderRadius: '50%',
+                                                border: vibeRing
+                                                    ? `2px solid ${vibeRing.color}`
+                                                    : `1.5px solid ${c.aura}66`,
+                                                boxShadow: vibeRing
+                                                    ? `0 0 16px ${vibeRing.glow}`
+                                                    : `0 0 10px ${c.aura}33`,
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                fontSize: '1.4rem', overflow: 'hidden',
+                                                background: `radial-gradient(circle at 35% 35%, ${c.aura}22, rgba(0,0,0,0.3))`,
+                                            }}>
+                                                {(c as { photoURL?: string | null }).photoURL
+                                                    ? <img src={(c as { photoURL?: string | null }).photoURL!} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                    : <span>{(c as { emoji?: string }).emoji ?? '🧘'}</span>}
+                                            </div>
+                                            {c.online && <div style={{ position: 'absolute', bottom: 2, right: 2, width: 9, height: 9, borderRadius: '50%', background: '#5DDD88', border: '2px solid rgba(4,6,16,0.8)' }} />}
                                         </div>
-                                        {c.online && <div style={{ position: 'absolute', bottom: 2, right: 2, width: 9, height: 9, borderRadius: '50%', background: '#5DDD88', border: '2px solid rgba(4,6,16,0.8)' }} />}
-                                    </div>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '0.16rem' }}>
-                                            <span style={{ fontSize: '0.82rem', fontWeight: 500, color: 'rgba(255,255,255,0.88)' }}>{c.name}</span>
-                                            {c.isAI && <span style={{ fontSize: '0.44rem', padding: '0.06rem 0.32rem', background: `${accent}22`, border: `1px solid ${accent}44`, borderRadius: 999, color: accent, letterSpacing: '0.12em', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'monospace' }}>AI</span>}
+
+                                        {/* Name + preview */}
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '0.22rem' }}>
+                                                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'rgba(255,255,255,0.92)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{c.name}</span>
+                                                {c.isAI && <span style={{ fontSize: '0.44rem', padding: '0.06rem 0.32rem', background: `${accent}22`, border: `1px solid ${accent}44`, borderRadius: 999, color: accent, letterSpacing: '0.12em', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'monospace', flexShrink: 0 }}>AI</span>}
+                                                {isAutoPilotChat && !c.isAI && <span style={{ fontSize: '0.72rem', flexShrink: 0 }}>✨</span>}
+                                            </div>
+                                            <p style={{
+                                                margin: 0, fontSize: '0.72rem',
+                                                color: previewIsAI
+                                                    ? 'rgba(245,158,11,0.80)'
+                                                    : previewIsTatva
+                                                        ? 'rgba(168,130,220,0.85)'
+                                                        : (!hasLastMsg || previewText === 'Say Namaste 🙏')
+                                                            ? 'rgba(255,255,255,0.25)'
+                                                            : 'rgba(255,255,255,0.50)',
+                                                fontStyle: (previewIsTatva || (!hasLastMsg && !c.isAI)) ? 'italic' : 'normal',
+                                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                                lineHeight: 1.4,
+                                            }}>
+                                                {previewIsTatva && <span style={{ marginRight: 3 }}>✨</span>}
+                                                {previewText}
+                                            </p>
                                         </div>
-                                        <p style={{ margin: 0, fontSize: '0.72rem', color: 'rgba(255,255,255,0.33)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                            {(c as { lastMsg?: string }).lastMsg ?? 'Begin a conscious conversation…'}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
+
+                                        {/* Bindu unread counter */}
+                                        {unread > 0 && !isActive && (
+                                            <motion.div
+                                                initial={{ scale: 0 }}
+                                                animate={{ scale: 1 }}
+                                                style={{
+                                                    minWidth: 22, height: 22,
+                                                    borderRadius: 999, flexShrink: 0,
+                                                    background: 'rgba(16,185,129,0.9)',
+                                                    boxShadow: '0 0 10px rgba(16,185,129,0.55)',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    fontSize: '0.62rem', fontWeight: 700, color: 'white',
+                                                    padding: '0 5px',
+                                                }}
+                                            >
+                                                {unread > 99 ? '99+' : unread}
+                                            </motion.div>
+                                        )}
+                                    </motion.div>
+                                );
+                            })}
                             {realContacts.length === 0 && <p style={{ textAlign: 'center', fontSize: '0.78rem', color: 'rgba(255,255,255,0.22)', fontStyle: 'italic', padding: '2rem 1rem', lineHeight: 1.8 }}>No other souls yet 🌿<br />Invite a friend to begin</p>}
                         </div>
 

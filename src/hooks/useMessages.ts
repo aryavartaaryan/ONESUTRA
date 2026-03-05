@@ -88,19 +88,35 @@ export function useMessages(chatId: string | null, currentUserId: string | null)
         if ((!text.trim() && !extras?.voiceNote) || !chatId || !currentUserId) return;
         try {
             const { getFirebaseFirestore } = await import('@/lib/firebase');
-            const { collection, addDoc, serverTimestamp } = await import('firebase/firestore');
+            const { collection, doc, addDoc, setDoc, serverTimestamp } = await import('firebase/firestore');
             const db = await getFirebaseFirestore();
+
+            // Write message to sub-collection
             const payload: Record<string, unknown> = {
                 text: text.trim(),
                 senderId: currentUserId,
                 senderName,
                 createdAt: serverTimestamp(),
+                summarized: false,
             };
             if (extras?.sentBy) payload.sentBy = extras.sentBy;
             if (extras?.voiceNote) payload.voiceNote = extras.voiceNote;
             if (extras?.deliveryMode) payload.deliveryMode = extras.deliveryMode;
 
             await addDoc(collection(db, 'onesutra_chats', chatId, 'messages'), payload);
+
+            // Immediately update the chat metadata doc so the sidebar preview is live
+            // (Cloud Function will also do this, but this gives instant UI feedback)
+            await setDoc(doc(db, 'onesutra_chats', chatId), {
+                lastMessage: {
+                    text: extras?.voiceNote ? '🎙️ Voice note' : text.trim(),
+                    senderId: currentUserId,
+                    senderName,
+                    sentBy: extras?.sentBy ?? 'user',
+                    createdAt: serverTimestamp(),
+                },
+                messageCount: { _increment: 1 },   // Cloud Function will handle increment properly
+            }, { merge: true });
         } catch { /* silent */ }
     }, [chatId, currentUserId]);
 

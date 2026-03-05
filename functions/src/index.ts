@@ -49,12 +49,73 @@ export const onMessageCreated = functions.firestore.onDocumentCreated(
         const recipientId = otherUid(chatId, senderId);
         if (!recipientId) return;
 
-        // Check if the *recipient* has AutoPilot on
+        const chatRef = db.collection("onesutra_chats").doc(chatId);
+
+        // ── STEP A: Update lastMessage + increment unread count ────────────────────
+        const chatSnap = await chatRef.get();
+        const chatData = chatSnap.data() ?? {};
+        const currentUnread: number = chatData.unreadCounts?.[recipientId] ?? 0;
+        const newUnread = currentUnread + 1;
+
+        await chatRef.set({
+            lastMessage: {
+                text: msg.text ?? "",
+                senderId,
+                senderName: msg.senderName ?? "Traveller",
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            },
+            [`unreadCounts.${recipientId}`]: newUnread,
+            messageCount: admin.firestore.FieldValue.increment(1),
+        }, { merge: true });
+
+        // ── STEP B: Vibe Classification ────────────────────────────────────────────
+        const vibeModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        try {
+            const vibeResult = await vibeModel.generateContent(
+                `Analyze this message: "${msg.text}"\n\nClassify its energy into exactly one of: URGENT, CALM, DEEP.\nRules: URGENT = requires immediate action or high-stress. CALM = friendly, standard, positive. DEEP = philosophical, complex, or emotional.\nRespond with ONLY the single category word, nothing else.`
+            );
+            const vibe = vibeResult.response.text().trim().toUpperCase();
+            if (["URGENT", "CALM", "DEEP"].includes(vibe)) {
+                await chatRef.set({ vibe }, { merge: true });
+            }
+        } catch (e) {
+            functions.logger.warn("Vibe classification failed", e);
+        }
+
+        // ── STEP C: Tatva Snippet — only if newUnread > 2 ─────────────────────────
+        if (newUnread > 2) {
+            try {
+                const recentMsgs = await db
+                    .collection(`onesutra_chats/${chatId}/messages`)
+                    .orderBy("createdAt", "desc")
+                    .limit(5)
+                    .get();
+
+                const thread = recentMsgs.docs
+                    .reverse()
+                    .map((d) => `${d.data().senderName}: ${d.data().text}`)
+                    .join("\n");
+
+                const tatvModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+                const tatvResult = await tatvModel.generateContent(
+                    `Summarize this short chat thread in MAXIMUM 6 words. Sound natural and informative. Do not use quotes.\n\nThread:\n${thread}`
+                );
+                const tatvaSummary = tatvResult.response.text().trim();
+                await chatRef.set({ tatvaSummary }, { merge: true });
+            } catch (e) {
+                functions.logger.warn("Tatva summary failed", e);
+            }
+        }
+
+        // ── STEP D: AutoPilot Reply ────────────────────────────────────────────────
         const recipientDoc = await db.collection("onesutra_users").doc(recipientId).get();
         if (!recipientDoc.exists) return;
 
         const recipientData = recipientDoc.data()!;
         if (!recipientData.isAutoPilotEnabled) return;
+
+        // Mark AutoPilot as active on chat doc
+        await chatRef.set({ [`isAutoPilotActive.${recipientId}`]: true }, { merge: true });
 
         // ── RAG-style context: last 20 messages by the recipient ──────────────────
         const contextSnap = await db
@@ -110,14 +171,16 @@ STRICT RULES:
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
         });
 
-        // Increment message counter for Action Item trigger
-        await db
-            .collection("onesutra_chats")
-            .doc(chatId)
-            .set(
-                { messageCount: admin.firestore.FieldValue.increment(1) },
-                { merge: true }
-            );
+        // Update lastMessage for AI reply
+        await chatRef.set({
+            lastMessage: {
+                text: aiText,
+                senderId: recipientId,
+                senderName: `${recipientData.name} (AI)`,
+                sentBy: "ai",
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            },
+        }, { merge: true });
 
         functions.logger.info(`✅ Chat Twin replied for ${recipientData.name} in ${chatId}`);
     }
