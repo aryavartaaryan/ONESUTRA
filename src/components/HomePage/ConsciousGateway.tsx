@@ -388,38 +388,30 @@ function UIPanel({ onSuccess, onGuest, compact = false }: Props & { compact?: bo
 function BgImage({ children }: { children?: React.ReactNode }) {
     return (
         <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-            {/* Core image */}
+            {/* Core image — rendered at full clarity */}
             <motion.div
-                initial={{ opacity: 0, scale: 1.06 }}
+                initial={{ opacity: 0, scale: 1.04 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 2.4, ease: 'easeOut' }}
+                transition={{ duration: 2.2, ease: 'easeOut' }}
                 style={{
                     position: 'absolute', inset: 0,
                     backgroundImage: 'url(/OneSUTRA.png)',
                     backgroundSize: 'cover', backgroundPosition: 'center top',
                     zIndex: 0,
+                    filter: 'none', // no blur
                 }}
             />
-            {/* Cinematic vignette */}
+            {/* Very subtle top fade only — keeps image vivid */}
             <div style={{
                 position: 'absolute', inset: 0, zIndex: 1,
-                background: 'linear-gradient(180deg, rgba(0,1,10,0.38) 0%, rgba(0,2,12,0.22) 35%, rgba(0,1,10,0.55) 68%, rgba(0,0,8,0.88) 100%)',
+                background: 'linear-gradient(180deg, rgba(0,0,0,0.12) 0%, transparent 30%, transparent 65%, rgba(0,0,0,0.28) 100%)',
             }} />
-            {/* Side vignettes */}
-            <div style={{
-                position: 'absolute', inset: 0, zIndex: 1,
-                background: 'linear-gradient(90deg, rgba(0,0,8,0.18) 0%, transparent 18%, transparent 82%, rgba(0,0,8,0.18) 100%)',
-            }} />
-            {/* Aurora glow */}
+            {/* Golden warm radial accent at bottom (no purple/blue tints) */}
             <div style={{
                 position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
-                background: `
-                    radial-gradient(ellipse at 12% 6%, rgba(70,40,130,0.28) 0%, transparent 46%),
-                    radial-gradient(ellipse at 88% 8%, rgba(20,100,65,0.22) 0%, transparent 42%),
-                    radial-gradient(ellipse at 50% 98%, rgba(200,150,40,0.12) 0%, transparent 50%)
-                `,
+                background: `radial-gradient(ellipse at 50% 110%, rgba(200,155,40,0.08) 0%, transparent 55%)`,
             }} />
-            <Mandala size={520} opacity={0.045} />
+            <Mandala size={520} opacity={0.03} />
             <GoldenDust />
             {children}
         </div>
@@ -524,14 +516,13 @@ export default function ConsciousGateway({ onSuccess, onGuest }: Props) {
         }}>
             <BgImage />
 
-            {/* Scrollable UI — buttons shifted to land exactly in the foundation */}
+            {/* Golden orb centered exactly on screen */}
             <div style={{
                 flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center',
                 alignItems: 'center',
                 position: 'relative', zIndex: 5,
                 paddingLeft: 'clamp(18px,5vw,28px)',
                 paddingRight: 'clamp(18px,5vw,28px)',
-                marginTop: '15vh', // adjust this specifically to drop the circle into the foundation bowl
             }}>
                 <div style={{ width: '100%', maxWidth: 'clamp(320px, 90vw, 420px)' }}>
                     <UIPanel onSuccess={onSuccess} onGuest={onGuest} />
