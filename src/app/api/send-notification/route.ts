@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
                                 icon: '/images/OurLogo.png',
                                 badge: '/images/OurLogo.png',
                                 tag: chatId,
-                                renotify: 'true',
+                                renotify: true,
                             },
                             fcmOptions: { link: chatUrl },
                         },
