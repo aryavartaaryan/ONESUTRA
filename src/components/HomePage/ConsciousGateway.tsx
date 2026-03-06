@@ -172,8 +172,8 @@ function GlassButton({ icon, label, sublabel, onClick, isLoading, disabled, vari
                     color: 'white',
                     // The core water droplet effect relies on intense inset/outset lighting
                     boxShadow: hov
-                        ? `inset 0 12px 24px rgba(255,255,255,0.4), inset 0 -6px 16px rgba(100,200,255,0.2), 0 14px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.3)`
-                        : `inset 0 8px 20px rgba(255,255,255,0.28), inset 0 -4px 12px rgba(150,220,255,0.1), 0 8px 24px rgba(0,0,0,0.25)`,
+                        ? `inset 0 12px 24px rgba(255,255,255,0.25), inset 0 -4px 12px rgba(255,255,255,0.1), 0 4px 28px rgba(255,255,255,0.15), 0 0 0 1px rgba(255,255,255,0.2)`
+                        : `inset 0 8px 20px rgba(255,255,255,0.18), inset 0 -2px 10px rgba(255,255,255,0.05), 0 8px 24px rgba(255,255,255,0.08)`,
                     transition: 'all 0.32s cubic-bezier(0.22,1,0.36,1)',
                     position: 'relative', overflow: 'hidden',
                     display: 'flex', alignItems: 'center', gap: 'clamp(0.8rem, 2vw, 1.1rem)',
@@ -515,27 +515,7 @@ export default function ConsciousGateway({ onSuccess, onGuest }: Props) {
 
     if (!mounted) return null;
 
-    // ── Status bar ──────────────────────────────────────────────────────────
-    const StatusBar = ({ right = false }: { right?: boolean }) => (
-        <div style={{
-            position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20,
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: 'clamp(8px,2vw,14px) clamp(14px,4vw,28px)',
-            fontSize: 'clamp(0.46rem,1.5vw,0.56rem)', color: 'rgba(255,255,255,0.36)',
-            fontWeight: 600, letterSpacing: '0.04em',
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0.3), transparent)',
-        }}>
-            <span>{timeStr}</span>
-            <motion.span
-                animate={{ opacity: [0.25, 0.55, 0.25] }}
-                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                style={{ letterSpacing: '0.2em', fontSize: 'clamp(0.36rem,1.1vw,0.44rem)', textTransform: 'uppercase' }}
-            >
-                ✦ OneSUTRA
-            </motion.span>
-            <span style={{ display: 'flex', gap: 3, alignItems: 'center' }}>⬤⬤⬤⬤ 100%</span>
-        </div>
-    );
+
 
     // ════════════════════════════════════════════════════════════════════════
     // DESKTOP (≥1100px): Image left | Controls right (side-by-side)
@@ -549,7 +529,6 @@ export default function ConsciousGateway({ onSuccess, onGuest }: Props) {
                 {/* ── LEFT: the OneSUTRA image ── */}
                 <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
                     <BgImage />
-                    <StatusBar />
                 </div>
 
                 {/* ── RIGHT: Controls glass panel ── */}
@@ -573,7 +552,6 @@ export default function ConsciousGateway({ onSuccess, onGuest }: Props) {
                     {/* Mini mandala for panel */}
                     <Mandala size={360} opacity={0.035} />
                     <GoldenDust />
-                    <StatusBar right />
                     <div style={{
                         flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center',
                         padding: 'clamp(80px,10vh,120px) clamp(28px,6%,44px) clamp(24px,5vh,40px)',
@@ -598,7 +576,6 @@ export default function ConsciousGateway({ onSuccess, onGuest }: Props) {
             fontFamily: "'Inter', system-ui, sans-serif", overflow: 'hidden',
         }}>
             <BgImage />
-            <StatusBar />
 
             {/* Scrollable UI — buttons shifted HIGH up to show the mandala/design below */}
             <div style={{

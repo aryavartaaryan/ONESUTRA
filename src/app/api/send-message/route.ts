@@ -1,7 +1,7 @@
 /**
  * POST /api/send-message
  *
- * Event-Driven Autopilot Interceptor for SutraTalk.
+ * Event-Driven Autopilot Interceptor for SUTRAConnect.
  * This is the ONLY route used for sending messages.
  *
  * Flow (all within one Vercel serverless function execution):

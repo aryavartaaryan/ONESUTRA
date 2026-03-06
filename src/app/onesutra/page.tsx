@@ -17,9 +17,6 @@ import { usePranaPresence } from '@/hooks/usePranaPresence';
 import ActionDashboard from '@/components/SutraTalk/ActionDashboard';
 import WelcomeFirstSpark from '@/components/SutraTalk/WelcomeFirstSpark';
 import { DhvaniRecorder, DhvaniPlayback } from '@/components/SutraTalk/DhvaniNote';
-import { useFCMToken } from '@/hooks/useFCMToken';
-import { useFCMForeground, type FCMToastPayload } from '@/hooks/useFCMForeground';
-import { FCMToast } from '@/components/FCMToast';
 
 // ─── AI Contacts ───────────────────────────────────────────────────────────────
 const AI_CONTACTS = [
@@ -131,16 +128,6 @@ export default function OneSutraPage() {
     const [isAutoPilotGenerating, setIsAutoPilotGenerating] = useState(false);
     const [fabOpen, setFabOpen] = useState(false);
     const [showDhvani, setShowDhvani] = useState(false);
-    const [fcmToast, setFcmToast] = useState<FCMToastPayload | null>(null);
-
-    // ── FCM: register device token on auth ──────────────────────────────────
-    useFCMToken(user?.uid ?? null);
-
-    // ── FCM: foreground message handler (WhatsApp-style suppression) ─────────
-    const handleFCMToast = useCallback((payload: FCMToastPayload) => {
-        setFcmToast(payload);
-    }, []);
-    useFCMForeground(activeContact?.uid ?? null, handleFCMToast);
 
     const bottomRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -292,14 +279,47 @@ export default function OneSutraPage() {
             <img key={imageUrl} src={imageUrl} alt="" suppressHydrationWarning style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', zIndex: -2, transition: 'opacity 0.8s ease' }} />
             <div style={{ position: 'fixed', inset: 0, zIndex: -1, background: tint, pointerEvents: 'none' }} />
 
-            {/* ── FCM Foreground Toast ─────────────────────────────────────────── */}
-            {fcmToast && (
-                <FCMToast
-                    senderName={fcmToast.senderName}
-                    messageText={fcmToast.messageText}
-                    chatUrl={fcmToast.chatUrl}
-                    onDismiss={() => setFcmToast(null)}
-                />
+            {/* ── Guest Access Gate ────────────────────────────────────────────── */}
+            {!user && (
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: 9999,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'rgba(2,3,14,0.65)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+                    padding: '1rem'
+                }}>
+                    <motion.div
+                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        style={{
+                            width: '100%', maxWidth: '420px',
+                            background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
+                            borderRadius: '28px', padding: '2rem', textAlign: 'center',
+                            boxShadow: '0 24px 60px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.15)'
+                        }}
+                    >
+                        <div style={{ width: 64, height: 64, margin: '0 auto 1.5rem', background: 'radial-gradient(circle, rgba(200,150,40,0.2) 0%, transparent 70%)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', color: '#D4A840' }}>
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+                        </div>
+                        <h2 style={{ margin: '0 0 0.8rem', fontSize: '1.4rem', fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>Welcome Traveller</h2>
+                        <p style={{ margin: '0 0 2rem', fontSize: '0.95rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.6 }}>
+                            SUTRAConnect is a private sanctuary. Sign up with Google to connect with our people's network.
+                            <br /><br />
+                            Do you want to sign up and enter?
+                        </p>
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <Link href="/" style={{ flex: 1, textDecoration: 'none' }}>
+                                <button style={{ width: '100%', padding: '0.9rem', borderRadius: '16px', background: 'white', color: 'black', border: 'none', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 4px 14px rgba(255,255,255,0.25)' }}>
+                                    Yes
+                                </button>
+                            </Link>
+                            <Link href="/" style={{ flex: 1, textDecoration: 'none' }}>
+                                <button style={{ width: '100%', padding: '0.9rem', borderRadius: '16px', background: 'transparent', color: 'white', border: '1.5px solid rgba(255,255,255,0.2)', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer' }}>
+                                    No
+                                </button>
+                            </Link>
+                        </div>
+                    </motion.div>
+                </div>
             )}
 
             {user && (
@@ -320,8 +340,11 @@ export default function OneSutraPage() {
                                         </svg>
                                     </motion.div>
                                     <div>
-                                        <h1 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, fontFamily: "'Playfair Display', serif", color: 'rgba(255,255,255,0.95)' }}>oneSUTRA</h1>
-                                        <p style={{ margin: 0, fontSize: '0.5rem', color: `${accent}aa`, letterSpacing: '0.22em', textTransform: 'uppercase', fontFamily: 'monospace' }}>Conscious Messenger</p>
+                                        <h1 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, fontFamily: "'Playfair Display', serif", color: 'rgba(255,255,255,0.95)' }}>SUTRAConnect</h1>
+                                        <p style={{ margin: 0, fontSize: '0.5rem', color: `${accent}aa`, letterSpacing: '0.22em', textTransform: 'uppercase', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                            Conscious Messenger
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: accent, marginLeft: 2 }}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                                        </p>
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -541,6 +564,16 @@ export default function OneSutraPage() {
                                             onIceBreaker={async (text) => { await sendMessage(text, user?.name ?? 'Traveller', { sentBy: 'user' }); }}
                                             onAutoPilotHi={() => { }}
                                         />
+                                    )}
+
+                                    {/* System Join Message */}
+                                    {messages.length > 0 && !activeContact.isAI && (
+                                        <div style={{ display: 'flex', justifyContent: 'center', padding: '1rem 0 0.4rem' }}>
+                                            <div style={{ padding: '0.4rem 1rem', background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 999, fontSize: '0.72rem', color: 'rgba(255,255,255,0.75)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                                                <span style={{ fontSize: '0.9rem' }}>✨</span>
+                                                <span><strong style={{ color: 'white' }}>{activeContact.name}</strong> joined OneSUTRA</span>
+                                            </div>
+                                        </div>
                                     )}
 
                                     {rows.map((row, rowIdx) => {

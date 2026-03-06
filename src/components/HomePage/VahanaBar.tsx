@@ -98,7 +98,7 @@ export default function VahanaBar() {
         },
         {
             id: 'onesutra', href: '/onesutra', Icon: MessageCircle,
-            label: lang === 'hi' ? 'सूत्र' : 'SUTRAtalk',
+            label: lang === 'hi' ? 'सूत्र' : 'SUTRAConnect',
             isOm: true,
         },
         // 'search' is rendered separately via <SearchItem />

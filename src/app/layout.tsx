@@ -3,13 +3,19 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "SUTRAtalk | Conscious Living",
-  description: "SUTRAtalk — your conscious digital sanctuary. Personalized Vedic wellness, mindful connection, and AI-powered guidance for holistic well-being.",
+  title: "SUTRAConnect | Conscious Living",
+  description: "SUTRAConnect — your conscious digital sanctuary. Personalized Vedic wellness, mindful connection, and AI-powered guidance for holistic well-being.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "SUTRAtalk",
+    title: "SUTRAConnect",
+  },
+  icons: {
+    icon: '/favicon.ico',
+  },
+  openGraph: {
+    title: "SUTRAConnect",
   },
 };
 
@@ -17,6 +23,7 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import ConditionalVahanaBar from "@/components/ConditionalVahanaBar";
 import ZoomManager from "@/components/ZoomManager";
 import GlobalAutoPilot from "@/components/GlobalAutoPilot";
+import GlobalFCM from '@/components/GlobalFCM';
 
 export default function RootLayout({
   children,

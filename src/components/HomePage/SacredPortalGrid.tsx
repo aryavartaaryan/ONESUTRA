@@ -186,7 +186,7 @@ function SutraCard() {
                     fontFamily: 'monospace',
                     fontWeight: 600,
                 }}>
-                    SUTRAtalk
+                    SUTRAConnect
                 </p>
                 <p style={{
                     margin: '0.2rem 0 0',
