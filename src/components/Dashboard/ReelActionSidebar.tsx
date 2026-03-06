@@ -300,7 +300,7 @@ export default function ReelActionSidebar({ trackId, trackTitle, onOpenComments,
     const [shareOpen, setShareOpen] = useState(false);
     const [shareLaunched, setShareLaunched] = useState(false);
 
-    const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/pranaverse?vibe=${encodeURIComponent(trackId)}` : '';
+    const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/pranaverse#reel-${trackId}` : '';
     const shareText = `✨ "${trackTitle}" — feel this vibe on Pranaverse`;
 
     const handleVibe = useCallback(() => {

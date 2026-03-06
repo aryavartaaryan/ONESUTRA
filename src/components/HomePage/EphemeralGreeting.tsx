@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTimeOfDay } from '@/hooks/useTimeOfDay';
 
@@ -76,19 +76,39 @@ const THOUGHTS: Record<string, { greeting: string; thought: string; sub: string 
     ],
 };
 
-interface Props { displayName?: string; }
+interface Props { displayName?: string; userId?: string | null; }
 
-export default function EphemeralGreeting({ displayName = 'Seeker' }: Props) {
-    const [isVisible, setIsVisible] = useState(true);
+export default function EphemeralGreeting({ displayName = 'Seeker', userId }: Props) {
     const tod = useTimeOfDay();
-
     const thoughtPool = THOUGHTS[tod.period] ?? THOUGHTS.morning;
-    // Stable pick for the day
     const thought = thoughtPool[Math.floor(Date.now() / 86400000) % thoughtPool.length];
 
+    // ── Once-per-user-per-day guard ──────────────────────────────────────────
+    // CRITICAL: userId starts null (Firebase resolves async). Recomputing
+    // greetingKey on every render causes useEffect to reset the 4500ms timer
+    // each time userId changes null→uid, blocking the screen indefinitely.
+    // Fix: pin the key in a ref at first render — never recomputed.
+    const greetingKeyRef = useRef<string>('');
+    if (!greetingKeyRef.current && typeof window !== 'undefined') {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        greetingKeyRef.current = `greeting_seen_${userId ?? 'anon'}_${todayStr}`;
+    }
+    const greetingKey = greetingKeyRef.current;
+
+    const [isVisible, setIsVisible] = useState(() => {
+        if (typeof window === 'undefined' || !greetingKey) return false;
+        return !localStorage.getItem(greetingKey);
+    });
+
+    // Empty deps — fires exactly once at mount. Never resets on userId change.
     useEffect(() => {
-        const timer = setTimeout(() => setIsVisible(false), 4500);
+        if (!isVisible || !greetingKey) return;
+        const timer = setTimeout(() => {
+            setIsVisible(false);
+            try { localStorage.setItem(greetingKey, '1'); } catch { /**/ }
+        }, 4500);
         return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (

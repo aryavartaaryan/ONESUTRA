@@ -89,6 +89,7 @@ export default function Home() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null); // Firebase UID for greeting dedup
   const [isCallModalOpen, setIsCallModalOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -171,6 +172,18 @@ export default function Home() {
     if (started === 'true' || stored) setHasStarted(true);
     if (stored) setUserName(stored);
     setIsLoading(false);
+
+    // ── Fetch Firebase UID for greeting deduplication ────────────────────────
+    Promise.all([
+      import('@/lib/firebase'),
+      import('firebase/auth'),
+    ]).then(([{ getFirebaseAuth }, { onAuthStateChanged }]) => {
+      getFirebaseAuth().then(auth => {
+        onAuthStateChanged(auth, (firebaseUser) => {
+          if (firebaseUser) setUserId(firebaseUser.uid);
+        });
+      });
+    }).catch(() => { /* Firebase not available in ssr */ });
   }, []);
 
   // Auto-dismiss splash after 12 seconds (handled inside the component itself)
@@ -217,8 +230,8 @@ export default function Home() {
   // ── Grounding Pad Dashboard ──────────────────────────────────────────────
   return (
     <>
-      {/* 3-second cinematic entrance overlay */}
-      <EphemeralGreeting displayName={displayName} />
+      {/* 3-second cinematic entrance overlay — shown only once per user per day */}
+      <EphemeralGreeting displayName={displayName} userId={userId} />
 
       {/* Fixed full-page circadian nature background */}
       <div style={{

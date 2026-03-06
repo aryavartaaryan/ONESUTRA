@@ -23,6 +23,7 @@ interface ReelPlayerProps {
     onSankalpaToggle: (id: string) => void;
     onSankalpaRemove: (id: string) => void;
     onSankalpaAdd: (text: string) => void;
+    initialReelId?: string | null; // deep-link: scroll to this reel on mount
 }
 
 // ── Time-based background config ─────────────────────────────────────────────
@@ -481,7 +482,7 @@ function ReelRightSidebar({ accent }: { accent: string }) {
 // - Unified IntersectionObserver on outer wrapper divs (not on <audio>)
 // - Volume icon bottom-right toggles isGlobalMuted + shows toast
 // ══════════════════════════════════════════════════════════════════════════════
-export default function ReelPlayer({ greeting: _g, displayName: _d, panchangData: _p, sankalpaItems, onSankalpaToggle, onSankalpaRemove, onSankalpaAdd }: ReelPlayerProps) {
+export default function ReelPlayer({ greeting: _g, displayName: _d, panchangData: _p, sankalpaItems, onSankalpaToggle, onSankalpaRemove, onSankalpaAdd, initialReelId }: ReelPlayerProps) {
     const [activeIdx, setActiveIdx] = useState(0);
     const [fullScreenIdx, setFullScreenIdx] = useState<number | null>(null);
 
@@ -514,6 +515,30 @@ export default function ReelPlayer({ greeting: _g, displayName: _d, panchangData
     const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
     const scrollerRef = useRef<HTMLDivElement | null>(null);
     const scene = getTimeScene(new Date().getHours());
+
+    // ── Deep-link: scroll to initialReelId on first mount ────────────────────
+    useEffect(() => {
+        if (!initialReelId) return;
+        // Find the index in the feed that matches the reel id
+        const targetIdx = feed.current.findIndex(item => item.id === initialReelId);
+        if (targetIdx < 0) return;
+
+        // Give DOM a tick to paint then scroll
+        const t = setTimeout(() => {
+            slideRefs.current[targetIdx]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            pauseAllExcept(targetIdx);
+            activeIdxRef.current = targetIdx;
+            setActiveIdx(targetIdx);
+            // Auto-unlock audio for deep-linked reels
+            if (!hasInteractedRef.current) {
+                hasInteractedRef.current = true;
+                setIsGlobalMuted(false);
+                showToast('🔊 Playing shared reel');
+            }
+        }, 300);
+        return () => clearTimeout(t);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialReelId]);
 
     // Pause registry — instant pause of all reels on scroll.
     // pauseAllExcept(idx): skips the new active reel so it never gets killed by a competing handler.

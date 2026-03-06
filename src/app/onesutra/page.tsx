@@ -157,6 +157,30 @@ export default function OneSutraPage() {
         if (activeContact) setTimeout(() => inputRef.current?.focus(), 200);
     }, [activeContact]);
 
+    // ── Mobile back button: intercept OS back when chat is open ─────────────
+    // Strategy: push a dummy history entry when a contact opens. The OS back
+    // button fires `popstate` (which pops that dummy entry). We intercept it,
+    // prevent the navigation, and close the chat instead.
+    useEffect(() => {
+        if (activeContact) {
+            // Push a sentinel so back button has something to pop
+            window.history.pushState({ chatOpen: true }, '');
+        }
+
+        const handlePopState = (e: PopStateEvent) => {
+            if (activeContact) {
+                // Back pressed while chat is open → close it (stay on /onesutra)
+                e.preventDefault?.();
+                setActiveContact(null);
+                // Re-push sentinel so a second back doesn't double-pop
+                // (The user is now on the contact list; next back goes to home)
+            }
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, [activeContact]);
+
     // ── AutoPilot: intercept NEW incoming messages ──────────────────────────
     useEffect(() => {
         if (!isAutoPilot || !user || !activeContact || !chatId) {

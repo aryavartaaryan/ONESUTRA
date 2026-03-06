@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import ReelPlayer from '@/components/Dashboard/ReelPlayer';
 import { useLanguage } from '@/context/LanguageContext';
 import ReactionBar from '@/components/PranaVerse/ReactionBar';
@@ -269,6 +270,16 @@ export default function JustVibePage() {
     const [displayName, setDisplayName] = useState('Traveller');
     useEffect(() => { setDisplayName(localStorage.getItem('vedic_user_name') || 'Traveller'); }, []);
 
+    // ── Deep-link: parse #reel-<id> from URL hash on mount ────────────────
+    const [initialReelId, setInitialReelId] = useState<string | null>(null);
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const hash = window.location.hash; // e.g. '#reel-sv-dhyan2'
+        if (hash.startsWith('#reel-')) {
+            setInitialReelId(hash.slice(6)); // strip '#reel-'
+        }
+    }, []);
+
     return (
         <div className={styles.justVibePage}>
 
@@ -276,8 +287,19 @@ export default function JustVibePage() {
             <div className={styles.auraHeader}>
                 <div className={styles.auraHeaderGradient} />
                 <div className={styles.auraHeaderContent}>
-                    {/* Left: Brand */}
-                    <span className={styles.auraTitle}>PranaVerse</span>
+                    {/* Left: Back button + Brand */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                        <Link href="/" aria-label="Back to home" style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            width: 32, height: 32, borderRadius: '50%',
+                            background: 'rgba(255,255,255,0.08)',
+                            border: '1px solid rgba(255,255,255,0.12)',
+                            color: 'rgba(255,255,255,0.70)',
+                            textDecoration: 'none', flexShrink: 0,
+                            fontSize: '1rem', lineHeight: 1,
+                        }}>&#8592;</Link>
+                        <span className={styles.auraTitle}>PranaVerse</span>
+                    </div>
 
                     {/* Centre: Vibes/Feed tabs */}
                     <div className={styles.tabBar}>
@@ -341,6 +363,7 @@ export default function JustVibePage() {
                             onSankalpaToggle={handleSankalpaToggle}
                             onSankalpaRemove={handleSankalpaRemove}
                             onSankalpaAdd={handleSankalpaAdd}
+                            initialReelId={initialReelId}
                         />
                     </motion.div>
                 ) : (
