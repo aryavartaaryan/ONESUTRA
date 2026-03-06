@@ -17,6 +17,9 @@ import { usePranaPresence } from '@/hooks/usePranaPresence';
 import ActionDashboard from '@/components/SutraTalk/ActionDashboard';
 import WelcomeFirstSpark from '@/components/SutraTalk/WelcomeFirstSpark';
 import { DhvaniRecorder, DhvaniPlayback } from '@/components/SutraTalk/DhvaniNote';
+import { useFCMToken } from '@/hooks/useFCMToken';
+import { useFCMForeground, type FCMToastPayload } from '@/hooks/useFCMForeground';
+import { FCMToast } from '@/components/FCMToast';
 
 // ─── AI Contacts ───────────────────────────────────────────────────────────────
 const AI_CONTACTS = [
@@ -128,6 +131,16 @@ export default function OneSutraPage() {
     const [isAutoPilotGenerating, setIsAutoPilotGenerating] = useState(false);
     const [fabOpen, setFabOpen] = useState(false);
     const [showDhvani, setShowDhvani] = useState(false);
+    const [fcmToast, setFcmToast] = useState<FCMToastPayload | null>(null);
+
+    // ── FCM: register device token on auth ──────────────────────────────────
+    useFCMToken(user?.uid ?? null);
+
+    // ── FCM: foreground message handler (WhatsApp-style suppression) ─────────
+    const handleFCMToast = useCallback((payload: FCMToastPayload) => {
+        setFcmToast(payload);
+    }, []);
+    useFCMForeground(activeContact?.uid ?? null, handleFCMToast);
 
     const bottomRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -278,6 +291,16 @@ export default function OneSutraPage() {
             <div style={{ position: 'fixed', inset: 0, zIndex: -3, background: phase.name === 'night' ? 'linear-gradient(160deg,#020508 0%,#080e1a 60%,#030710 100%)' : 'linear-gradient(160deg,#0a1a30 0%,#0e2a18 50%,#081828 100%)' }} />
             <img key={imageUrl} src={imageUrl} alt="" suppressHydrationWarning style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', zIndex: -2, transition: 'opacity 0.8s ease' }} />
             <div style={{ position: 'fixed', inset: 0, zIndex: -1, background: tint, pointerEvents: 'none' }} />
+
+            {/* ── FCM Foreground Toast ─────────────────────────────────────────── */}
+            {fcmToast && (
+                <FCMToast
+                    senderName={fcmToast.senderName}
+                    messageText={fcmToast.messageText}
+                    chatUrl={fcmToast.chatUrl}
+                    onDismiss={() => setFcmToast(null)}
+                />
+            )}
 
             {user && (
                 <div style={{ minHeight: '100vh', display: 'flex', maxWidth: 1280, margin: '0 auto' }}>

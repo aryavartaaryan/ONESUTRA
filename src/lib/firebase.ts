@@ -2,6 +2,7 @@
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import { type Auth, type GoogleAuthProvider } from 'firebase/auth';
 import { type Firestore } from 'firebase/firestore';
+import { type Messaging } from 'firebase/messaging';
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -60,4 +61,37 @@ export async function getFirebaseFirestore(): Promise<Firestore> {
     }
 
     return _db;
+}
+
+let _messaging: Messaging | null = null;
+
+/**
+ * Returns the Firebase Messaging instance.
+ * BROWSER ONLY — never call from server-side code.
+ */
+export async function getFirebaseMessaging(): Promise<Messaging> {
+    if (_messaging) return _messaging;
+    const { getMessaging, isSupported } = await import('firebase/messaging');
+    const supported = await isSupported();
+    if (!supported) throw new Error('FCM not supported in this browser');
+    _messaging = getMessaging(getOrInitApp());
+    return _messaging;
+}
+
+/**
+ * Persists an FCM device token for a user using arrayUnion (no duplicates).
+ */
+export async function saveOrUpdateFCMToken(uid: string, token: string): Promise<void> {
+    const { doc, setDoc, arrayUnion } = await import('firebase/firestore');
+    const db = await getFirebaseFirestore();
+    await setDoc(doc(db, 'onesutra_users', uid), { fcmTokens: arrayUnion(token) }, { merge: true });
+}
+
+/**
+ * Removes a stale/invalid FCM token.
+ */
+export async function removeFCMToken(uid: string, token: string): Promise<void> {
+    const { doc, updateDoc, arrayRemove } = await import('firebase/firestore');
+    const db = await getFirebaseFirestore();
+    await updateDoc(doc(db, 'onesutra_users', uid), { fcmTokens: arrayRemove(token) });
 }

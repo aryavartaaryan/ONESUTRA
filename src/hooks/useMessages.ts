@@ -140,6 +140,21 @@ export function useMessages(chatId: string | null, currentUserId: string | null)
 
             await setDoc(chatRef, updateData, { merge: true });
 
+            // ── FCM Push Notification (non-blocking, best-effort) ────────────────────
+            if (recipientId && extras?.sentBy !== 'ai') {
+                fetch('/api/send-notification', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        senderId: currentUserId,
+                        senderName,
+                        receiverId: recipientId,
+                        messageText,
+                        chatId,
+                    }),
+                }).catch(() => { /* non-critical — never block send */ });
+            }
+
             // ── AutoPilot flag: check if recipient has it enabled → enqueue job ────
             if (recipientId && extras?.sentBy !== 'ai') {
                 try {

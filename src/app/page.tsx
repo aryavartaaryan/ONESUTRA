@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import HeroSection from '@/components/HomePage/HeroSection';
+import ConsciousGateway from '@/components/HomePage/ConsciousGateway';
 import AuthModal from '@/components/HomePage/AuthModal';
 import GayatriMantraSection from '@/components/GayatriMantraSection/GayatriMantraSection';
 import VoiceCallModal from '@/components/VoiceCallModal';
@@ -205,12 +206,12 @@ export default function Home() {
 
   if (isLoading) return null;
 
-  // ── Splash / Onboarding ──────────────────────────────────────────────────────
+  // ── Conscious OS Gateway ─────────────────────────────────────────────────────
   if (!hasStarted) return (
-    <main className={`${homeStyles.sacredPage} ${styles.main}`}>
-      <HeroSection onOpenAuth={() => setIsAuthOpen(true)} onBegin={handleBeginJourney} />
-      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} onSuccess={handleAuthSuccess} />
-    </main>
+    <ConsciousGateway
+      onSuccess={(name: string) => handleAuthSuccess(name)}
+      onGuest={handleBeginJourney}
+    />
   );
 
   // ── Grounding Pad Dashboard ──────────────────────────────────────────────
