@@ -76,6 +76,19 @@ export default function LightweightPlayer({
                     </button>
 
                     <button
+                        className={styles.playPauseBtn}
+                        onClick={onTogglePlay}
+                        title={isPlaying ? (lang === 'hi' ? 'रोकें' : 'Pause') : (lang === 'hi' ? 'चलाएं' : 'Play')}
+                        aria-label={isPlaying ? 'Pause' : 'Play'}
+                    >
+                        {isPlaying ? (
+                            <Pause size={28} fill="currentColor" />
+                        ) : (
+                            <Play size={28} fill="currentColor" style={{ marginLeft: '4px' }} />
+                        )}
+                    </button>
+
+                    <button
                         className={styles.secondaryBtn}
                         onClick={onNext}
                         title={lang === 'hi' ? 'अगला' : 'Next'}
