@@ -55,7 +55,6 @@ export default function SakhaBodhiOrb({
     const {
         sakhaState,
         phase,
-        currentSentence,
         micVolume,
         activate,
         deactivate,
@@ -321,23 +320,7 @@ export default function SakhaBodhiOrb({
                         )}
                     </AnimatePresence>
 
-                    {/* ── Live subtitle ─────────────────────────────────────────── */}
-                    <div className={styles.subtitleWrap}>
-                        <AnimatePresence mode="wait">
-                            {currentSentence && (
-                                <motion.p
-                                    key={currentSentence}
-                                    className={styles.subtitle}
-                                    initial={{ opacity: 0, y: 8 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -6 }}
-                                    transition={{ duration: 0.38 }}
-                                >
-                                    &ldquo;{currentSentence}&rdquo;
-                                </motion.p>
-                            )}
-                        </AnimatePresence>
-                    </div>
+                    {/* Subtitles intentional hidden from UI */}
 
                     {/* ── Dismiss button ────────────────────────────────────────── */}
                     <button

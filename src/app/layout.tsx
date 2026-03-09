@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 };
 
 import { LanguageProvider } from "@/context/LanguageContext";
+import { OutplugsProvider } from "@/context/OutplugsContext";
 import ConditionalVahanaBar from "@/components/ConditionalVahanaBar";
 import ZoomManager from "@/components/ZoomManager";
 import GlobalAutoPilot from "@/components/GlobalAutoPilot";
@@ -34,13 +35,15 @@ export default function RootLayout({
     <html lang="en">
       <body suppressHydrationWarning>
         <ZoomManager />
-        <LanguageProvider>
-          <GlobalAutoPilot />
-          <ConditionalVahanaBar />
-          <main>
-            {children}
-          </main>
-        </LanguageProvider>
+        <OutplugsProvider>
+          <LanguageProvider>
+            <GlobalAutoPilot />
+            <ConditionalVahanaBar />
+            <main>
+              {children}
+            </main>
+          </LanguageProvider>
+        </OutplugsProvider>
       </body>
     </html>
   );

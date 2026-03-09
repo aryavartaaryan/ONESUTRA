@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI, Modality, type Session, type LiveServerMessage } from '@google/genai';
+import { useOutplugs, type Article } from '@/context/OutplugsContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -25,6 +26,7 @@ interface UseSakhaConversationOptions {
     sankalpaItems: Sankalp[];
     onSankalpaUpdate: (items: Sankalp[]) => void;
     onDismiss: () => void;
+    enableMemory?: boolean;
 }
 
 // ─── Day Phase Detection ──────────────────────────────────────────────────────
@@ -41,7 +43,8 @@ function getDayPhase(hour: number): DayPhase {
 function buildSystemPrompt(
     phase: DayPhase,
     userName: string,
-    sankalpaItems: Sankalp[]
+    sankalpaItems: Sankalp[],
+    memories: string[]
 ): string {
     const sankalpaText = sankalpaItems.length > 0
         ? sankalpaItems
@@ -52,33 +55,44 @@ function buildSystemPrompt(
     const completedTasks = sankalpaItems.filter(s => s.done);
     const pendingTasks = sankalpaItems.filter(s => !s.done);
 
+    const memoryContext = memories.length > 0
+        ? `PAST MEMORIES ABOUT THE USER:\n${memories.map(m => `- ${m}`).join('\n')}`
+        : '';
+
     return `System Prompt: Sakha Bodhi - The Ultimate Friend (Hindi Mode)
-You are "Sakha Bodhi" (सखा बोधि), a deeply empathetic, spiritually grounded AI companion embedded inside the Pranav.AI platform. You speak via voice.
+You are "Bodhi" (बोधि), a deeply empathetic, radically friendly AI companion embedded inside the OneSUTRA platform. You speak via voice. 
+
+CRITICAL IDENTITY RULES:
+- You are not a strict traditional guru or a formal senior figure. You are the user’s "Sakha" (सखा) — a deeply caring, spiritually grounded best friend.
+- If asked what OneSUTRA is, explain enthusiastically that OneSUTRA is the world's first true "Wellbeing Enhancing Digital Platform", built after long R&D to provide an experience that elevates Prana (energy) and prevents the toxicity of traditional "scrolling" social media.
+- EXPLAIN YOUR POWERS: If the user asks what you can do, proudly tell them: "मैं आपका कार्य प्रबंधन कर सकता हूँ, दुनिया की ताज़ा ख़बरें बता सकता हूँ, और हमारी सारी पुरानी बातें याद रख सकता हूँ!" (I can manage your tasks, tell you top news, and remember all our past conversations!).
 
 CRITICAL RULES FOR LANGUAGE:
-You MUST speak EXCLUSIVELY in Hindi, using the Devanagari script (हिंदी).
-Keep responses to a maximum of 2 or 3 short sentences. Speak naturally, warmly, and like a wise, calm Guru or close friend. Do not use overly complex academic Hindi; use natural, conversational Hindi.
+You MUST speak EXCLUSIVELY in natural, warm Hindi (हिंदी). Keep responses short (max 2 or 3 sentences). 
 
 THE MANDATORY GREETING:
-Whenever you speak to the user for the first time in a session, your VERY FIRST sentence must be a time-aware greeting followed by introducing yourself.
+Whenever you speak to the user for the first time in a session, your VERY FIRST sentence must be a time-aware greeting followed by introducing yourself as their Sakha.
 Address the user as "${userName}".
 
-Morning (Brahma Muhurta / Morning): "शुभोदय ${userName}, मैं आपका सखा, बोधि हूँ।" (Shubhodaya ${userName}, I am your friend, Bodhi.)
-Afternoon/Evening/Night: "शुभ संध्या ${userName}, मैं आपका सखा, बोधि हूँ।" (Shubh Sandhya ${userName}, I am your friend, Bodhi.)
+Morning (Brahma Muhurta / Morning): "शुभोदय ${userName}, मैं आपका सखा, बोधि हूँ।" 
+Afternoon/Evening/Night: "शुभ संध्या ${userName}, मैं आपका सखा, बोधि हूँ।" 
 
 DYNAMIC CONTEXT:
 - Current Phase: ${phase.toUpperCase()}
 - Today's Sankalpa (Task List):
 ${sankalpaText}
-- Completed: ${completedTasks.length} | Pending: ${pendingTasks.length}
+- Tasks Completed: ${completedTasks.length} | Pending: ${pendingTasks.length}
+
+${memoryContext}
 
 CONVERSATIONAL BEHAVIOR:
-After the greeting, ask how they are feeling today physically and mentally, or ask how their daily Sankalpa (tasks) are progressing.
-If they are tired, gently suggest they rest or visit the "JustVibe" section.
-If they want to remove a task, say: "कोई बात नहीं, मैं इसे हटा देता हूँ। खुद पर दबाव न डालें।" (No problem, I will remove it. Don't pressure yourself.) and call [TOOL: update_sankalpa_tasks(clear_pending)] or specifically mark a task done [TOOL: update_sankalpa_tasks(mark_done, id)].
-If they want to add a task, call [TOOL: update_sankalpa_tasks(add, "task text here")]
+After the greeting, check in on them like a true friend. Mention their Sankalpas, or references past memories if applicable.
+If they want to remove a task, say: "कोई बात नहीं, मैं इसे हटा देता हूँ। खुद पर दबाव न डालें।" and call [TOOL: update_sankalpa_tasks(clear_pending)] or specifically mark a task done [TOOL: update_sankalpa_tasks(mark_done, id)].
+If they want to add a task, call [TOOL: update_sankalpa_tasks(add, "task text here")].
+If they share something personal, their likes/dislikes, or a fact you should remember for the future, call [TOOL: save_memory("summary of what to remember")].
+If they ask for news or what is happening in the world, enthusiastically say you will check the OneSUTRA Outplugs feed and call [TOOL: get_top_news()]. Wait for the system to reply with the news before responding gracefully.
 
-Never sound robotic. You are their guide and protector of their Prana (energy).
+Never sound robotic. You are their guide, friend, and protector of their energy.
 
 EXIT COMMAND — If the user says "okay you can go", "thanks", "goodbye", "that's all", or "bye":
 Reply warmly in Hindi, then on the very next line call: [TOOL: dismiss_sakha()]
@@ -87,6 +101,8 @@ TOOL DEFINITIONS (use EXACTLY as shown on a NEW LINE after your spoken response)
 - [TOOL: update_sankalpa_tasks(add, "task text here")] — Add a new task to the Sankalpa list
 - [TOOL: update_sankalpa_tasks(clear_pending)] — Remove all incomplete tasks
 - [TOOL: update_sankalpa_tasks(mark_done, "task id")] — Mark a specific task as done
+- [TOOL: save_memory("summary of the fact/preference to remember")] — Store a long-term memory about the user
+- [TOOL: get_top_news()] — Fetch the top 10 latest news headlines from the OneSUTRA Outplugs network
 - [TOOL: dismiss_sakha()] — Close and dismiss Sakha Bodhi`;
 }
 
@@ -126,7 +142,10 @@ export function useSakhaConversation({
     sankalpaItems,
     onSankalpaUpdate,
     onDismiss,
+    enableMemory = true,
 }: UseSakhaConversationOptions) {
+    const { articles, fetchNews } = useOutplugs();
+
     const [sakhaState, setSakhaState] = useState<SakhaState>('idle');
     const [currentSentence, setCurrentSentence] = useState('');
     const [history, setHistory] = useState<SakhaMessage[]>([]);
@@ -135,6 +154,7 @@ export function useSakhaConversation({
     const [isListening, setIsListening] = useState(false);
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [memories, setMemories] = useState<string[]>([]);
 
     // Live Session Refs
     const sessionRef = useRef<Session | null>(null);
@@ -169,8 +189,31 @@ export function useSakhaConversation({
         phaseRef.current = p;
     }, []);
 
+    // Load memories on mount
+    useEffect(() => {
+        (async () => {
+            try {
+                const { getFirebaseAuth, getFirebaseFirestore } = await import('@/lib/firebase');
+                const { doc, getDoc } = await import('firebase/firestore');
+                const auth = await getFirebaseAuth();
+                const db = await getFirebaseFirestore();
+
+                auth.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        const snap = await getDoc(doc(db, 'users', user.uid));
+                        if (snap.exists() && snap.data().bodhi_memories) {
+                            setMemories(snap.data().bodhi_memories);
+                        }
+                    }
+                });
+            } catch (err) {
+                console.warn('Could not load Bodhi memories from Firebase');
+            }
+        })();
+    }, []);
+
     // ── Tool Execution ─────────────────────────────────────────────────────────
-    const executeToolCalls = useCallback((toolCalls: ToolCall[]) => {
+    const executeToolCalls = useCallback(async (toolCalls: ToolCall[]) => {
         for (const call of toolCalls) {
             if (call.name === 'dismiss_sakha') {
                 setTimeout(() => {
@@ -205,8 +248,68 @@ export function useSakhaConversation({
                     onSankalpaUpdateRef.current(updated);
                 }
             }
+
+            if (call.name === 'save_memory' && call.args[0]) {
+                const memoryStr = call.args[0];
+                setMemories(prev => [...prev, memoryStr]);
+
+                // Fire-and-forget Firebase save
+                (async () => {
+                    try {
+                        const { getFirebaseAuth, getFirebaseFirestore } = await import('@/lib/firebase');
+                        const { arrayUnion, doc, setDoc } = await import('firebase/firestore');
+                        const auth = await getFirebaseAuth();
+                        const db = await getFirebaseFirestore();
+
+                        if (auth.currentUser) {
+                            await setDoc(doc(db, 'users', auth.currentUser.uid), {
+                                bodhi_memories: arrayUnion(memoryStr)
+                            }, { merge: true });
+                        }
+                    } catch (e) {
+                        console.warn('Failed to save Bodhi memory to DB', e);
+                    }
+                })();
+            }
+
+            if (call.name === 'get_top_news') {
+                try {
+                    console.log('Fetching top news for Bodhi from Context Cache...');
+
+                    let activeArticles = articles;
+                    if (activeArticles.length === 0) {
+                        await fetchNews(false); // Force load if empty
+                        // Fallback API call since article state won't update synchronously inside the callback
+                        const res = await fetch('/api/outplugs-feed');
+                        if (res.ok) {
+                            const data = await res.json();
+                            activeArticles = data.articles || [];
+                        }
+                    }
+
+                    const topHeadlines = activeArticles.slice(0, 10).map((p: Article, i: number) => `${i + 1}. ${p.headline}`).join('\n');
+
+                    if (sessionRef.current && topHeadlines) {
+                        await sessionRef.current.sendClientContent({
+                            turns: [{
+                                role: 'user',
+                                parts: [{ text: `SYSTEM_RESPONSE: The current top news headlines are:\n${topHeadlines}\nPlease read out the most interesting ones gracefully to the user.` }]
+                            }],
+                            turnComplete: true,
+                        });
+                    }
+                } catch (e) {
+                    console.warn('Failed to fetch news for Bodhi', e);
+                    if (sessionRef.current) {
+                        await sessionRef.current.sendClientContent({
+                            turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: Sorry, the news feed could not be reached right now. Explain this nicely.` }] }],
+                            turnComplete: true,
+                        });
+                    }
+                }
+            }
         }
-    }, []);
+    }, [memories, articles, fetchNews]);
 
 
     // ── Audio Engine Helpers ──────────────────────────────────────────────────
@@ -397,7 +500,7 @@ export function useSakhaConversation({
                             },
                         },
                     },
-                    systemInstruction: `${buildSystemPrompt(phaseRef.current, userName, sankalpaRef.current)} \n\nRANDOM_SEED: ${Math.floor(Math.random() * 1000)}`,
+                    systemInstruction: `${buildSystemPrompt(phaseRef.current, userName, sankalpaRef.current, memories)} \n\nRANDOM_SEED: ${Math.floor(Math.random() * 1000)}`,
                 },
                 callbacks: {
                     onopen: () => {

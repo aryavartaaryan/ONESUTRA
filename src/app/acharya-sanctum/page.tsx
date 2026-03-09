@@ -74,7 +74,7 @@ export default function AcharyaSanctumPage() {
     const [lang, setLang] = useState<'en' | 'hi'>('en');
     const { imageUrl: bgUrl } = useCircadianUnsplash();
     const [chatInput, setChatInput] = useState('');
-    const transcriptRef = useRef<HTMLDivElement>(null);
+
 
     // ── Firebase: if user already completed onboarding, redirect instantly ────
     useEffect(() => {
@@ -117,17 +117,12 @@ export default function AcharyaSanctumPage() {
     // ── Onboarding hook ───────────────────────────────────────────────────────
     const {
         callState, error, isMuted, toggleMute,
-        volumeLevel, isSpeaking, transcript,
+        volumeLevel, isSpeaking,
         isTextMode, setIsTextMode,
         startOnboarding, sendTextMessage, endOnboarding,
     } = useAcharyaOnboarding({ lang, onProfileExtracted: handleProfileExtracted });
 
-    // Auto-scroll transcript
-    useEffect(() => {
-        if (transcriptRef.current) {
-            transcriptRef.current.scrollTop = transcriptRef.current.scrollHeight;
-        }
-    }, [transcript]);
+
 
     // ── Orb status ────────────────────────────────────────────────────────────
     const orbStatus: OnboardingOrbState =
@@ -392,47 +387,7 @@ export default function AcharyaSanctumPage() {
                             <OnboardingBodhiOrb orbState={orbStatus} micVolume={volumeLevel} sizePx={160} />
                         </motion.div>
 
-                        {/* ── Transcript scroll area ── */}
-                        <div
-                            ref={transcriptRef}
-                            style={{
-                                width: '100%', maxWidth: 400,
-                                maxHeight: '28vh', overflowY: 'auto',
-                                display: 'flex', flexDirection: 'column', gap: '0.5rem',
-                                scrollbarWidth: 'none',
-                                maskImage: 'linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)',
-                                WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)',
-                            }}
-                        >
-                            <AnimatePresence mode="popLayout">
-                                {transcript.map((line, i) => (
-                                    <motion.p
-                                        key={i}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        layout
-                                        style={{
-                                            margin: 0, padding: '0.6rem 1rem',
-                                            fontSize: 'clamp(0.78rem, 2.5vw, 0.88rem)',
-                                            lineHeight: 1.55,
-                                            color: line.startsWith('🙏')
-                                                ? 'rgba(255,255,255,0.45)'
-                                                : 'rgba(255,255,255,0.85)',
-                                            textAlign: 'center',
-                                            fontFamily: 'Georgia, serif',
-                                            fontStyle: 'italic',
-                                            background: line.startsWith('🙏')
-                                                ? 'rgba(255,255,255,0.04)'
-                                                : 'rgba(165,180,252,0.06)',
-                                            borderRadius: '0.5rem',
-                                            backdropFilter: 'blur(4px)',
-                                        }}
-                                    >
-                                        {line.replace(/^[🪷🙏]\s/, '')}
-                                    </motion.p>
-                                ))}
-                            </AnimatePresence>
-                        </div>
+                        {/* Transcript intentionally hidden from UI */}
 
                         {/* ── Status / Saving indicator ── */}
                         <AnimatePresence>

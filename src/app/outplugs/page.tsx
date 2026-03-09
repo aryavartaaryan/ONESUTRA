@@ -3,33 +3,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import Link from 'next/link';
+import { useOutplugs, type Article } from '@/context/OutplugsContext';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-interface SutraLayer {
-    simpleWords: string;
-    historicalContext: string;
-    impact: string;
-}
 
-interface NewsAction {
-    type: 'petition' | 'share' | 'donate';
-    label: string;
-    link: string;
-}
-
-interface Article {
-    id: string;
-    headline: string;
-    summary60Words: string;
-    energyTag: 'Tamasic' | 'Rajasic' | 'Sattvic';
-    category: string;
-    source: string;
-    link?: string;
-    imageUrl?: string;
-    timeAgo?: string;
-    sutraLayer: SutraLayer;
-    action?: NewsAction | null;
-}
 
 // ── Brand accent ─────────────────────────────────────────────────────────────
 const ACCENT = '#ff8c52';
@@ -63,51 +40,12 @@ const CHIPS: { key: ChipKey; label: string; emoji: string }[] = [
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function OutPlugsPage() {
-    const [articles, setArticles] = useState<Article[]>([]);
+    const { articles, loading, refreshing, newBadgeCount, fetchNews, clearNewBadge } = useOutplugs();
+
     const [idx, setIdx] = useState(0);
     const [dir, setDir] = useState<'up' | 'down'>('up');
-    const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
-    const [lastRefresh, setLastRefresh] = useState<number>(0);
     const [activeChip, setActiveChip] = useState<ChipKey | null>(null);
-    const [newBadgeCount, setNewBadgeCount] = useState(0);
     const wheelLock = useRef(false);
-
-    // ── Fetch / refresh news ──────────────────────────────────────────────────
-    const fetchNews = useCallback(async (silent = false) => {
-        if (!silent) setLoading(true);
-        else setRefreshing(true);
-        try {
-            const res = await fetch('/api/outplugs-feed', { cache: 'no-store' });
-            const data = await res.json();
-            if (data.articles?.length) {
-                if (silent && articles.length > 0) {
-                    setNewBadgeCount(data.articles.length);
-                } else {
-                    setArticles(data.articles);
-                    setIdx(0);
-                    setNewBadgeCount(0);
-                }
-                setLastRefresh(Date.now());
-            }
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    }, [articles.length]);
-
-    // Initial load
-    useEffect(() => {
-        fetchNews(false);
-    }, []);
-
-    // ── Poll every 10 minutes ────────────────────────────────────────────────
-    useEffect(() => {
-        const interval = setInterval(() => fetchNews(true), 10 * 60 * 1000);
-        return () => clearInterval(interval);
-    }, [fetchNews]);
 
     // ── Navigation ───────────────────────────────────────────────────────────
     const goNext = useCallback(() => {
@@ -221,7 +159,7 @@ export default function OutPlugsPage() {
                 {newBadgeCount > 0 && (
                     <motion.button
                         initial={{ scale: 0 }} animate={{ scale: 1 }}
-                        onClick={() => { setArticles(prev => prev); fetchNews(false); setNewBadgeCount(0); }}
+                        onClick={() => { fetchNews(false); clearNewBadge(); setIdx(0); }}
                         style={{
                             background: 'rgba(85,239,196,0.85)', border: 'none',
                             borderRadius: 999, padding: '0.2rem 0.55rem',
