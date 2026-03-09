@@ -4,8 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useAcharyaOnboarding, type AyurvedicProfile } from '@/hooks/useAcharyaOnboarding';
-import AcharyaGuruOrb from '@/components/Dashboard/AcharyaGuruOrb';
-import type { OrbStatus } from '@/components/Dashboard/AcharyaGuruOrb';
+import OnboardingBodhiOrb, { type OnboardingOrbState } from '@/components/Dashboard/OnboardingBodhiOrb';
 import { Mic, MicOff } from 'lucide-react';
 
 import { useCircadianUnsplash } from '@/hooks/useCircadianUnsplash';
@@ -131,7 +130,7 @@ export default function AcharyaSanctumPage() {
     }, [transcript]);
 
     // ── Orb status ────────────────────────────────────────────────────────────
-    const orbStatus: OrbStatus =
+    const orbStatus: OnboardingOrbState =
         (callState === 'saving' || phase === 'saving' || phase === 'complete') ? 'processing'
             : (callState === 'active' && isSpeaking) ? 'speaking'
                 : callState === 'active' ? 'listening'
@@ -390,7 +389,7 @@ export default function AcharyaSanctumPage() {
                             }}
                             transition={{ type: 'spring', stiffness: 180, damping: 22, mass: 0.6 }}
                         >
-                            <AcharyaGuruOrb status={orbStatus} zenMode={true} sizePx={160} />
+                            <OnboardingBodhiOrb orbState={orbStatus} micVolume={volumeLevel} sizePx={160} />
                         </motion.div>
 
                         {/* ── Transcript scroll area ── */}

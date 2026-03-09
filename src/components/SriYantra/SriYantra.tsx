@@ -85,9 +85,7 @@ export const SriYantraSVG = ({ className }: { className?: string }) => {
                     return (
                         <path
                             key={`p16-${i}`}
-                            d={`M${100 + Math.cos(a) * rIn} ${100 + Math.sin(a) * rIn}
-                                Q${100 + Math.cos((a + a2) / 2) * rOut * 1.15} ${100 + Math.sin((a + a2) / 2) * rOut * 1.15}
-                                ${100 + Math.cos(a2) * rIn} ${100 + Math.sin(a2) * rIn}`}
+                            d={`M${(100 + Math.cos(a) * rIn).toFixed(3)} ${(100 + Math.sin(a) * rIn).toFixed(3)} Q${(100 + Math.cos((a + a2) / 2) * rOut * 1.15).toFixed(3)} ${(100 + Math.sin((a + a2) / 2) * rOut * 1.15).toFixed(3)} ${(100 + Math.cos(a2) * rIn).toFixed(3)} ${(100 + Math.sin(a2) * rIn).toFixed(3)}`}
                         />
                     );
                 })}
@@ -108,9 +106,7 @@ export const SriYantraSVG = ({ className }: { className?: string }) => {
                     return (
                         <path
                             key={`p8-${i}`}
-                            d={`M${100 + Math.cos(a) * rIn} ${100 + Math.sin(a) * rIn}
-                                Q${100 + Math.cos((a + a2) / 2) * rOut * 1.25} ${100 + Math.sin((a + a2) / 2) * rOut * 1.25}
-                                ${100 + Math.cos(a2) * rIn} ${100 + Math.sin(a2) * rIn}`}
+                            d={`M${(100 + Math.cos(a) * rIn).toFixed(3)} ${(100 + Math.sin(a) * rIn).toFixed(3)} Q${(100 + Math.cos((a + a2) / 2) * rOut * 1.25).toFixed(3)} ${(100 + Math.sin((a + a2) / 2) * rOut * 1.25).toFixed(3)} ${(100 + Math.cos(a2) * rIn).toFixed(3)} ${(100 + Math.sin(a2) * rIn).toFixed(3)}`}
                         />
                     );
                 })}
