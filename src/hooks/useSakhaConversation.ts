@@ -454,6 +454,7 @@ export function useSakhaConversation({
     const isPlayingRef = useRef(false);
     const canListenRef = useRef(true);
     const connectionIntentRef = useRef(false);
+    const isConnectedRef = useRef(false); // true only while Gemini session is alive
     const callTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Current app state refs
@@ -812,7 +813,12 @@ export function useSakhaConversation({
         if (audioQueueRef.current.length === 0) {
             isPlayingRef.current = false;
             setIsSpeaking(false);
-            setSakhaState(connectionIntentRef.current ? 'listening' : 'dismissed');
+            // FIX: Only go to listening if we are actually still connected — never set 'dismissed' here
+            if (isConnectedRef.current) {
+                setSakhaState('listening');
+                // FIX: Un-block the mic so Bodhi doesn't hang waiting forever after speaking
+                canListenRef.current = true;
+            }
             return;
         }
 
@@ -892,6 +898,7 @@ export function useSakhaConversation({
         }
         audioQueueRef.current = [];
         isPlayingRef.current = false;
+        isConnectedRef.current = false;
     }, []);
 
     // ── Activate Sakha (Start Live Session) ────────────────────────────────────
@@ -1048,6 +1055,7 @@ export function useSakhaConversation({
                     onopen: () => {
                         console.log('[Bodhi] Gemini Live session opened');
                         if (connectionIntentRef.current) {
+                            isConnectedRef.current = true; // mark session as alive
                             setSakhaState('listening');
                             setIsListening(true);
                             if (callTimeoutRef.current) clearTimeout(callTimeoutRef.current);
@@ -1097,12 +1105,13 @@ export function useSakhaConversation({
                             }
 
                             fullTranscriptBufferRef.current = '';
-                            canListenRef.current = true;
-
-                            if (!audioQueueRef.current.length && !isPlayingRef.current) {
-                                setIsSpeaking(false);
+                            // FIX: Only un-block mic if audio is NOT still playing (avoid double-unblock)
+                            // Audio queue's playNextAudio() will un-block when it drains
+                            if (!isPlayingRef.current && audioQueueRef.current.length === 0) {
+                                canListenRef.current = true;
                                 setSakhaState('listening');
                             }
+                            setIsSpeaking(false);
                         }
 
                         if (serverContent?.interrupted) {
@@ -1116,10 +1125,17 @@ export function useSakhaConversation({
                         console.error('[Bodhi] Gemini Live error:', e);
                         setError(e?.message || 'Connection error');
                         setSakhaState('error');
+                        isConnectedRef.current = false;
                     },
                     onclose: (e: any) => {
                         console.log('[Bodhi] Gemini Live session closed:', e?.reason || 'unknown');
-                        if (sakhaState !== 'error') {
+                        isConnectedRef.current = false;
+                        // FIX: Only update state if we were intentionally connected — avoids stale-closure dismiss
+                        if (connectionIntentRef.current) {
+                            // Session closed unexpectedly while we still wanted it — show error so user can retry
+                            setSakhaState('error');
+                            setError('Session ended unexpectedly. Tap to reconnect.');
+                        } else {
                             setSakhaState('dismissed');
                         }
                     },
