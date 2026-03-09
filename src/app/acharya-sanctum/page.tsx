@@ -24,7 +24,7 @@ async function saveProfileToFirestore(profile: AyurvedicProfile): Promise<void> 
             const unsub = onAuthStateChanged(auth, (user) => {
                 if (user) {
                     unsub();
-                    setDoc(doc(db, 'users', user.uid), {
+                    setDoc(doc(db, 'onesutra_users', user.uid), {
                         profile: {
                             name: profile.name,
                             age: profile.age,
@@ -96,7 +96,7 @@ export default function AcharyaSanctumPage() {
                 const db = await getFirebaseFirestore();
                 onAuthStateChanged(auth, async (firebaseUser) => {
                     if (firebaseUser) {
-                        const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
+                        const snap = await getDoc(doc(db, 'onesutra_users', firebaseUser.uid));
                         const data = snap.data();
                         // Redirect if flag is true OR if profile already exists
                         if (data?.hasCompletedOnboarding || data?.onboardingCompleted || data?.profile) {
@@ -429,11 +429,28 @@ export default function AcharyaSanctumPage() {
                                         color: 'rgba(200,155,40,0.95)',
                                         fontSize: '0.75rem', letterSpacing: '0.12em',
                                         textAlign: 'center',
+                                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem',
                                     }}
                                 >
-                                    {phase === 'complete'
-                                        ? lang === 'hi' ? '✨ आपकी यात्रा तैयार हो रही है...' : '✨ Entering your sanctuary...'
-                                        : lang === 'hi' ? '🕉️ आपकी प्राकृति सुरक्षित की जा रही है...' : '🕉️ Saving your sacred profile...'}
+                                    <div>
+                                        {phase === 'complete'
+                                            ? lang === 'hi' ? '✨ आपकी यात्रा तैयार हो रही है...' : '✨ Entering your sanctuary...'
+                                            : lang === 'hi' ? '🕉️ आपकी प्राकृति सुरक्षित की जा रही है...' : '🕉️ Saving your sacred profile...'}
+                                    </div>
+
+                                    {phase === 'complete' && (
+                                        <button
+                                            onClick={() => router.push('/')}
+                                            style={{
+                                                background: 'rgba(200,155,40,0.9)', color: '#000',
+                                                border: 'none', padding: '0.6rem 1.5rem', borderRadius: '2rem',
+                                                fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
+                                                letterSpacing: '0.05em'
+                                            }}
+                                        >
+                                            {lang === 'hi' ? 'अंदर प्रवेश करें' : 'Enter OneSUTRA'}
+                                        </button>
+                                    )}
                                 </motion.div>
                             )}
                         </AnimatePresence>

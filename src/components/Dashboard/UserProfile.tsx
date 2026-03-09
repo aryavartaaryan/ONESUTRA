@@ -27,34 +27,7 @@ interface AyurvedicProfile {
 
 // ─── Static fallback profile data ─────────────────────────────────────────────
 
-const PROFILE_FALLBACK = {
-    title: 'Sattvik Seeker',
-    joined: 'Feb 2025',
-    prakriti: 'Vata-Pitta',
-    doshas: [
-        { name: 'Vāta', value: 55, color: '#7E57C2', element: 'Space & Air', trait: 'Creative, Quick, Inspired' },
-        { name: 'Pitta', value: 35, color: '#FF8A65', element: 'Fire & Water', trait: 'Focused, Passionate, Leader' },
-        { name: 'Kapha', value: 10, color: '#66BB6A', element: 'Earth & Water', trait: 'Stable, Nurturing, Patient' },
-    ],
-    personality: 'Your dominant Vāta gives you bursts of creative inspiration and quick thinking. Channel it with routine and grounding practices. Your Pitta fire drives ambition — balance it with cooling foods and evening walks.',
-    badges: [
-        { id: 'riser', label: 'Early Riser', emoji: '🌅', earned: true },
-        { id: 'sattvik', label: 'Sattvik', emoji: '🌿', earned: true },
-        { id: 'calm', label: 'Calm Mind', emoji: '🪷', earned: true },
-        { id: 'decision', label: 'Decision Maker', emoji: '⚡', earned: true },
-        { id: 'mindful', label: 'Mindful', emoji: '🧘', earned: true },
-        { id: 'streak7', label: '7-Day Streak', emoji: '🔥', earned: true },
-        { id: 'scholar', label: 'Vedic Scholar', emoji: '📜', earned: false },
-        { id: 'sangha', label: 'Sangha Builder', emoji: '🤝', earned: false },
-    ],
-    stats: [
-        { label: 'Days Active', value: '14', unit: 'days' },
-        { label: 'Meditations', value: '22', unit: 'sessions' },
-        { label: 'Habits Completed', value: '68', unit: '%' },
-        { label: 'Focus Hours', value: '31', unit: 'hrs' },
-    ],
-    weekProgress: [60, 80, 45, 90, 70, 55, 85],
-};
+// Removed dummy PROFILE_FALLBACK data to enforce authentic user data display
 
 // ─── Dosha parsing helper (from string like "Vata-Pitta") ─────────────────────
 function parseDoshaValues(prakriti: string): { name: string; value: number; color: string; element: string; trait: string }[] {
@@ -86,7 +59,7 @@ export default function UserProfile({ isOpen, onClose, userName }: UserProfilePr
     const [tab, setTab] = useState<'dosha' | 'plan'>('dosha');
     const [firestoreProfile, setFirestoreProfile] = useState<AyurvedicProfile | null>(null);
     const [profileLoading, setProfileLoading] = useState(false);
-    const [memberSince, setMemberSince] = useState<string>(PROFILE_FALLBACK.joined);
+    const [memberSince, setMemberSince] = useState<string>('Recently');
 
     const rawName = user?.name || userName || firestoreProfile?.name || 'Sadhaka';
     const displayName = rawName.split(' ')[0];
@@ -124,7 +97,7 @@ export default function UserProfile({ isOpen, onClose, userName }: UserProfilePr
                             setMemberSince(date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
                         }
 
-                        const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
+                        const snap = await getDoc(doc(db, 'onesutra_users', firebaseUser.uid));
                         if (snap.exists() && snap.data()?.profile) {
                             const p = snap.data().profile as AyurvedicProfile;
                             setFirestoreProfile(p);

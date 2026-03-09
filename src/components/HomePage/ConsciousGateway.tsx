@@ -269,7 +269,7 @@ function UIPanel({ onSuccess, onGuest, compact = false }: Props & { compact?: bo
                 }, { merge: true });
 
                 // ── Check onboarding status ────────────────────────────────
-                const userSnap = await getDoc(doc(db, 'users', result.user.uid));
+                const userSnap = await getDoc(doc(db, 'onesutra_users', result.user.uid));
                 const d = userSnap.exists() ? userSnap.data() : null;
                 // Check ALL possible flags (matches acharya-sanctum/page.tsx logic)
                 const hasCompleted = !!(d?.hasCompletedOnboarding || d?.onboardingCompleted || d?.profile?.prakriti);
