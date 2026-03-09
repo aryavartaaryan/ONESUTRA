@@ -73,7 +73,9 @@ CRITICAL IDENTITY RULES:
 - EXPLAIN YOUR POWERS: If the user asks what you can do, proudly tell them: "मैं आपका कार्य प्रबंधन कर सकता हूँ, दुनिया की ताज़ा ख़बरें बता सकता हूँ, और हमारी सारी पुरानी बातें याद रख सकता हूँ!" (I can manage your tasks, tell you top news, and remember all our past conversations!).
 
 CRITICAL RULES FOR LANGUAGE:
-You MUST speak EXCLUSIVELY in natural, warm Hindi (हिंदी). Keep responses short (max 2 or 3 sentences). 
+- You MUST speak EXCLUSIVELY in natural, warm Hindi (हिंदी). Keep responses short (max 2 or 3 sentences). 
+- ALWAYS use the respectful protocol "आप" (Aap), "आपका" (Aapka), "आपको" (Aapko).
+- NEVER use "तुम" (Tum), "तुम्हारा" (Tumhara), "तुम्हें" (Tumhein), or "तू" (Tu). Treat the user respectfully while maintaining the warmth of a best friend.
 
 THE MANDATORY GREETING:
 Whenever you speak to the user for the first time in a session, your VERY FIRST sentence must be a time-aware greeting followed by introducing yourself as their Sakha.
@@ -122,15 +124,16 @@ interface ToolCall {
 }
 
 function parseToolCalls(text: string): ToolCall[] {
-    const toolRegex = /\[TOOL:\s*(\w+)\((.*?)\)\]/g;
+    const toolRegex = /\[TOOL:\s*(\w+)(?:\((.*?)\))?\]/g;
     const calls: ToolCall[] = [];
     let match;
     while ((match = toolRegex.exec(text)) !== null) {
         const name = match[1];
-        const rawArgs = match[2];
+        const rawArgs = match[2] || '';
         const args = rawArgs
             .split(/,\s*(?=(?:[^"]*"[^"]*")*[^"]*$)/)
-            .map(a => a.trim().replace(/^["']|["']$/g, ''));
+            .map(a => a.trim().replace(/^["']|["']$/g, ''))
+            .filter(a => a.length > 0);
         calls.push({ name, args });
     }
     return calls;
@@ -301,14 +304,24 @@ export function useSakhaConversation({
 
                     const topHeadlines = activeArticles.slice(0, 10).map((p: Article, i: number) => `${i + 1}. ${p.headline}`).join('\n');
 
-                    if (sessionRef.current && topHeadlines) {
-                        await sessionRef.current.sendClientContent({
-                            turns: [{
-                                role: 'user',
-                                parts: [{ text: `SYSTEM_RESPONSE: The current top news headlines are:\n${topHeadlines}\nPlease read out the most interesting ones gracefully to the user.` }]
-                            }],
-                            turnComplete: true,
-                        });
+                    if (sessionRef.current) {
+                        if (topHeadlines) {
+                            await sessionRef.current.sendClientContent({
+                                turns: [{
+                                    role: 'user',
+                                    parts: [{ text: `SYSTEM_RESPONSE: The current top news headlines are:\n${topHeadlines}\nPlease read out the most interesting ones gracefully to the user.` }]
+                                }],
+                                turnComplete: true,
+                            });
+                        } else {
+                            await sessionRef.current.sendClientContent({
+                                turns: [{
+                                    role: 'user',
+                                    parts: [{ text: `SYSTEM_RESPONSE: I am unable to connect to the Outplugs news feed right now. Please tell the user gracefully.` }]
+                                }],
+                                turnComplete: true,
+                            });
+                        }
                     }
                 } catch (e) {
                     console.warn('Failed to fetch news for Bodhi', e);
