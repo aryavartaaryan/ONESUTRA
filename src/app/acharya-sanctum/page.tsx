@@ -94,10 +94,12 @@ export default function AcharyaSanctumPage() {
                 const { doc, getDoc } = await import('firebase/firestore');
                 const auth = await getFirebaseAuth();
                 const db = await getFirebaseFirestore();
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        const snap = await getDoc(doc(db, 'users', user.uid));
-                        if (snap.data()?.hasCompletedOnboarding) {
+                onAuthStateChanged(auth, async (firebaseUser) => {
+                    if (firebaseUser) {
+                        const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
+                        const data = snap.data();
+                        // Redirect if flag is true OR if profile already exists
+                        if (data?.hasCompletedOnboarding || data?.onboardingCompleted || data?.profile) {
                             localStorage.setItem('acharya_onboarding_done', 'true');
                             router.replace('/');
                         }
@@ -115,8 +117,8 @@ export default function AcharyaSanctumPage() {
         await saveProfileToFirestore(profile);
         await markOnboardingLocalStorage();
         setPhase('complete');
-        // Wait for the Acharya's final goodbye audio to finish (~4s), then navigate
-        setTimeout(() => router.push('/'), 4500);
+        // Wait for the Acharya's final goodbye audio to finish (~3s), then navigate
+        setTimeout(() => router.push('/'), 3000);
     }, [router]);
 
     // ── Onboarding hook ───────────────────────────────────────────────────────
@@ -237,35 +239,53 @@ export default function AcharyaSanctumPage() {
                                 fontWeight: 600, letterSpacing: '0.05em',
                                 color: 'rgba(255,255,255,0.96)',
                                 fontFamily: 'Georgia, serif',
-                                margin: 0, marginBottom: '0.6rem',
+                                margin: 0, marginBottom: '1rem',
                                 lineHeight: 1.2,
                                 textShadow: '0 0 40px rgba(255,255,255,0.15)',
                             }}>
-                                The Wellbeing Enhancing<br />
-                                <span style={{ color: 'rgba(200,155,40,0.95)', fontWeight: 700 }}>
-                                    AI Based Social Media Platform
-                                </span>
+                                {lang === 'hi' ? (
+                                    <>
+                                        एक अभिनव सोशल मीडिया प्लेटफॉर्म<br />
+                                        <span style={{ color: 'rgba(200,155,40,0.95)', fontWeight: 700 }}>
+                                            जो आपकी खुशहाली और उत्पादकता बढ़ाए
+                                        </span>
+                                    </>
+                                ) : (
+                                    <>
+                                        A Productive Media Innovation<br />
+                                        <span style={{ color: 'rgba(200,155,40,0.95)', fontWeight: 700 }}>
+                                            To Increase Wellness & Productivity
+                                        </span>
+                                    </>
+                                )}
                             </h1>
 
-                            <p style={{
-                                fontSize: 'clamp(0.75rem, 2.5vw, 0.9rem)',
-                                color: 'rgba(255,255,255,0.85)',
-                                letterSpacing: '0.08em',
-                                fontFamily: 'system-ui', margin: 0, marginBottom: '0.3rem',
-                                lineHeight: 1.6,
-                                fontWeight: 500,
-                            }}>
-                                No Toxic Engaging Algorithms With High Pranic Feed
-                            </p>
+                            <div style={{ maxWidth: 600, margin: '0 auto' }}>
+                                <p style={{
+                                    fontSize: 'clamp(0.75rem, 2.5vw, 0.9rem)',
+                                    color: 'rgba(255,255,255,0.85)',
+                                    letterSpacing: '0.05em',
+                                    fontFamily: 'system-ui', margin: 0, marginBottom: '0.75rem',
+                                    lineHeight: 1.6,
+                                    fontWeight: 500,
+                                }}>
+                                    {lang === 'hi'
+                                        ? 'हमारा मिशन लोगों की खुशहाली और एकाग्रता बढ़ाकर एक बेहतर समाज बनाना है। हम किसी और से नहीं, बल्कि रोज़ाना खुद से प्रतिस्पर्धा करते हैं।'
+                                        : 'Our mission is to increase the wellness and productivity of people and create a better society. We compete only with ourselves, innovating daily.'}
+                                </p>
 
-                            <p style={{
-                                fontSize: 'clamp(0.7rem, 2vw, 0.78rem)',
-                                color: 'rgba(200,155,40,0.6)',
-                                letterSpacing: '0.2em', textTransform: 'uppercase',
-                                fontFamily: 'monospace', margin: 0,
-                            }}>
-                                Yours transformation journey is Starting from Today
-                            </p>
+                                <p style={{
+                                    fontSize: 'clamp(0.7rem, 2vw, 0.78rem)',
+                                    color: 'rgba(200,155,40,0.7)',
+                                    letterSpacing: '0.15em', textTransform: 'uppercase',
+                                    fontFamily: 'monospace', margin: 0,
+                                    fontWeight: 600,
+                                }}>
+                                    {lang === 'hi'
+                                        ? 'आपकी परिवर्तनकारी यात्रा आज से शुरू हो रही है'
+                                        : 'Your transformation journey starts today'}
+                                </p>
+                            </div>
                         </motion.div>
 
                         {/* Language buttons */}

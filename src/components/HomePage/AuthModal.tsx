@@ -114,8 +114,10 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                 // Check Firestore (authoritative source) for completed onboarding
                 const userDoc = await getDoc(doc(db, 'users', result.user.uid));
                 const userData = userDoc.data();
-                const hasOnboarded = userData?.onboardingCompleted === true ||
-                    userData?.hasCompletedOnboarding === true;
+                // Match the robust logic used in ConsciousGateway
+                const hasOnboarded = !!(userData?.onboardingCompleted === true ||
+                    userData?.hasCompletedOnboarding === true ||
+                    userData?.profile?.prakriti);
 
                 if (hasOnboarded) {
                     // User has Prakriti/Dosha data — go straight to home

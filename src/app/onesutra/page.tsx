@@ -427,28 +427,43 @@ export default function OneSutraPage() {
 
                                 const isAutoPilotChat = meta?.isAutoPilotActive ?? false;
                                 const isActive = activeContact?.uid === c.uid;
+                                const hasUnread = unread > 0 && !isActive;
+
+                                // Last message time string
+                                const lastMsgTime = meta?.lastMessageAt
+                                    ? new Date(meta.lastMessageAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+                                    : null;
 
                                 return (
                                     <motion.div key={c.uid}
                                         onClick={() => openChat(c)}
-                                        whileHover={!isActive ? { scale: 1.02 } : {}}
+                                        whileHover={!isActive ? { scale: 1.015 } : {}}
                                         style={{
                                             display: 'flex', alignItems: 'center', gap: 14,
                                             padding: '0.85rem 1.1rem', marginBottom: '0.55rem',
                                             cursor: 'pointer',
-                                            background: isActive ? `${accent}18` : 'rgba(255,255,255,0.08)',
+                                            // WhatsApp-style: active = accent tint, unread = green tint, normal = glass
+                                            background: isActive
+                                                ? `${accent}22`
+                                                : hasUnread
+                                                    ? 'rgba(37,211,102,0.10)'
+                                                    : 'rgba(255,255,255,0.06)',
                                             backdropFilter: 'blur(24px)',
                                             WebkitBackdropFilter: 'blur(24px)',
                                             border: isActive
                                                 ? `1px solid ${accent}44`
-                                                : isAutoPilotChat
-                                                    ? '1px solid rgba(245,158,11,0.40)'
-                                                    : '1px solid rgba(255,255,255,0.14)',
+                                                : hasUnread
+                                                    ? '1px solid rgba(37,211,102,0.35)'
+                                                    : isAutoPilotChat
+                                                        ? '1px solid rgba(245,158,11,0.40)'
+                                                        : '1px solid rgba(255,255,255,0.10)',
                                             borderRadius: 18,
-                                            boxShadow: isAutoPilotChat
-                                                ? 'inset 0 0 12px rgba(245,158,11,0.08), 0 4px 16px rgba(0,0,0,0.25)'
-                                                : '0 4px 16px rgba(0,0,0,0.2)',
-                                            transition: 'all 0.15s ease',
+                                            boxShadow: hasUnread
+                                                ? '0 0 18px rgba(37,211,102,0.12), 0 4px 16px rgba(0,0,0,0.25)'
+                                                : isAutoPilotChat
+                                                    ? 'inset 0 0 12px rgba(245,158,11,0.08), 0 4px 16px rgba(0,0,0,0.25)'
+                                                    : '0 2px 10px rgba(0,0,0,0.18)',
+                                            transition: 'all 0.18s ease',
                                         }}
                                     >
                                         {/* Avatar with Vibe ring */}
@@ -472,22 +487,41 @@ export default function OneSutraPage() {
                                             {c.online && <div style={{ position: 'absolute', bottom: 2, right: 2, width: 9, height: 9, borderRadius: '50%', background: '#5DDD88', border: '2px solid rgba(4,6,16,0.8)' }} />}
                                         </div>
 
-                                        {/* Name + preview */}
+                                        {/* Name + preview + timestamp */}
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '0.22rem' }}>
-                                                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'rgba(255,255,255,0.92)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{c.name}</span>
+                                                <span style={{
+                                                    fontSize: '0.85rem',
+                                                    // Bold + bright white when unread, normal when read
+                                                    fontWeight: hasUnread ? 700 : 500,
+                                                    color: hasUnread ? '#ffffff' : 'rgba(255,255,255,0.80)',
+                                                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
+                                                }}>{c.name}</span>
                                                 {c.isAI && <span style={{ fontSize: '0.44rem', padding: '0.06rem 0.32rem', background: `${accent}22`, border: `1px solid ${accent}44`, borderRadius: 999, color: accent, letterSpacing: '0.12em', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'monospace', flexShrink: 0 }}>AI</span>}
                                                 {isAutoPilotChat && !c.isAI && <span style={{ fontSize: '0.72rem', flexShrink: 0 }}>✨</span>}
+                                                {/* Timestamp — top right */}
+                                                {lastMsgTime && (
+                                                    <span style={{
+                                                        fontSize: '0.6rem', flexShrink: 0, marginLeft: 'auto',
+                                                        color: hasUnread ? '#25D366' : 'rgba(255,255,255,0.28)',
+                                                        fontFamily: 'monospace', letterSpacing: '0.02em',
+                                                        fontWeight: hasUnread ? 700 : 400,
+                                                    }}>{lastMsgTime}</span>
+                                                )}
                                             </div>
                                             <p style={{
-                                                margin: 0, fontSize: '0.72rem',
+                                                margin: 0, fontSize: '0.73rem',
+                                                // Unread: bright white. AI/Tatva: their colors. Read: muted.
                                                 color: previewIsAI
                                                     ? 'rgba(245,158,11,0.80)'
                                                     : previewIsTatva
                                                         ? 'rgba(168,130,220,0.85)'
-                                                        : (!hasLastMsg || previewText === 'Say Namaste 🙏')
-                                                            ? 'rgba(255,255,255,0.25)'
-                                                            : 'rgba(255,255,255,0.50)',
+                                                        : hasUnread
+                                                            ? 'rgba(255,255,255,0.85)'
+                                                            : (!hasLastMsg || previewText === 'Say Namaste 🙏')
+                                                                ? 'rgba(255,255,255,0.22)'
+                                                                : 'rgba(255,255,255,0.45)',
+                                                fontWeight: hasUnread ? 600 : 400,
                                                 fontStyle: (previewIsTatva || (!hasLastMsg && !c.isAI)) ? 'italic' : 'normal',
                                                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                                                 lineHeight: 1.4,
@@ -497,20 +531,22 @@ export default function OneSutraPage() {
                                             </p>
                                         </div>
 
-                                        {/* Bindu unread counter */}
-                                        {unread > 0 && !isActive && (
+                                        {/* WhatsApp-style unread count badge */}
+                                        {hasUnread && (
                                             <motion.div
-                                                initial={{ scale: 0 }}
-                                                animate={{ scale: 1 }}
+                                                initial={{ scale: 0, opacity: 0 }}
+                                                animate={{ scale: 1, opacity: 1 }}
+                                                transition={{ type: 'spring', stiffness: 380, damping: 18 }}
                                                 style={{
-                                                    minWidth: 20, height: 20,
+                                                    minWidth: 22, height: 22,
                                                     borderRadius: 999, flexShrink: 0,
-                                                    background: '#25D366', // WhatsApp exact green
-                                                    boxShadow: '0 2px 5px rgba(37,211,102,0.4)',
+                                                    background: '#25D366',
+                                                    boxShadow: '0 2px 8px rgba(37,211,102,0.55)',
                                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    fontSize: '0.65rem', fontWeight: 800, color: '#ffffff',
-                                                    padding: '0 6px',
-                                                    marginLeft: 'auto'
+                                                    fontSize: '0.62rem', fontWeight: 800, color: '#ffffff',
+                                                    padding: '0 5px',
+                                                    letterSpacing: '-0.01em',
+                                                    fontFamily: 'system-ui, sans-serif',
                                                 }}
                                             >
                                                 {unread > 99 ? '99+' : unread}

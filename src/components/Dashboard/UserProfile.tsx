@@ -83,24 +83,31 @@ interface UserProfileProps {
 
 export default function UserProfile({ isOpen, onClose, userName }: UserProfileProps) {
     const { user } = useOneSutraAuth();
-    const [tab, setTab] = useState<'dosha' | 'plan' | 'badges' | 'progress'>('dosha');
+    const [tab, setTab] = useState<'dosha' | 'plan'>('dosha');
     const [firestoreProfile, setFirestoreProfile] = useState<AyurvedicProfile | null>(null);
     const [profileLoading, setProfileLoading] = useState(false);
+    const [memberSince, setMemberSince] = useState<string>(PROFILE_FALLBACK.joined);
 
-    const displayName = user?.name || userName || 'Sadhaka';
-    const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    const rawName = user?.name || userName || firestoreProfile?.name || 'Sadhaka';
+    const displayName = rawName.split(' ')[0];
 
     // ── Fetch real Ayurvedic profile from Firestore ────────────────────────────
     useEffect(() => {
         if (!isOpen) return;
 
-        // 1. Try localStorage first (instant)
+        // 1. Try localStorage first (instant) — only use if it has real data
         try {
             const local = localStorage.getItem('acharya_profile');
-            if (local) setFirestoreProfile(JSON.parse(local));
+            if (local) {
+                const parsed = JSON.parse(local);
+                // Only use localStorage if it has meaningful data (not just an empty shell)
+                if (parsed?.prakriti && parsed.prakriti !== 'Vata' && parsed.prakriti !== '') {
+                    setFirestoreProfile(parsed);
+                }
+            }
         } catch { /* noop */ }
 
-        // 2. Fetch from Firestore
+        // 2. Always fetch fresh from Firestore (source of truth)
         (async () => {
             setProfileLoading(true);
             try {
@@ -111,11 +118,21 @@ export default function UserProfile({ isOpen, onClose, userName }: UserProfilePr
                 const db = await getFirebaseFirestore();
                 onAuthStateChanged(auth, async (firebaseUser) => {
                     if (firebaseUser) {
+                        // Get joined date
+                        if (firebaseUser.metadata.creationTime) {
+                            const date = new Date(firebaseUser.metadata.creationTime);
+                            setMemberSince(date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
+                        }
+
                         const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
                         if (snap.exists() && snap.data()?.profile) {
                             const p = snap.data().profile as AyurvedicProfile;
                             setFirestoreProfile(p);
                             try { localStorage.setItem('acharya_profile', JSON.stringify(p)); } catch { /* noop */ }
+                        } else {
+                            // Clear stale localStorage if Firestore has nothing
+                            try { localStorage.removeItem('acharya_profile'); } catch { /* noop */ }
+                            setFirestoreProfile(null);
                         }
                     }
                     setProfileLoading(false);
@@ -125,11 +142,11 @@ export default function UserProfile({ isOpen, onClose, userName }: UserProfilePr
     }, [isOpen]);
 
     // ── Resolved profile values ────────────────────────────────────────────────
-    const prakritiLabel = firestoreProfile?.prakriti || PROFILE_FALLBACK.prakriti;
+    const prakritiLabel = firestoreProfile?.prakriti || 'Awaiting Assessment';
     const doshaData = firestoreProfile?.prakriti
         ? parseDoshaValues(firestoreProfile.prakriti)
-        : PROFILE_FALLBACK.doshas;
-    const personalityText = firestoreProfile?.doshas || PROFILE_FALLBACK.personality;
+        : [];
+    const personalityText = firestoreProfile?.doshas || '';
     const hasRealPlan = !!(firestoreProfile?.plan_lifestyle || firestoreProfile?.plan_food || firestoreProfile?.plan_mantra || firestoreProfile?.plan_herbs);
     const vikritiText = firestoreProfile?.vikriti || '';
     const diseasesText = firestoreProfile?.diseases && firestoreProfile.diseases !== 'None' ? firestoreProfile.diseases : '';
@@ -171,13 +188,13 @@ export default function UserProfile({ isOpen, onClose, userName }: UserProfilePr
                                 </div>
                                 <div className={styles.heroInfo}>
                                     <h2 className={styles.heroName}>{displayName}</h2>
-                                    <span className={styles.heroTitle}>{PROFILE_FALLBACK.title}</span>
+                                    <span className={styles.heroTitle}>OneSUTRA Sadhaka</span>
                                     <div className={styles.heroMetadata}>
                                         {firestoreProfile?.age && <span>{firestoreProfile.age} yrs</span>}
                                         {firestoreProfile?.sex && <span> • {firestoreProfile.sex}</span>}
                                     </div>
                                     <span className={styles.heroPrakriti}>Prakriti: {prakritiLabel}</span>
-                                    <span className={styles.heroJoined}>Member since {PROFILE_FALLBACK.joined}</span>
+                                    <span className={styles.heroJoined}>Member since {memberSince}</span>
                                 </div>
                             </div>
 
@@ -194,22 +211,20 @@ export default function UserProfile({ isOpen, onClose, userName }: UserProfilePr
                                     textAlign: 'center',
                                     lineHeight: 1.6,
                                 }}>
-                                    🕉️ Your Ayurvedic profile will appear here after your Acharya consultation.
+                                    🕉️ Your Ayurvedic profile will appear here after your Bodhi consultation.
                                 </div>
                             )}
 
                             {/* ── Tab bar ── */}
                             <div className={styles.tabs}>
-                                {(['dosha', 'plan', 'badges', 'progress'] as const).map(t => (
+                                {(['dosha', 'plan'] as const).map(t => (
                                     <button
                                         key={t}
                                         className={`${styles.tab} ${tab === t ? styles.tabActive : ''}`}
                                         onClick={() => setTab(t)}
                                     >
                                         {t === 'dosha' ? '🧬 Dosha'
-                                            : t === 'plan' ? '🗓️ Plan'
-                                                : t === 'badges' ? '🏅 Badges'
-                                                    : '📊 Progress'}
+                                            : '🗓️ My 30-Day Plan'}
                                     </button>
                                 ))}
                             </div>
@@ -217,32 +232,43 @@ export default function UserProfile({ isOpen, onClose, userName }: UserProfilePr
                             {/* ── Tab: Dosha ── */}
                             {tab === 'dosha' && (
                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={styles.tabContent}>
-                                    <p className={styles.doshaIntro}>Your Tridosha constitution — the ancient map of your being</p>
 
-                                    {doshaData.map(d => (
-                                        <div key={d.name} className={styles.doshaRow}>
-                                            <div className={styles.doshaLabel}>
-                                                <span className={styles.doshaName}>{d.name}</span>
-                                                <span className={styles.doshaElement}>{d.element}</span>
-                                            </div>
-                                            <div className={styles.doshaBarTrack}>
-                                                <motion.div
-                                                    className={styles.doshaBarFill}
-                                                    style={{ background: d.color }}
-                                                    initial={{ width: 0 }}
-                                                    animate={{ width: `${d.value}%` }}
-                                                    transition={{ duration: 0.9, ease: 'easeOut' as const, delay: 0.1 }}
-                                                />
-                                            </div>
-                                            <span className={styles.doshaPct}>{d.value}%</span>
-                                            <p className={styles.doshaTrait}>{d.trait}</p>
-                                        </div>
-                                    ))}
+                                    {doshaData.length > 0 ? (
+                                        <>
+                                            <p className={styles.doshaIntro}>Your Tridosha constitution — the ancient map of your being</p>
 
-                                    <div className={styles.personalityBox}>
-                                        <span className={styles.personalityLabel}>Your Prakriti Insight</span>
-                                        <p className={styles.personalityText}>{personalityText}</p>
-                                    </div>
+                                            {doshaData.map(d => (
+                                                <div key={d.name} className={styles.doshaRow}>
+                                                    <div className={styles.doshaLabel}>
+                                                        <span className={styles.doshaName}>{d.name}</span>
+                                                        <span className={styles.doshaElement}>{d.element}</span>
+                                                    </div>
+                                                    <div className={styles.doshaBarTrack}>
+                                                        <motion.div
+                                                            className={styles.doshaBarFill}
+                                                            style={{ background: d.color }}
+                                                            initial={{ width: 0 }}
+                                                            animate={{ width: `${d.value}%` }}
+                                                            transition={{ duration: 0.9, ease: 'easeOut' as const, delay: 0.1 }}
+                                                        />
+                                                    </div>
+                                                    <span className={styles.doshaPct}>{d.value}%</span>
+                                                    <p className={styles.doshaTrait}>{d.trait}</p>
+                                                </div>
+                                            ))}
+
+                                            <div className={styles.personalityBox}>
+                                                <span className={styles.personalityLabel}>Your Prakriti Insight</span>
+                                                <p className={styles.personalityText}>{personalityText}</p>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        !profileLoading && (
+                                            <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'rgba(255,255,255,0.35)', fontSize: '0.8rem' }}>
+                                                Complete your session with Bodhi to reveal your Dosha constitution.
+                                            </div>
+                                        )
+                                    )}
 
                                     {(firestoreProfile?.occupation || firestoreProfile?.hobbies) && (
                                         <div style={{
@@ -307,7 +333,7 @@ export default function UserProfile({ isOpen, onClose, userName }: UserProfilePr
                                             {profileLoading ? '⌛ Loading your plan...' : (
                                                 <>
                                                     <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>🕉️</div>
-                                                    Your personalized 30-day Ayurvedic plan will appear here after your Acharya consultation.
+                                                    Your personalized 30-day Ayurvedic plan will appear here after your Bodhi consultation.
                                                 </>
                                             )}
                                         </div>
@@ -372,61 +398,10 @@ export default function UserProfile({ isOpen, onClose, userName }: UserProfilePr
                                                 textAlign: 'center', marginTop: '0.25rem',
                                                 letterSpacing: '0.05em',
                                             }}>
-                                                Prescribed by Acharya Pranav · Consult a physician for medical conditions
+                                                Prescribed by Bodhi · Consult a physician for medical conditions
                                             </p>
                                         </div>
                                     )}
-                                </motion.div>
-                            )}
-
-                            {/* ── Tab: Badges ── */}
-                            {tab === 'badges' && (
-                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={styles.tabContent}>
-                                    <p className={styles.doshaIntro}>Badges earned through your conscious living journey</p>
-                                    <div className={styles.badgeGrid}>
-                                        {PROFILE_FALLBACK.badges.map(b => (
-                                            <div key={b.id} className={`${styles.badge} ${!b.earned ? styles.badgeLocked : ''}`}>
-                                                <span className={styles.badgeEmoji}>{b.emoji}</span>
-                                                <span className={styles.badgeLabel}>{b.label}</span>
-                                                {!b.earned && <span className={styles.badgeLock}>🔒</span>}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </motion.div>
-                            )}
-
-                            {/* ── Tab: Progress ── */}
-                            {tab === 'progress' && (
-                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={styles.tabContent}>
-                                    <div className={styles.statsGrid}>
-                                        {PROFILE_FALLBACK.stats.map(s => (
-                                            <div key={s.label} className={styles.statCard}>
-                                                <span className={styles.statValue}>{s.value}</span>
-                                                <span className={styles.statUnit}>{s.unit}</span>
-                                                <span className={styles.statLabel}>{s.label}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    {/* Weekly bar chart */}
-                                    <div className={styles.chartSection}>
-                                        <p className={styles.chartTitle}>This Week's Wellness Score</p>
-                                        <div className={styles.chart}>
-                                            {PROFILE_FALLBACK.weekProgress.map((pct, i) => (
-                                                <div key={i} className={styles.chartCol}>
-                                                    <div className={styles.chartBarTrack}>
-                                                        <motion.div
-                                                            className={styles.chartBar}
-                                                            initial={{ height: 0 }}
-                                                            animate={{ height: `${pct}%` }}
-                                                            transition={{ delay: i * 0.07, duration: 0.6, ease: 'easeOut' as const }}
-                                                        />
-                                                    </div>
-                                                    <span className={styles.chartDay}>{days[i]}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
                                 </motion.div>
                             )}
                         </div>

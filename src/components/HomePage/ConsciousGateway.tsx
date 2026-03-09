@@ -270,13 +270,19 @@ function UIPanel({ onSuccess, onGuest, compact = false }: Props & { compact?: bo
 
                 // ── Check onboarding status ────────────────────────────────
                 const userSnap = await getDoc(doc(db, 'users', result.user.uid));
-                const hasCompleted = userSnap.exists() && userSnap.data()?.hasCompletedOnboarding === true;
+                const d = userSnap.exists() ? userSnap.data() : null;
+                // Check ALL possible flags (matches acharya-sanctum/page.tsx logic)
+                const hasCompleted = !!(d?.hasCompletedOnboarding || d?.onboardingCompleted || d?.profile?.prakriti);
                 const localDone = localStorage.getItem('acharya_onboarding_done') === 'true';
 
                 if (!hasCompleted && !localDone) {
                     // First-time user → Acharya Sanctum onboarding
                     window.location.href = '/acharya-sanctum';
                     return;
+                }
+                // Cache for instant subsequent logins
+                if (hasCompleted && !localDone) {
+                    localStorage.setItem('acharya_onboarding_done', 'true');
                 }
             } catch { /* offline — proceed to home */ }
             onSuccess(name);
