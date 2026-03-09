@@ -53,7 +53,7 @@ export function OutplugsProvider({ children }: { children: ReactNode }) {
         else setRefreshing(true);
 
         try {
-            const res = await fetch('/api/outplugs-feed', { cache: 'no-store' });
+            const res = await fetch('/api/outplugs-feed');
             if (!res.ok) throw new Error('Feed fetch failed');
 
             const data = await res.json();

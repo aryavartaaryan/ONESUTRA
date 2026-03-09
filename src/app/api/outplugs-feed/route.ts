@@ -4,10 +4,7 @@ import { NEWS_FEED } from '@/data/outplugs-news';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-// ── In-memory cache (10-minute TTL) ─────────────────────────────────────────
-let cachedFeed: unknown[] | null = null;
-let cacheExpiry = 0;
-const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+export const revalidate = 600; // 10 minutes cache TTL
 
 // ── Unsplash images keyed by category ───────────────────────────────────────
 const CATEGORY_IMAGES: Record<string, string> = {
@@ -84,22 +81,11 @@ Make headlines feel fresh for TODAY, ${now.toLocaleDateString('en-IN')}. Cover a
 
 export async function GET() {
     try {
-        // Serve from cache if still valid
-        if (cachedFeed && Date.now() < cacheExpiry) {
-            // Update timeAgo values freshly
-            const freshened = (cachedFeed as Array<Record<string, unknown>>).map(item => ({
-                ...item,
-                timeAgo: timeAgo(item.generatedAt as number),
-            }));
-            return NextResponse.json({ articles: freshened, source: 'cache', cachedUntil: cacheExpiry });
-        }
-
         // Generate fresh news
+        // Next.js will cache this automatically for 10 minutes (revalidate = 600)
         const articles = await generateLiveNews();
-        cachedFeed = articles;
-        cacheExpiry = Date.now() + CACHE_TTL_MS;
 
-        return NextResponse.json({ articles, source: 'live', cachedUntil: cacheExpiry });
+        return NextResponse.json({ articles, source: 'live' });
     } catch (err) {
         console.error('[outPLUGS feed error]', err);
 

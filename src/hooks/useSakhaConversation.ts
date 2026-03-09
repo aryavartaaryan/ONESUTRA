@@ -291,12 +291,11 @@ export function useSakhaConversation({
 
                     let activeArticles = articles;
                     if (activeArticles.length === 0) {
-                        await fetchNews(false); // Force load if empty
-                        // Fallback API call since article state won't update synchronously inside the callback
                         const res = await fetch('/api/outplugs-feed');
                         if (res.ok) {
                             const data = await res.json();
                             activeArticles = data.articles || [];
+                            fetchNews(true); // background update context quietly
                         }
                     }
 
