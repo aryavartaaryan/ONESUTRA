@@ -29,7 +29,6 @@ interface MagicSyncModuleProps {
     onToggle: (id: string) => void;
     onRemove: (id: string) => void;
     onAdd: (text: string) => void;
-    onSync?: (tasks: TaskItem[]) => void;
 }
 
 // ── Gemini helpers ─────────────────────────────────────────────────────────
@@ -245,7 +244,7 @@ function SchedulePrompt({ pill, onSchedule, onSkip }: { pill: TaskItem; onSchedu
 }
 
 // ── Main Component ─────────────────────────────────────────────────────────
-export default function MagicSyncModule({ items, onToggle, onRemove, onAdd, onSync }: MagicSyncModuleProps) {
+export default function MagicSyncModule({ items, onToggle, onRemove, onAdd }: MagicSyncModuleProps) {
     const [inputValue, setInputValue] = useState('');
     const [tasks, setTasks] = useState<TaskItem[]>([]);
     const [isTyping, setIsTyping] = useState(false);
@@ -285,8 +284,7 @@ export default function MagicSyncModule({ items, onToggle, onRemove, onAdd, onSy
     // Persist to localStorage (always) as offline fallback
     useEffect(() => {
         try { localStorage.setItem('pranav_tasks_v3', JSON.stringify(tasks)); } catch { /* */ }
-        if (onSync) onSync(tasks);
-    }, [tasks, onSync]);
+    }, [tasks]);
 
     const persistTask = useCallback(async (task: TaskItem) => {
         const u = await getUID();
@@ -330,37 +328,6 @@ export default function MagicSyncModule({ items, onToggle, onRemove, onAdd, onSy
             if (u) await deleteFromDB(task.id, u);
         }, 700);
     }, [onToggle, onRemove]);
-
-    const handleSubmitExternal = useCallback(async (text: string) => {
-        const trimmed = text.trim();
-        if (!trimmed) return;
-        const instantStyle = keywordCategorize(trimmed);
-        const newTask: TaskItem = { id: Date.now().toString(), text: trimmed, ...instantStyle, done: false, createdAt: Date.now() };
-        setTasks(prev => [newTask, ...prev]);
-        onAdd(trimmed);
-
-        const [style, advice] = await Promise.all([categorizeViaGemini(trimmed), getAIAdvice(trimmed, instantStyle.category)]);
-        const enriched = { ...newTask, ...style, aiAdvice: advice };
-        setTasks(prev => prev.map(t => t.id === newTask.id ? enriched : t));
-        await persistTask(enriched);
-    }, [onAdd, persistTask]);
-
-    useEffect(() => {
-        const handleAdd = (e: any) => {
-            if (e.detail) handleSubmitExternal(e.detail);
-        };
-        const handleToggle = (e: any) => {
-            const id = e.detail;
-            const t = tasks.find(x => x.id === id);
-            if (t) handleComplete(t);
-        };
-        window.addEventListener('bodhi-sankalpa-add', handleAdd);
-        window.addEventListener('bodhi-sankalpa-toggle', handleToggle);
-        return () => {
-            window.removeEventListener('bodhi-sankalpa-add', handleAdd);
-            window.removeEventListener('bodhi-sankalpa-toggle', handleToggle);
-        };
-    }, [tasks, handleSubmitExternal, handleComplete]);
 
     const activeTasks = tasks.filter(t => !t.done && (!filterDate || t.scheduledDate === filterDate));
     const donePct = tasks.length > 0 ? Math.round((tasks.filter(t => t.done).length / tasks.length) * 100) : 0;

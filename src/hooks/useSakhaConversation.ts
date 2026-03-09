@@ -38,7 +38,7 @@ interface UseSakhaConversationOptions {
 function getDayPhase(hour: number): DayPhase {
     if (hour >= 5 && hour < 11) return 'morning';
     if (hour >= 11 && hour < 17) return 'midday';
-    if (hour >= 17 && hour < 21) return 'evening';
+    if (hour >= 17 && hour < 22) return 'evening';
     return 'night';
 }
 
@@ -135,7 +135,9 @@ function buildSystemPrompt(
     }
 
     const greetings = RETURNING_GREETINGS[greetingCategory];
-    const greetingIdx = Math.floor(Math.random() * greetings.length);
+    // Use current minute for rotation to ensure variety but stability within same minute
+    const minute = new Date().getMinutes();
+    const greetingIdx = minute % greetings.length;
     const returningLine = greetings[greetingIdx](firstName);
 
     const taskDensityMsg = pendingTasks.length === 0
@@ -149,7 +151,6 @@ TIME AWARENESS:
 ${timeGapContext}
 - Long gap (>4 hrs)? Greet warmly, ask how they've been.
 - Short gap (<15 min)? Be casual, continue the flow naturally.
-${new Date().getHours() >= 21 || new Date().getHours() < 5 ? `- LATE NIGHT RULE: It is after 9 PM. Gently tell the user that it's time for sleep as it's not good for health to be awake this late. Say something like "Ab aapko so jana chahiye, swasthya ke liye der raat tak jagna achha nahi hai. Hum kal baat karenge." and call [TOOL: dismiss_sakha()] after a brief warm closing.` : ''}
 
 USER CONTEXT:
 Name: ${firstName}
@@ -1066,23 +1067,21 @@ export function useSakhaConversation({
 
                             const bodhiTurn: SakhaMessage = { role: 'sakha', text: cleanedResp, timestamp: Date.now() };
                             setHistory(prev => [...prev, bodhiTurn]);
-                            // Accumulate for end-of-session Firebase save
-                            if (cleanedResp) {
-                                sessionHistoryRef.current.push(bodhiTurn);
+                            // Accumulate for end-of-session Firebase save (backup)
+                            sessionHistoryRef.current.push(bodhiTurn);
+
+                            // ── FIX: Save history immediately after every turn to ensure it's not lost on refresh ──
+                            const currentUid = userIdRef.current;
+                            if (currentUid && cleanedResp) {
+                                saveConversationHistory(currentUid, [bodhiTurn]).catch(() => {
+                                    console.warn('[Bodhi] Failed to persist session history turn');
+                                });
                             }
 
                             // Parse and execute newly arrived tool calls
                             const toolCalls = parseToolCalls(fullTranscriptBufferRef.current);
                             if (toolCalls.length > 0) {
                                 executeToolCalls(toolCalls);
-                            }
-
-                            // FIX: Save history immediately after every turn to ensure it's not lost on refresh
-                            const currentUid = userIdRef.current;
-                            if (currentUid && cleanedResp) {
-                                saveConversationHistory(currentUid, [bodhiTurn]).catch(() => {
-                                    console.warn('[Bodhi] Failed to persist session history turn');
-                                });
                             }
 
                             fullTranscriptBufferRef.current = '';
@@ -1210,7 +1209,14 @@ export function useSakhaConversation({
 
     // ── Deactivate Sakha ───────────────────────────────────────────────────────
     const deactivate = useCallback(() => {
-        // We now save history turn-by-turn. No need to bulk save here.
+        // ── FIX 1: Save this session's conversation history to Firebase ────────
+        const sessionTurns = sessionHistoryRef.current;
+        const currentUid = userIdRef.current;
+        if (currentUid && sessionTurns.length > 0) {
+            saveConversationHistory(currentUid, sessionTurns).catch(() => {
+                console.warn('[Bodhi] Failed to persist session history');
+            });
+        }
         sessionHistoryRef.current = [];
 
         cleanupAll();
