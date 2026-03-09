@@ -38,7 +38,7 @@ interface UseSakhaConversationOptions {
 function getDayPhase(hour: number): DayPhase {
     if (hour >= 5 && hour < 11) return 'morning';
     if (hour >= 11 && hour < 17) return 'midday';
-    if (hour >= 17 && hour < 22) return 'evening';
+    if (hour >= 17 && hour < 21) return 'evening';
     return 'night';
 }
 
@@ -149,6 +149,7 @@ TIME AWARENESS:
 ${timeGapContext}
 - Long gap (>4 hrs)? Greet warmly, ask how they've been.
 - Short gap (<15 min)? Be casual, continue the flow naturally.
+${new Date().getHours() >= 21 || new Date().getHours() < 5 ? `- LATE NIGHT RULE: It is after 9 PM. Gently tell the user that it's time for sleep as it's not good for health to be awake this late. Say something like "Ab aapko so jana chahiye, swasthya ke liye der raat tak jagna achha nahi hai. Hum kal baat karenge." and call [TOOL: dismiss_sakha()] after a brief warm closing.` : ''}
 
 USER CONTEXT:
 Name: ${firstName}
