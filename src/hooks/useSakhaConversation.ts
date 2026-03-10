@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { GoogleGenAI, Modality, type Session, type LiveServerMessage } from '@google/genai';
+import { GoogleGenAI, Modality, Type, type Session, type LiveServerMessage } from '@google/genai';
 import { useUsers } from '@/hooks/useUsers';
 import { useChats } from '@/hooks/useChats';
 import { getChatId } from '@/hooks/useMessages';
@@ -545,13 +545,29 @@ If ${firstName} wants to CONTINUE → Resume naturally from where you left off.`
         }
 
 ════════════════════════════════════════════════════════════════════
-TOOLS — Always on NEW line, never inline
+⏱️ SANKALPA TOOL RULES (STRICT — READ BEFORE CALLING ANY TASK TOOL)
 ════════════════════════════════════════════════════════════════════
-[TOOL: update_sankalpa_tasks(add, "task text")]         ← add new task
-[TOOL: update_sankalpa_tasks(mark_done, "task text")]   ← mark task complete (by text or id)
-[TOOL: update_sankalpa_tasks(remove, "task text")]      ← remove specific task (CONFIRM FIRST)
-[TOOL: update_sankalpa_tasks(remove_all_done)]          ← clear completed tasks
-[TOOL: update_sankalpa_tasks(clear_pending)]            ← clear ALL pending (CONFIRM FIRST)
+
+RULE 1 — TIME GATE (MOST IMPORTANT):
+You have a native tool called add_sankalpa_task. It REQUIRES allocated_time_minutes.
+If the user says 'add coding to my list' WITHOUT giving a time, you MUST reply:
+'मैं इसे आपके संकल्प में जोड़ दूँगा, लेकिन आप इसे कितना समय देना चाहेंगे?'
+DO NOT call the add_sankalpa_task tool until the user provides a duration.
+
+RULE 2 — TIME AWARENESS:
+When reviewing or discussing tasks, ALWAYS mention the allocated time.
+Example: 'आपके पास 30 मिनट का ध्यान (meditation) बाकी है।'
+
+RULE 3 — WARM CONFIRMATION:
+After EVERY successful tool call, briefly confirm it in warm Hindi.
+Example: 'मैंने 45 मिनट का योग आपके संकल्प में जोड़ दिया है। 🙏'
+
+For removing/completing tasks: use remove_sankalpa_task with the task_name.
+For all other tools (memory, messages, meditation, dismiss): use the [TOOL: ...] text format below.
+
+════════════════════════════════════════════════════════════════════
+OTHER TOOLS (text format — always on NEW line, never inline)
+════════════════════════════════════════════════════════════════════
 [TOOL: save_memory("important fact about user")]
 [TOOL: read_unread_messages("contact name")]
 [TOOL: reply_to_message("contact name", "reply text")]
@@ -1406,6 +1422,47 @@ export function useSakhaConversation({
                         voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Aoede' } },
                     },
                     systemInstruction: buildSystemPrompt(phaseRef.current, userName, sankalpaRef.current, memories, unreadContext, conversationHistory, hasGreetedThisPhase, newsContext, messagesContext, timeGapStr, timeGapMins, isMedDone, healthProfile, detectedMood, personalityProfile) + '\n\nRANDOM_SEED: ' + Math.floor(Math.random() * 1000),
+                    // ── MODULE 1: Google AI SDK FunctionDeclarations (Sankalpa Tools) ──
+                    tools: [{
+                        functionDeclarations: [
+                            {
+                                name: 'add_sankalpa_task',
+                                description: 'Adds a new task to the user\'s Sankalpa (task) list. You MUST ask the user for the time duration before calling this tool. Do not call this until the user provides both the task name AND the number of minutes.',
+                                parameters: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        task_name: {
+                                            type: Type.STRING,
+                                            description: 'The name of the activity, e.g. "Morning Meditation" or "Coding Practice".',
+                                        },
+                                        start_time: {
+                                            type: Type.STRING,
+                                            description: 'The time at which this task should start, e.g. "9:00 AM" or "after lunch". Optional.',
+                                        },
+                                        allocated_time_minutes: {
+                                            type: Type.INTEGER,
+                                            description: 'The exact number of minutes the user wants to allocate to this task. This is REQUIRED — always ask if not provided.',
+                                        },
+                                    },
+                                    required: ['task_name', 'allocated_time_minutes'],
+                                },
+                            },
+                            {
+                                name: 'remove_sankalpa_task',
+                                description: 'Removes a task from the Sankalpa list, or marks it as complete and removes it.',
+                                parameters: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        task_name: {
+                                            type: Type.STRING,
+                                            description: 'The exact name (or partial name) of the task to remove or mark complete.',
+                                        },
+                                    },
+                                    required: ['task_name'],
+                                },
+                            },
+                        ],
+                    }],
                 },
                 callbacks: {
                     onopen: () => {
@@ -1442,8 +1499,102 @@ export function useSakhaConversation({
                             }, 8000);
                         }
                     },
-                    onmessage: (message: LiveServerMessage) => {
+                    onmessage: async (message: LiveServerMessage) => {
                         const msg = message as any;
+
+                        // ══════════════════════════════════════════════════════
+                        // MODULE 3 — SILENCE-KILLER: Handle Google AI SDK native
+                        // function calls (toolCall) immediately with toolResponse
+                        // ══════════════════════════════════════════════════════
+                        if (msg.toolCall?.functionCalls?.length > 0) {
+                            for (const fc of msg.toolCall.functionCalls) {
+                                const fcName: string = fc.name ?? '';
+                                const fcArgs = fc.args ?? {};
+                                const fcId: string = fc.id ?? '';
+
+                                let responseMessage = 'success';
+
+                                // ── add_sankalpa_task ──────────────────────────
+                                if (fcName === 'add_sankalpa_task') {
+                                    const taskName: string = fcArgs.task_name ?? 'Task';
+                                    const allocatedMins: number = fcArgs.allocated_time_minutes ?? 0;
+                                    const startTime: string = fcArgs.start_time ?? '';
+                                    const current = [...sankalpaRef.current];
+                                    const newTask: TaskItem = {
+                                        id: Date.now().toString(),
+                                        text: taskName,
+                                        done: false,
+                                        category: 'Focus',
+                                        colorClass: 'fuchsia',
+                                        accentColor: '217, 70, 239',
+                                        icon: '⏱️',
+                                        createdAt: Date.now(),
+                                        allocatedMinutes: allocatedMins,   // now a proper typed field
+                                        startTime: startTime || undefined,  // proper typed field
+                                    };
+                                    onSankalpaUpdateRef.current([...current, newTask]);
+                                    responseMessage = `Task "${taskName}" (${allocatedMins} minutes) added successfully to Sankalpa UI.`;
+                                    console.log(`[Bodhi SDK] ✅ add_sankalpa_task: "${taskName}" | ${allocatedMins} min`);
+                                }
+
+                                // ── remove_sankalpa_task ───────────────────────
+                                if (fcName === 'remove_sankalpa_task') {
+                                    const taskName: string = fcArgs.task_name ?? '';
+                                    const query = taskName.toLowerCase();
+                                    const current = [...sankalpaRef.current];
+                                    const removed = current.filter(t => t.text.toLowerCase().includes(query));
+                                    const updated = current.filter(t => !t.text.toLowerCase().includes(query));
+                                    onSankalpaUpdateRef.current(updated);
+                                    responseMessage = removed.length > 0
+                                        ? `Task "${removed.map(t => t.text).join(', ')}" removed from Sankalpa UI.`
+                                        : `No matching task found for "${taskName}".`;
+                                    console.log(`[Bodhi SDK] ✅ remove_sankalpa_task: "${taskName}"`);
+                                }
+
+                                // ══════════════════════════════════════════════════════════
+                                // 🔇 SILENCE-KILLER: Send toolResponse IMMEDIATELY back to Gemini
+                                // This is the "receipt" Gemini needs to resume audio generation.
+                                // Without this, the model hangs in infinite silence after a tool call.
+                                // ══════════════════════════════════════════════════════════
+                                if (sessionRef.current) {
+                                    const toolResponsePayload = {
+                                        functionResponses: [{
+                                            id: fcId,    // Must match the id from Gemini's functionCall
+                                            name: fcName,
+                                            response: {
+                                                status: 'success',
+                                                message: responseMessage,
+                                            },
+                                        }],
+                                    };
+
+                                    // Primary path: use the native SDK sendToolResponse (Google AI SDK >= 0.7)
+                                    const session = sessionRef.current as any;
+                                    if (typeof session.sendToolResponse === 'function') {
+                                        try {
+                                            await session.sendToolResponse(toolResponsePayload);
+                                            console.log(`[Bodhi SDK] ✅ Silence-Killer: toolResponse sent for "${fcName}" (id: ${fcId})`);
+                                        } catch (trErr) {
+                                            console.warn('[Bodhi SDK] sendToolResponse threw, falling back to sendClientContent:', trErr);
+                                            // Fallback: inject as a user content message so Bodhi can still confirm
+                                            await sessionRef.current.sendClientContent({
+                                                turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: ${responseMessage} Please confirm warmly in Hindi.` }] }],
+                                                turnComplete: true,
+                                            });
+                                        }
+                                    } else {
+                                        // SDK version doesn't have sendToolResponse — use sendClientContent fallback
+                                        console.warn('[Bodhi SDK] sendToolResponse not available, using sendClientContent fallback');
+                                        await sessionRef.current.sendClientContent({
+                                            turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: ${responseMessage} Please confirm warmly in Hindi.` }] }],
+                                            turnComplete: true,
+                                        });
+                                    }
+                                }
+                            }
+                            return; // Don't process this message further as serverContent
+                        }
+
                         const serverContent = msg.serverContent;
 
                         if (serverContent?.modelTurn?.parts) {
