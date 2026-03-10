@@ -226,13 +226,50 @@ export default function OneSutraPage() {
     const realChatIds = user ? realContacts.map(c => getChatId(user.uid, c.uid)) : [];
     const chatMeta = useChats(realChatIds, user?.uid ?? null);
 
+    // ── Auto-mark active chat as read when new messages arrive ──────────────
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useEffect(() => {
+        if (!activeContact || !user || activeContact.isAI) return;
+        const cid = getChatId(user.uid, activeContact.uid);
+        const meta = chatMeta.get(cid);
+        if (!meta || meta.unreadCount === 0) return;
+        // Debounce: batch rapid incoming messages
+        const timer = setTimeout(async () => {
+            try {
+                const { getFirebaseFirestore } = await import('@/lib/firebase');
+                const { doc, setDoc } = await import('firebase/firestore');
+                const db = await getFirebaseFirestore();
+                await setDoc(doc(db, 'onesutra_chats', cid),
+                    { [`unreadCounts.${user.uid}`]: 0 },
+                    { merge: true }
+                );
+            } catch { /* ignore */ }
+        }, 800);
+        return () => clearTimeout(timer);
+    }, [chatMeta, activeContact?.uid, user]); // eslint-disable-line react-hooks/exhaustive-deps
+
     const allContacts = [
         ...AI_CONTACTS.map(c => ({ ...c, photoURL: undefined as undefined })),
         ...realContacts,
     ];
-    const filtered = allContacts.filter(c =>
-        c.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filtered = allContacts
+        .filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
+        .sort((a, b) => {
+            // Sort: unread chats first, then by latest message timestamp descending
+            const cidA = !a.isAI && user ? getChatId(user.uid, a.uid) : null;
+            const cidB = !b.isAI && user ? getChatId(user.uid, b.uid) : null;
+            const metaA = cidA ? chatMeta.get(cidA) : null;
+            const metaB = cidB ? chatMeta.get(cidB) : null;
+            const unreadA = metaA?.unreadCount ?? 0;
+            const unreadB = metaB?.unreadCount ?? 0;
+            // Unread chats bubble to top
+            if (unreadA > 0 && unreadB === 0) return -1;
+            if (unreadA === 0 && unreadB > 0) return 1;
+            // Then sort by latest message time (newest first)
+            const timeA = metaA?.lastMessageAt ?? 0;
+            const timeB = metaB?.lastMessageAt ?? 0;
+            return timeB - timeA;
+        });
 
     const openChat = async (c: typeof allContacts[0]) => {
         setActiveContact(c);

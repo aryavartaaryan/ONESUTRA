@@ -48,6 +48,10 @@ interface SakhaBodhiOrbProps {
     onAddTask?: (task: TaskItem) => Promise<void>;
     /** Persists Bodhi-removed tasks to Firestore */
     onRemoveTask?: (taskId: string) => Promise<void>;
+    /** Auto-alert: new SutraConnect message details to announce on connect */
+    messageAlert?: { name: string; messageText: string; uid: string; chatId: string } | null;
+    /** Called once Bodhi has been primed with the alert, so the parent can clear it */
+    onMessageAlertProcessed?: () => void;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -60,6 +64,8 @@ export default function SakhaBodhiOrb({
     userId = null,
     onAddTask,
     onRemoveTask,
+    messageAlert,
+    onMessageAlertProcessed,
 }: SakhaBodhiOrbProps) {
     const {
         sakhaState,
@@ -75,6 +81,8 @@ export default function SakhaBodhiOrb({
         userId,
         onAddTask,
         onRemoveTask,
+        messageAlert: messageAlert ?? null,
+        onMessageAlertProcessed,
     });
 
     useEffect(() => {
