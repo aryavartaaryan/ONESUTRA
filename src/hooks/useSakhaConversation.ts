@@ -22,7 +22,8 @@ export interface SakhaMessage {
 interface UseSakhaConversationOptions {
     userName?: string;
     sankalpaItems: TaskItem[];
-    onSankalpaUpdate: (items: TaskItem[]) => void;
+    onAddTask: (task: TaskItem) => void;
+    onRemoveTask: (taskId: string) => void;
     onDismiss: () => void;
     enableMemory?: boolean;
     userId?: string | null;
@@ -765,7 +766,8 @@ const NOISE_GATE_THRESHOLD = 0.012;
 export function useSakhaConversation({
     userName = 'Aryan',
     sankalpaItems,
-    onSankalpaUpdate,
+    onAddTask,
+    onRemoveTask,
     onDismiss,
     enableMemory = true,
     userId = null,
@@ -809,8 +811,9 @@ export function useSakhaConversation({
 
     // Current app state refs
     const sankalpaRef = useRef(sankalpaItems);
+    const onAddTaskRef = useRef(onAddTask);
+    const onRemoveTaskRef = useRef(onRemoveTask);
     const onDismissRef = useRef(onDismiss);
-    const onSankalpaUpdateRef = useRef(onSankalpaUpdate);
     const phaseRef = useRef<DayPhase>('morning');
     const fullTranscriptBufferRef = useRef('');
     const sessionHistoryRef = useRef<SakhaMessage[]>([]); // tracks turns in THIS session
@@ -820,7 +823,8 @@ export function useSakhaConversation({
     // Keep refs in sync
     useEffect(() => { sankalpaRef.current = sankalpaItems; }, [sankalpaItems]);
     useEffect(() => { onDismissRef.current = onDismiss; }, [onDismiss]);
-    useEffect(() => { onSankalpaUpdateRef.current = onSankalpaUpdate; }, [onSankalpaUpdate]);
+    useEffect(() => { onAddTaskRef.current = onAddTask; }, [onAddTask]);
+    useEffect(() => { onRemoveTaskRef.current = onRemoveTask; }, [onRemoveTask]);
     useEffect(() => { userNameRef.current = userName; }, [userName]);
     useEffect(() => { userIdRef.current = userId; }, [userId]);
 
@@ -881,7 +885,7 @@ export function useSakhaConversation({
                         createdAt: Date.now()
                     };
                     const updated = [...current, newTask];
-                    onSankalpaUpdateRef.current(updated);
+                    if (onAddTaskRef.current) onAddTaskRef.current(newTask);
                     if (sessionRef.current) {
                         await sessionRef.current.sendClientContent({
                             turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: Task "${call.args[1]}" has been ADDED to Sankalpa list. ${updated.length} tasks total now. Confirm warmly in Hindi and ask if more tasks to add or how to help with this one.` }] }],
@@ -898,7 +902,7 @@ export function useSakhaConversation({
                     const updated = current.filter(t =>
                         t.id !== call.args[1] && !t.text.toLowerCase().includes(query)
                     );
-                    onSankalpaUpdateRef.current(updated);
+                    removed.forEach(t => { if (onRemoveTaskRef.current) onRemoveTaskRef.current(t.id); });
                     if (sessionRef.current) {
                         const removedNames = removed.map(t => t.text).join(', ');
                         await sessionRef.current.sendClientContent({
@@ -909,8 +913,9 @@ export function useSakhaConversation({
                 }
 
                 if (action === 'clear_pending') {
+                    const toRemove = current.filter(t => !t.done);
                     const updated = current.filter(t => t.done);
-                    onSankalpaUpdateRef.current(updated);
+                    toRemove.forEach(t => { if (onRemoveTaskRef.current) onRemoveTaskRef.current(t.id); });
                     if (sessionRef.current) {
                         await sessionRef.current.sendClientContent({
                             turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: All pending tasks cleared. ${updated.length} completed tasks remain. Confirm warmly in Hindi.` }] }],
@@ -920,8 +925,9 @@ export function useSakhaConversation({
                 }
 
                 if (action === 'remove_all_done') {
+                    const toRemove = current.filter(t => t.done);
                     const updated = current.filter(t => !t.done);
-                    onSankalpaUpdateRef.current(updated);
+                    toRemove.forEach(t => { if (onRemoveTaskRef.current) onRemoveTaskRef.current(t.id); });
                     if (sessionRef.current) {
                         await sessionRef.current.sendClientContent({
                             turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: All completed tasks removed. ${updated.length} active tasks remain. Confirm warmly in Hindi.` }] }],
@@ -936,7 +942,11 @@ export function useSakhaConversation({
                         (t.id === call.args[1] || t.text.toLowerCase().includes(query))
                             ? { ...t, done: true } : t
                     );
-                    onSankalpaUpdateRef.current(updated);
+                    const matched = current.filter(t => t.id === call.args[1] || t.text.toLowerCase().includes(query));
+                    matched.forEach(t => {
+                        if (onRemoveTaskRef.current) onRemoveTaskRef.current(t.id);
+                        if (onAddTaskRef.current) onAddTaskRef.current({ ...t, done: true });
+                    });
                     const doneTask = updated.find(t => t.done && (t.id === call.args[1] || t.text.toLowerCase().includes(query)));
                     if (sessionRef.current) {
                         await sessionRef.current.sendClientContent({
@@ -1283,22 +1293,50 @@ export function useSakhaConversation({
         // ── CONTINUOUS TOOL: manage_sankalpa_task ─────────────────────────────
         if (name === 'manage_sankalpa_task') {
             const action = args.action as string;
-            const taskText = args.task_text as string;
+            const text = args.task_text as string;
             const current = [...sankalpaRef.current];
             let result = '';
-            if (action === 'add') {
+            if (action === 'add' && text) {
                 const newTask: import('./useDailyTasks').TaskItem = {
-                    id: Date.now().toString(), text: taskText, done: false,
+                    id: Date.now().toString(), text, done: false,
                     category: 'Focus', colorClass: 'fuchsia', accentColor: '217, 70, 239',
                     icon: '✨', createdAt: Date.now(),
                 };
-                onSankalpaUpdateRef.current([...current, newTask]);
-                result = `Task "${taskText}" successfully added to Sankalpa list. ${current.length + 1} tasks total.`;
+                if (onAddTaskRef.current) onAddTaskRef.current(newTask);
+                result = `Task "${text}" successfully added to Sankalpa list. ${current.length + 1} tasks total.`;
+            } else if (action === 'mark_done' && text) {
+                const matched = current.filter(t => t.text.toLowerCase().includes(text));
+                if (matched.length > 0) {
+                    matched.forEach(t => {
+                        if (onRemoveTaskRef.current) onRemoveTaskRef.current(t.id);
+                        if (onAddTaskRef.current) onAddTaskRef.current({ ...t, done: true });
+                    });
+                    result = `Task matching "${text}" marked as done.`;
+                } else {
+                    result = `Could not find any task matching "${text}" to mark as done.`;
+                }
+            } else if (action === 'remove' && text) {
+                const matched = current.filter(t => t.text.toLowerCase().includes(text));
+                if (matched.length > 0) {
+                    matched.forEach(t => {
+                        if (onRemoveTaskRef.current) onRemoveTaskRef.current(t.id);
+                    });
+                    result = `Task matching "${text}" removed. ${current.length - matched.length} tasks remaining.`;
+                } else {
+                    result = `Could not find any task matching "${text}" to remove.`;
+                }
+            } else if (action === 'remove_all_done') {
+                current.filter(t => t.done).forEach(t => {
+                    if (onRemoveTaskRef.current) onRemoveTaskRef.current(t.id);
+                });
+                result = `All completed tasks removed.`;
+            } else if (action === 'clear_pending') {
+                current.filter(t => !t.done).forEach(t => {
+                    if (onRemoveTaskRef.current) onRemoveTaskRef.current(t.id);
+                });
+                result = `All pending tasks cleared.`;
             } else {
-                const query = taskText.toLowerCase();
-                const updated = current.filter(t => !t.text.toLowerCase().includes(query));
-                onSankalpaUpdateRef.current(updated);
-                result = `Task matching "${taskText}" removed. ${updated.length} tasks remaining.`;
+                result = `Unknown action: ${action}`;
             }
             if (session) {
                 await session.sendToolResponse({

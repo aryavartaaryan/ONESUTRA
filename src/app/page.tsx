@@ -384,7 +384,8 @@ export default function Home() {
             userName={displayName || 'Mitra'}
             userId={userId}
             sankalpaItems={sankalpaItems}
-            onSankalpaUpdate={() => { }}
+            onAddTask={addTask}
+            onRemoveTask={removeTask}
             onDismiss={() => setIsSakhaActive(false)}
             onNavigate={handleBodhiNavigate}
             onPlayRaag={handleBodhiPlayRaag}

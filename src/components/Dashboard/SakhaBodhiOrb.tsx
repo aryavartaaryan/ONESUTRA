@@ -40,7 +40,8 @@ function ClarityStar() {
 
 interface SakhaBodhiOrbProps {
     sankalpaItems: TaskItem[];
-    onSankalpaUpdate: (items: TaskItem[]) => void;
+    onAddTask: (task: TaskItem) => void;
+    onRemoveTask: (taskId: string) => void;
     onDismiss: () => void;
     userName?: string;
     userId?: string | null;
@@ -54,7 +55,8 @@ interface SakhaBodhiOrbProps {
 
 export default function SakhaBodhiOrb({
     sankalpaItems,
-    onSankalpaUpdate,
+    onAddTask,
+    onRemoveTask,
     onDismiss,
     userName = 'Aryan',
     userId = null,
@@ -70,7 +72,8 @@ export default function SakhaBodhiOrb({
     } = useSakhaConversation({
         userName,
         sankalpaItems,
-        onSankalpaUpdate,
+        onAddTask,
+        onRemoveTask,
         onDismiss,
         userId,
         onNavigate,
