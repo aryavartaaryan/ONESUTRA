@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getFirebaseAdmin } from '@/lib/firebase-admin';
+import { getAdminDb } from '@/lib/firebaseAdmin';
 import { GoogleGenAI } from '@google/genai';
 
 // ── Rate Limiting / Debounce Constants ──────────────────────────────────────
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
         }
 
-        const adminDb = getFirebaseAdmin().firestore();
+        const adminDb = getAdminDb();
         const userRef = adminDb.collection('users').doc(userId);
 
         // 1. Check if we really need to run (debounce)
