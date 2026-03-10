@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { GoogleGenAI, Modality, type Session, type LiveServerMessage } from '@google/genai';
+import { GoogleGenAI, Modality, createPartFromFunctionResponse, type Session, type LiveServerMessage } from '@google/genai';
 import { useOutplugs, type Article } from '@/context/OutplugsContext';
 import { useUsers } from '@/hooks/useUsers';
 import { useChats } from '@/hooks/useChats';
@@ -1497,13 +1497,13 @@ export function useSakhaConversation({
                                         session.sendClientContent({
                                             turns: [{
                                                 role: 'user',
-                                                parts: [{
-                                                    functionResponse: {
-                                                        id: id,
-                                                        name: 'add_sankalpa',
-                                                        response: { status: 'success', message: 'Sankalpa added to list successfully' }
-                                                    }
-                                                }]
+                                                parts: [
+                                                    createPartFromFunctionResponse(
+                                                        id,
+                                                        'add_sankalpa',
+                                                        { status: 'success', message: 'Sankalpa added to list successfully' }
+                                                    )
+                                                ]
                                             }],
                                             turnComplete: true
                                         });
@@ -1521,13 +1521,13 @@ export function useSakhaConversation({
                                         session.sendClientContent({
                                             turns: [{
                                                 role: 'user',
-                                                parts: [{
-                                                    functionResponse: {
-                                                        id: id,
-                                                        name: 'remove_sankalpa',
-                                                        response: { status: 'success', message: 'Sankalpa marked as done/removed' }
-                                                    }
-                                                }]
+                                                parts: [
+                                                    createPartFromFunctionResponse(
+                                                        id,
+                                                        'remove_sankalpa',
+                                                        { status: 'success', message: 'Sankalpa marked as done/removed' }
+                                                    )
+                                                ]
                                             }],
                                             turnComplete: true
                                         });
