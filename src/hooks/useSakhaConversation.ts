@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { GoogleGenAI, Modality, createPartFromFunctionResponse, type Session, type LiveServerMessage } from '@google/genai';
+import { GoogleGenAI, Modality, type Session, type LiveServerMessage } from '@google/genai';
 import { useOutplugs, type Article } from '@/context/OutplugsContext';
 import { useUsers } from '@/hooks/useUsers';
 import { useChats } from '@/hooks/useChats';
@@ -375,32 +375,54 @@ ${todayChallenge}
 → Don't just announce — make it FUN. Use excitement, humor, encouragement.
 → If they engage, go deep. Celebrate every attempt.
 
-📋 TASK PLANNER ENGINE — Strict Execution Framework
+════════════════════════════════════════════════════════════════════
+📋 TASK PLANNER ENGINE — Bodhi as Personal Productivity Coach
 ════════════════════════════════════════════════════════════════════
 
-PROACTIVE TASK COLLECTION:
-→ Ask early: "\${firstName}, आज के लिए कोई task है जो list में add करूँ?"
-
-CRITICAL ARCHITECTURE RULE - YOU CANNOT ADD OR REMOVE TASKS BY SPEAKING.
-To modify the list, you MUST use the native JSON tools provided (\`add_sankalpa\` or \`remove_sankalpa\`).
-
-Strict Execution Protocol:
-1. NEVER say "I have added your Sankalpa" in plain text UNLESS you have successfully fired the tool.
-2. When the user asks to add/remove a Sankalpa, IMMEDIATELY CALL THE TOOL (\`add_sankalpa\` or \`remove_sankalpa\`). Do not write conversational text first. Stop speaking.
-3. Wait for the system to return the function execution result.
-4. ONLY AFTER the tool returns a success message from the system, you may say: "बढ़िया! Sankalpa में जोड़ दिया 🙏"
+PROACTIVE TASK COLLECTION (once per session, naturally):
+→ Ask early: "${firstName}, आज के लिए कोई task है जो list में add करूँ? बताइए, मैं याद रखूँगा और complete करने में help करूँगा।"
+→ As user names tasks → add each immediately:
+  [TOOL: update_sankalpa_tasks(add, "exact task text")]
+→ After each add → confirm: "बढ़िया, जोड़ दिया 🙏 — कुछ और?"
+→ When done → "Perfect! किस task से शुरू करें आज?"
+→ Pick ONE task → give 3 actionable steps to complete it.
 
 TASK OPERATION RULES:
+
 📌 ADD:
-  Trigger: "add karo"/"yaad rakh"
-  → [TOOL CALL: add_sankalpa]
+  Trigger: "add karo"/"yaad rakh"/"note kar"/"list mein daal"
+  → CONFIRM: "'[task]' add करूँ?"
+  → [TOOL: update_sankalpa_tasks(add, "task text")]
 
-✅ COMPLETE / ❌ REMOVE:
-  Trigger: "ho gaya"/"hata do"
-  → [TOOL CALL: remove_sankalpa]
+✅ COMPLETE:
+  Trigger: "ho gaya"/"complete"/"kar liya"/"done"
+  → Ask which task if unclear
+  → [TOOL: update_sankalpa_tasks(mark_done, "task text")]
+  → Celebrate! "🎉 Waah ${firstName}! बहुत अच्छा!"
 
-CURRENT STATUS: \${pendingTasks.length} tasks pending, \${completedTasks.length} done.
-\${pendingTasks.length === 0 ? '→ List खाली है — ask: "आज कुछ plan करें साथ में?"' : '→ Naturally suggest picking one task to start.'}
+❌ REMOVE (ALWAYS confirm first):
+  Trigger: "hata do"/"remove karo"/"cancel"/"nahi karna"/"delete"
+  → CONFIRM FIRST: "'[task]' list से हटा दूँ?"
+  → [TOOL: update_sankalpa_tasks(remove, "task text")]
+  → NEVER remove without explicit confirmation.
+
+🧹 CLEAR COMPLETED:
+  Trigger: "completed wale hata do"
+  → [TOOL: update_sankalpa_tasks(remove_all_done)]
+
+🗑️ CLEAR ALL (ALWAYS confirm):
+  Trigger: "sab clear"/"fresh start"
+  → CONFIRM: "सब tasks मिटा दूँ?" → [TOOL: update_sankalpa_tasks(clear_pending)]
+
+TASK ADVICE ENGINE:
+→ When helping with a task:
+  1. Break into 3 small steps
+  2. Give time estimate
+  3. Best time of day for this task
+  4. "मैं बाद में follow up करूँगा!"
+
+CURRENT STATUS: ${pendingTasks.length} tasks pending, ${completedTasks.length} done.
+${pendingTasks.length === 0 ? '→ List खाली है — ask: "आज कुछ plan करें साथ में?"' : '→ Naturally suggest picking one task to start.'}
 
 ════════════════════════════════════════════════════════════════════
 🎓 SKILL ACADEMY — Bodhi Teaches Everything
@@ -456,9 +478,11 @@ MOOD RESPONSE MATRIX:
    → [TOOL: read_unread_messages("contact name")]
    → After reading: "क्या आप जवाब देना चाहेंगे?" → [TOOL: reply_to_message("name", "reply")]
 
-2. TASK GUIDE — Strict Tool Usage:
-   • For additions, execute the \`add_sankalpa\` tool.
-   • For completions/removals, execute the \`remove_sankalpa\` tool.
+2. TASK GUIDE — Natural, not robotic:
+   • "add karo" / "yaad rakh" → [TOOL: update_sankalpa_tasks(add, "task text")]
+   • "ho gaya" / "complete" → [TOOL: update_sankalpa_tasks(mark_done, "task id")]
+   • Clear all → [TOOL: update_sankalpa_tasks(clear_pending)]
+   Response: "बढ़िया! ${firstName} की Sankalpa में जोड़ दिया 🙏"
 
 3. TOPIC FATIGUE: एक session में rejected topic = NEVER bring up again.
 
@@ -487,8 +511,13 @@ ${hasGreetedThisPhase
         }
 
 ════════════════════════════════════════════════════════════════════
-TOOLS (Text Fallbacks for Non-Task Items)
+TOOLS — Always on NEW line, never inline
 ════════════════════════════════════════════════════════════════════
+[TOOL: update_sankalpa_tasks(add, "task text")]         ← add new task
+[TOOL: update_sankalpa_tasks(mark_done, "task text")]   ← mark task complete (by text or id)
+[TOOL: update_sankalpa_tasks(remove, "task text")]      ← remove specific task (CONFIRM FIRST)
+[TOOL: update_sankalpa_tasks(remove_all_done)]          ← clear completed tasks
+[TOOL: update_sankalpa_tasks(clear_pending)]            ← clear ALL pending (CONFIRM FIRST)
 [TOOL: save_memory("important fact about user")]
 [TOOL: read_unread_messages("contact name")]
 [TOOL: reply_to_message("contact name", "reply text")]
@@ -1381,44 +1410,6 @@ export function useSakhaConversation({
                 model: GEMINI_LIVE_MODEL,
                 config: {
                     responseModalities: [Modality.AUDIO], // MUST BE AUDIO ONLY
-                    tools: [
-                        {
-                            functionDeclarations: [
-                                {
-                                    name: 'add_sankalpa',
-                                    description: "Adds a new spiritual intention or task to the user's Sankalpa list.",
-                                    parameters: {
-                                        type: 'OBJECT' as any,
-                                        properties: {
-                                            title: {
-                                                type: 'STRING' as any,
-                                                description: "The name of the Sankalpa (e.g., 'Morning Meditation', 'Drink water')"
-                                            },
-                                            category: {
-                                                type: 'STRING' as any,
-                                                description: "Focus, Spiritual, or Wellbeing"
-                                            }
-                                        },
-                                        required: ["title"]
-                                    }
-                                },
-                                {
-                                    name: 'remove_sankalpa',
-                                    description: "Marks a task as done or removes it entirely from the user's Sankalpa list.",
-                                    parameters: {
-                                        type: 'OBJECT' as any,
-                                        properties: {
-                                            title: {
-                                                type: 'STRING' as any,
-                                                description: "The name of the Sankalpa to remove or complete."
-                                            }
-                                        },
-                                        required: ["title"]
-                                    }
-                                }
-                            ]
-                        }
-                    ],
                     speechConfig: {
                         voiceConfig: {
                             prebuiltVoiceConfig: {
@@ -1445,19 +1436,9 @@ export function useSakhaConversation({
                         const msg = message as any;
                         const serverContent = msg.serverContent;
 
-                        // ─── TOOL CALL HANDLING ───
-                        const incomingToolCalls: any[] = [];
-
-                        // Extract from LiveServerToolCall structure
-                        if (msg.toolCall?.functionCalls) {
-                            incomingToolCalls.push(...msg.toolCall.functionCalls);
-                        }
-
                         if (serverContent?.modelTurn?.parts) {
+                            canListenRef.current = false; // block mic while processing response
                             for (const part of serverContent.modelTurn.parts) {
-                                if (part.functionCall) {
-                                    incomingToolCalls.push(part.functionCall);
-                                }
                                 if (part.inlineData?.data) {
                                     const audioFloat32 = base64PCMToFloat32(part.inlineData.data);
                                     enqueueAudio(audioFloat32);
@@ -1465,73 +1446,6 @@ export function useSakhaConversation({
                                 if (part.text) {
                                     fullTranscriptBufferRef.current += part.text;
                                     setCurrentSentence(prev => prev + part.text);
-                                }
-                            }
-                        }
-
-                        if (incomingToolCalls.length > 0) {
-                            canListenRef.current = false; // block mic while processing response
-                            for (const call of incomingToolCalls) {
-                                const { id, name, args } = call;
-                                console.log(`[Bodhi] Gemini requested function call: ${name}`, args, id);
-
-                                if (name === 'add_sankalpa') {
-                                    const title = (args as any).title;
-                                    const category = (args as any).category || 'Focus';
-
-                                    if (title) {
-                                        const newTask: TaskItem = {
-                                            id: Date.now().toString(),
-                                            text: title,
-                                            done: false,
-                                            category: category,
-                                            colorClass: 'fuchsia',
-                                            accentColor: '217, 70, 239',
-                                            icon: '✨',
-                                            createdAt: Date.now()
-                                        };
-                                        const updated = [...sankalpaRef.current, newTask];
-                                        onSankalpaUpdateRef.current(updated);
-
-                                        // Send confirmation back to model so it can respond
-                                        session.sendClientContent({
-                                            turns: [{
-                                                role: 'user',
-                                                parts: [
-                                                    createPartFromFunctionResponse(
-                                                        id,
-                                                        'add_sankalpa',
-                                                        { status: 'success', message: 'Sankalpa added to list successfully' }
-                                                    )
-                                                ]
-                                            }],
-                                            turnComplete: true
-                                        });
-                                    }
-                                } else if (name === 'remove_sankalpa') {
-                                    const title = (args as any).title;
-                                    if (title) {
-                                        // Try to match and mark done
-                                        const query = title.toLowerCase();
-                                        const updated = sankalpaRef.current.map(t =>
-                                            t.text.toLowerCase().includes(query) ? { ...t, done: true } : t
-                                        );
-                                        onSankalpaUpdateRef.current(updated);
-
-                                        session.sendClientContent({
-                                            turns: [{
-                                                role: 'user',
-                                                parts: [
-                                                    createPartFromFunctionResponse(
-                                                        id,
-                                                        'remove_sankalpa',
-                                                        { status: 'success', message: 'Sankalpa marked as done/removed' }
-                                                    )
-                                                ]
-                                            }],
-                                            turnComplete: true
-                                        });
-                                    }
                                 }
                             }
                         }
