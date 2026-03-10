@@ -372,7 +372,17 @@ export default function Home() {
             userName={displayName || 'Mitra'}
             userId={userId}
             sankalpaItems={sankalpaItems}
-            onSankalpaUpdate={() => { }} // Now handled centrally via useDailyTasks inside Orb if needed, or we just pass tasks.
+            // Pass the full Firestore-backed handlers so Bodhi's tool calls persist
+            onSankalpaUpdate={(updatedItems) => {
+              // Sync optimistic state: add tasks that are new, keep existing ones
+              updatedItems.forEach(item => {
+                if (!sankalpaItems.find(t => t.id === item.id)) {
+                  addTask(item);
+                }
+              });
+            }}
+            onAddTask={addTask}
+            onRemoveTask={removeTask}
             onDismiss={() => setIsSakhaActive(false)}
           />
         )}

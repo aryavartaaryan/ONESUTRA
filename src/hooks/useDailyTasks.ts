@@ -18,6 +18,9 @@ export interface TaskItem {
     aiAdvice?: string;
     createdAt: number;
     uid?: string;
+    // ── Sankalpa Agent time fields (set by Bodhi's add_sankalpa_task tool) ──
+    allocatedMinutes?: number;   // How many minutes the user plans to spend on this task
+    startTime?: string;          // Optional start time e.g. "9:00 AM" or "after lunch"
 }
 
 export function useDailyTasks() {

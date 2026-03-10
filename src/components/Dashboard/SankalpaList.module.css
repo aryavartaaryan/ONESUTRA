@@ -144,6 +144,33 @@
     color: rgba(92, 60, 25, 0.38);
 }
 
+/* ── Task content column (text + time badge) ── */
+.taskContent {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+/* ── Bodhi-injected time badge ── */
+.taskTimeBadge {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 500;
+    color: #C97B3A;
+    background: rgba(201, 123, 58, 0.10);
+    border: 1px solid rgba(201, 123, 58, 0.18);
+    border-radius: 6px;
+    padding: 0.1rem 0.45rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    width: fit-content;
+    letter-spacing: 0.01em;
+}
+
+
 .removeBtn {
     width: 18px;
     height: 18px;

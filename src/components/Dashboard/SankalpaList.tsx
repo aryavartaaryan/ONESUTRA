@@ -5,7 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X } from 'lucide-react';
 import styles from './SankalpaList.module.css';
 
-interface Task { id: string; text: string; done: boolean; }
+interface Task {
+    id: string;
+    text: string;
+    done: boolean;
+    allocatedMinutes?: number;   // Set by Bodhi's add_sankalpa_task tool
+    startTime?: string;          // Optional start time from Bodhi
+}
 
 const DEFAULT_ITEMS: Task[] = [
     { id: 'm1', text: 'Morning System reboot (15 mins mediation)', done: false },
@@ -103,9 +109,19 @@ export default function SankalpaList() {
                             >
                                 {task.done ? '✓' : ''}
                             </button>
-                            <span className={`${styles.taskText} ${task.done ? styles.taskDone : ''}`}>
-                                {task.text}
-                            </span>
+                            <div className={styles.taskContent}>
+                                <span className={`${styles.taskText} ${task.done ? styles.taskDone : ''}`}>
+                                    {task.text}
+                                </span>
+                                {(task.allocatedMinutes !== undefined || task.startTime) && (
+                                    <span className={styles.taskTimeBadge}>
+                                        {task.allocatedMinutes !== undefined && `⏱ ${task.allocatedMinutes} min`}
+                                        {task.startTime && task.allocatedMinutes !== undefined && ' · '}
+                                        {task.startTime && `🕐 ${task.startTime}`}
+                                    </span>
+                                )}
+                            </div>
+
                             <button className={styles.removeBtn} onClick={() => remove(task.id)}>
                                 <X size={11} strokeWidth={2} />
                             </button>

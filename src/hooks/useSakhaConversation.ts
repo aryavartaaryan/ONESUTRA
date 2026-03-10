@@ -26,6 +26,10 @@ interface UseSakhaConversationOptions {
     onDismiss: () => void;
     enableMemory?: boolean;
     userId?: string | null;
+    /** Called by Bodhi's add_sankalpa_task tool — persists to Firestore */
+    onAddTask?: (task: TaskItem) => Promise<void>;
+    /** Called by Bodhi's remove_sankalpa_task tool — persists removal to Firestore */
+    onRemoveTask?: (taskId: string) => Promise<void>;
 }
 
 // ─── Day Phase Detection ──────────────────────────────────────────────────────
@@ -758,6 +762,8 @@ export function useSakhaConversation({
     onDismiss,
     enableMemory = true,
     userId = null,
+    onAddTask,
+    onRemoveTask,
 }: UseSakhaConversationOptions) {
     const { users: realUsers } = useUsers(userId);
     const realContacts = realUsers.filter(u => u.uid !== 'ai_vaidya' && u.uid !== 'ai_rishi');
@@ -793,6 +799,8 @@ export function useSakhaConversation({
     const sankalpaRef = useRef(sankalpaItems);
     const onDismissRef = useRef(onDismiss);
     const onSankalpaUpdateRef = useRef(onSankalpaUpdate);
+    const onAddTaskRef = useRef(onAddTask);
+    const onRemoveTaskRef = useRef(onRemoveTask);
     const phaseRef = useRef<DayPhase>('morning');
     const fullTranscriptBufferRef = useRef('');
     const sessionHistoryRef = useRef<SakhaMessage[]>([]); // tracks turns in THIS session
@@ -803,6 +811,8 @@ export function useSakhaConversation({
     useEffect(() => { sankalpaRef.current = sankalpaItems; }, [sankalpaItems]);
     useEffect(() => { onDismissRef.current = onDismiss; }, [onDismiss]);
     useEffect(() => { onSankalpaUpdateRef.current = onSankalpaUpdate; }, [onSankalpaUpdate]);
+    useEffect(() => { onAddTaskRef.current = onAddTask; }, [onAddTask]);
+    useEffect(() => { onRemoveTaskRef.current = onRemoveTask; }, [onRemoveTask]);
     useEffect(() => { userNameRef.current = userName; }, [userName]);
     useEffect(() => { userIdRef.current = userId; }, [userId]);
 
@@ -1529,10 +1539,17 @@ export function useSakhaConversation({
                                         accentColor: '217, 70, 239',
                                         icon: '⏱️',
                                         createdAt: Date.now(),
-                                        allocatedMinutes: allocatedMins,   // now a proper typed field
-                                        startTime: startTime || undefined,  // proper typed field
+                                        allocatedMinutes: allocatedMins,
+                                        startTime: startTime || undefined,
                                     };
+                                    // 1. Optimistic UI update
                                     onSankalpaUpdateRef.current([...current, newTask]);
+                                    // 2. Persist to Firestore (fire-and-forget — never block the tool response)
+                                    if (onAddTaskRef.current) {
+                                        onAddTaskRef.current(newTask).catch(e =>
+                                            console.warn('[Bodhi SDK] Failed to persist add_sankalpa_task to Firestore:', e)
+                                        );
+                                    }
                                     responseMessage = `Task "${taskName}" (${allocatedMins} minutes) added successfully to Sankalpa UI.`;
                                     console.log(`[Bodhi SDK] ✅ add_sankalpa_task: "${taskName}" | ${allocatedMins} min`);
                                 }
@@ -1544,7 +1561,16 @@ export function useSakhaConversation({
                                     const current = [...sankalpaRef.current];
                                     const removed = current.filter(t => t.text.toLowerCase().includes(query));
                                     const updated = current.filter(t => !t.text.toLowerCase().includes(query));
+                                    // 1. Optimistic UI update
                                     onSankalpaUpdateRef.current(updated);
+                                    // 2. Persist each removal to Firestore
+                                    if (onRemoveTaskRef.current && removed.length > 0) {
+                                        removed.forEach(t =>
+                                            onRemoveTaskRef.current!(t.id).catch(e =>
+                                                console.warn('[Bodhi SDK] Failed to persist remove_sankalpa_task to Firestore:', e)
+                                            )
+                                        );
+                                    }
                                     responseMessage = removed.length > 0
                                         ? `Task "${removed.map(t => t.text).join(', ')}" removed from Sankalpa UI.`
                                         : `No matching task found for "${taskName}".`;

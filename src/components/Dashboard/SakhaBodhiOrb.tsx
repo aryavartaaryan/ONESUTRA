@@ -44,6 +44,10 @@ interface SakhaBodhiOrbProps {
     onDismiss: () => void;
     userName?: string;
     userId?: string | null;
+    /** Persists new Bodhi-added tasks to Firestore */
+    onAddTask?: (task: TaskItem) => Promise<void>;
+    /** Persists Bodhi-removed tasks to Firestore */
+    onRemoveTask?: (taskId: string) => Promise<void>;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -54,6 +58,8 @@ export default function SakhaBodhiOrb({
     onDismiss,
     userName = 'Aryan',
     userId = null,
+    onAddTask,
+    onRemoveTask,
 }: SakhaBodhiOrbProps) {
     const {
         sakhaState,
@@ -67,6 +73,8 @@ export default function SakhaBodhiOrb({
         onSankalpaUpdate,
         onDismiss,
         userId,
+        onAddTask,
+        onRemoveTask,
     });
 
     useEffect(() => {
