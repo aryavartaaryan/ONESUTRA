@@ -1383,7 +1383,6 @@ export function useSakhaConversation({
                     speechConfig: {
                         voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Aoede' } },
                     },
-                    tools: [{ googleSearch: {} }], // ✦ Real-time Google Search grounding
                     systemInstruction: buildSystemPrompt(phaseRef.current, userName, sankalpaRef.current, memories, unreadContext, conversationHistory, hasGreetedThisPhase, newsContext, messagesContext, timeGapStr, timeGapMins, isMedDone, healthProfile, detectedMood) + '\n\nRANDOM_SEED: ' + Math.floor(Math.random() * 1000),
                 },
                 callbacks: {
