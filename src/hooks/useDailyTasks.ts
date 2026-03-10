@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { getFirebaseAuth, getFirebaseFirestore } from '@/lib/firebase';
 import { collection, query, orderBy, onSnapshot, doc, setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -90,7 +90,11 @@ export function useDailyTasks() {
 
     // Actions
     const addTask = useCallback(async (task: TaskItem) => {
-        setTasks(prev => [task, ...prev]); // Optimistic update
+        setTasks(prev => {
+            // Avoid duplicates if called multiple times for the same task id
+            if (prev.some(t => t.id === task.id)) return prev;
+            return [task, ...prev];
+        });
         if (uid) {
             try {
                 const db = await getFirebaseFirestore();
@@ -99,9 +103,14 @@ export function useDailyTasks() {
                 console.error("Error adding task:", error);
             }
         } else {
-            localStorage.setItem('pranav_tasks_v3', JSON.stringify([task, ...tasks]));
+            // localStorage fallback for unauthenticated users
+            setTasks(prev => {
+                const updated = prev.some(t => t.id === task.id) ? prev : [task, ...prev];
+                localStorage.setItem('pranav_tasks_v3', JSON.stringify(updated));
+                return updated;
+            });
         }
-    }, [uid, tasks]);
+    }, [uid]);
 
     const updateTask = useCallback(async (taskId: string, updates: Partial<TaskItem>) => {
         setTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...updates } : t));
@@ -113,17 +122,22 @@ export function useDailyTasks() {
                 console.error("Error updating task:", error);
             }
         } else {
-            const updated = tasks.map(t => t.id === taskId ? { ...t, ...updates } : t);
-            localStorage.setItem('pranav_tasks_v3', JSON.stringify(updated));
+            setTasks(prev => {
+                const updated = prev.map(t => t.id === taskId ? { ...t, ...updates } : t);
+                localStorage.setItem('pranav_tasks_v3', JSON.stringify(updated));
+                return updated;
+            });
         }
-    }, [uid, tasks]);
+    }, [uid]);
+
+    const tasksRef = useRef<TaskItem[]>(tasks);
+    useEffect(() => { tasksRef.current = tasks; }, [tasks]);
 
     const toggleTaskDone = useCallback(async (taskId: string) => {
-        const task = tasks.find(t => t.id === taskId);
+        const task = tasksRef.current.find(t => t.id === taskId);
         if (!task) return;
         const newDone = !task.done;
         setTasks(prev => prev.map(t => t.id === taskId ? { ...t, done: newDone } : t));
-
         if (uid) {
             try {
                 const db = await getFirebaseFirestore();
@@ -132,10 +146,13 @@ export function useDailyTasks() {
                 console.error("Error toggling task:", error);
             }
         } else {
-            const updated = tasks.map(t => t.id === taskId ? { ...t, done: newDone } : t);
-            localStorage.setItem('pranav_tasks_v3', JSON.stringify(updated));
+            setTasks(prev => {
+                const updated = prev.map(t => t.id === taskId ? { ...t, done: newDone } : t);
+                localStorage.setItem('pranav_tasks_v3', JSON.stringify(updated));
+                return updated;
+            });
         }
-    }, [uid, tasks]);
+    }, [uid]);
 
     const removeTask = useCallback(async (taskId: string) => {
         setTasks(prev => prev.filter(t => t.id !== taskId));
@@ -147,10 +164,13 @@ export function useDailyTasks() {
                 console.error("Error removing task:", error);
             }
         } else {
-            const updated = tasks.filter(t => t.id !== taskId);
-            localStorage.setItem('pranav_tasks_v3', JSON.stringify(updated));
+            setTasks(prev => {
+                const updated = prev.filter(t => t.id !== taskId);
+                localStorage.setItem('pranav_tasks_v3', JSON.stringify(updated));
+                return updated;
+            });
         }
-    }, [uid, tasks]);
+    }, [uid]);
 
     return {
         tasks,

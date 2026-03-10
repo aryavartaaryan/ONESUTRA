@@ -372,15 +372,9 @@ export default function Home() {
             userName={displayName || 'Mitra'}
             userId={userId}
             sankalpaItems={sankalpaItems}
-            // Pass the full Firestore-backed handlers so Bodhi's tool calls persist
-            onSankalpaUpdate={(updatedItems) => {
-              // Sync optimistic state: add tasks that are new, keep existing ones
-              updatedItems.forEach(item => {
-                if (!sankalpaItems.find(t => t.id === item.id)) {
-                  addTask(item);
-                }
-              });
-            }}
+            // onSankalpaUpdate is a no-op: Firestore onSnapshot (via useDailyTasks) is the
+            // single source of truth. All writes go exclusively through onAddTask / onRemoveTask.
+            onSankalpaUpdate={() => { }}
             onAddTask={addTask}
             onRemoveTask={removeTask}
             onDismiss={() => setIsSakhaActive(false)}
