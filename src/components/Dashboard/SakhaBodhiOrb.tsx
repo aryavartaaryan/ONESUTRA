@@ -44,6 +44,10 @@ interface SakhaBodhiOrbProps {
     onDismiss: () => void;
     userName?: string;
     userId?: string | null;
+    /** Handoff: navigate app to a route when Bodhi fires open_pranavibes */
+    onNavigate?: (path: string) => void;
+    /** Handoff: start the Raag player with a specific raag name */
+    onPlayRaag?: (raagName: string) => void;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -54,6 +58,8 @@ export default function SakhaBodhiOrb({
     onDismiss,
     userName = 'Aryan',
     userId = null,
+    onNavigate,
+    onPlayRaag,
 }: SakhaBodhiOrbProps) {
     const {
         sakhaState,
@@ -67,6 +73,8 @@ export default function SakhaBodhiOrb({
         onSankalpaUpdate,
         onDismiss,
         userId,
+        onNavigate,
+        onPlayRaag,
     });
 
     useEffect(() => {
