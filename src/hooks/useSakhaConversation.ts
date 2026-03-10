@@ -1445,70 +1445,18 @@ export function useSakhaConversation({
                         const msg = message as any;
                         const serverContent = msg.serverContent;
 
+                        // ─── TOOL CALL HANDLING ───
+                        const incomingToolCalls: any[] = [];
+
+                        // Extract from LiveServerToolCall structure
+                        if (msg.toolCall?.functionCalls) {
+                            incomingToolCalls.push(...msg.toolCall.functionCalls);
+                        }
+
                         if (serverContent?.modelTurn?.parts) {
-                            canListenRef.current = false; // block mic while processing response
                             for (const part of serverContent.modelTurn.parts) {
                                 if (part.functionCall) {
-                                    // Handle native Gemini tool calling
-                                    const { name, args } = part.functionCall;
-                                    console.log(`[Bodhi] Gemini requested function call: ${name}`, args);
-
-                                    if (name === 'add_sankalpa') {
-                                        const title = (args as any).title;
-                                        const category = (args as any).category || 'Focus';
-
-                                        if (title) {
-                                            const newTask: TaskItem = {
-                                                id: Date.now().toString(),
-                                                text: title,
-                                                done: false,
-                                                category: category,
-                                                colorClass: 'fuchsia',
-                                                accentColor: '217, 70, 239',
-                                                icon: '✨',
-                                                createdAt: Date.now()
-                                            };
-                                            const updated = [...sankalpaRef.current, newTask];
-                                            onSankalpaUpdateRef.current(updated);
-
-                                            // Send confirmation back to model so it can respond
-                                            session.sendClientContent({
-                                                turns: [{
-                                                    role: 'user',
-                                                    parts: [{
-                                                        functionResponse: {
-                                                            name: 'add_sankalpa',
-                                                            response: { status: 'success', message: 'Sankalpa added to list successfully' }
-                                                        }
-                                                    }]
-                                                }],
-                                                turnComplete: true
-                                            });
-                                        }
-                                    } else if (name === 'remove_sankalpa') {
-                                        const title = (args as any).title;
-                                        if (title) {
-                                            // Try to match and mark done
-                                            const query = title.toLowerCase();
-                                            const updated = sankalpaRef.current.map(t =>
-                                                t.text.toLowerCase().includes(query) ? { ...t, done: true } : t
-                                            );
-                                            onSankalpaUpdateRef.current(updated);
-
-                                            session.sendClientContent({
-                                                turns: [{
-                                                    role: 'user',
-                                                    parts: [{
-                                                        functionResponse: {
-                                                            name: 'remove_sankalpa',
-                                                            response: { status: 'success', message: 'Sankalpa marked as done/removed' }
-                                                        }
-                                                    }]
-                                                }],
-                                                turnComplete: true
-                                            });
-                                        }
-                                    }
+                                    incomingToolCalls.push(part.functionCall);
                                 }
                                 if (part.inlineData?.data) {
                                     const audioFloat32 = base64PCMToFloat32(part.inlineData.data);
@@ -1517,6 +1465,73 @@ export function useSakhaConversation({
                                 if (part.text) {
                                     fullTranscriptBufferRef.current += part.text;
                                     setCurrentSentence(prev => prev + part.text);
+                                }
+                            }
+                        }
+
+                        if (incomingToolCalls.length > 0) {
+                            canListenRef.current = false; // block mic while processing response
+                            for (const call of incomingToolCalls) {
+                                const { id, name, args } = call;
+                                console.log(`[Bodhi] Gemini requested function call: ${name}`, args, id);
+
+                                if (name === 'add_sankalpa') {
+                                    const title = (args as any).title;
+                                    const category = (args as any).category || 'Focus';
+
+                                    if (title) {
+                                        const newTask: TaskItem = {
+                                            id: Date.now().toString(),
+                                            text: title,
+                                            done: false,
+                                            category: category,
+                                            colorClass: 'fuchsia',
+                                            accentColor: '217, 70, 239',
+                                            icon: '✨',
+                                            createdAt: Date.now()
+                                        };
+                                        const updated = [...sankalpaRef.current, newTask];
+                                        onSankalpaUpdateRef.current(updated);
+
+                                        // Send confirmation back to model so it can respond
+                                        session.sendClientContent({
+                                            turns: [{
+                                                role: 'user',
+                                                parts: [{
+                                                    functionResponse: {
+                                                        id: id,
+                                                        name: 'add_sankalpa',
+                                                        response: { status: 'success', message: 'Sankalpa added to list successfully' }
+                                                    }
+                                                }]
+                                            }],
+                                            turnComplete: true
+                                        });
+                                    }
+                                } else if (name === 'remove_sankalpa') {
+                                    const title = (args as any).title;
+                                    if (title) {
+                                        // Try to match and mark done
+                                        const query = title.toLowerCase();
+                                        const updated = sankalpaRef.current.map(t =>
+                                            t.text.toLowerCase().includes(query) ? { ...t, done: true } : t
+                                        );
+                                        onSankalpaUpdateRef.current(updated);
+
+                                        session.sendClientContent({
+                                            turns: [{
+                                                role: 'user',
+                                                parts: [{
+                                                    functionResponse: {
+                                                        id: id,
+                                                        name: 'remove_sankalpa',
+                                                        response: { status: 'success', message: 'Sankalpa marked as done/removed' }
+                                                    }
+                                                }]
+                                            }],
+                                            turnComplete: true
+                                        });
+                                    }
                                 }
                             }
                         }
