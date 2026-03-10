@@ -880,54 +880,6 @@ export function useSakhaConversation({
                 })();
             }
 
-            // ── FIX 2: News — always fetch directly from API, no race condition ──
-            if (call.name === 'get_top_news') {
-                try {
-                    console.log('[Bodhi] Fetching top news directly from /api/outplugs-feed...');
-
-                    const res = await fetch('/api/outplugs-feed');
-                    let topHeadlines = '';
-
-                    if (res.ok) {
-                        const data = await res.json();
-                        const fetchedArticles: Article[] = data.articles || [];
-                        topHeadlines = fetchedArticles
-                            .slice(0, 10)
-                            .map((p: Article, i: number) => (i + 1) + '. ' + p.headline)
-                            .join('\n');
-                        // Also update the context cache silently
-                        fetchNews(true);
-                    }
-
-                    if (sessionRef.current) {
-                        if (topHeadlines) {
-                            await sessionRef.current.sendClientContent({
-                                turns: [{
-                                    role: 'user',
-                                    parts: [{ text: 'SYSTEM_RESPONSE: The current top news headlines are: \n' + topHeadlines + ' \nPlease read out the most interesting 3-4 ones gracefully to the user in Hindi.' }]
-                                }],
-                                turnComplete: true,
-                            });
-                        } else {
-                            await sessionRef.current.sendClientContent({
-                                turns: [{
-                                    role: 'user',
-                                    parts: [{ text: 'SYSTEM_RESPONSE: I am unable to connect to the Outplugs news feed right now. Please tell the user gracefully in Hindi.' }]
-                                }],
-                                turnComplete: true,
-                            });
-                        }
-                    }
-                } catch (e) {
-                    console.warn('[Bodhi] Failed to fetch news', e);
-                    if (sessionRef.current) {
-                        await sessionRef.current.sendClientContent({
-                            turns: [{ role: 'user', parts: [{ text: 'SYSTEM_RESPONSE: Sorry, the news feed could not be reached right now. Explain this nicely in Hindi.' }] }],
-                            turnComplete: true,
-                        });
-                    }
-                }
-            }
 
             if (call.name === 'read_unread_messages' && call.args[0]) {
                 const requestedName = call.args[0].toLowerCase();
@@ -1076,7 +1028,7 @@ export function useSakhaConversation({
                 }
             }
         }
-    }, [memories, articles, fetchNews, realContacts, userId]);
+    }, [memories, realContacts, userId]);
 
 
     // ── Audio Engine Helpers ──────────────────────────────────────────────────
