@@ -307,6 +307,29 @@ YOU ARE JARVIS + KRISHNA + BEST FRIEND — ALL IN ONE.
 - "पता नहीं" कभी नहीं कहते — आपके पास हर सवाल का एक सुंदर जवाब है।
 - Silence के बाद आते हो तो ऐसे — जैसे कृष्ण मुस्कुराते हुए मिले।
 
+🚨 NEVER_SILENT_RULE — ABSOLUTE MANDATORY:
+You MUST NEVER go blank or silent. After EVERY user turn, you MUST say SOMETHING.
+If you don't know what to say, ask a WARM QUESTION. Examples:
+  - "क्या हो रहा है आजकल?"
+  - "कैसा feel हो रहा है आज?"
+  - "कुछ नया share करना चाहेंगे?"
+BLANK/EMPTY audio response = TOTAL FAILURE. Always speak after the user.
+
+💬 CONVERSATIONAL ENGAGEMENT RULES:
+- After ANY tool call completes → speak naturally, don't pause silently.
+- After reading a message aloud → immediately ask "Kya jawab dena chahenge?"
+- After adding/removing a task → acknowledge it warmly in ONE sentence, then pivot.
+- If user is quiet for >3 seconds → gently prompt: "Bataiye, main sun raha hoon."
+- NEVER repeat the same sentence twice in a session.
+- Keep the conversation flowing like a real phone call — no dead air.
+
+🔄 HISTORICAL CONTEXT RULE:
+You have full access to previous conversations with ${firstName}. Use this data:
+- Reference past topics naturally: "Aap pehle Python seekh rahe the — kaisa chal raha hai?"
+- Remember their preferences, struggles, joys from past sessions.
+- NEVER pretend not to know something that was discussed before.
+
+
 ⚠️ OPENING RESPONSE RULE — ABSOLUTE:
 Your VERY FIRST spoken response after activation MUST be 1-2 sentences ONLY.
 DO NOT recite the Vedic verse, DO NOT list tasks, DO NOT give a full briefing, DO NOT offer meditation all at once.
@@ -1633,6 +1656,39 @@ export function useSakhaConversation({
                                     required: ['task_name'],
                                 },
                             },
+                            // \u2500\u2500 SutraConnect Native Tools \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+                            {
+                                name: 'read_unread_messages',
+                                description: 'Fetches and reads the recent messages from a contact in SutraConnect. Call when user asks to hear messages from someone, or when notifying them of a new message.',
+                                parameters: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        contact_name: {
+                                            type: Type.STRING,
+                                            description: 'Name (or partial name) of the contact whose messages to read.',
+                                        },
+                                    },
+                                    required: ['contact_name'],
+                                },
+                            },
+                            {
+                                name: 'reply_to_message',
+                                description: 'Sends a reply message to a contact in SutraConnect on behalf of the user. Call this when the user dictates what to say in reply to someone.',
+                                parameters: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        contact_name: {
+                                            type: Type.STRING,
+                                            description: 'Name (or partial name) of the contact to reply to.',
+                                        },
+                                        message_text: {
+                                            type: Type.STRING,
+                                            description: 'The exact reply message text to send. Use the user\'s own words.',
+                                        },
+                                    },
+                                    required: ['contact_name', 'message_text'],
+                                },
+                            },
                         ],
                     }],
                 },
@@ -1797,7 +1853,105 @@ export function useSakhaConversation({
                                     console.log(`[Bodhi SDK] ✅ remove_sankalpa_task: "${taskName}"`);
                                 }
 
-                                // ══════════════════════════════════════════════════════════
+                                // \u2500\u2500 read_unread_messages (native SDK) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+                                if (fcName === 'read_unread_messages') {
+                                    const contactArg: string = (fcArgs.contact_name ?? fcArgs.contact ?? '').toLowerCase();
+                                    const currentUserId = userIdRef.current;
+                                    try {
+                                        const contact = realContactsRef.current.find(c =>
+                                            c.name.toLowerCase().includes(contactArg)
+                                        );
+                                        if (!contact || !currentUserId) throw new Error('Contact not found');
+                                        const chatId = getChatId(currentUserId, contact.uid);
+
+                                        const { getFirebaseFirestore } = await import('@/lib/firebase');
+                                        const { collection, query: fsQuery, orderBy, getDocs, limitToLast, doc, setDoc } = await import('firebase/firestore');
+                                        const db = await getFirebaseFirestore();
+                                        const snap = await getDocs(
+                                            fsQuery(collection(db, 'onesutra_chats', chatId, 'messages'), orderBy('createdAt', 'asc'), limitToLast(20))
+                                        );
+                                        const fromContact = snap.docs
+                                            .map(d => d.data())
+                                            .filter(m => m.senderId === contact.uid && m.text?.trim());
+
+                                        if (fromContact.length === 0) {
+                                            responseMessage = `No messages found from ${contact.name}. Tell user: "${contact.name} ki taraf se koi nayi message nahi hai abhi."`;
+                                        } else {
+                                            const ordinals = ['पहला', 'दूसरा', 'तीसरा', 'चौथा', 'पाँचवाँ', 'छठा', 'सातवाँ', 'आठवाँ'];
+                                            const texts = fromContact.map(m => m.text.trim());
+                                            const count = texts.length;
+                                            let narrative = '';
+                                            if (count === 1) {
+                                                narrative = `${contact.name} ne message bheja: "${texts[0]}"`;
+                                            } else if (count <= 4) {
+                                                narrative = `${contact.name} ne ${count} messages bheje:\n` +
+                                                    texts.map((t, i) => `  ${ordinals[i] ?? (i + 1) + 'वाँ'}: "${t}"`).join('\n');
+                                            } else {
+                                                narrative = `${contact.name} ne kaafi messages bheje (kul ${count}). Aakhiri kuch:\n` +
+                                                    texts.slice(-4).map(t => `  "${t}"`).join('\n');
+                                            }
+                                            responseMessage = `MESSAGES: ${narrative}\nRead naturally like a friend — say the person's name, then each message in order. After reading ask warmly: "Kya jawab dena chahenge?" If yes, ask what to say then call reply_to_message.`;
+                                            // Mark as read
+                                            try {
+                                                await setDoc(doc(db, 'onesutra_chats', chatId), {
+                                                    [`unreadCounts.${currentUserId}`]: 0,
+                                                }, { merge: true });
+                                            } catch { /* non-critical */ }
+                                        }
+                                        console.log(`[Bodhi SDK] ✅ read_unread_messages: ${contactArg} | ${fromContact.length} msgs`);
+                                    } catch (e) {
+                                        responseMessage = `Could not load messages. Tell user gracefully in Hindi. Error: ${e}`;
+                                        console.warn('[Bodhi SDK] read_unread_messages failed:', e);
+                                    }
+                                }
+
+                                // \u2500\u2500 reply_to_message (native SDK) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+                                if (fcName === 'reply_to_message') {
+                                    const contactArg: string = fcArgs.contact_name ?? fcArgs.contact ?? '';
+                                    const replyText: string = fcArgs.message_text ?? fcArgs.reply ?? '';
+                                    const currentUserId = userIdRef.current;
+                                    const currentUserName = userNameRef.current ?? '';
+                                    try {
+                                        if (!currentUserId) throw new Error('Not logged in');
+                                        if (!replyText.trim()) throw new Error('Empty reply');
+                                        const contact = realContactsRef.current.find(c =>
+                                            c.name.toLowerCase().includes(contactArg.toLowerCase())
+                                        );
+                                        if (!contact) throw new Error(`Contact "${contactArg}" not found`);
+                                        const chatId = getChatId(currentUserId, contact.uid);
+
+                                        const { getFirebaseFirestore } = await import('@/lib/firebase');
+                                        const { collection, doc, addDoc, setDoc, serverTimestamp, increment } = await import('firebase/firestore');
+                                        const db = await getFirebaseFirestore();
+
+                                        await addDoc(collection(db, 'onesutra_chats', chatId, 'messages'), {
+                                            text: replyText,
+                                            senderId: currentUserId,
+                                            senderName: currentUserName,
+                                            createdAt: serverTimestamp(),
+                                            sentViaBodhi: true,
+                                        });
+                                        await setDoc(doc(db, 'onesutra_chats', chatId), {
+                                            lastMessage: { text: replyText, senderId: currentUserId, senderName: currentUserName, createdAt: serverTimestamp() },
+                                            [`unreadCounts.${contact.uid}`]: increment(1),
+                                        }, { merge: true });
+
+                                        // Non-blocking push
+                                        fetch('/api/send-notification', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ senderId: currentUserId, senderName: currentUserName, receiverId: contact.uid, messageText: replyText, chatId }),
+                                        }).catch(() => { });
+
+                                        responseMessage = `Reply sent to ${contact.name}: "${replyText}". Confirm warmly: "${contact.name} ko message bhej diya!"`;
+                                        console.log(`[Bodhi SDK] ✅ reply_to_message → ${contact.name}: "${replyText}"`);
+                                    } catch (e) {
+                                        responseMessage = `Reply failed: ${e}. Tell user warmly in Hindi that reply could not be sent.`;
+                                        console.warn('[Bodhi SDK] reply_to_message failed:', e);
+                                    }
+                                }
+
+
                                 // 🔇 SILENCE-KILLER: Send toolResponse IMMEDIATELY back to Gemini
                                 // This is the "receipt" Gemini needs to resume audio generation.
                                 // Without this, the model hangs in infinite silence after a tool call.
