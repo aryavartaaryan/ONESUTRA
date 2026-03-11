@@ -844,6 +844,11 @@ export function useSakhaConversation({
     const userNameRef = useRef(userName);
     const userIdRef = useRef(userId);
 
+    // SutraConnect real-time awareness refs
+    const realContactsRef = useRef(realContacts);          // always-current contact list with names
+    const lastKnownMsgAtRef = useRef<Map<string, number>>(new Map()); // chatId → timestamp at session open
+    const alertCooldownRef = useRef<number>(0);            // unix ms — no new alerts within 10 s of last one
+
     // Keep refs in sync
     useEffect(() => { sankalpaRef.current = sankalpaItems; }, [sankalpaItems]);
     useEffect(() => { onDismissRef.current = onDismiss; }, [onDismiss]);
@@ -852,6 +857,63 @@ export function useSakhaConversation({
     useEffect(() => { onRemoveTaskRef.current = onRemoveTask; }, [onRemoveTask]);
     useEffect(() => { userNameRef.current = userName; }, [userName]);
     useEffect(() => { userIdRef.current = userId; }, [userId]);
+    useEffect(() => { realContactsRef.current = realContacts; }, [realContacts]);
+
+    // ── Real-time SutraConnect message watcher ────────────────────────────────
+    // Runs every time chatMeta changes (which happens whenever useChats onSnapshot fires).
+    // If Bodhi's session is live AND a genuinely new (after-activation) message arrives
+    // from a contact, inject an alert into the Gemini Live session immediately.
+    useEffect(() => {
+        if (!isConnectedRef.current || !sessionRef.current) return;
+        const now = Date.now();
+
+        // Respect cooldown — no more than one alert every 10 seconds
+        if (now - alertCooldownRef.current < 10_000) return;
+
+        const currentUserId = userIdRef.current;
+        const contacts = realContactsRef.current;
+
+        for (const [chatId, meta] of chatMeta) {
+            // Skip if this message is from ME, or if it\'s not newer than what was known at activation
+            if (meta.lastMessageSenderId === currentUserId) continue;
+            if (!meta.lastMessageText) continue;
+
+            const knownAt = lastKnownMsgAtRef.current.get(chatId) ?? 0;
+            if (meta.lastMessageAt <= knownAt) continue;  // not new
+
+            // Resolve sender name from contacts list
+            const senderContact = contacts.find(c => {
+                const myId = currentUserId ?? '';
+                const cid = myId < c.uid ? `${myId}_${c.uid}` : `${c.uid}_${myId}`;
+                return cid === chatId;
+            });
+            const senderName = senderContact?.name ?? 'किसी';
+
+            // Update baseline so this message won\'t trigger again
+            lastKnownMsgAtRef.current.set(chatId, meta.lastMessageAt);
+            alertCooldownRef.current = now;
+
+            // Inject alert into the live Gemini session
+            try {
+                const session = sessionRef.current as any;
+                const alertText = `SYSTEM_ALERT: SutraConnect पर "${senderName}" का नया message आया है अभी।\n` +
+                    `उनका message है: "${meta.lastMessageText}"\n` +
+                    `INSTRUCTION: अभी USER को बताओ — "${senderName} का message आया है — क्या मैं पढ़ूँ?" ` +
+                    `अगर user हाँ कहे तो message पढ़ो जो ऊपर है। ` +
+                    `अगर user जवाब देना चाहे तो उनके शब्दों से reply करो via [TOOL: reply_to_message("${senderName}", "user_words")].`;
+
+                session.sendClientContent({
+                    turns: [{ role: 'user', parts: [{ text: alertText }] }],
+                    turnComplete: true,
+                });
+                console.log(`[Bodhi] 📩 Real-time message alert injected for "${senderName}"`);
+            } catch (e) {
+                console.warn('[Bodhi] Failed to inject message alert:', e);
+            }
+            break; // One alert per chatMeta change — avoid flooding
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [chatMeta]);
 
     // Detect phase on mount
     useEffect(() => {
@@ -1518,6 +1580,16 @@ export function useSakhaConversation({
                             isConnectedRef.current = true;
                             setSakhaState('listening');
                             setIsListening(true);
+
+                            // ── Snapshot baseline message timestamps at session open ─────────────
+                            // Any chatMeta entries present NOW are "old" — we only want
+                            // to alert for messages that arrive AFTER this point.
+                            const baselineMap = new Map<string, number>();
+                            chatMeta.forEach((meta, chatId) => {
+                                baselineMap.set(chatId, meta.lastMessageAt);
+                            });
+                            lastKnownMsgAtRef.current = baselineMap;
+                            alertCooldownRef.current = 0; // reset cooldown on fresh session
                             if (callTimeoutRef.current) clearTimeout(callTimeoutRef.current);
                             callTimeoutRef.current = setTimeout(() => {
                                 deactivate();
@@ -1792,15 +1864,36 @@ export function useSakhaConversation({
             // 4. Send initial greeting trigger — intentionally minimal so Bodhi opens with
             //    just a warm hello (+1 question), NOT a 5-line monologue.
             try {
+                // Build unread message context for the "not-active when message arrived" case
+                const pendingMsgs: string[] = [];
+                const myId = userIdRef.current ?? '';
+                chatMeta.forEach((meta, chatId) => {
+                    if (
+                        meta.unreadCount > 0 &&
+                        meta.lastMessageSenderId !== myId &&
+                        meta.lastMessageText
+                    ) {
+                        const contact = realContacts.find(c => {
+                            const cid = myId < c.uid ? `${myId}_${c.uid}` : `${c.uid}_${myId}`;
+                            return cid === chatId;
+                        });
+                        const name = contact?.name ?? 'किसी';
+                        pendingMsgs.push(`"${name}" ने message भेजा: "${meta.lastMessageText}"`);
+                    }
+                });
+                const unreadNote = pendingMsgs.length > 0
+                    ? ` IMPORTANT: SutraConnect पर pending unread message(s) हैं — ${pendingMsgs.join('; ')}. Greet the user first (1 sentence), THEN say "${userName ? userName.split(' ')[0] : 'सखा'}, ${pendingMsgs.length === 1 ? pendingMsgs[0].split('"')[1] : 'कुछ'} का message है — क्या मैं पढ़ूँ?" and wait.`
+                    : '';
+
                 const greetNote = hasGreetedThisPhase
-                    ? `You are REACTIVATING for ${userName}. Say a warm 1-sentence returning greeting, then ask if they want to continue or start fresh. STOP after 1-2 sentences and LISTEN.`
-                    : `This is your FIRST greeting for ${userName} in the ${currentPhase} phase. Say a warm 1-sentence ${currentPhase} hello, then ask "कैसे हैं आप?" or similar. DO NOT recite the verse, DO NOT list tasks. STOP after 1-2 sentences and LISTEN. If ${userName} has already spoken, respond to what they said instead.`;
+                    ? `You are REACTIVATING for ${userName}. Say a warm 1-sentence returning greeting, then STOP and LISTEN.${unreadNote}`
+                    : `This is your FIRST greeting for ${userName} in the ${currentPhase} phase. Say a warm 1-sentence ${currentPhase} hello. STOP after 1-2 sentences and LISTEN. If ${userName} has already spoken, respond to what they said instead.${unreadNote}`;
                 const openingText = `Activate. Phase=${currentPhase}. ${greetNote}`;
                 await session.sendClientContent({
                     turns: [{ role: 'user', parts: [{ text: openingText }] }],
                     turnComplete: true,
                 });
-                console.log(`[Bodhi] Opening trigger sent | phase=${currentPhase} | hasGreetedThisPhase=${hasGreetedThisPhase}`);
+                console.log(`[Bodhi] Opening trigger sent | phase=${currentPhase} | pendingMsgs=${pendingMsgs.length} | hasGreetedThisPhase=${hasGreetedThisPhase}`);
             } catch (greetErr) {
                 console.warn('[Bodhi] Could not send initial greeting:', greetErr);
             }
