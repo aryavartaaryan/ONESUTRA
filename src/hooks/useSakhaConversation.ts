@@ -1581,17 +1581,42 @@ export function useSakhaConversation({
                                         ...(allocatedMins !== undefined && { allocatedMinutes: allocatedMins }),
                                         startTime: startTime || undefined,
                                     };
-                                    // 1. Optimistic UI update
+                                    // 1. Optimistic in-memory update so Bodhi's ref stays fresh this session
+                                    sankalpaRef.current = [...current, newTask];
                                     onSankalpaUpdateRef.current([...current, newTask]);
-                                    // 2. Persist to Firestore (fire-and-forget — never block the tool response)
-                                    if (onAddTaskRef.current) {
+
+                                    // 2. Direct Firestore write using always-current userIdRef
+                                    //    (bypasses stale onAddTaskRef captured during uid=null phase)
+                                    const currentUid = userIdRef.current;
+                                    if (currentUid) {
+                                        (async () => {
+                                            try {
+                                                const { getFirebaseFirestore } = await import('@/lib/firebase');
+                                                const { doc, setDoc } = await import('firebase/firestore');
+                                                const db = await getFirebaseFirestore();
+                                                await setDoc(
+                                                    doc(db, 'users', currentUid, 'tasks', newTask.id),
+                                                    { ...newTask, uid: currentUid }
+                                                );
+                                                console.log(`[Bodhi SDK] ✅ Firestore ADD success: "${taskName}"`);
+                                            } catch (e) {
+                                                console.warn('[Bodhi SDK] Direct Firestore ADD failed, trying onAddTask prop:', e);
+                                                if (onAddTaskRef.current) {
+                                                    onAddTaskRef.current(newTask).catch(err =>
+                                                        console.warn('[Bodhi SDK] onAddTask fallback also failed:', err)
+                                                    );
+                                                }
+                                            }
+                                        })();
+                                    } else if (onAddTaskRef.current) {
                                         onAddTaskRef.current(newTask).catch(e =>
-                                            console.warn('[Bodhi SDK] Failed to persist add_sankalpa_task to Firestore:', e)
+                                            console.warn('[Bodhi SDK] onAddTask (no uid) failed:', e)
                                         );
                                     }
+
                                     const timeDesc = allocatedMins ? ` (${allocatedMins} min)` : '';
                                     const scheduleDesc = startTime ? ` scheduled for ${startTime}` : '';
-                                    responseMessage = `Task "${taskName}"${timeDesc}${scheduleDesc} added successfully to Sankalpa UI. Current time is ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}. If startTime is in the future, do NOT tell user to do it now.`;
+                                    responseMessage = `Task "${taskName}"${timeDesc}${scheduleDesc} added. Current time: ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}. If startTime is in the future, do NOT tell user to do it now.`;
                                     console.log(`[Bodhi SDK] ✅ add_sankalpa_task: "${taskName}" | ${allocatedMins ?? 'no'} min | startTime: ${startTime || 'none'}`);
                                 }
 
@@ -1602,18 +1627,37 @@ export function useSakhaConversation({
                                     const current = [...sankalpaRef.current];
                                     const removed = current.filter(t => t.text.toLowerCase().includes(query));
                                     const updated = current.filter(t => !t.text.toLowerCase().includes(query));
-                                    // 1. Optimistic UI update
+                                    // 1. Optimistic in-memory update
+                                    sankalpaRef.current = updated;
                                     onSankalpaUpdateRef.current(updated);
-                                    // 2. Persist each removal to Firestore
-                                    if (onRemoveTaskRef.current && removed.length > 0) {
+                                    // 2. Direct Firestore delete using always-current userIdRef
+                                    const currentUid = userIdRef.current;
+                                    if (currentUid && removed.length > 0) {
+                                        (async () => {
+                                            try {
+                                                const { getFirebaseFirestore } = await import('@/lib/firebase');
+                                                const { doc, deleteDoc } = await import('firebase/firestore');
+                                                const db = await getFirebaseFirestore();
+                                                await Promise.all(removed.map(t =>
+                                                    deleteDoc(doc(db, 'users', currentUid, 'tasks', t.id))
+                                                ));
+                                                console.log(`[Bodhi SDK] ✅ Firestore DELETE success: "${removed.map(t => t.text).join(', ')}"`);
+                                            } catch (e) {
+                                                console.warn('[Bodhi SDK] Direct Firestore DELETE failed, trying onRemoveTask prop:', e);
+                                                if (onRemoveTaskRef.current) {
+                                                    removed.forEach(t => onRemoveTaskRef.current!(t.id).catch(() => { }));
+                                                }
+                                            }
+                                        })();
+                                    } else if (onRemoveTaskRef.current && removed.length > 0) {
                                         removed.forEach(t =>
                                             onRemoveTaskRef.current!(t.id).catch(e =>
-                                                console.warn('[Bodhi SDK] Failed to persist remove_sankalpa_task to Firestore:', e)
+                                                console.warn('[Bodhi SDK] onRemoveTask fallback failed:', e)
                                             )
                                         );
                                     }
                                     responseMessage = removed.length > 0
-                                        ? `Task "${removed.map(t => t.text).join(', ')}" removed from Sankalpa UI.`
+                                        ? `Task "${removed.map(t => t.text).join(', ')}" removed from Sankalpa list.`
                                         : `No matching task found for "${taskName}".`;
                                     console.log(`[Bodhi SDK] ✅ remove_sankalpa_task: "${taskName}"`);
                                 }
