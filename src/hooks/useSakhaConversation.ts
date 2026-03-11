@@ -30,6 +30,10 @@ interface UseSakhaConversationOptions {
     onAddTask?: (task: TaskItem) => Promise<void>;
     /** Called by Bodhi's remove_sankalpa_task tool — persists removal to Firestore */
     onRemoveTask?: (taskId: string) => Promise<void>;
+    /** Real-time SutraConnect message alert — Bodhi announces immediately on session open */
+    messageAlert?: { name: string; messageText: string; uid: string; chatId: string } | null;
+    /** Cleared once Bodhi has announced the alert so it doesn't repeat on reconnect */
+    onMessageAlertProcessed?: () => void;
 }
 
 // ─── Day Phase Detection ──────────────────────────────────────────────────────
@@ -404,11 +408,19 @@ ${isLateNight
 ════════════════════════════════════════════════════════════════════
 
 📌 PRIORITY ORDER (check each session):
-0. 📲 UNREAD SUTRATALK MESSAGES (Priority ZERO — do this before ANYTHING else):
-   If there are unread messages → immediately inform ${firstName}:
-   "${firstName}, [नाम] का संदेश आया है SutraConnect में — क्या मैं पढ़ूँ?"
-   → [TOOL: read_unread_messages("contact name")]
-   → After reading: "क्या आप जवाब देना चाहेंगे?" → [TOOL: reply_to_message("name", "reply")]
+0. 📲 DIRECT LIVE MESSAGE ALERT (Priority ZERO — if triggered by system, do this FIRST):
+   The system will pass you a LIVE_MESSAGE_ALERT at session start if there's a new unread message.
+   When you receive LIVE_MESSAGE_ALERT → announce it IMMEDIATELY:
+   "${firstName}, [नाम] का एक नया message आया है SutraConnect में — '[message text]'. क्या आप जवाब देना चाहते हैं?"
+   → WAIT for user to decide. DO NOT auto-reply.
+   → If user says YES or dictates a reply → [TOOL: reply_to_message("name", "user's exact reply text")]
+   → If user says "tu hi reply kar" / "tum likh do" → Compose a smart reply based on:
+     * The received message content
+     * User's current mood and pending tasks
+     * Time of day context
+     Then TELL the user what you composed: "मैं यह reply भेजूँगा — '[composed reply]'. ठीक है?"
+     → WAIT for confirmation before sending.
+   → If user says "baad mein" or "no" → acknowledge and continue naturally.
    DO NOT skip this even if other things are pending. Messages come first, always.
 1. ⚡ Mood → detect, ask to confirm, respond accordingly  
 2. 🧘 Meditation (if morning/not done) → offer once naturally
@@ -528,11 +540,15 @@ MOOD RESPONSE MATRIX:
 ⚙️ BEHAVIORAL RULES — HARD CONSTRAINTS
 ════════════════════════════════════════════════════════════════════
 
-1. MESSAGES FIRST (ABSOLUTE PRIORITY #0):
-   ALWAYS check for unread SutraConnect messages before anything else.
-   → "${firstName}, SutraConnect में [नाम] का message है — क्या पढ़ूँ?"
-   → [TOOL: read_unread_messages("contact name")]
-   → After reading: "क्या आप जवाब देना चाहेंगे?" → [TOOL: reply_to_message("name", "reply")]
+1. MESSAGE REPLY RULES (ABSOLUTE — NEVER auto-reply without permission):
+   When a LIVE_MESSAGE_ALERT is present at session start → announce it as the very first thing you say.
+   STEP 1 — Announce: "${firstName}, [contact name] ka ek naaya message aaya hai — '[message text]'. Kya jawab dena chahte ho?"
+   STEP 2 — WAIT. Only proceed if user confirms they want to reply.
+   STEP 3A — If user DICTATES reply: take their exact words, then call [TOOL: reply_to_message("name", "exact words")]
+   STEP 3B — If user says Bodhi should compose it: draft a reply, read it aloud first: "'[draft]' — bhejun?"
+             → Wait for confirmation, then [TOOL: reply_to_message("name", "composed draft")]
+   STEP 3C — If user says 'baad mein' / 'no' / 'manually': acknowledge and move on. NEVER push.
+   ⚠️ NEVER call reply_to_message without user explicitly confirming the reply text first.
 
 2. TASK GUIDE — Natural, not robotic:
    • "add karo" / "yaad rakh" → [TOOL: update_sankalpa_tasks(add, "task text")]
@@ -811,6 +827,8 @@ export function useSakhaConversation({
     userId = null,
     onAddTask,
     onRemoveTask,
+    messageAlert = null,
+    onMessageAlertProcessed,
 }: UseSakhaConversationOptions) {
     const { users: realUsers } = useUsers(userId);
     const realContacts = realUsers.filter(u => u.uid !== 'ai_vaidya' && u.uid !== 'ai_rishi');
@@ -842,6 +860,8 @@ export function useSakhaConversation({
     const callTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const watchdogRef = useRef<NodeJS.Timeout | null>(null); // anti-stuck watchdog
     const reconnectAttemptsRef = useRef<number>(0); // auto-reconnect counter (Fix 5)
+    const messageAlertRef = useRef(messageAlert);   // SutraConnect live alert
+    const onMessageAlertProcessedRef = useRef(onMessageAlertProcessed);
 
     // Current app state refs
     const sankalpaRef = useRef(sankalpaItems);
@@ -863,6 +883,8 @@ export function useSakhaConversation({
     useEffect(() => { onRemoveTaskRef.current = onRemoveTask; }, [onRemoveTask]);
     useEffect(() => { userNameRef.current = userName; }, [userName]);
     useEffect(() => { userIdRef.current = userId; }, [userId]);
+    useEffect(() => { messageAlertRef.current = messageAlert; }, [messageAlert]);
+    useEffect(() => { onMessageAlertProcessedRef.current = onMessageAlertProcessed; }, [onMessageAlertProcessed]);
 
     // Detect phase on mount
     useEffect(() => {
@@ -1113,12 +1135,23 @@ export function useSakhaConversation({
                         }),
                     }).catch(() => { /* non-critical */ });
 
-                    // 4. Confirm back to Bodhi session
+                    // 4. Confirm back to Bodhi session with SMART REPLY context
+                    // Bodhi can compose the reply itself using mood + schedule + message context
                     if (sessionRef.current) {
+                        const pendingTasksSummary = sankalpaRef.current
+                            .filter(t => !t.done)
+                            .slice(0, 3)
+                            .map(t => t.text)
+                            .join(', ');
+                        const currentHour = new Date().getHours();
+                        const timeCtx = currentHour < 12 ? 'morning (active time)'
+                            : currentHour < 17 ? 'afternoon (work/rest time)'
+                                : currentHour < 21 ? 'evening (winding down)'
+                                    : 'late night (should rest)';
                         await sessionRef.current.sendClientContent({
                             turns: [{
                                 role: 'user',
-                                parts: [{ text: 'SYSTEM_RESPONSE: Your reply "' + replyText + '" has been successfully sent to ' + contact.name + ' on SUTRAConnect. Please confirm to the user in a warm, brief Hindi message.' }]
+                                parts: [{ text: `SYSTEM_RESPONSE: Your reply "${replyText}" was sent to ${contact.name} on SUTRAConnect. ✅\n\nContext for smart follow-up:\n- Current time: ${timeCtx}\n- User's pending tasks: ${pendingTasksSummary || 'none'}\n- Conversation context: User replied to ${contact.name}'s message\n\nNow acknowledge the sent message warmly in 1 sentence, then naturally return to the conversation or ask what's next. Keep it brief and human.` }]
                             }],
                             turnComplete: true,
                         });
@@ -1771,7 +1804,6 @@ export function useSakhaConversation({
 
             // Reset reconnect counter on successful connection
             reconnectAttemptsRef.current = 0;
-
             // 4. Send initial greeting trigger
             try {
                 const historyNote = conversationHistory
@@ -1780,16 +1812,34 @@ export function useSakhaConversation({
                 const greetNote = hasGreetedThisPhase
                     ? `CRITICAL: Do NOT use any formal time-greeting salutation — you already greeted ${userName} this ${currentPhase} phase. Open naturally and warmly as a returning friend — in MAX 1-2 sentences.`
                     : `CRITICAL: This is the FIRST time you speak to ${userName} in the ${currentPhase} phase today. Open with a warm ${currentPhase} greeting — in MAX 1-2 sentences. Then stop and wait.`;
-                // Fix 7: User-first speech priority
                 const userFirstNote = `ABSOLUTE RULE: If ${userName} is ALREADY speaking or speaks within the first 2 seconds, IMMEDIATELY stop your planned greeting and RESPOND TO WHAT THEY SAID. Never override user speech with a pre-planned script.`;
-                // Fix 6: Hard cap on opening response length
                 const brevityNote = `LENGTH RULE: Your very FIRST spoken response MUST be 1-2 sentences MAXIMUM. Say a warm greeting + one question. STOP. Do not say 3+ things in a row. Wait for ${userName} to reply before continuing.`;
-                const openingText = `Start. Phase=${currentPhase}. ${userName} has ${sankalpaRef.current.length} tasks today. ${historyNote} ${greetNote} ${userFirstNote} ${brevityNote}`;
+
+                // ── SutraConnect live message alert injection ──────────────
+                const liveAlert = messageAlertRef.current;
+                let openingText: string;
+
+                if (liveAlert) {
+                    // OVERRIDE: message announcement takes precedence over normal greeting
+                    openingText = [
+                        `LIVE_MESSAGE_ALERT: ${userName} ne abi SutraConnect open kiya aur ek naya message wait kar raha hai.`,
+                        `Sender: "${liveAlert.name}"`,
+                        `Message: "${liveAlert.messageText}"`,
+                        `INSTRUCTION: Yeh PEHLI cheez bol — greet mat karo. Sirf announce karo in 1-2 sentences:`,
+                        `"${userName}, ${liveAlert.name} ka ek naaya message aaya hai — '${liveAlert.messageText}'. Kya jawab dena chahoge?"`,
+                        `Phir RUKO. User ka jawab suno. Khud reply mat bhejo.`,
+                    ].join('\n');
+                    // Mark the alert as processed so reconnects don't re-announce
+                    onMessageAlertProcessedRef.current?.();
+                } else {
+                    openingText = `Start. Phase=${currentPhase}. ${userName} has ${sankalpaRef.current.length} tasks today. ${historyNote} ${greetNote} ${userFirstNote} ${brevityNote}`;
+                }
+
                 await session.sendClientContent({
                     turns: [{ role: 'user', parts: [{ text: openingText }] }],
                     turnComplete: true,
                 });
-                console.log(`[Bodhi] Opening trigger sent | phase=${currentPhase} | hasGreetedThisPhase=${hasGreetedThisPhase}`);
+                console.log(`[Bodhi] Opening trigger sent | phase=${currentPhase} | hasGreetedThisPhase=${hasGreetedThisPhase} | liveAlert=${!!liveAlert}`);
             } catch (greetErr) {
                 console.warn('[Bodhi] Could not send initial greeting:', greetErr);
             }

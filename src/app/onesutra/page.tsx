@@ -230,7 +230,28 @@ export default function OneSutraPage() {
         ...AI_CONTACTS.map(c => ({ ...c, photoURL: undefined as undefined })),
         ...realContacts,
     ];
-    const filtered = allContacts.filter(c =>
+
+    // ── WhatsApp-style sort: most recent message on top ─────────────────────
+    // AI contacts stay at top (they never have real chatMeta).
+    // Real contacts sorted by lastMessageAt descending (latest first).
+    // Contacts with no messages go to the bottom of the real list.
+    const sortedContacts = [
+        // AI contacts always first
+        ...allContacts.filter(c => c.isAI),
+        // Real contacts sorted by most-recent messageAt desc
+        ...allContacts
+            .filter(c => !c.isAI)
+            .sort((a, b) => {
+                if (!user) return 0;
+                const aMeta = chatMeta.get(getChatId(user.uid, a.uid));
+                const bMeta = chatMeta.get(getChatId(user.uid, b.uid));
+                const aTime = aMeta?.lastMessageAt ?? 0;
+                const bTime = bMeta?.lastMessageAt ?? 0;
+                return bTime - aTime; // descending — latest message on top
+            }),
+    ];
+
+    const filtered = sortedContacts.filter(c =>
         c.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
