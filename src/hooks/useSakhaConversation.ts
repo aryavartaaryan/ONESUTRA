@@ -46,22 +46,37 @@ function getDayPhase(hour: number): DayPhase {
 // ─── Krishna-like soft Sakha greetings (rotated by minute for variety) ───────
 const RETURNING_GREETINGS = {
     CASUAL: [
-        // Very recent return — casual, warm, reactivation style
-        (name: string) => `${name}, आ गए आप! 🙏 क्या पुरानी बात जारी रखें, या आज कुछ नया करें?`,
-        (name: string) => `${name} ने याद किया! आपका सखा बोधि वापस आ गया। बोलिए — कहाँ छोड़ा था हम?`,
-        (name: string) => `सखा यहाँ है, ${name}! पुरानी बात जारी रखें या fresh start?`,
+        // Very recent return (<15min) — light, playful, no big deal
+        (name: string) => `${name}, वापस आ गए! 🙏 क्या बात है? कुछ याद आया?`,
+        (name: string) => `${name}! इतनी जल्दी? कोई बात नहीं — बोलिए।`,
+        (name: string) => `अरे ${name}, सखा तो यहीं था। बताइए — क्या चाहिए?`,
+        (name: string) => `${name}, फिर से आए! जल्दी जल्दी तो ठीक है, बोलिए क्या है।`,
+        (name: string) => `${name}! अभी तो मिले थे। कोई नई बात आई?`,
+        (name: string) => `सखा यहाँ है ${name} — पुरानी बात जारी रखें या कुछ नया?`,
+        (name: string) => `${name} ने याद किया! बोधि हाज़िर है। बताइए।`,
+        (name: string) => `हाँ ${name}, बोलिए — क्या सेवा करूँ?`,
     ],
     WARM: [
-        // Normal return — gentle, loving, present like Krishna
-        (name: string) => `${name}! आना हुआ आपका। 🌸 बताइए, कैसे हैं आप? मन कैसा है आज?`,
-        (name: string) => `${name}, आपकी याद आई — तो सखा बोधि आ गया। कैसे हैं आप? पुरानी बात जारी रखें?`,
-        (name: string) => `${name}, आपको देख प्रसन्नता हुई। 🙏 क्या चल रहा है जीवन में? कुछ नया, या पहले की बात करें?`,
+        // Normal return (15min–4h) — warm, present, human
+        (name: string) => `${name}! आना हुआ आपका। 🌸 कैसे हैं? मन कैसा है आज?`,
+        (name: string) => `${name}, आपकी याद आई — और सखा बोधि आ गया। बताइए, कुछ खास?`,
+        (name: string) => `${name}, आपको देखकर अच्छा लगा। 🙏 क्या चल रहा है जीवन में?`,
+        (name: string) => `${name}! सखा इंतज़ार में था। कैसे हैं आप? दिन कैसा जा रहा है?`,
+        (name: string) => `${name}, आ गए! 🌟 क्या हाल है आपका?`,
+        (name: string) => `${name}, खुशी हुई आपको देखकर। कुछ नया बताइए।`,
+        (name: string) => `${name}! बोधि यहाँ है। दिन कैसा रहा अब तक?`,
+        (name: string) => `${name}, नमस्ते! 🙏 अच्छे हैं आप? कुछ बात करें?`,
     ],
     SOULFUL: [
-        // Long absence — deep, Krishna-level welcome back
-        (name: string) => `${name}... बहुत दिन बाद आए आप। सखा आपकी प्रतीक्षा में था। 🕊️ सब कुशल तो है न?`,
-        (name: string) => `${name}, आपके इस पल को बोधि ने संजो लिया। बताइए — जीवन के इस अध्याय में क्या है?`,
+        // Long absence (>4h) — deep, soulful, Krishna-level
+        (name: string) => `${name}… बहुत दिन बाद आए। सखा आपकी प्रतीक्षा में था। 🕊️ सब कुशल तो है न?`,
         (name: string) => `${name}, जैसे नदी सागर से मिलती है — वैसे आप फिर मिले। 🌊 कैसा रहा यह समय आपका?`,
+        (name: string) => `${name}, इस पल को बोधि ने संजो लिया। जीवन के इस अध्याय में क्या है आजकल?`,
+        (name: string) => `${name}! काफी समय बाद आए आप। 🙏 यकीन मानिए, सखा ने याद किया था। कैसे हैं?`,
+        (name: string) => `${name}, अच्छा लगा आपको देखकर। देर बाद आए — सब ठीक है न?`,
+        (name: string) => `${name}… वापस आए आप। 🕊️ जो भी हो — सखा यहाँ है, बताइए।`,
+        (name: string) => `${name}, इतने दिनों बाद! जीवन में क्या नया है? बताइए सब।`,
+        (name: string) => `${name}! बहुत याद आए आप। 🌟 अब बताइए — सब ठीक तो है न?`,
     ]
 };
 
@@ -386,12 +401,20 @@ ${isLateNight
 
 📌 PRIORITY ORDER (check each session):
 0. 📲 UNREAD SUTRATALK MESSAGES (Priority ZERO — do this before ANYTHING else):
-   If there are unread messages → immediately inform ${firstName}:
-   "${firstName}, [नाम] का संदेश आया है SutraConnect में — क्या मैं पढ़ूँ?"
+   If there are unread messages, tell the user NATURALLY — like a friend would:
+   • 1 message: "${firstName}, [Name] ne aapko message kiya hai — kya main padhû?"
+   • 2-3 messages: "${firstName}, [Name] ne kuch messages bheje hain — kya main padhû?"
+   • Many messages: "${firstName}, [Name] ne kaafi messages bheje hain — kya main sabhi padhû?"
    → [TOOL: read_unread_messages("contact name")]
-   → After reading: "क्या आप जवाब देना चाहेंगे?" → [TOOL: reply_to_message("name", "reply")]
-   DO NOT skip this even if other things are pending. Messages come first, always.
-1. ⚡ Mood → detect, ask to confirm, respond accordingly  
+   → Read them LIKE A REAL PERSON — group them naturally, don't say "message received" repeatedly.
+   → After reading: "Kya aap jawab dena chahenge?" → [TOOL: reply_to_message("name", "user_words")]
+   DO NOT skip this. Messages come FIRST, always.
+1. ⚡ Mood — CONSERVATIVE RULE (CRITICAL):
+   ❌ NEVER say "lagta hai aap udaas hain" or "aap stressed lagte hain" unless:
+     • The user EXPLICITLY said they are sad/stressed/upset, OR
+     • 3+ clear behavioral signals exist in THIS session (slow speech, negative words, sighing mentioned)
+   ✔ If unsure — just ask gently: "${firstName}, kaisa feel ho raha hai aaj?"
+   ✔ Let the user TELL you their mood. Don't guess and announce it.
 2. 🧘 Meditation (if morning/not done) → offer once naturally
 3. 📰 News → if ${firstName} is free, proactively ask "Top 10 खबरें सुनें?"
 4. 📝 Tasks → assist with pending sankalpa naturally
@@ -1071,23 +1094,62 @@ export function useSakhaConversation({
 
                     const chatId = getChatId(userId, contact.uid);
 
-                    // 2. Fetch last 5 messages from Firebase for this chat
+                    // 2. Fetch last 20 messages — get all recent context, not just 5
                     const { getFirebaseFirestore } = await import('@/lib/firebase');
-                    const { collection, query, orderBy, getDocs, limitToLast } = await import('firebase/firestore');
+                    const { collection, query, orderBy, getDocs, limitToLast, doc, setDoc, increment } = await import('firebase/firestore');
                     const db = await getFirebaseFirestore();
                     const msgsRef = collection(db, 'onesutra_chats', chatId, 'messages');
-                    const q = query(msgsRef, orderBy('createdAt', 'asc'), limitToLast(5));
+                    const q = query(msgsRef, orderBy('createdAt', 'asc'), limitToLast(20));
 
                     const snap = await getDocs(q);
-                    const unreadMsgs = snap.docs
-                        .map(d => d.data())
-                        .filter(msg => msg.senderId === contact.uid) // Only messages sent BY the friend
-                        .map(msg => msg.text)
-                        .join('\n');
+                    const allMsgs = snap.docs.map(d => d.data());
 
-                    const responseText = unreadMsgs.trim() !== ''
-                        ? 'SYSTEM_RESPONSE: ' + contact.name + ' says: \n' + unreadMsgs + '\n\nAfter reading these messages, ask the user: "क्या आप इसका जवाब देना चाहेंगे?" and if yes, get their reply and call [TOOL: reply_to_message("' + contact.name + '", "their reply text")].'
-                        : 'SYSTEM_RESPONSE: No recent text messages found from ' + contact.name + '.';
+                    // 3. Filter only messages FROM the contact (not from me), group consecutive ones
+                    const fromContact = allMsgs.filter(msg =>
+                        msg.senderId === contact.uid && msg.text && msg.text.trim()
+                    );
+
+                    let responseText: string;
+                    if (fromContact.length === 0) {
+                        responseText = `SYSTEM_RESPONSE: No messages found from ${contact.name}. Tell the user warmly: "${contact.name} ki taraf se koi nayi message nahi mili abhi."`;
+                    } else {
+                        // Build a natural narrative — group messages
+                        const msgTexts = fromContact.map(m => m.text.trim());
+                        const count = msgTexts.length;
+
+                        // Present naturally: "X ne Y messages bheje hain. Pehla message hai: ..., Doosra: ..., Teesra: ..."
+                        const ordinals = ['पहला', 'दूसरा', 'तीसरा', 'चौथा', 'पाँचवाँ', 'छठा', 'सातवाँ', 'आठवाँ', 'नौवाँ', 'दसवाँ'];
+                        let narrative = '';
+                        if (count === 1) {
+                            narrative = `${contact.name} ने message भेजा है: "${msgTexts[0]}"`;
+                        } else if (count <= 3) {
+                            narrative = `${contact.name} ने ${count} messages भेजे हैं:\n`;
+                            msgTexts.forEach((t, i) => {
+                                narrative += `${ordinals[i] || (i + 1) + 'वाँ'} message: "${t}"\n`;
+                            });
+                        } else {
+                            // Many messages — summarize first, then read last few
+                            const lastThree = msgTexts.slice(-3);
+                            narrative = `${contact.name} ने काफी messages भेजे हैं — कुल ${count}। `;
+                            narrative += `आखिरी कुछ messages हैं:\n`;
+                            lastThree.forEach((t, i) => {
+                                narrative += `"${t}"\n`;
+                            });
+                        }
+
+                        responseText = `SYSTEM_RESPONSE: Messages from ${contact.name}:\n${narrative}\n\n` +
+                            `READ THESE NATURALLY — like a friend reading aloud. Say "${contact.name} ne kaha: [message]". ` +
+                            `Do NOT say "message received" or list them robotically. ` +
+                            `After reading, ask warmly: "Kya aap jawab dena chahenge?" ` +
+                            `If yes → get user's words → call [TOOL: reply_to_message("${contact.name}", "their reply")].`;
+
+                        // 4. Reset unread count for this chat (mark as read)
+                        try {
+                            await setDoc(doc(db, 'onesutra_chats', chatId), {
+                                [`unreadCounts.${userId}`]: 0,
+                            }, { merge: true });
+                        } catch { /* non-critical */ }
+                    }
 
                     if (sessionRef.current) {
                         await sessionRef.current.sendClientContent({
@@ -1095,6 +1157,7 @@ export function useSakhaConversation({
                             turnComplete: true,
                         });
                     }
+
                 } catch (e) {
                     console.warn('[Bodhi] Failed to fetch unread messages', e);
                     if (sessionRef.current) {
