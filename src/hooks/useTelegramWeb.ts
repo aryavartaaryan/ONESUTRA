@@ -98,68 +98,50 @@ export function useTelegramWeb(): UseTelegramWebReturn {
             setStep('INITIALIZING');
 
             if (IS_MOCK) {
-                // ── MOCK MODE: Simulate the initialization delay, then become ready ──
-                console.warn('[useTelegramWeb] Running in MOCK mode. Set NEXT_PUBLIC_TDLIB_API_ID to go live.');
-                await sleep(800);
+                console.warn('[TDLib] MOCK MODE — set NEXT_PUBLIC_TDLIB_API_ID to go live.');
+                await sleep(600);
                 if (!destroyed) setStep('WAIT_PHONE');
                 return;
             }
 
             try {
                 /**
-                 * STEP 1: Dynamically import tdweb.
+                 * WHY SCRIPT TAG (not import('tdweb')):
+                 * ─────────────────────────────────────────────────────────────────
+                 * When webpack bundles `import('tdweb')`, it resolves and rewrites
+                 * all internal paths. tdweb uses new Worker(new URL('./worker.js', import.meta.url))
+                 * internally — this breaks completely when webpack mangles the paths.
+                 * Result: the Web Worker silently fails, TDLib never initialises,
+                 * and the spinner hangs forever.
                  *
-                 * We use dynamic import() to:
-                 *   a) Prevent this heavy library from entering the server-side bundle
-                 *   b) Let the page render first, then load the Web Worker
-                 *
-                 * The tdweb package ships its own Web Worker + WASM build. When
-                 * `new TdClient(...)` is called, it posts a message to the worker which
-                 * then fetches and instantiates the WASM binary from `tdlibPath`.
+                 * The fix: inject a plain <script> tag that loads /public/tdlib/tdweb.js
+                 * directly. Next.js serves /public/ as static files with no transforms.
+                 * The tdweb script registers window.TdClient — we then call that directly.
                  */
-                const { default: TdClient } = await import('tdweb');
+                await loadTdwebScript();
 
-                /**
-                 * STEP 2: Instantiate TdClient with our configuration.
-                 *
-                 * `onUpdate` is the single callback that receives ALL TDLib events.
-                 * This is the heart of the reactive architecture — we route each
-                 * event type to the appropriate state update below.
-                 *
-                 * `tdlibPath` points to the WASM files we copied to /public/tdlib/.
-                 * Next.js serves all /public files as static assets, so this is
-                 * guaranteed to exist after our setup step.
-                 */
+                const TdClient = (window as any).TdClient;
+                if (!TdClient) throw new Error('TdClient not found on window after script load');
+
                 const client = new TdClient({
-                    /**
-                     * jsPath → the main tdweb JS bundle served from /public/tdlib/tdweb.js
-                     * The WASM file is auto-discovered from the same directory.
-                     */
-                    jsPath: '/tdlib/tdweb.js',
                     onUpdate: (update: any) => handleUpdate(update, destroyed),
+                    // All WASM/worker files served from /public/tdlib/
+                    // tdweb auto-discovers sibling files from the script's own URL
                 });
 
                 tdClientRef.current = client;
 
-                /**
-                 * STEP 3: Set verbosity level first (suppress TDLib debug spam),
-                 * then send our app credentials via setTdlibParameters.
-                 *
-                 * CRITICAL: Must wrap all fields inside `parameters: {}` per TDLib JSON API spec.
-                 */
-                await client.send({
-                    '@type': 'setLogVerbosityLevel',
-                    new_verbosity_level: 2,
-                });
+                // Set verbosity first, then send credentials
+                await client.send({ '@type': 'setLogVerbosityLevel', new_verbosity_level: 1 });
 
                 await client.send({
                     '@type': 'setTdlibParameters',
                     parameters: {
                         api_id: API_ID,
                         api_hash: API_HASH,
-                        system_language_code: navigator?.language || 'en',
-                        device_model: 'Web Browser',
-                        system_version: 'Web',
+                        system_language_code: navigator?.language?.slice(0, 2) || 'en',
+                        device_model: 'Web',
+                        system_version: 'Browser',
                         application_version: '1.0',
                         enable_storage_optimizer: true,
                         use_secret_chats: false,
@@ -168,15 +150,13 @@ export function useTelegramWeb(): UseTelegramWebReturn {
                         use_test_dc: false,
                     },
                 });
-
-                // TDLib will respond with authorizationStateWaitPhoneNumber
-                // which handleUpdate catches and moves step → WAIT_PHONE.
+                // TDLib will now fire updateAuthorizationState → authorizationStateWaitPhoneNumber
 
             } catch (err: any) {
-                console.error('[useTelegramWeb] Init failed:', err);
+                console.error('[TDLib] Init failed:', err);
                 if (!destroyed) {
                     setStep('ERROR');
-                    setError('Failed to initialize Telegram. Please refresh the page.');
+                    setError('Telegram could not connect. Please check your internet and try again.');
                 }
             }
         }
@@ -466,6 +446,59 @@ async function crossReferenceWithFirestore(
 
 function sleep(ms: number): Promise<void> {
     return new Promise((r) => setTimeout(r, ms));
+}
+
+/**
+ * loadTdwebScript — injects /public/tdlib/tdweb.js via a <script> tag.
+ *
+ * WHY NOT import('tdweb')?
+ * webpack processes the import and rewrites all internal file paths.
+ * tdweb spawns Web Workers using relative URLs; after webpack mangles them,
+ * the Workers 404 silently and TDLib never initialises (infinite spinner).
+ *
+ * This function bypasses webpack entirely. The browser fetches the raw file
+ * from /public/tdlib/tdweb.js which is served as a static asset unchanged.
+ * tdweb then self-discovers its sibling .wasm and worker .js files from
+ * the same URL, which all exist in /public/tdlib/ from our earlier setup.
+ */
+function loadTdwebScript(): Promise<void> {
+    return new Promise((resolve, reject) => {
+        // Idempotent — skip if already loaded
+        if ((window as any).TdClient) {
+            resolve();
+            return;
+        }
+        if (document.getElementById('tdweb-script')) {
+            // Script tag exists but TdClient not ready yet — wait for it
+            const check = setInterval(() => {
+                if ((window as any).TdClient) { clearInterval(check); resolve(); }
+            }, 100);
+            setTimeout(() => { clearInterval(check); reject(new Error('tdweb script load timed out')); }, 12000);
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.id = 'tdweb-script';
+        script.src = '/tdlib/tdweb.js';
+        script.async = true;
+
+        // 12-second hard timeout — fail fast instead of hanging
+        const timeout = setTimeout(() => {
+            reject(new Error('tdweb load timed out — check /public/tdlib/tdweb.js exists'));
+        }, 12000);
+
+        script.onload = () => {
+            clearTimeout(timeout);
+            console.log('[TDLib] tdweb.js loaded via script tag ✓');
+            resolve();
+        };
+        script.onerror = (e) => {
+            clearTimeout(timeout);
+            reject(new Error(`Failed to load /tdlib/tdweb.js: ${e}`));
+        };
+
+        document.head.appendChild(script);
+    });
 }
 
 function normalizePhone(phone: string): string {
