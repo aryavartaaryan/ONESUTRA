@@ -1,40 +1,25 @@
 'use client';
 /**
- * useTelegramWeb.ts — Web-Safe TDLib Hook
+ * useTelegramWeb.ts — Pure JS MTProto Hook (GramJS)
  * ─────────────────────────────────────────────────────────────────────────────
  *
  * WHY THIS EXISTS:
- *   The native TDLib packages are compiled for mobile/desktop environments.
- *   In a browser, we MUST use `tdweb` — the official Telegram-provided WebAssembly
- *   build. It runs TDLib inside a Web Worker, so the MTProto cryptography and
- *   networking never block the main UI thread.
+ *   Previous WASM-based solutions (tdweb) conflicted with Next.js webpack
+ *   bundlers and internal Web Worker URL routing.
+ *   We use `telegram` (GramJS), which is a pure JavaScript implementation
+ *   of MTProto that runs native in the browser without WASM.
  *
- * HOW TDWEB INITIALIZES (the sequence):
- *   1. We dynamically import `tdweb` only on the client (avoids SSR crash).
- *   2. TdClient boots a Web Worker that loads the WASM binary from /public/tdlib/
- *   3. TDLib emits `updateAuthorizationState` events to drive the auth state machine:
- *      → authorizationStateWaitTdlibParameters  (we send our API credentials)
- *      → authorizationStateWaitPhoneNumber      (ready for user to enter phone)
- *      → authorizationStateWaitCode             (Telegram sent SMS/app code)
- *      → authorizationStateReady                (session fully established!)
- *   4. Once READY, we call getContacts() to pull contacts from Telegram Cloud.
- *
- * BROWSER COMPATIBILITY:
- *   - Uses SharedArrayBuffer (requires COOP/COEP headers) OR falls back to
- *     single-threaded WASM. Both work in Chrome 90+ and Safari 15.2+.
- *   - All network calls go through Telegram's own MTProto servers. No proxy needed.
- *
- * MOCK MODE:
- *   When NEXT_PUBLIC_TDLIB_API_ID is not set, the hook runs in full mock mode
- *   for UI development — no real Telegram connection is made.
+ * INITIALIZATION SEQUENCE:
+ *   1. We initialize TelegramClient with a StringSession (saved in localStorage).
+ *   2. The user inputs their phone -> submitPhone() calls client.sendCode().
+ *   3. The user inputs OTP -> submitCode() calls client.invoke(SignIn).
+ *   4. On success, we save the StringSession to localStorage and fetch contacts.
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSutraConnectStore } from '@/stores/sutraConnectStore';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
+import { TelegramClient, Api } from 'telegram';
+import { StringSession } from 'telegram/sessions';
 
 export type TelegramAuthStep =
     | 'IDLE'
@@ -63,97 +48,69 @@ export interface UseTelegramWebReturn {
     reset: () => void;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Constants
-// ─────────────────────────────────────────────────────────────────────────────
-
 const API_ID = parseInt(process.env.NEXT_PUBLIC_TDLIB_API_ID ?? '0', 10);
 const API_HASH = process.env.NEXT_PUBLIC_TDLIB_API_HASH ?? '';
 const IS_MOCK = !API_ID || !API_HASH;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Hook
-// ─────────────────────────────────────────────────────────────────────────────
+// Store session in localStorage to persist login
+const SESSION_KEY = 'sutraconnect_tg_session';
 
 export function useTelegramWeb(): UseTelegramWebReturn {
     const [step, setStep] = useState<TelegramAuthStep>('IDLE');
     const [error, setError] = useState<string | null>(null);
     const [contactCount, setContactCount] = useState(0);
 
-    // tdweb TdClient instance — stored in a ref so it persists across renders
-    // without triggering re-renders when it changes.
-    const tdClientRef = useRef<any>(null);
+    const clientRef = useRef<TelegramClient | null>(null);
+    const phoneRef = useRef<string>('');
+    const phoneCodeHashRef = useRef<string>('');
 
     const setTelegramSynced = useSutraConnectStore((s) => s.setTelegramSynced);
     const setContactMap = useSutraConnectStore((s) => s.setContactMap);
 
-    // ── Initialize tdweb on component mount ────────────────────────────────────
     useEffect(() => {
-        // Guard: only run in browser, not SSR
         if (typeof window === 'undefined') return;
 
         let destroyed = false;
 
-        async function initTDLib() {
+        async function initGramJS() {
             setStep('INITIALIZING');
 
             if (IS_MOCK) {
-                console.warn('[TDLib] MOCK MODE — set NEXT_PUBLIC_TDLIB_API_ID to go live.');
+                console.warn('[GramJS] MOCK MODE — set NEXT_PUBLIC_TDLIB_API_ID to go live.');
                 await sleep(600);
                 if (!destroyed) setStep('WAIT_PHONE');
                 return;
             }
 
             try {
-                /**
-                 * WHY SCRIPT TAG (not import('tdweb')):
-                 * ─────────────────────────────────────────────────────────────────
-                 * When webpack bundles `import('tdweb')`, it resolves and rewrites
-                 * all internal paths. tdweb uses new Worker(new URL('./worker.js', import.meta.url))
-                 * internally — this breaks completely when webpack mangles the paths.
-                 * Result: the Web Worker silently fails, TDLib never initialises,
-                 * and the spinner hangs forever.
-                 *
-                 * The fix: inject a plain <script> tag that loads /public/tdlib/tdweb.js
-                 * directly. Next.js serves /public/ as static files with no transforms.
-                 * The tdweb script registers window.TdClient — we then call that directly.
-                 */
-                await loadTdwebScript();
+                // Determine if we already have a saved session
+                const savedSession = localStorage.getItem(SESSION_KEY) || '';
+                const stringSession = new StringSession(savedSession);
 
-                const TdClient = (window as any).TdClient;
-                if (!TdClient) throw new Error('TdClient not found on window after script load');
-
-                const client = new TdClient({
-                    onUpdate: (update: any) => handleUpdate(update, destroyed),
-                    // All WASM/worker files served from /public/tdlib/
-                    // tdweb auto-discovers sibling files from the script's own URL
+                const client = new TelegramClient(stringSession, API_ID, API_HASH, {
+                    connectionRetries: 5,
+                    deviceModel: 'Web Browser',
+                    systemVersion: 'Web',
+                    appVersion: '1.0',
                 });
 
-                tdClientRef.current = client;
+                clientRef.current = client;
 
-                // Set verbosity first, then send credentials
-                await client.send({ '@type': 'setLogVerbosityLevel', new_verbosity_level: 1 });
+                await client.connect();
+                console.log('[GramJS] Connected to Telegram servers');
 
-                await client.send({
-                    '@type': 'setTdlibParameters',
-                    parameters: {
-                        api_id: API_ID,
-                        api_hash: API_HASH,
-                        system_language_code: navigator?.language?.slice(0, 2) || 'en',
-                        device_model: 'Web',
-                        system_version: 'Browser',
-                        application_version: '1.0',
-                        enable_storage_optimizer: true,
-                        use_secret_chats: false,
-                        use_message_database: false,
-                        use_file_database: false,
-                        use_test_dc: false,
-                    },
-                });
-                // TDLib will now fire updateAuthorizationState → authorizationStateWaitPhoneNumber
-
+                if (!destroyed) {
+                    if (await client.checkAuthorization()) {
+                        // We are already logged in
+                        setStep('READY');
+                        fetchAndStoreContacts(client);
+                    } else {
+                        // We need to login
+                        setStep('WAIT_PHONE');
+                    }
+                }
             } catch (err: any) {
-                console.error('[TDLib] Init failed:', err);
+                console.error('[GramJS] Init failed:', err);
                 if (!destroyed) {
                     setStep('ERROR');
                     setError('Telegram could not connect. Please check your internet and try again.');
@@ -161,111 +118,44 @@ export function useTelegramWeb(): UseTelegramWebReturn {
             }
         }
 
-        /**
-         * THE TDLib UPDATE HANDLER
-         *
-         * This function is called by TdClient.onUpdate for every single event
-         * that TDLib fires. We only handle the events that matter to our auth flow.
-         * All other event types are silently ignored.
-         */
-        function handleUpdate(update: any, _destroyed: boolean) {
-            if (_destroyed) return;
+        initGramJS();
 
-            const type: string = update?.['@type'];
-
-            switch (type) {
-                case 'updateAuthorizationState': {
-                    const authStateType: string = update?.authorization_state?.['@type'];
-                    console.log('[TDLib] Auth state →', authStateType);
-
-                    switch (authStateType) {
-                        case 'authorizationStateWaitTdlibParameters':
-                            // TDLib is asking for credentials — we send them in initTDLib() above
-                            break;
-
-                        case 'authorizationStateWaitPhoneNumber':
-                            // ✅ TDLib is ready and waiting for the user's phone number
-                            setStep('WAIT_PHONE');
-                            break;
-
-                        case 'authorizationStateWaitCode':
-                            // ✅ Telegram sent an OTP — UI should now show the code input
-                            setStep('WAIT_CODE');
-                            break;
-
-                        case 'authorizationStateWaitPassword':
-                            // User has 2FA enabled — rare but handle gracefully
-                            setError('2FA password required. Please temporarily disable 2FA in Telegram settings and try again.');
-                            setStep('ERROR');
-                            break;
-
-                        case 'authorizationStateReady':
-                            // ✅ SESSION ESTABLISHED — fetch cloud contacts
-                            setStep('READY');
-                            fetchAndStoreContacts();
-                            break;
-
-                        case 'authorizationStateClosed':
-                            if (!IS_MOCK) setStep('IDLE');
-                            break;
-                    }
-                    break;
-                }
-
-                case 'error': {
-                    const msg: string = update?.message ?? 'Unknown Telegram error';
-                    console.error('[TDLib] Error:', update);
-                    setError(friendlyError(msg));
-                    // Don't set step to ERROR for all errors — some are recoverable
-                    // (e.g., wrong code → just show the error, stay in WAIT_CODE)
-                    break;
-                }
-            }
-        }
-
-        initTDLib();
-
-        // Cleanup: mark as destroyed so stale async callbacks don't update state
         return () => { destroyed = true; };
-    }, []); // Run once on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // ── SUBMIT PHONE ────────────────────────────────────────────────────────────
     const submitPhone = useCallback(async (phone: string) => {
         setError(null);
 
         if (IS_MOCK) {
-            // Mock: simulate the Telegram SMS delay
             setStep('VERIFYING');
             await sleep(1500);
             setStep('WAIT_CODE');
             return;
         }
 
-        if (!tdClientRef.current) {
+        if (!clientRef.current) {
             setError('Telegram client not ready. Please wait a moment and try again.');
             return;
         }
 
         try {
             setStep('VERIFYING');
-            /**
-             * setAuthenticationPhoneNumber — sends the phone number to Telegram's
-             * MTProto servers. Telegram will send an OTP via SMS or in-app notification.
-             * The response is delivered asynchronously via updateAuthorizationState.
-             */
-            await tdClientRef.current.send({
-                '@type': 'setAuthenticationPhoneNumber',
-                phone_number: phone.trim(),
-                settings: {
-                    '@type': 'phoneNumberAuthenticationSettings',
-                    allow_flash_call: false,
-                    allow_missed_call: false,
-                    is_current_phone_number: false,
-                    allow_sms_retriever_api: false,
-                },
-            });
-            // The handleUpdate listener will move step → WAIT_CODE when TDLib confirms
+            const normalizedPhone = normalizePhone(phone);
+            phoneRef.current = normalizedPhone;
+
+            // Send auth code
+            const result = await clientRef.current.sendCode({
+                apiId: API_ID,
+                apiHash: API_HASH,
+            }, normalizedPhone);
+
+            phoneCodeHashRef.current = result.phoneCodeHash;
+            setStep('WAIT_CODE');
+
         } catch (err: any) {
+            console.error('[GramJS] sendCode error:', err);
             setError(friendlyError(err?.message));
             setStep('WAIT_PHONE');
         }
@@ -278,100 +168,85 @@ export function useTelegramWeb(): UseTelegramWebReturn {
         if (IS_MOCK) {
             setStep('VERIFYING');
             await sleep(1500);
-            // Mock: Accept any 5-digit code for dev testing
             setStep('READY');
             setTelegramSynced('mock_tg_user_id_777', '+919876543210');
             setContactCount(4);
-            // Populate store with mock contacts for testing
             setContactMap({
                 '+919876500001': { telegram_user_id: '111001', is_onesutra_user: true, onesutra_uid: 'demo_uid_01' },
                 '+919876500002': { telegram_user_id: '111002', is_onesutra_user: false, onesutra_uid: null },
-                '+919876500003': { telegram_user_id: '111003', is_onesutra_user: true, onesutra_uid: 'demo_uid_03' },
-                '+919876500004': { telegram_user_id: '111004', is_onesutra_user: false, onesutra_uid: null },
             });
             return;
         }
 
-        if (!tdClientRef.current) return;
+        if (!clientRef.current || !phoneCodeHashRef.current || !phoneRef.current) return;
 
         try {
             setStep('VERIFYING');
-            /**
-             * checkAuthenticationCode — validates the OTP the user typed.
-             * On success, TDLib fires authorizationStateReady.
-             * On failure, TDLib fires an error update with PHONE_CODE_INVALID.
-             */
-            await tdClientRef.current.send({
-                '@type': 'checkAuthenticationCode',
-                code: code.trim(),
-            });
-            // handleUpdate will move step → READY when TDLib confirms
+
+            await clientRef.current.invoke(new Api.auth.SignIn({
+                phoneNumber: phoneRef.current,
+                phoneCodeHash: phoneCodeHashRef.current,
+                phoneCode: code.trim()
+            }));
+
+            // Successfully logged in — save session to local storage
+            const sessionString = (clientRef.current.session as StringSession).save();
+            localStorage.setItem(SESSION_KEY, sessionString as unknown as string);
+
+            setStep('READY');
+            fetchAndStoreContacts(clientRef.current);
+
         } catch (err: any) {
-            setError(friendlyError(err?.message));
-            setStep('WAIT_CODE'); // Stay on code screen, let user retry
+            console.error('[GramJS] SignIn error:', err);
+            if (err.message && err.message.includes('SESSION_PASSWORD_NEEDED')) {
+                setError('2FA password required. Please temporarily disable it in Telegram and try again.');
+                setStep('ERROR');
+            } else {
+                setError(friendlyError(err?.message));
+                setStep('WAIT_CODE');
+            }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [setTelegramSynced, setContactMap]);
 
     // ── FETCH CLOUD CONTACTS ────────────────────────────────────────────────────
-    const fetchAndStoreContacts = useCallback(async () => {
+    const fetchAndStoreContacts = useCallback(async (client: TelegramClient) => {
         try {
-            /**
-             * getMe() — retrieve the authenticated user's own profile.
-             * We store their Telegram user_id and phone_number to mark them
-             * as "Telegram-synced" in Firestore.
-             */
-            let myId = 'tg_user';
-            let myPhone = '';
+            // Get our own profile
+            const me = await client.getMe();
 
-            if (!IS_MOCK && tdClientRef.current) {
-                const me = await tdClientRef.current.send({ '@type': 'getMe' });
-                myId = String(me?.id ?? 'tg_user');
-                myPhone = me?.phone_number ?? '';
-                setTelegramSynced(myId, myPhone);
+            const myId = String(me?.id ?? 'tg_user');
+            const myPhone = me?.phone ?? '';
+            setTelegramSynced(myId, myPhone);
 
-                /**
-                 * getContacts() — fetches the user's Telegram contact list from
-                 * Telegram's cloud servers. This returns an array of Telegram user IDs.
-                 *
-                 * We then batch-call getUser() to resolve each ID into a full user
-                 * object with phone number, name, etc. These phone numbers are what
-                 * we compare against our OneSUTRA user database to find Dual Users.
-                 */
-                const contactsResult = await tdClientRef.current.send({ '@type': 'getContacts' });
-                const userIds: number[] = contactsResult?.user_ids ?? [];
+            // Get contacts
+            const result = await client.invoke(new Api.contacts.GetContacts({
+                hash: BigInt(0) as any,
+            }));
 
-                // Fetch full user profiles in parallel (batches of 10 for safety)
-                const contacts: TelegramContact[] = [];
-                for (let i = 0; i < userIds.length; i += 10) {
-                    const batch = userIds.slice(i, i + 10);
-                    const users = await Promise.all(
-                        batch.map((id) =>
-                            tdClientRef.current.send({ '@type': 'getUser', user_id: id }).catch(() => null)
-                        )
-                    );
-                    for (const u of users) {
-                        if (u && u.phone_number) {
-                            contacts.push({
-                                id: u.id,
-                                first_name: u.first_name ?? '',
-                                last_name: u.last_name ?? '',
-                                phone_number: normalizePhone(u.phone_number),
-                                username: u.usernames?.active_usernames?.[0],
-                            });
-                        }
+            // result is contacts.Contacts or contacts.ContactsNotModified
+            if (result.className === 'contacts.Contacts') {
+                const users = result.users;
+
+                const contactsList: TelegramContact[] = [];
+                for (const u of users) {
+                    if (u.className === 'User' && u.phone) {
+                        contactsList.push({
+                            id: Number(u.id),
+                            first_name: u.firstName ?? '',
+                            last_name: u.lastName ?? '',
+                            phone_number: normalizePhone(u.phone),
+                            username: u.username ?? undefined,
+                        });
                     }
                 }
 
-                setContactCount(contacts.length);
-
-                // ── Cross-reference with OneSUTRA Firestore users ─────────────────
-                // This is the "Dual User Detection" — find which Telegram contacts
-                // are also registered in our native OneSUTRA platform.
-                await crossReferenceWithFirestore(contacts, setContactMap);
+                setContactCount(contactsList.length);
+                await crossReferenceWithFirestore(contactsList, setContactMap);
             }
+
         } catch (err) {
-            console.error('[useTelegramWeb] Contact fetch error:', err);
-            // Non-blocking — auth was successful, contacts just failed. Not critical.
+            console.error('[GramJS] Contact fetch error:', err);
         }
     }, [setTelegramSynced, setContactMap]);
 
@@ -401,7 +276,6 @@ async function crossReferenceWithFirestore(
         const contactByPhone: Record<string, TelegramContact> = {};
         for (const c of contacts) contactByPhone[c.phone_number] = c;
 
-        // Firestore `in` query supports max 30 items — chunk accordingly
         const CHUNK = 30;
         const newMap: Record<string, { telegram_user_id: string; is_onesutra_user: boolean; onesutra_uid: string | null }> = {};
 
@@ -422,7 +296,6 @@ async function crossReferenceWithFirestore(
             }
         }
 
-        // Add Telegram-only contacts that aren't on OneSUTRA
         for (const phone of phones) {
             if (!newMap[phone] && contactByPhone[phone]) {
                 newMap[phone] = {
@@ -434,9 +307,9 @@ async function crossReferenceWithFirestore(
         }
 
         setContactMap(newMap);
-        console.log(`[useTelegramWeb] Cross-referenced ${contacts.length} contacts. Dual users: ${Object.values(newMap).filter(v => v.is_onesutra_user).length}`);
+        console.log(`[GramJS] Cross-referenced ${contacts.length} contacts. Dual users: ${Object.values(newMap).filter(v => v.is_onesutra_user).length}`);
     } catch (err) {
-        console.error('[useTelegramWeb] Firestore cross-reference error:', err);
+        console.error('[GramJS] Firestore cross-reference error:', err);
     }
 }
 
@@ -448,59 +321,6 @@ function sleep(ms: number): Promise<void> {
     return new Promise((r) => setTimeout(r, ms));
 }
 
-/**
- * loadTdwebScript — injects /public/tdlib/tdweb.js via a <script> tag.
- *
- * WHY NOT import('tdweb')?
- * webpack processes the import and rewrites all internal file paths.
- * tdweb spawns Web Workers using relative URLs; after webpack mangles them,
- * the Workers 404 silently and TDLib never initialises (infinite spinner).
- *
- * This function bypasses webpack entirely. The browser fetches the raw file
- * from /public/tdlib/tdweb.js which is served as a static asset unchanged.
- * tdweb then self-discovers its sibling .wasm and worker .js files from
- * the same URL, which all exist in /public/tdlib/ from our earlier setup.
- */
-function loadTdwebScript(): Promise<void> {
-    return new Promise((resolve, reject) => {
-        // Idempotent — skip if already loaded
-        if ((window as any).TdClient) {
-            resolve();
-            return;
-        }
-        if (document.getElementById('tdweb-script')) {
-            // Script tag exists but TdClient not ready yet — wait for it
-            const check = setInterval(() => {
-                if ((window as any).TdClient) { clearInterval(check); resolve(); }
-            }, 100);
-            setTimeout(() => { clearInterval(check); reject(new Error('tdweb script load timed out')); }, 12000);
-            return;
-        }
-
-        const script = document.createElement('script');
-        script.id = 'tdweb-script';
-        script.src = '/tdlib/tdweb.js';
-        script.async = true;
-
-        // 12-second hard timeout — fail fast instead of hanging
-        const timeout = setTimeout(() => {
-            reject(new Error('tdweb load timed out — check /public/tdlib/tdweb.js exists'));
-        }, 12000);
-
-        script.onload = () => {
-            clearTimeout(timeout);
-            console.log('[TDLib] tdweb.js loaded via script tag ✓');
-            resolve();
-        };
-        script.onerror = (e) => {
-            clearTimeout(timeout);
-            reject(new Error(`Failed to load /tdlib/tdweb.js: ${e}`));
-        };
-
-        document.head.appendChild(script);
-    });
-}
-
 function normalizePhone(phone: string): string {
     const digits = phone.replace(/\D/g, '');
     return digits.length >= 10 ? `+${digits}` : digits;
@@ -510,7 +330,7 @@ function friendlyError(msg: string = ''): string {
     if (msg.includes('PHONE_NUMBER_INVALID')) return 'Invalid phone number. Please include your country code (e.g. +91).';
     if (msg.includes('PHONE_CODE_INVALID')) return 'Incorrect code. Please check the OTP and try again.';
     if (msg.includes('PHONE_CODE_EXPIRED')) return 'Your OTP has expired. Please go back and request a new one.';
-    if (msg.includes('TOO_MANY_REQUESTS')) return 'Too many attempts. Please wait a few minutes and try again.';
+    if (msg.includes('FLOOD_WAIT') || msg.includes('TOO_MANY_REQUESTS')) return 'Too many attempts. Please wait a few minutes and try again.';
     if (msg.includes('NETWORK')) return 'Network error. Check your connection and try again.';
     return msg || 'Something went wrong. Please try again.';
 }
