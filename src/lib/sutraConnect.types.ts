@@ -59,10 +59,24 @@ export interface TelegramContact {
 }
 
 /**
- * Local contact map: phone_number → TelegramContact.
+ * A single entry in the contact map — the normalised result of
+ * cross-referencing a Telegram contact with Firestore.
+ */
+export interface ContactEntry {
+    telegram_user_id: string;
+    is_onesutra_user: boolean;
+    onesutra_uid: string | null;
+    first_name?: string;
+    last_name?: string;
+    phone_number?: string;
+    username?: string;
+}
+
+/**
+ * Local contact map: phone_number → ContactEntry.
  * Stored in Zustand to avoid repeated Firestore queries.
  */
-export type ContactMap = Record<string, TelegramContact>;
+export type ContactMap = Record<string, ContactEntry>;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PHASE 3 — UNIFIED / NORMALISED MESSAGE SCHEMA
@@ -162,7 +176,7 @@ export interface SutraConnectStore {
 
     // ── Actions ───────────────────────────────────────────────────────────────
     setTelegramSynced: (userId: string, phone: string) => void;
-    setContactMap: (contacts: TelegramContact[]) => void;
+    setContactMap: (map: Record<string, ContactEntry>) => void;
     upsertMessages: (contactPhone: string, msgs: UnifiedMessage[]) => void;
     setSendOverride: (override: SendNetworkOverride) => void;
 }

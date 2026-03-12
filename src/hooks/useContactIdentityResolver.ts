@@ -20,7 +20,7 @@
 import { useState, useCallback } from 'react';
 import { getTDLibClient, normalizePhone } from '@/lib/tdlib';
 import { useSutraConnectStore } from '@/stores/sutraConnectStore';
-import type { TelegramContact } from '@/lib/sutraConnect.types';
+import type { ContactEntry } from '@/lib/sutraConnect.types';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -93,37 +93,44 @@ export function useContactIdentityResolver(): UseContactIdentityResolverReturn {
                 oneSutraMatches = await batchQueryOneSutraUsers(newPhones);
             }
 
-            // ── Step 4: Build enriched TelegramContact objects ────────────────────
-            const enrichedContacts: TelegramContact[] = [
-                // Newly resolved contacts
-                ...toResolve.map(({ phone, tdlibUserId, raw }) => ({
+            // ── Step 4: Build enriched ContactEntry Record ────────────────────────
+            const enrichedMap: Record<string, ContactEntry> = {};
+
+            // Newly resolved contacts
+            for (const { phone, tdlibUserId, raw } of toResolve) {
+                enrichedMap[phone] = {
                     telegram_user_id: tdlibUserId,
                     phone_number: phone,
                     first_name: raw.first_name,
                     last_name: raw.last_name ?? undefined,
                     username: raw.username ?? undefined,
                     is_onesutra_user: phone in oneSutraMatches,
-                    onesutra_uid: oneSutraMatches[phone] ?? undefined,
-                })),
-                // Re-include already cached contacts (so their `raw` fields stay fresh)
-                ...rawContacts
-                    .filter((c) => existingContactMap[normalizePhone(c.phone_number)])
-                    .map((c) => ({
-                        ...existingContactMap[normalizePhone(c.phone_number)],
-                        first_name: c.first_name,  // Update name in case it changed
+                    onesutra_uid: oneSutraMatches[phone] ?? null,
+                };
+            }
+
+            // Re-merge already-cached contacts (refresh name fields)
+            for (const c of rawContacts) {
+                const phone = normalizePhone(c.phone_number);
+                if (existingContactMap[phone] && !enrichedMap[phone]) {
+                    enrichedMap[phone] = {
+                        ...existingContactMap[phone],
+                        first_name: c.first_name,
                         last_name: c.last_name ?? undefined,
-                    })),
-            ];
+                    };
+                }
+            }
 
             // ── Step 5: Write to Zustand store ────────────────────────────────────
-            setContactMap(enrichedContacts);
+            setContactMap(enrichedMap);
 
-            const duals = enrichedContacts.filter((c) => c.is_onesutra_user).length;
-            setResolvedCount(enrichedContacts.length);
+            const allEntries = Object.values(enrichedMap);
+            const duals = allEntries.filter((c) => c.is_onesutra_user).length;
+            setResolvedCount(allEntries.length);
             setDualUserCount(duals);
 
             console.log(
-                `[ContactResolver] ${enrichedContacts.length} contacts resolved. ` +
+                `[ContactResolver] ${allEntries.length} contacts resolved. ` +
                 `${duals} are dual-users on OneSUTRA.`
             );
         } catch (err) {

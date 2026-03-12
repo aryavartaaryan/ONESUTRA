@@ -19,11 +19,11 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import type {
     SutraConnectStore,
-    ContactMap,
-    TelegramContact,
     UnifiedMessage,
     SendNetworkOverride,
 } from '@/lib/sutraConnect.types';
+
+type ContactEntry = { telegram_user_id: string; is_onesutra_user: boolean; onesutra_uid: string | null };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Store Definition
@@ -60,11 +60,14 @@ export const useSutraConnectStore = create<SutraConnectStore>()(
              * IMPORTANT: This merges into existing map — doesn't replace — so partial
              * updates from paginated contact syncs don't wipe prior results.
              */
-            setContactMap: (contacts: TelegramContact[]) =>
+            /**
+             * Accepts a Record<phone, ContactEntry> built by useTelegramWeb
+             * after cross-referencing Telegram contacts with Firestore.
+             */
+            setContactMap: (map: Record<string, ContactEntry>) =>
                 set((state) => {
-                    contacts.forEach((contact) => {
-                        state.contactMap[contact.phone_number] = contact;
-                    });
+                    // Deep merge — newer sync result wins, prior entries preserved
+                    Object.assign(state.contactMap, map);
                 }),
 
             /**
