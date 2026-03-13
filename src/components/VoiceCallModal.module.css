@@ -14,13 +14,8 @@
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 /* Blurred Ashram Background */
@@ -43,9 +38,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg,
-            rgba(5, 10, 48, 0.8) 0%,
-            rgba(26, 15, 10, 0.9) 100%);
+    background: linear-gradient(135deg, rgba(5,10,48,0.8) 0%, rgba(26,15,10,0.9) 100%);
 }
 
 /* Content Container */
@@ -69,8 +62,8 @@
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
     color: white;
     cursor: pointer;
     display: flex;
@@ -79,278 +72,118 @@
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
 }
-
 .closeButton:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: scale(1.1);
+    background: rgba(255,255,255,0.2);
+    transform: scale(1.05);
 }
 
-/* Status Container */
-.statusContainer {
-    position: absolute;
-    top: 6rem;
-    left: 50%;
-    transform: translateX(-50%);
-    text-align: center;
-}
-
+/* Status Indicator */
 .status {
+    position: absolute;
+    top: 15%;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 1rem;
-    color: white;
-    font-family: var(--font-body);
+    gap: 12px;
+    background: rgba(0,0,0,0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.status span {
+    color: rgba(255,255,255,0.9);
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
 }
 
-.status p {
-    font-size: 1.2rem;
-    margin: 0;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-}
-
-/* Spinner */
-.spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid rgba(255, 219, 88, 0.3);
-    border-top-color: #FFDB58;
+.statusDot {
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    background: #fbbf24; /* Amber for connecting */
+    box-shadow: 0 0 10px rgba(251,191,36,0.5);
+    animation: pulse 1.5s infinite;
 }
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* Active Indicator */
-.activeIndicator {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: #22c55e;
-    box-shadow: 0 0 20px rgba(34, 197, 94, 0.8);
-    animation: pulse 2s ease-in-out infinite;
+.statusDot.active {
+    background: #4ade80; /* Green for active */
+    box-shadow: 0 0 10px rgba(74,222,128,0.5);
+    animation: none;
 }
 
 @keyframes pulse {
-
-    0%,
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-
-    50% {
-        opacity: 0.7;
-        transform: scale(1.2);
-    }
-}
-
-/* Error Text */
-.errorText {
-    color: #ff6b6b !important;
-    font-weight: 600;
-}
-
-.errorDetail {
-    font-size: 0.9rem !important;
-    opacity: 0.8;
-}
-
-/* Reconnect Button */
-.reconnectButton {
-    margin-top: 1rem;
-    padding: 0.75rem 2rem;
-    background: linear-gradient(135deg, #B87333 0%, #8B4513 100%);
-    border: 2px solid #FFDB58;
-    border-radius: 25px;
-    color: white;
-    font-family: var(--font-body);
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.reconnectButton:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 20px rgba(184, 115, 51, 0.5);
+    0% { opacity: 0.5; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.1); }
+    100% { opacity: 0.5; transform: scale(0.8); }
 }
 
 /* Visualizer Container */
 .visualizerContainer {
-    position: relative;
-    width: 600px;
-    height: 400px;
-    max-width: 90vw;
-    margin: 2rem 0;
-}
-
-/* Pulsing Golden Om Circle */
-.omCircle {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    background: radial-gradient(circle,
-            rgba(255, 219, 88, 0.3) 0%,
-            rgba(184, 115, 51, 0.1) 70%,
-            transparent 100%);
+    width: 100%;
+    flex: 1;
+    max-height: 400px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    animation: pulseGlow 3s ease-in-out infinite;
-    z-index: 1;
-}
-
-@keyframes pulseGlow {
-
-    0%,
-    100% {
-        transform: translate(-50%, -50%) scale(1);
-        box-shadow: 0 0 40px rgba(255, 219, 88, 0.5);
-    }
-
-    50% {
-        transform: translate(-50%, -50%) scale(1.1);
-        box-shadow: 0 0 60px rgba(255, 219, 88, 0.8);
-    }
-}
-
-.omSymbol {
-    font-size: 4rem;
-    filter: drop-shadow(0 0 20px rgba(255, 219, 88, 0.8));
 }
 
 /* Controls */
 .controls {
     display: flex;
-    gap: 3rem;
     align-items: center;
-    margin-top: 2rem;
+    gap: 2rem;
+    margin-bottom: 3rem;
 }
 
-/* Control Button (Mute) */
 .controlButton {
-    width: 60px;
-    height: 60px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    cursor: pointer;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-}
-
-.controlButton:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: scale(1.1);
-}
-
-.controlButton.muted {
-    background: rgba(220, 20, 60, 0.3);
-    border-color: #DC143C;
-}
-
-/* Lotus Disconnect Button */
-.lotusButton {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    background: none;
-    border: none;
     cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.lotusButton:hover {
-    transform: scale(1.1);
-}
-
-.lotusButton:hover .lotusPetals {
-    animation: bloomLotus 0.5s ease;
-}
-
-@keyframes bloomLotus {
-
-    0%,
-    100% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.2);
-    }
-}
-
-.lotusSvg {
-    width: 80px;
-    height: 80px;
-    filter: drop-shadow(0 4px 10px rgba(220, 20, 60, 0.5));
-}
-
-.lotusLabel {
+    backdrop-filter: blur(10px);
+    transition: all 0.2s ease;
     color: white;
-    font-family: var(--font-body);
+}
+.controlButton:hover {
+    background: rgba(255,255,255,0.18);
+    transform: scale(1.05);
+}
+.controlButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Muted State */
+.controlButton.muted {
+    background: rgba(255,255,255,0.9);
+    color: #000;
+}
+
+/* Hangup Button - Red */
+.controlButton.hangup {
+    background: #ef4444;
+    border-color: #ef4444;
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+}
+.controlButton.hangup:hover {
+    background: #dc2626;
+    transform: scale(1.05);
+}
+
+/* Error Message */
+.error {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
     font-size: 0.9rem;
-    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-}
-
-/* Sacred Mantra */
-.mantra {
-    position: absolute;
-    bottom: 3rem;
-    left: 50%;
-    transform: translateX(-50%);
+    max-width: 80%;
     text-align: center;
-}
-
-.mantra p {
-    font-family: var(--font-header);
-    font-size: 1.5rem;
-    color: rgba(255, 219, 88, 0.6);
-    margin: 0;
-    text-shadow: 0 0 20px rgba(255, 219, 88, 0.4);
-    letter-spacing: 2px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .visualizerContainer {
-        width: 90vw;
-        height: 300px;
-    }
-
-    .omCircle {
-        width: 100px;
-        height: 100px;
-    }
-
-    .omSymbol {
-        font-size: 3rem;
-    }
-
-    .controls {
-        gap: 2rem;
-    }
-
-    .lotusSvg {
-        width: 60px;
-        height: 60px;
-    }
-
-    .mantra p {
-        font-size: 1.2rem;
-    }
 }

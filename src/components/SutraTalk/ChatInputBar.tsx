@@ -44,8 +44,8 @@ export default function ChatInputBar({ accent, chatId, user, onMessageSend, mark
     }, [input, onMessageSend, clearTyping, showDhvani]);
 
     return (
-        <div style={{ position: 'fixed', bottom: '1rem', left: 0, right: 0, padding: '0 1rem', zIndex: 50, display: 'flex', justifyContent: 'center' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: 720, gap: '0.5rem' }}>
+        <div style={{ padding: '1rem', width: '100%', zIndex: 10, flexShrink: 0 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '0.5rem' }}>
 
                 {/* Dhvani recorder (expands above bar) */}
                 <AnimatePresence>

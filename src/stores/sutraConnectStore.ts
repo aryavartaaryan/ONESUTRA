@@ -45,6 +45,7 @@ export const useSutraConnectStore = create<SutraConnectStore>()(
             telegramPhone: null,
             contactMap: {}, // phone -> { telegram_user_id, is_onesutra_user, onesutra_uid, first_name, last_name, username }
             messageThreads: {},
+            unreadCounts: {},
             sendOverride: 'AUTO',
 
             // ── Actions ────────────────────────────────────────────────────────────
@@ -103,6 +104,31 @@ export const useSutraConnectStore = create<SutraConnectStore>()(
                     state.messageThreads[contactPhone] = Array.from(msgMap.values()).sort(
                         (a, b) => a.timestamp - b.timestamp
                     );
+                }),
+
+            /**
+             * Sets the unread count for a specific contact.
+             */
+            setUnread: (contactPhone: string, count: number) =>
+                set((state) => {
+                    state.unreadCounts[contactPhone] = count;
+                }),
+
+            /**
+             * Increments the unread count for a specific contact by 1.
+             */
+            incrementUnread: (contactPhone: string) =>
+                set((state) => {
+                    const current = state.unreadCounts[contactPhone] || 0;
+                    state.unreadCounts[contactPhone] = current + 1;
+                }),
+
+            /**
+             * Clears the unread count for a specific contact.
+             */
+            clearUnread: (contactPhone: string) =>
+                set((state) => {
+                    state.unreadCounts[contactPhone] = 0;
                 }),
 
             /**
