@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ExternalLink, Edit2, Check, Plus, Trash2, BookOpen } from 'lucide-react';
+import { X, ExternalLink, Edit2, Check, Plus, Trash2, BookOpen, Search } from 'lucide-react';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import styles from './GranthLibraryModal.module.css';
 
@@ -155,6 +155,7 @@ export default function GranthLibraryModal({ isOpen, onClose }: GranthLibraryMod
     const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
     const [editMode, setEditMode] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     // Load persisted links on open
     useEffect(() => {
@@ -272,12 +273,35 @@ export default function GranthLibraryModal({ isOpen, onClose }: GranthLibraryMod
                     <button className={styles.closeBtn} onClick={onClose}><X size={24} /></button>
                 </div>
 
+                {/* Search Bar */}
+                <div className={styles.searchContainer}>
+                    <Search size={20} className={styles.searchIcon} />
+                    <input
+                        type="text"
+                        placeholder="Search books, scriptures..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className={styles.searchInput}
+                        autoFocus
+                    />
+                </div>
+
                 <div className={styles.content}>
-                    {categories.map(cat => (
+                    {categories.map(cat => {
+                        const query = searchQuery.toLowerCase();
+                        const catMatches = cat.title.toLowerCase().includes(query);
+                        let booksToDisplay = cat.books;
+                        if (!catMatches && query) {
+                            booksToDisplay = cat.books.filter(b => b.title.toLowerCase().includes(query));
+                        }
+
+                        if (booksToDisplay.length === 0) return null;
+
+                        return (
                         <div key={cat.id} className={styles.categorySection}>
                             <h2 style={{ color: cat.color }}>{cat.title}</h2>
                             <div className={styles.booksGrid}>
-                                {cat.books.map(book => (
+                                {booksToDisplay.map(book => (
                                     <div key={book.id} className={styles.bookCard}>
                                         <div className={styles.bookInfo}>
                                             <BookOpen size={16} className={styles.bookIcon} style={{ color: cat.color }} />
@@ -315,7 +339,20 @@ export default function GranthLibraryModal({ isOpen, onClose }: GranthLibraryMod
                                 )}
                             </div>
                         </div>
-                    ))}
+                    )})}
+                    {categories.every(cat => {
+                        const query = searchQuery.toLowerCase();
+                        const catMatches = cat.title.toLowerCase().includes(query);
+                        let booksToDisplay = cat.books;
+                        if (!catMatches && query) {
+                            booksToDisplay = cat.books.filter(b => b.title.toLowerCase().includes(query));
+                        }
+                        return booksToDisplay.length === 0;
+                    }) && (
+                        <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', marginTop: '2rem' }}>
+                            No books found matching "{searchQuery}"
+                        </div>
+                    )}
                 </div>
             </motion.div>
         </div>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback, Suspense } from 'react';
 import styles from './digital-vaidya.module.css';
-import { Mic, MicOff, PhoneOff, X, ChevronRight } from 'lucide-react';
+import { Mic, MicOff, PhoneOff, X, ChevronRight, Search } from 'lucide-react';
 import { BilingualString, BilingualList } from '@/lib/types';
 import translations from '@/lib/vaidya-translations.json';
 import { useSearchParams } from 'next/navigation';
@@ -138,6 +138,7 @@ function AcharyaContent() {
     // ── Rishi modal state ────────────────────────────────────────────────────
     const [selectedRishi, setSelectedRishi] = useState<RishiInfo | null>(null);
     const [showDarshanikModal, setShowDarshanikModal] = useState(false);
+    const [darshanikSearch, setDarshanikSearch] = useState('');
     const [showGranthModal, setShowGranthModal] = useState(false);
 
     // ── Inline voice engine ──────────────────────────────────────────────────
@@ -691,16 +692,42 @@ function AcharyaContent() {
                                     <X size={20} />
                                 </button>
                             </header>
+
+                            {/* Search Bar */}
+                            <div className={styles.searchBarContainer} style={{ margin: '1rem 2rem 0' }}>
+                                <Search size={18} className={styles.searchIcon} />
+                                <input
+                                    type="text"
+                                    placeholder={lang === 'hi' ? 'दार्शनिक खोजें...' : 'Search Philosophers...'}
+                                    value={darshanikSearch}
+                                    onChange={(e) => setDarshanikSearch(e.target.value)}
+                                    className={styles.searchInput}
+                                    autoFocus
+                                />
+                            </div>
                             
                             <div className={styles.modalScroll}>
-                                {DARSHANIK_CATEGORIES.map(category => (
+                                {DARSHANIK_CATEGORIES.map(category => {
+                                    const filteredRishis = category.rishis.filter(rishi => {
+                                        const query = darshanikSearch.toLowerCase();
+                                        return (
+                                            rishi.name.toLowerCase().includes(query) ||
+                                            rishi.nameEn.toLowerCase().includes(query) ||
+                                            rishi.title.toLowerCase().includes(query) ||
+                                            rishi.titleEn.toLowerCase().includes(query)
+                                        );
+                                    });
+
+                                    if (filteredRishis.length === 0) return null;
+
+                                    return (
                                     <div key={category.id} className={styles.categorySection}>
                                         <h3 className={styles.categoryTitle}>
                                             <ChevronRight size={16} />
                                             <span>{lang === 'hi' ? category.titleHi : category.titleEn}</span>
                                         </h3>
                                         <div className={styles.rishiGrid}>
-                                            {category.rishis.map(rishi => (
+                                            {filteredRishis.map(rishi => (
                                                 <button
                                                     key={rishi.id}
                                                     className={styles.rishiCard}
@@ -720,8 +747,10 @@ function AcharyaContent() {
                                             ))}
                                         </div>
                                     </div>
-                                ))}
+                                    );
+                                })}
                             </div>
+
                         </motion.div>
                     </motion.div>
                 )}
