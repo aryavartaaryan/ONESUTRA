@@ -1,0 +1,424 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Serif+Devanagari:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+/* ══════════════════════════════════════════════════════
+   RISHI CHAT MODAL — Sacred Sage Dialogue
+   ══════════════════════════════════════════════════════ */
+
+/* ── Backdrop ── */
+.backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1999;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+/* ── Modal container ── */
+.modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    /* transform is handled by Framer Motion directly via x/y */
+    /* transform: translate(-50%, -50%); */
+    width: 90%;
+    max-width: 520px;
+    height: clamp(400px, 80dvh, 750px);
+    z-index: 2000; /* Increased ensure it's atop ALL footers (like SUTRAConnect footer) */
+    display: flex;
+    flex-direction: column;
+    border-radius: 24px;
+    overflow: hidden;
+    background: linear-gradient(180deg, #0d0804 0%, #130c05 60%, #0a0602 100%);
+    border: 1px solid rgba(196, 145, 2, 0.35);
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.8),
+        0 0 40px rgba(196, 145, 2, 0.1);
+}
+
+/* ── Handle bar (can hide or keep for style) ── */
+.handle {
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(196, 145, 2, 0.35);
+    margin: 10px auto 0;
+    flex-shrink: 0;
+}
+
+/* ── Header ── */
+.header {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1.2rem 0.7rem;
+    border-bottom: 1px solid rgba(196, 145, 2, 0.15);
+    flex-shrink: 0;
+    background: linear-gradient(to bottom, rgba(196, 145, 2, 0.08), transparent);
+}
+
+.rishiAvatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: 2px solid rgba(196, 145, 2, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.rishiAvatar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 40%, rgba(196, 145, 2, 0.25), transparent 70%);
+}
+
+.headerInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.rishiName {
+    font-family: 'Noto Serif Devanagari', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #FFD700;
+    margin: 0;
+    line-height: 1.2;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rishiTitle {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    color: rgba(196, 145, 2, 0.7);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 2px 0 0;
+}
+
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.iconBtn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.iconBtn:hover {
+    color: rgba(255, 215, 0, 0.8);
+    background: rgba(196, 145, 2, 0.1);
+}
+
+/* ── Voice call area ── */
+.voiceArea {
+    padding: 0.6rem 1.2rem;
+    border-bottom: 1px solid rgba(196, 145, 2, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-shrink: 0;
+}
+
+.voiceBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 1rem;
+    border-radius: 999px;
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    background: rgba(99, 102, 241, 0.1);
+    color: rgba(199, 210, 254, 0.85);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s;
+    font-family: inherit;
+}
+
+.voiceBtn:hover {
+    background: rgba(99, 102, 241, 0.22);
+    border-color: rgba(99, 102, 241, 0.65);
+}
+
+.voiceBtnActive {
+    border-color: rgba(239, 68, 68, 0.5);
+    background: rgba(239, 68, 68, 0.1);
+    color: rgba(252, 165, 165, 0.9);
+}
+
+.voiceBtnActive:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.voicePulse {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    animation: pulseDot 1s ease-in-out infinite;
+}
+
+@keyframes pulseDot {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.4); opacity: 1; }
+}
+
+.voiceStatus {
+    font-size: 0.68rem;
+    color: rgba(196, 145, 2, 0.6);
+    letter-spacing: 0.1em;
+    font-family: monospace;
+}
+
+.muteBtn {
+    margin-left: auto;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.55);
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 0.68rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.muteBtn:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Chat area ── */
+.chatArea {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.8rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(196, 145, 2, 0.2) transparent;
+    min-height: 0;
+}
+
+.chatArea::-webkit-scrollbar { width: 4px; }
+.chatArea::-webkit-scrollbar-thumb { background: rgba(196, 145, 2, 0.2); border-radius: 2px; }
+
+/* ── Intro button ── */
+.introBtn {
+    align-self: center;
+    margin: 0.3rem 0;
+    padding: 0.5rem 1.4rem;
+    border-radius: 999px;
+    border: 1px solid rgba(196, 145, 2, 0.4);
+    background: rgba(196, 145, 2, 0.08);
+    color: rgba(255, 215, 0, 0.85);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'Cinzel', serif;
+}
+
+.introBtn:hover {
+    background: rgba(196, 145, 2, 0.18);
+    border-color: rgba(196, 145, 2, 0.7);
+    box-shadow: 0 0 18px rgba(196, 145, 2, 0.2);
+}
+
+.introBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Messages ── */
+.msgWrap {
+    display: flex;
+    flex-direction: column;
+}
+
+.rishiMsg {
+    background: rgba(196, 145, 2, 0.07);
+    border: 1px solid rgba(196, 145, 2, 0.18);
+    border-left: 3px solid rgba(196, 145, 2, 0.6);
+    border-radius: 4px 14px 14px 4px;
+    padding: 0.75rem 0.95rem;
+    font-family: 'Noto Serif Devanagari', 'Playfair Display', serif;
+    font-size: 0.98rem;
+    color: rgba(255, 245, 210, 0.92);
+    line-height: 1.7;
+    max-width: 90%;
+    align-self: flex-start;
+    position: relative;
+}
+
+.rishiMsg::before {
+    content: '🪔';
+    position: absolute;
+    top: -10px;
+    left: -8px;
+    font-size: 0.9rem;
+}
+
+.userMsg {
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.18);
+    border-radius: 14px 14px 4px 14px;
+    padding: 0.6rem 0.9rem;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.9rem;
+    color: rgba(199, 210, 254, 0.85);
+    font-style: italic;
+    max-width: 85%;
+    align-self: flex-end;
+    text-align: right;
+}
+
+/* ── Loading / thinking ── */
+.thinkingWrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.5rem 0;
+    align-self: flex-start;
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(196, 145, 2, 0.6);
+    animation: dotBounce 1.2s ease-in-out infinite;
+}
+
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dotBounce {
+    0%, 80%, 100% { transform: scale(0.7); opacity: 0.5; }
+    40% { transform: scale(1.1); opacity: 1; }
+}
+
+/* ── Input area ── */
+.inputArea {
+    padding: 0.7rem 1.1rem;
+    border-top: 1px solid rgba(196, 145, 2, 0.13);
+    background: rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0.7rem);
+}
+
+.inputRow {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.6rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(196, 145, 2, 0.22);
+    border-radius: 16px;
+    padding: 0.5rem 0.5rem 0.5rem 0.85rem;
+    transition: border-color 0.2s;
+}
+
+.inputRow:focus-within {
+    border-color: rgba(196, 145, 2, 0.5);
+    box-shadow: 0 0 12px rgba(196, 145, 2, 0.1);
+}
+
+.textInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: rgba(255, 245, 210, 0.9);
+    font-family: 'Noto Serif Devanagari', serif;
+    font-size: 0.95rem;
+    resize: none;
+    min-height: 24px;
+    max-height: 100px;
+    line-height: 1.5;
+}
+
+.textInput::placeholder {
+    color: rgba(196, 145, 2, 0.3);
+    font-style: italic;
+}
+
+.sendBtn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(196, 145, 2, 0.75);
+    border: none;
+    color: #0d0804;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+.sendBtn:hover:not(:disabled) {
+    background: rgba(255, 215, 0, 0.85);
+    transform: scale(1.05);
+}
+
+.sendBtn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+/* ── Welcome (empty state) ── */
+.welcomeState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1rem 0 0.5rem;
+    text-align: center;
+}
+
+.welcomeSymbol {
+    font-size: 2.2rem;
+    filter: drop-shadow(0 0 12px rgba(196, 145, 2, 0.5));
+}
+
+.welcomeText {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    color: rgba(196, 145, 2, 0.5);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}

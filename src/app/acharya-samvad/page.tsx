@@ -12,6 +12,7 @@ import AcharyaGuruOrb, { OrbStatus } from '@/components/Dashboard/AcharyaGuruOrb
 import { useVaidyaVoiceCall } from '@/hooks/useVaidyaVoiceCall';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCircadianUnsplash } from '@/hooks/useCircadianUnsplash';
+import RishiChatModal, { RISHIS, type RishiInfo } from '@/components/RishiChatModal';
 
 // ── Firebase helpers ─────────────────────────────────────────────────────────
 function getAnonUserId(): string {
@@ -86,6 +87,9 @@ function AcharyaContent() {
 
     // ── Circadian background ─────────────────────────────────────────────────
     const { imageUrl } = useCircadianUnsplash();
+
+    // ── Rishi modal state ────────────────────────────────────────────────────
+    const [selectedRishi, setSelectedRishi] = useState<RishiInfo | null>(null);
 
     // ── Inline voice engine ──────────────────────────────────────────────────
     const {
@@ -352,68 +356,86 @@ function AcharyaContent() {
                         transition={{ duration: 0.4 }}
                         style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}
                     >
-                        {/* ── Sri Yantra decorative background ── */}
-                        <div className={styles.sriYantraLayer}>
-                            <svg viewBox="0 0 100 100" fill="none" stroke="#C49102" strokeWidth="0.5" style={{ width: '100%', height: '100%' }}>
-                                <circle cx="50" cy="50" r="48" opacity="0.3" />
-                                <circle cx="50" cy="50" r="40" opacity="0.4" />
-                                <path d="M50 2 L90 50 L50 98 L10 50 Z" opacity="0.3" />
-                                <path d="M50 10 L85 50 L50 90 L15 50 Z" opacity="0.3" />
-                                <circle cx="50" cy="50" r="5" fill="#C49102" opacity="0.2" />
-                            </svg>
-                        </div>
+                        {/* ══════════════════════════════════════════════════════
+                            RISHI MANDAL — Sacred Circle of Sages
+                            ══════════════════════════════════════════════════════ */}
+                        <section className={styles.rishiMandalSection}>
 
-                        {/* ── Orb + Awaken Button Header ── */}
-                        <div style={{
-                            paddingTop: '3.5rem', paddingBottom: '0.5rem',
-                            display: 'flex', flexDirection: 'column',
-                            alignItems: 'center', gap: '1.2rem',
-                            background: 'linear-gradient(to bottom, rgba(30,27,75,0.65) 0%, transparent 100%)',
-                        }}>
-                            <AcharyaGuruOrb
-                                status={orbStatus}
-                                zenMode={false}
-                                sizePx={110}
-                            />
-
-                            {/* Awaken Acharya button */}
-                            <motion.button
-                                whileHover={{ scale: 1.04 }}
-                                whileTap={{ scale: 0.96 }}
-                                onClick={handleAwakenAcharya}
-                                style={{
-                                    display: 'flex', alignItems: 'center', gap: '0.7rem',
-                                    padding: '0.65rem 1.8rem', borderRadius: 999,
-                                    background: 'rgba(99,102,241,0.16)',
-                                    border: '1px solid rgba(99,102,241,0.32)',
-                                    color: 'rgba(199,210,254,0.90)',
-                                    backdropFilter: 'blur(12px)',
-                                    fontSize: '0.78rem', fontWeight: 600,
-                                    letterSpacing: '0.18em', textTransform: 'uppercase',
-                                    cursor: 'pointer', fontFamily: 'inherit',
-                                }}
-                            >
-                                <Mic size={14} />
-                                {lang === 'hi' ? 'आचार्य को जागृत करें' : 'Awaken Acharya'}
-                            </motion.button>
-                        </div>
-
-                        {/* ── Decorative side panels ── */}
-                        <div className={styles.mantraSidePanel} style={{ left: '2rem' }}>
-                            <div className={styles.mantraPanelVertical}>
-                                <span className={styles.mantraSanskrit}>
-                                    "ॐ नमो भगवते महादर्शनाय वासुदेवाय धन्वंतराये |<br />
-                                    अमृतकलश हस्ताय सर्वभय विनाशाय..."
-                                </span>
+                            {/* Rotating Sri Yantra Chakra */}
+                            <div className={styles.chakraBg} aria-hidden="true">
+                                <svg viewBox="0 0 100 100" fill="none" stroke="#C49102" style={{ width: '100%', height: '100%' }}>
+                                    <circle cx="50" cy="50" r="47" strokeWidth="0.25" opacity="0.5" />
+                                    <circle cx="50" cy="50" r="40" strokeWidth="0.3" opacity="0.45" />
+                                    <circle cx="50" cy="50" r="32" strokeWidth="0.25" opacity="0.35" />
+                                    <circle cx="50" cy="50" r="22" strokeWidth="0.2" opacity="0.25" />
+                                    {/* Outer diamond */}
+                                    <path d="M50 3 L90 50 L50 97 L10 50 Z" strokeWidth="0.4" opacity="0.5" />
+                                    {/* Inner diamond rotated 45deg */}
+                                    <path d="M50 15 L85 50 L50 85 L15 50 Z" strokeWidth="0.3" opacity="0.4" />
+                                    {/* Upward triangle */}
+                                    <path d="M50 20 L78 68 L22 68 Z" strokeWidth="0.3" opacity="0.35" />
+                                    {/* Downward triangle */}
+                                    <path d="M50 80 L78 32 L22 32 Z" strokeWidth="0.3" opacity="0.35" />
+                                    {/* Petals */}
+                                    <circle cx="50" cy="30" r="5" strokeWidth="0.25" opacity="0.3" />
+                                    <circle cx="67" cy="39" r="5" strokeWidth="0.25" opacity="0.3" />
+                                    <circle cx="67" cy="61" r="5" strokeWidth="0.25" opacity="0.3" />
+                                    <circle cx="50" cy="70" r="5" strokeWidth="0.25" opacity="0.3" />
+                                    <circle cx="33" cy="61" r="5" strokeWidth="0.25" opacity="0.3" />
+                                    <circle cx="33" cy="39" r="5" strokeWidth="0.25" opacity="0.3" />
+                                    {/* Bindu */}
+                                    <circle cx="50" cy="50" r="2.5" fill="#C49102" opacity="0.45" strokeWidth="0" />
+                                </svg>
                             </div>
-                        </div>
-                        <div className={styles.mantraSidePanel} style={{ right: '2rem' }}>
-                            <div className={styles.mantraPanelVertical}>
-                                <span className={styles.mantraSanskrit}>
-                                    "योगेन चित्तस्य पदेन वाचां । मलं शरीरस्य च वैद्यकेन ॥"
-                                </span>
+
+                            {/* Mandal title */}
+                            <div className={styles.mandalTitle}>
+                                <span className={styles.mandalOm}>ॐ</span>
+                                <span className={styles.mandalText}>ऋषि मण्डल</span>
                             </div>
-                        </div>
+
+                            {/* 5 Rishi nodes — pentagonal arrangement */}
+                            {RISHIS.map((rishi) => (
+                                <motion.button
+                                    key={rishi.id}
+                                    className={styles.rishiNode}
+                                    style={{ '--rishi-color': rishi.color } as React.CSSProperties}
+                                    data-rishi={rishi.id}
+                                    onClick={() => setSelectedRishi(rishi)}
+                                    whileHover={{ scale: 1.08 }}
+                                    whileTap={{ scale: 0.94 }}
+                                    initial={{ opacity: 0, scale: 0.7 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: RISHIS.indexOf(rishi) * 0.1 + 0.2, type: 'spring', stiffness: 260, damping: 20 }}
+                                >
+                                    <span className={styles.rishiNodeSymbol}>{rishi.symbol}</span>
+                                    <span className={styles.rishiNodeName} style={{ color: rishi.color }}>
+                                        {lang === 'hi' ? rishi.name : rishi.nameEn}
+                                    </span>
+                                    <span className={styles.rishiNodeTitle}>
+                                        {lang === 'hi' ? rishi.title : rishi.titleEn}
+                                    </span>
+                                </motion.button>
+                            ))}
+
+                            {/* Center: Acharya Orb + Voice button */}
+                            <div className={styles.chakraCenterArea}>
+                                <AcharyaGuruOrb
+                                    status={orbStatus}
+                                    zenMode={false}
+                                    sizePx={110}
+                                />
+                                <motion.button
+                                    whileHover={{ scale: 1.04 }}
+                                    whileTap={{ scale: 0.96 }}
+                                    onClick={handleAwakenAcharya}
+                                    className={styles.awakenBtn}
+                                >
+                                    <Mic size={12} />
+                                    {lang === 'hi' ? 'आचार्य जागृत करें' : 'Awaken Acharya'}
+                                </motion.button>
+                            </div>
+                        </section>
 
                         {/* ── Main content layer ── */}
                         <div className={styles.contentLayer}>
@@ -563,6 +585,17 @@ function AcharyaContent() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* ── Rishi Chat Modal ── */}
+            <AnimatePresence>
+                {selectedRishi && (
+                    <RishiChatModal
+                        key={selectedRishi.id}
+                        rishi={selectedRishi}
+                        onClose={() => setSelectedRishi(null)}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }
@@ -574,3 +607,4 @@ export default function AcharyaSamvadPage() {
         </Suspense>
     );
 }
+
