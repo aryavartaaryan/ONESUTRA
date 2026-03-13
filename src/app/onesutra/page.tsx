@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    ArrowLeft, Search, Phone, Video,
+    ArrowLeft, Search, Phone, Video, X,
     Send, LogOut, MessageCircle, Users, Bot,
     CheckCheck, Zap, Plus, Mic,
 } from 'lucide-react';
@@ -19,11 +19,18 @@ import ActionDashboard from '@/components/SutraTalk/ActionDashboard';
 import WelcomeFirstSpark from '@/components/SutraTalk/WelcomeFirstSpark';
 import ChatInputBar from '@/components/SutraTalk/ChatInputBar';
 import { DhvaniPlayback } from '@/components/SutraTalk/DhvaniNote';
-import WebRTCCallScreen from '@/components/SutraTalk/WebRTCCallScreen';
 import dynamic from 'next/dynamic';
+
+// Dynamic import to prevent SSR issues with browser APIs in WebRTCCallScreen
+const WebRTCCallScreen = dynamic(
+    () => import('@/components/SutraTalk/WebRTCCallScreen'),
+    { ssr: false }
+);
+
 import { useSutraConnectStore } from '@/stores/sutraConnectStore';
 import { useTelegramMessages } from '@/hooks/useTelegramMessages';
 import { GlobalTelegramListener } from '@/components/SutraConnect/GlobalTelegramListener';
+import UserProfilePanel from '@/components/SutraTalk/UserProfilePanel';
 
 // Lazy-load the Telegram auth modal (avoids SSR + loads tdweb only when needed)
 const TelegramAuthModal = dynamic(
@@ -32,17 +39,22 @@ const TelegramAuthModal = dynamic(
 );
 
 // ─── AI Contacts ───────────────────────────────────────────────────────────────
+// Use a stable timestamp for server/client hydration consistency
+const AI_JOINED_AT = 1710313200000; // Fixed timestamp (e.g. Mar 13 2024)
+
 const AI_CONTACTS = [
     {
         uid: 'ai_vaidya', name: 'Digital Vaidya', role: 'AI Agent · Ayurvedic Guide',
         emoji: '🤖', aura: '#E8A030', auraGlow: 'rgba(232,160,48,0.35)', isAI: true,
         statusLabel: 'Available', online: true,
+        joinedAt: AI_JOINED_AT,
         lastMsg: 'ॐ Your Pitta score is optimal today. Begin with Rāga Bhairav.',
     },
     {
         uid: 'ai_rishi', name: 'Rishi AI Coach', role: 'AI Agent · Life Architect',
         emoji: '🔮', aura: '#E860A0', auraGlow: 'rgba(220,80,150,0.28)', isAI: true,
         statusLabel: 'Available', online: true,
+        joinedAt: AI_JOINED_AT,
         lastMsg: 'Your weekly Sankalpa report is ready. 73% completion — excellent!',
     },
 ];
@@ -159,9 +171,46 @@ export default function OneSutraPage() {
         uid: string; name: string; emoji?: string; photoURL?: string | null;
         aura: string; auraGlow: string; isAI: boolean; statusLabel: string; online: boolean; role: string;
         isTelegram?: boolean; telegramUserId?: string; telegramPhone?: string;
+        lastSeen?: number;
     } | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isAutoPilot, setIsAutoPilot] = useState(false);
+    
+    // ── Profile Panel State ─────────────────────────────────────────────────
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [profileUser, setProfileUser] = useState<any>(null);
+    const [currentUserProfile, setCurrentUserProfile] = useState<any>(null); // Full profile for logged-in user
+
+    // ── Fetch current user full profile (bio, interests, etc.) ──────────────
+    useEffect(() => {
+        if (!user?.uid) return;
+        let unsub: (() => void) | undefined;
+        
+        const fetchProfile = async () => {
+            const { getFirebaseFirestore } = await import('@/lib/firebase');
+            const { doc, onSnapshot } = await import('firebase/firestore');
+            const db = await getFirebaseFirestore();
+            
+            unsub = onSnapshot(doc(db, 'onesutra_users', user.uid), (snap) => {
+                if (snap.exists()) {
+                    setCurrentUserProfile({ uid: user.uid, ...snap.data() });
+                }
+            });
+        };
+        fetchProfile();
+        return () => unsub && unsub();
+    }, [user?.uid]);
+
+    // Sync profileUser with live data (mainly for self-edits)
+    useEffect(() => {
+        if (isProfileOpen && profileUser && user && profileUser.uid === user.uid && currentUserProfile) {
+            // Only update if actually different to avoid loops
+            if (JSON.stringify(profileUser) !== JSON.stringify(currentUserProfile)) {
+                setProfileUser(currentUserProfile);
+            }
+        }
+    }, [currentUserProfile, isProfileOpen, profileUser, user]);
     const [isAutoPilotGenerating, setIsAutoPilotGenerating] = useState(false);
     const [fabOpen, setFabOpen] = useState(false);
 
@@ -263,6 +312,7 @@ export default function OneSutraPage() {
 
     // OneSutra contacts
     const realContacts = realUsers.map((u, i) => ({
+        ...u,
         uid: u.uid, name: u.name, photoURL: u.photoURL,
         aura: AURA_PALETTE[i % AURA_PALETTE.length],
         auraGlow: 'rgba(80,120,200,0.28)',
@@ -352,11 +402,11 @@ export default function OneSutraPage() {
     const realChatIds = user ? realContacts.map(c => getChatId(user.uid, c.uid)) : [];
     const chatMeta = useChats(realChatIds, user?.uid ?? null);
 
-    // ── Pre-compute contacts and sort them only when dependencies change ──
+// Remove dynamic Date.now() from dependencies and mapping to prevent hydration mismatch
     const sortedContacts = React.useMemo(() => {
         // Merge all contacts
         const allContacts = [
-            ...AI_CONTACTS.map(c => ({ ...c, photoURL: undefined as undefined, isTelegram: false, joinedAt: Date.now() })),
+            ...AI_CONTACTS.map(c => ({ ...c, photoURL: undefined as undefined, isTelegram: false })),
             ...realContacts,
             ...telegramContacts,
             ...fallbackTelegramContacts,
@@ -558,35 +608,49 @@ export default function OneSutraPage() {
 
                         {/* Header */}
                         <div style={{ flexShrink: 0, zIndex: 100, background: 'rgba(2,4,12,0.95)', backdropFilter: 'blur(28px)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '0.75rem 1rem 0.55rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.55rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                    <Link href="/" style={{ color: 'rgba(255,255,255,0.4)', lineHeight: 0 }}><ArrowLeft size={18} strokeWidth={1.6} /></Link>
-                                    <motion.div animate={{ filter: [`drop-shadow(0 0 5px ${accent}60)`, `drop-shadow(0 0 14px ${accent}aa)`, `drop-shadow(0 0 5px ${accent}60)`] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} style={{ width: 26, height: 26, flexShrink: 0 }}>
-                                        <svg viewBox="0 0 28 28" fill="none" width="26" height="26">
-                                            <path d="M14 22 C14 22 6 18 6 12 C6 8 9 6 12 7 C10 4 13 2 14 2 C15 2 18 4 16 7 C19 6 22 8 22 12 C22 18 14 22 14 22Z" fill={`${accent}22`} stroke={accent} strokeWidth="1.2" strokeLinejoin="round" />
-                                            <path d="M14 22 L14 26" stroke={accent} strokeWidth="1.1" strokeLinecap="round" opacity="0.5" />
-                                        </svg>
-                                    </motion.div>
-                                    <div>
-                                        <h1 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, fontFamily: "'Playfair Display', serif", color: 'rgba(255,255,255,0.95)' }}>SUTRAConnect</h1>
-                                        <p style={{ margin: 0, fontSize: '0.5rem', color: `${accent}aa`, letterSpacing: '0.22em', textTransform: 'uppercase', fontFamily: 'monospace' }}>
-                                            Conscious Messenger
-                                        </p>
+                            {isSearchOpen ? (
+                                <div style={{ display: 'flex', alignItems: 'center', height: 42, gap: 10 }}>
+                                    <div style={{ position: 'relative', flex: 1 }}>
+                                        <Search size={14} style={{ position: 'absolute', left: '0.8rem', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)', pointerEvents: 'none' }} />
+                                        <input 
+                                            autoFocus
+                                            value={searchQuery} 
+                                            onChange={e => setSearchQuery(e.target.value)} 
+                                            placeholder="Search contacts..." 
+                                            style={{ width: '100%', padding: '0.55rem 1rem 0.55rem 2.2rem', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, color: 'white', fontSize: '0.9rem', outline: 'none', fontFamily: "'Inter', sans-serif" }} 
+                                        />
                                     </div>
-                                </div>
-                                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                    <div style={{ width: 30, height: 30, borderRadius: '50%', border: `1.5px solid ${accent}55`, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        {user.photoURL?.trim() ? <img src={user.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: '0.75rem' }}>🧘</span>}
-                                    </div>
-                                    <button onClick={signOut} title="Sign out" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.45)' }}>
-                                        <LogOut size={13} />
+                                    <button onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: 4 }}>
+                                        <X size={20} />
                                     </button>
                                 </div>
-                            </div>
-                            <div style={{ position: 'relative' }}>
-                                <Search size={13} style={{ position: 'absolute', left: '0.8rem', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.22)', pointerEvents: 'none' }} />
-                                <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search…" style={{ width: '100%', padding: '0.55rem 1rem 0.55rem 2.2rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, color: 'rgba(255,255,255,0.75)', fontSize: '0.82rem', outline: 'none', fontFamily: "'Inter', sans-serif", boxSizing: 'border-box' }} />
-                            </div>
+                            ) : (
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.55rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <Link href="/" style={{ color: 'rgba(255,255,255,0.4)', lineHeight: 0 }}><ArrowLeft size={18} strokeWidth={1.6} /></Link>
+                                        <motion.div animate={{ filter: [`drop-shadow(0 0 5px ${accent}60)`, `drop-shadow(0 0 14px ${accent}aa)`, `drop-shadow(0 0 5px ${accent}60)`] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} style={{ width: 26, height: 26, flexShrink: 0 }}>
+                                            <svg viewBox="0 0 28 28" fill="none" width="26" height="26">
+                                                <path d="M14 22 C14 22 6 18 6 12 C6 8 9 6 12 7 C10 4 13 2 14 2 C15 2 18 4 16 7 C19 6 22 8 22 12 C22 18 14 22 14 22Z" fill={`${accent}22`} stroke={accent} strokeWidth="1.2" strokeLinejoin="round" />
+                                                <path d="M14 22 L14 26" stroke={accent} strokeWidth="1.1" strokeLinecap="round" opacity="0.5" />
+                                            </svg>
+                                        </motion.div>
+                                        <div>
+                                            <h1 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, fontFamily: "'Playfair Display', serif", color: 'rgba(255,255,255,0.95)' }}>SUTRAConnect</h1>
+                                            <p style={{ margin: 0, fontSize: '0.5rem', color: `${accent}aa`, letterSpacing: '0.22em', textTransform: 'uppercase', fontFamily: 'monospace' }}>
+                                                Conscious Messenger
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                                        <button onClick={() => setIsSearchOpen(true)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.7)' }}>
+                                            <Search size={16} />
+                                        </button>
+                                        <div onClick={() => { setProfileUser(currentUserProfile || user); setIsProfileOpen(true); }} style={{ width: 42, height: 42, borderRadius: '50%', border: `1.5px solid ${accent}55`, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                                            {user.photoURL?.trim() ? <img src={user.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: '1.1rem' }}>🧘</span>}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Contacts */}
@@ -890,8 +954,47 @@ export default function OneSutraPage() {
                             <AnimatePresence>
                                 {fabOpen && (
                                     <motion.div initial={{ opacity: 0, y: 20, scale: 0.8 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20, scale: 0.8 }} style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start', marginBottom: 12 }}>
-                                        {[{ icon: <MessageCircle size={16} />, label: 'New Chat' }, { icon: <Bot size={16} />, label: 'Consult AI Vaidya' }, { icon: <Users size={16} />, label: 'Invite Friend' }].map(({ icon, label }) => (
-                                            <button key={label} onClick={() => setFabOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.55rem 1rem', borderRadius: 999, background: 'rgba(10,6,28,0.92)', backdropFilter: 'blur(20px)', border: `1px solid ${accent}55`, color: accent, cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>{icon} {label}</button>
+                                        {[
+                                            { 
+                                                icon: <MessageCircle size={16} />, 
+                                                label: 'New Chat', 
+                                                action: () => { setFabOpen(false); setIsSearchOpen(true); }
+                                            }, 
+                                            { 
+                                                icon: <Bot size={16} />, 
+                                                label: 'Consult AI Vaidya', 
+                                                action: () => { 
+                                                    setFabOpen(false); 
+                                                    // Find Vaidya in AI_CONTACTS (it's the first one usually)
+                                                    const vaidya = AI_CONTACTS.find(c => c.uid === 'ai_vaidya');
+                                                    if(vaidya) setActiveContact(vaidya as any); // Cast as any because of strict type mismatch in list
+                                                } 
+                                            }, 
+                                            { 
+                                                icon: <Users size={16} />, 
+                                                label: 'Invite Friend', 
+                                                action: async () => {
+                                                    setFabOpen(false);
+                                                    const url = window.location.origin;
+                                                    const shareData = {
+                                                        title: 'Join me on SUTRAConnect',
+                                                        text: 'Connect consciously on SUTRAConnect.',
+                                                        url: url
+                                                    };
+                                                    try {
+                                                        if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+                                                            await navigator.share(shareData);
+                                                        } else {
+                                                            await navigator.clipboard.writeText(url);
+                                                            alert('Link copied to clipboard! 🌿\nShare it with your friends.');
+                                                        }
+                                                    } catch (err) {
+                                                        console.error('Error sharing:', err);
+                                                    }
+                                                }
+                                            }
+                                        ].map(({ icon, label, action }) => (
+                                            <button key={label} onClick={action} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.55rem 1rem', borderRadius: 999, background: 'rgba(10,6,28,0.92)', backdropFilter: 'blur(20px)', border: `1px solid ${accent}55`, color: accent, cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>{icon} {label}</button>
                                         ))}
                                     </motion.div>
                                 )}
@@ -911,22 +1014,24 @@ export default function OneSutraPage() {
                                 <div style={{ flexShrink: 0, zIndex: 100, background: 'rgba(6,4,18,0.78)', backdropFilter: 'blur(32px)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '0.6rem 0.8rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                         <button onClick={() => { setActiveContact(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.6)', lineHeight: 0, padding: '4px' }}><ArrowLeft size={20} strokeWidth={2} /></button>
-                                        <div style={{ position: 'relative' }}>
-                                            <div style={{ width: 38, height: 38, borderRadius: '50%', border: `2px solid ${activeContact.aura}`, boxShadow: `0 0 14px ${activeContact.auraGlow}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', background: `radial-gradient(circle, ${activeContact.auraGlow}, rgba(0,0,0,0.4))`, overflow: 'hidden' }}>
-                                                {activeContact.photoURL?.trim() ? <img src={activeContact.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span>{activeContact.emoji ?? '🧘'}</span>}
+                                        <div onClick={() => { setProfileUser(activeContact); setIsProfileOpen(true); }} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, cursor: 'pointer' }}>
+                                            <div style={{ position: 'relative' }}>
+                                                <div style={{ width: 38, height: 38, borderRadius: '50%', border: `2px solid ${activeContact.aura}`, boxShadow: `0 0 14px ${activeContact.auraGlow}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', background: `radial-gradient(circle, ${activeContact.auraGlow}, rgba(0,0,0,0.4))`, overflow: 'hidden' }}>
+                                                    {activeContact.photoURL?.trim() ? <img src={activeContact.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span>{activeContact.emoji ?? '🧘'}</span>}
+                                                </div>
+                                                {activeContact.online && <div style={{ position: 'absolute', bottom: 1, right: 1, width: 9, height: 9, borderRadius: '50%', background: '#44DD44', border: '2px solid rgba(6,4,18,1)' }} />}
                                             </div>
-                                            {activeContact.online && <div style={{ position: 'absolute', bottom: 1, right: 1, width: 9, height: 9, borderRadius: '50%', background: '#44DD44', border: '2px solid rgba(6,4,18,1)' }} />}
-                                        </div>
-                                        <div style={{ flex: 1, minWidth: 0, marginRight: 4 }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                                <h2 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, fontFamily: "'Playfair Display', serif", color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{activeContact.name}</h2>
-                                                {activeContact.isAI && <span style={{ fontSize: '0.5rem', padding: '0.1rem 0.3rem', background: `${accent}22`, border: `1px solid ${accent}44`, borderRadius: 999, color: accent, letterSpacing: '0.1em', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'monospace' }}>AI</span>}
-                                                {/* Telegram badge */}
-                                                {isTelegramChat && <span style={{ fontSize: '0.5rem', padding: '0.1rem 0.3rem', background: 'rgba(29,161,242,0.15)', border: '1px solid rgba(29,161,242,0.45)', borderRadius: 999, color: '#1DA1F2', letterSpacing: '0.1em', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'monospace' }}>TG</span>}
+                                            <div style={{ flex: 1, minWidth: 0, marginRight: 4 }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                    <h2 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, fontFamily: "'Playfair Display', serif", color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{activeContact.name}</h2>
+                                                    {activeContact.isAI && <span style={{ fontSize: '0.5rem', padding: '0.1rem 0.3rem', background: `${accent}22`, border: `1px solid ${accent}44`, borderRadius: 999, color: accent, letterSpacing: '0.1em', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'monospace' }}>AI</span>}
+                                                    {/* Telegram badge */}
+                                                    {isTelegramChat && <span style={{ fontSize: '0.5rem', padding: '0.1rem 0.3rem', background: 'rgba(29,161,242,0.15)', border: '1px solid rgba(29,161,242,0.45)', borderRadius: 999, color: '#1DA1F2', letterSpacing: '0.1em', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'monospace' }}>TG</span>}
+                                                </div>
+                                                <p style={{ margin: 0, fontSize: '0.65rem', color: remoteIsPresent ? '#44DD44' : (activeContact.online ? '#44DD44' : 'rgba(255,255,255,0.35)'), fontFamily: 'monospace', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    {remoteIsPresent ? 'present…' : (activeContact.isAI ? activeContact.statusLabel : (activeContact.lastSeen ? `Last seen ${new Date(activeContact.lastSeen).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` : 'Offline'))}
+                                                </p>
                                             </div>
-                                            <p style={{ margin: 0, fontSize: '0.65rem', color: remoteIsPresent ? '#44DD44' : (activeContact.online ? '#44DD44' : 'rgba(255,255,255,0.35)'), fontFamily: 'monospace', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                {remoteIsPresent ? 'present…' : (activeContact.isAI ? activeContact.statusLabel : 'Conscious connection')}
-                                            </p>
                                         </div>
                                         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                                             <button
@@ -1185,6 +1290,15 @@ export default function OneSutraPage() {
                     />
                 )}
             </AnimatePresence>
+
+            {/* ── User Profile Panel ── */}
+            <UserProfilePanel
+                isOpen={isProfileOpen}
+                onClose={() => setIsProfileOpen(false)}
+                user={profileUser}
+                currentUserId={user?.uid ?? null}
+                isSelf={profileUser?.uid === user?.uid}
+            />
 
             <style>{`
                 @media (max-width: 767px) {

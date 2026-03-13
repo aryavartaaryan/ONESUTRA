@@ -1,0 +1,33 @@
+                        {/* Header */}
+                        <div style={{ flexShrink: 0, zIndex: 100, background: 'rgba(2,4,12,0.95)', backdropFilter: 'blur(28px)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '0.75rem 1rem 0.55rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 42 }}>
+                                {isSearchOpen ? (
+                                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <div style={{ position: 'relative', flex: 1 }}>
+                                            <Search size={14} style={{ position: 'absolute', left: '0.8rem', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)', pointerEvents: 'none' }} />
+                                            <input 
+                                                autoFocus
+                                     {/* Header */}
+                                           <div style={{                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 42 }}>
+                                {isSearchOpen ? (
+                               addin                                {isSearchOpen ? (
+                                    <div style={{ flex: 1, display: 'flex', a:                                     <div style={ '                                        <div style={{ position: 'relative', flex: 1 }}>
+                                                                  <Search size={14} style={{ position: 'abso()                                            <input 
+                                                autoFocus
+                                     {/* Header */}
+                                           <div  s                                                au                                       {/* Header */}
+                                                 <div st                                  {isSearchOpen ? (
+                               addin                                {isSearchOpen ? (
+                                    <div style={{ty                               addin            :                                     <div style={{ flex: 1, display: 'flex', a:                                                                          <Search size={14} style={{ position: 'abso()                                            <input 
+                                                autoFut                                                autoFocus
+                                     {/* Header */}
+                                 th="26" height="26"                                                      <pat                                           <div  s3                                                  <div st                                  {isSearchOpen ? (
+                               addin                                         addin                                {isSearchOpen ? (
+                    ne                                    <div style={{ty                               ad                                                  autoFut                                                autoFocus
+                                     {/* Header */}
+                                 th="26" height="26"                                                      <pat                                           <div  s3                                                            {/* Header */}
+                                 th="26" height="26"       m:                                 th="26" height="2                                 addin                                         addin                                {isSearchOpen ? (
+                    ne                                    <div style={{ty                               ad                              is                    ne                                    <div style={{ty                               ad                        (t                                     {/* Header */}
+                                 th="26" height="26"                                                      <pat                                           <div  s3      55                                 th="26" height="2                                   th="26" height="26"       m:                                 th="26" height="2                                 addin                                         addin                                {isSear 4                    ne                                    <div style={{ty                               ad                              is                    ne                                    <div style={{ty               {user.photoURL?.tri                                 th="26" height="26"                                                      <pat                                           <div  s3      55                                 th="26" height="2                                   th="26" height="26"       m:                                 th="2     )}
+                            </div>
+                        </div>

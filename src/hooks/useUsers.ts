@@ -11,9 +11,16 @@ import type { Unsubscribe } from 'firebase/firestore';
 export interface SutraUser {
     uid: string;
     name: string;
-    photoURL: string | null;
-    email: string | null;
+    photoURL?: string | null;
+    email?: string | null;
     lastSeen?: number;
+    bio?: string;
+    items?: string[];
+    username?: string;
+    interests?: string[];
+    hobbies?: string[];
+    emoji?: string;
+    role?: string;
 }
 
 const CACHE_KEY = 'onesutra_users_v1';
@@ -69,6 +76,9 @@ export function useUsers(currentUserId: string | null) {
                             photoURL: data.photoURL ?? null,
                             email: data.email ?? null,
                             lastSeen: ms,
+                            bio: data.bio ?? '',
+                            interests: data.interests ?? [],
+                            hobbies: data.hobbies ?? [],
                         } as SutraUser;
                     });
                     // Write full list to cache (including self, for cross-session use)

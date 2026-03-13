@@ -56,13 +56,28 @@ export function GlobalTelegramListener() {
             
             let contactTelegramId: string | undefined;
 
-            if (msg.is_mine) {
-                // Outgoing: peerId is the contact
-                const raw = msg._raw_telegram as any;
-                contactTelegramId = String(raw.peerId?.userId?.value ?? '');
-            } else {
-                // Incoming: sender_id is the contact
-                contactTelegramId = msg.sender_id;
+            try {
+                if (msg.is_mine) {
+                    // Outgoing: peerId is the contact
+                    // Check if _raw_telegram exists before accessing
+                    const raw = (msg as any)._raw_telegram;
+                    if (raw && raw.peerId) {
+                        // Handle peerId being object or primitive
+                        const pid = raw.peerId;
+                        contactTelegramId = pid.userId ? String(pid.userId.value || pid.userId) : String(pid.user_id || pid);
+                    } else if (msg.sender_id) {
+                        // Fallback? If I sent it, sender_id is me.
+                        // We need the chat_id from somewhere else if raw is missing.
+                        // Ideally normalizeMessage should provide chatId/peerId.
+                        console.warn('[GlobalTelegramListener] Outgoing message missing peer info', msg);
+                    }
+                } else {
+                    // Incoming: sender_id is the contact
+                    contactTelegramId = msg.sender_id;
+                }
+            } catch (err) {
+                console.error('[GlobalTelegramListener] Error processing message:', err);
+                return;
             }
 
             if (!contactTelegramId) return;
