@@ -30,6 +30,7 @@ export default function WebRTCCallScreen({ callId, isInitiator, mode, localUserI
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
     const pcRef = useRef<RTCPeerConnection | null>(null);
     const localStreamRef = useRef<MediaStream | null>(null);
+    const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
 
     const [connected, setConnected] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
@@ -58,13 +59,15 @@ export default function WebRTCCallScreen({ callId, isInitiator, mode, localUserI
         ring();
     }, []);
 
-    const setupPeerConnection = useCallback(async () => {
+    const setupPeerConnection = useCallback(async (): Promise<() => void> => {
         const { getFirebaseFirestore } = await import('@/lib/firebase');
         const { doc, collection, addDoc, onSnapshot, getDoc, updateDoc, setDoc } = await import('firebase/firestore');
         const db = await getFirebaseFirestore();
 
         const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
         pcRef.current = pc;
+
+        const unsubscribes: Array<() => void> = [];
 
         // Get local media
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -99,6 +102,7 @@ export default function WebRTCCallScreen({ callId, isInitiator, mode, localUserI
         const remoteCandidatesCol = collection(callDoc, isInitiator ? 'calleeCandidates' : 'callerCandidates');
 
         pc.onicecandidate = async (e) => {
+            if (!pcRef.current || pcRef.current.signalingState === 'closed') return;
             if (e.candidate) {
                 await addDoc(localCandidatesCol, e.candidate.toJSON());
             }
@@ -109,34 +113,89 @@ export default function WebRTCCallScreen({ callId, isInitiator, mode, localUserI
             await pc.setLocalDescription(offer);
             await setDoc(callDoc, { offer: { type: offer.type, sdp: offer.sdp }, mode }, { merge: true });
 
-            onSnapshot(callDoc, async (snap) => {
+            const unsubCall = onSnapshot(callDoc, async (snap) => {
+                const pcCurrent = pcRef.current;
+                if (!pcCurrent || pcCurrent.signalingState === 'closed') return;
                 const data = snap.data();
-                if (!pc.currentRemoteDescription && data?.answer) {
-                    await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                if (!pcCurrent.currentRemoteDescription && data?.answer) {
+                    // Only set remote answer when in the correct state
+                    if (pcCurrent.signalingState === 'have-local-offer') {
+                        await pcCurrent.setRemoteDescription(new RTCSessionDescription(data.answer));
+
+                        // Flush any pending ICE candidates that arrived early
+                        if (pcCurrent.remoteDescription) {
+                            pendingCandidatesRef.current.forEach(c => {
+                                if (pcRef.current && pcRef.current.signalingState !== 'closed') {
+                                    pcRef.current.addIceCandidate(new RTCIceCandidate(c));
+                                }
+                            });
+                            pendingCandidatesRef.current = [];
+                        }
+                    }
                 }
             });
+            unsubscribes.push(unsubCall);
         } else {
             const callData = (await getDoc(callDoc)).data();
             if (callData?.offer) {
-                await pc.setRemoteDescription(new RTCSessionDescription(callData.offer));
-                const answer = await pc.createAnswer();
-                await pc.setLocalDescription(answer);
-                await updateDoc(callDoc, { answer: { type: answer.type, sdp: answer.sdp } });
+                let createdAnswer: RTCSessionDescriptionInit | null = null;
+                if (pc.signalingState !== 'closed') {
+                    await pc.setRemoteDescription(new RTCSessionDescription(callData.offer));
+
+                    // Flush any pending ICE candidates that arrived before offer was set
+                    if (pc.remoteDescription) {
+                        pendingCandidatesRef.current.forEach(c => {
+                            if (pcRef.current && pcRef.current.signalingState !== 'closed') {
+                                pcRef.current.addIceCandidate(new RTCIceCandidate(c));
+                            }
+                        });
+                        pendingCandidatesRef.current = [];
+                    }
+
+                    const answer = await pc.createAnswer();
+                    createdAnswer = answer;
+                    await pc.setLocalDescription(answer);
+                }
+                if (createdAnswer) {
+                    await updateDoc(callDoc, { answer: { type: createdAnswer.type, sdp: createdAnswer.sdp } });
+                }
             }
         }
 
-        onSnapshot(remoteCandidatesCol, (snap) => {
+        const unsubCandidates = onSnapshot(remoteCandidatesCol, (snap) => {
+            const pcCurrent = pcRef.current;
+            if (!pcCurrent || pcCurrent.signalingState === 'closed') return;
             snap.docChanges().forEach(change => {
                 if (change.type === 'added') {
-                    pc.addIceCandidate(new RTCIceCandidate(change.doc.data()));
+                    const candidateInit = change.doc.data() as RTCIceCandidateInit;
+
+                    // If remote description isn't set yet, queue the candidate
+                    if (!pcCurrent.remoteDescription) {
+                        pendingCandidatesRef.current.push(candidateInit);
+                        return;
+                    }
+
+                    pcCurrent.addIceCandidate(new RTCIceCandidate(candidateInit));
                 }
             });
         });
+        unsubscribes.push(unsubCandidates);
+
+        // Return a cleanup function for Firestore listeners
+        return () => {
+            unsubscribes.forEach(u => u());
+        };
     }, [callId, isInitiator, mode]);
 
     useEffect(() => {
-        setupPeerConnection().catch(console.error);
+        let unsubscribeSnapshots: (() => void) | null = null;
+        setupPeerConnection()
+            .then((unsub) => {
+                unsubscribeSnapshots = unsub;
+            })
+            .catch(console.error);
         return () => {
+            if (unsubscribeSnapshots) unsubscribeSnapshots();
             if (timerRef.current) clearInterval(timerRef.current);
             localStreamRef.current?.getTracks().forEach(t => t.stop());
             pcRef.current?.close();

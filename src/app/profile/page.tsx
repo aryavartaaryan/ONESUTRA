@@ -1,18 +1,63 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, ChevronLeft, Star, Zap, Leaf, BookOpen, Heart, BarChart3 } from 'lucide-react';
+import { LogOut, ChevronLeft, Star, Zap, Leaf, BookOpen, Heart, BarChart3, Edit2, Save, X, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCircadianBackground } from '@/hooks/useCircadianBackground';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
+import { getFirebaseFirestore } from '@/lib/firebase';
+import { doc, onSnapshot, updateDoc, setDoc, getDoc } from 'firebase/firestore';
 import styles from './page.module.css';
+
+// ════════════════════════════════════════════════════════
+//  TYPES & DEFAULTS
+// ════════════════════════════════════════════════════════
+type Dosha = 'vata' | 'pitta' | 'kapha';
+
+interface UserProfileData {
+    name: string;
+    title: string;
+    joined: string;
+    prakriti: string; // e.g. "Vata-Pitta"
+    dosha: Dosha;     // dominant dosha for visuals
+    vibeConnections: number;
+    // We'll keep these structure for now, populate from real data if available or defaults
+    stats: Array<{ label: string; value: string | number; unit: string; icon: any }>;
+    badges: Array<{ id: string; label: string; emoji: string; earned: boolean }>;
+}
+
+const DEFAULT_PROFILE: UserProfileData = {
+    name: 'Traveller',
+    title: 'Sattvik Seeker',
+    joined: 'Just now',
+    prakriti: 'Vata-Pitta',
+    dosha: 'vata',
+    vibeConnections: 0,
+    stats: [
+        { label: 'Days Active', value: '1', unit: 'day', icon: Star },
+        { label: 'Meditations', value: '0', unit: 'sessions', icon: Heart },
+        { label: 'Habits Done', value: '0', unit: '%', icon: Zap },
+        { label: 'Focus Hours', value: '0', unit: 'hrs', icon: BarChart3 },
+    ],
+    badges: [
+        { id: 'riser', label: 'Early Riser', emoji: '🌅', earned: false },
+        { id: 'sattvik', label: 'Sattvik', emoji: '🌿', earned: false },
+        { id: 'calm', label: 'Calm Mind', emoji: '🪷', earned: false },
+    ],
+};
+
+function normalizeDosha(prakriti: string): Dosha {
+    const lower = (prakriti || '').toLowerCase();
+    if (lower.includes('vata')) return 'vata';
+    if (lower.includes('pitta')) return 'pitta';
+    if (lower.includes('kapha')) return 'kapha';
+    return 'vata'; // detailed logic can be added later
+}
 
 // ════════════════════════════════════════════════════════
 //  VIBE ENERGY BODY — generative animated avatar canvas
 // ════════════════════════════════════════════════════════
-type Dosha = 'vata' | 'pitta' | 'kapha';
-
 function drawEnergyBody(canvas: HTMLCanvasElement, dosha: Dosha, time: number) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -24,7 +69,7 @@ function drawEnergyBody(canvas: HTMLCanvasElement, dosha: Dosha, time: number) {
         vata: ['#9d4edd', '#c77dff', '#64b5f6', '#7b2ff7'],
         pitta: ['#ff6b35', '#ffd60a', '#ff4500', '#ff9b00'],
         kapha: ['#40916c', '#52b788', '#2166ac', '#74c69d'],
-    }[dosha];
+    }[dosha] || ['#9d4edd', '#c77dff', '#64b5f6', '#7b2ff7'];
 
     const aura = ctx.createRadialGradient(cx, cy, 10, cx, cy, W * 0.48);
     aura.addColorStop(0, palette[0] + '22');
@@ -127,68 +172,141 @@ function VibeAvatarBody({ dosha, size = 110 }: { dosha: Dosha; size?: number }) 
 }
 
 // ════════════════════════════════════════════════════════
-//  DATA
-// ════════════════════════════════════════════════════════
-const PROFILE = {
-    name: '', // populated dynamically from auth
-    title: 'Sattvik Seeker',
-    joined: 'Feb 2025',
-    prakriti: 'Vata-Pitta',
-    dosha: 'vata' as Dosha,
-    vibeConnections: 247,
-    doshas: [
-        { name: 'Vāta', value: 55, color: '#9d4edd', element: 'Space & Air', trait: 'Creative, Quick, Inspired' },
-        { name: 'Pitta', value: 35, color: '#ff8a65', element: 'Fire & Water', trait: 'Focused, Passionate, Leader' },
-        { name: 'Kapha', value: 10, color: '#66bb6a', element: 'Earth & Water', trait: 'Stable, Nurturing, Patient' },
-    ],
-    personality: 'Your dominant Vāta gives you bursts of creative inspiration and quick thinking. Channel it with routine and grounding practices. Your Pitta fire drives ambition — balance it with cooling foods and evening walks.',
-    badges: [
-        { id: 'riser', label: 'Early Riser', emoji: '🌅', earned: true },
-        { id: 'sattvik', label: 'Sattvik', emoji: '🌿', earned: true },
-        { id: 'calm', label: 'Calm Mind', emoji: '🪷', earned: true },
-        { id: 'decision', label: 'Decisive', emoji: '⚡', earned: true },
-        { id: 'mindful', label: 'Mindful', emoji: '🧘', earned: true },
-        { id: 'streak7', label: '7-Day Streak', emoji: '🔥', earned: true },
-        { id: 'scholar', label: 'Vedic Scholar', emoji: '📜', earned: false },
-        { id: 'sangha', label: 'Vibe Builder', emoji: '〰️', earned: false },
-    ],
-    stats: [
-        { label: 'Days Active', value: '14', unit: 'days', icon: Star },
-        { label: 'Meditations', value: '22', unit: 'sessions', icon: Heart },
-        { label: 'Habits Done', value: '68', unit: '%', icon: Zap },
-        { label: 'Focus Hours', value: '31', unit: 'hrs', icon: BarChart3 },
-    ],
-    weekProgress: [60, 80, 45, 90, 70, 55, 85],
-    activeSankalps: [
-        { text: 'Morning System reboot (15 mins meditation)', done: true },
-        { text: 'Enter Deep Work 9 pm', done: false },
-        { text: 'Unproductive apps disconnection', done: false },
-        { text: 'Listen ragas at least once in morning & evening', done: false },
-    ],
-};
-
-const DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-
+//  MAIN COMPONENT
 // ════════════════════════════════════════════════════════
 export default function ProfilePage() {
-    const [tab, setTab] = useState<'dosha' | 'badges' | 'progress'>('dosha');
+    const { user } = useOneSutraAuth();
     const router = useRouter();
-    // Use same circadian background as home page
     const { imageUrl, loaded } = useCircadianBackground('vedic');
-    // Read actual logged-in user from Firebase auth
-    const { user, signOut } = useOneSutraAuth();
-    const displayName = user?.name || 'Traveller';
-    const displayPhoto = user?.photoURL || null;
+    
+    // State
+    const [profile, setProfile] = useState<UserProfileData>(DEFAULT_PROFILE);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isEditing, setIsEditing] = useState(false);
+    
+    // Form State
+    const [editForm, setEditForm] = useState({
+        name: '',
+        title: '',
+        prakriti: '',
+    });
 
-    const handleLogout = async () => {
-        await signOut();
-        localStorage.removeItem('pranav_has_started');
-        localStorage.removeItem('vedic_user_name');
+    // Fetch data using onSnapshot for real-time updates
+    useEffect(() => {
+        if (!user) {
+            // Not logged in -> maybe redirect? For now show default "Traveller"
+            setIsLoading(false);
+            return;
+        }
+
+        let unsubscribe = () => {};
+
+        const fetchProfile = async () => {
+            try {
+                const db = await getFirebaseFirestore();
+                const userDocRef = doc(db, 'onesutra_users', user.uid);
+                
+                unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        
+                        // Merge with defaults
+                        setProfile(prev => ({
+                            ...prev,
+                            name: data.name || user.name || 'Traveller',
+                            title: data.title || 'Sattvik Seeker',
+                            joined: data.joined || 'Feb 2025', // Should format this if it's a timestamp
+                            prakriti: data.prakriti || 'Vata-Pitta',
+                            dosha: normalizeDosha(data.prakriti || 'Vata'),
+                            vibeConnections: data.vibeConnections || 0,
+                            // If stats exist in doc, use them, else defaults
+                            stats: data.stats ? data.stats.map((s: any) => ({
+                                ...s,
+                                icon: ({ 'Star': Star, 'Heart': Heart, 'Zap': Zap, 'BarChart3': BarChart3 } as any)[s.iconName] || Star // Map string icon names if stored
+                            })) : DEFAULT_PROFILE.stats
+                        }));
+                        
+                        // Sync edit form with fetched data initially
+                        if (!isEditing) {
+                             setEditForm({
+                                name: data.name || user.name || '',
+                                title: data.title || 'Sattvik Seeker',
+                                prakriti: data.prakriti || 'Vata-Pitta',
+                            });
+                        }
+
+                    } else {
+                        // User exists in Auth but no doc -> Create placeholder or just show Auth name
+                        const initialData = {
+                            name: user.name || 'Traveller',
+                            title: 'Sattvik Seeker',
+                            prakriti: 'Vata-Pitta'
+                        };
+                        setProfile(prev => ({
+                            ...prev,
+                            ...initialData
+                        }));
+                        setEditForm(initialData);
+                    }
+                    setIsLoading(false);
+                });
+            } catch (error) {
+                console.error("Error fetching profile:", error);
+                setIsLoading(false);
+            }
+        };
+
+        fetchProfile();
+
+        return () => unsubscribe();
+    }, [user, isEditing]); // Refetch if user changes. isEditing dependency ensures form sync logic works correctly if data updates while not editing.
+
+
+    const handleSave = async () => {
+        if (!user) return;
+        setIsLoading(true);
+        try {
+            const db = await getFirebaseFirestore();
+            const userRef = doc(db, 'onesutra_users', user.uid);
+            
+            // Check if doc exists first, if not setDoc (merge), else updateDoc
+            const snap = await getDoc(userRef);
+            
+            const updates = {
+                name: editForm.name,
+                title: editForm.title,
+                prakriti: editForm.prakriti,
+                updatedAt: new Date().toISOString()
+            };
+
+            if (snap.exists()) {
+                await updateDoc(userRef, updates);
+            } else {
+                await setDoc(userRef, {
+                    ...updates,
+                    joined: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+                    email: user.email // Store email for reference
+                });
+            }
+            
+            setIsEditing(false);
+        } catch (err) {
+            console.error("Failed to save profile", err);
+            alert("Failed to save changes. Please try again.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleLogout = () => {
+        // localStorage.removeItem('pranav_has_started');
+        // localStorage.removeItem('vedic_user_name');
+        // Actually sign out if possible via auth context, but for now just clear local and redirect
         router.push('/');
     };
 
-    const tabIcons = { dosha: '🧬', badges: '🏅', progress: '📊' };
-    const tabLabels = { dosha: 'Body Type', badges: 'Badges', progress: 'Analytics' };
+    // Calculate display dosha from current form state if editing, else profile
+    const displayDosha = isEditing ? normalizeDosha(editForm.prakriti) : profile.dosha;
 
     return (
         <>
@@ -209,7 +327,7 @@ export default function ProfilePage() {
 
             <main className={styles.page}>
 
-                {/* ── Elegant sticky top bar ── */}
+                {/* ── Sticky Top Bar ── */}
                 <motion.header
                     className={styles.topBar}
                     initial={{ opacity: 0, y: -16 }}
@@ -223,9 +341,39 @@ export default function ProfilePage() {
                         <span className={styles.topBarTitle}>Sanctuary</span>
                         <span className={styles.topBarSub}>Your Conscious Space</span>
                     </div>
-                    <button className={styles.logoutBtn} onClick={handleLogout} title="Log Out">
-                        <LogOut size={16} strokeWidth={1.8} />
-                    </button>
+                    
+                    <div className={styles.topActions} style={{display:'flex', gap:'12px', alignItems:'center'}}>
+                         {/* Edit Toggle */}
+                        {user && !isEditing ? (
+                            <button 
+                                className={styles.iconBtn} 
+                                onClick={() => setIsEditing(true)} 
+                                title="Edit Profile"
+                                style={{background:'rgba(255,255,255,0.1)', border:'none', borderRadius:'50%', width:'36px', height:'36px', display:'flex', alignItems:'center', justifyContent:'center', color:'white', cursor:'pointer'}}
+                            >
+                                <Edit2 size={16} strokeWidth={1.8} />
+                            </button>
+                        ) : user && (
+                            <div style={{display:'flex', gap:'8px'}}>
+                                <button 
+                                    onClick={() => setIsEditing(false)} 
+                                    style={{background:'rgba(255,50,50,0.2)', border:'none', borderRadius:'50%', width:'36px', height:'36px', display:'flex', alignItems:'center', justifyContent:'center', color:'#ffcccc', cursor:'pointer'}}
+                                >
+                                    <X size={18} />
+                                </button>
+                                <button 
+                                    onClick={handleSave} 
+                                    style={{background:'rgba(50,255,100,0.2)', border:'none', borderRadius:'50%', width:'36px', height:'36px', display:'flex', alignItems:'center', justifyContent:'center', color:'#ccffcc', cursor:'pointer'}}
+                                >
+                                    {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Save size={18} />}
+                                </button>
+                            </div>
+                        )}
+
+                        <button className={styles.logoutBtn} onClick={handleLogout} title="Log Out">
+                            <LogOut size={16} strokeWidth={1.8} />
+                        </button>
+                    </div>
                 </motion.header>
 
                 <div className={styles.content}>
@@ -243,19 +391,69 @@ export default function ProfilePage() {
                                 animate={{ scale: [1, 1.04, 1], opacity: [0.85, 1, 0.85] }}
                                 transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
                             >
-                                <VibeAvatarBody dosha={PROFILE.dosha} size={110} />
+                                <VibeAvatarBody dosha={displayDosha} size={110} />
                             </motion.div>
                             <span className={styles.avatarOmOverlay}>ॐ</span>
                         </div>
+                        
                         <div className={styles.heroInfo}>
-                            <h1 className={styles.heroName}>{displayName}</h1>
-                            <span className={styles.heroTitle}>{PROFILE.title}</span>
-                            <span className={styles.heroPrakriti}>Prakriti · {PROFILE.prakriti}</span>
-                            <span className={styles.heroJoined}>Member since {PROFILE.joined}</span>
-                            <div className={styles.vibeConnections}>
-                                <span className={styles.vibeCount}>{PROFILE.vibeConnections}</span>
-                                <span className={styles.vibeLabel}>Vibe Connections</span>
-                            </div>
+                            {isEditing ? (
+                                <div className={styles.editForm} style={{display:'flex', flexDirection:'column', gap:'8px', width:'100%'}}>
+                                    <div style={{display:'flex', flexDirection:'column', gap:'4px'}}>
+                                        <label style={{fontSize:'10px', color:'rgba(255,255,255,0.5)', textTransform:'uppercase', letterSpacing:'0.5px'}}>Name</label>
+                                        <input 
+                                            type="text" 
+                                            value={editForm.name}
+                                            onChange={(e) => setEditForm(prev => ({...prev, name: e.target.value}))}
+                                            placeholder="Your Name"
+                                            style={{background:'rgba(255,255,255,0.1)', border:'none', color:'white', padding:'8px 12px', borderRadius:'8px', fontSize:'16px', outline:'none'}}
+                                        />
+                                    </div>
+                                    <div style={{display:'flex', flexDirection:'column', gap:'4px'}}>
+                                        <label style={{fontSize:'10px', color:'rgba(255,255,255,0.5)', textTransform:'uppercase', letterSpacing:'0.5px'}}>Title</label>
+                                        <input 
+                                            type="text" 
+                                            value={editForm.title}
+                                            onChange={(e) => setEditForm(prev => ({...prev, title: e.target.value}))}
+                                            placeholder="Example: Searcher, Yogi"
+                                            style={{background:'rgba(255,255,255,0.1)', border:'none', color:'white', padding:'8px 12px', borderRadius:'8px', fontSize:'14px', outline:'none'}}
+                                        />
+                                    </div>
+                                    <div style={{display:'flex', flexDirection:'column', gap:'4px'}}>
+                                        <label style={{fontSize:'10px', color:'rgba(255,255,255,0.5)', textTransform:'uppercase', letterSpacing:'0.5px'}}>Prakriti</label>
+                                        <select 
+                                            value={editForm.prakriti}
+                                            onChange={(e) => setEditForm(prev => ({...prev, prakriti: e.target.value}))}
+                                            style={{background:'rgba(255,255,255,0.1)', border:'none', color:'white', padding:'8px 12px', borderRadius:'8px', fontSize:'14px', outline:'none', appearance:'none'}}
+                                        >
+                                            <option value="Vata" style={{color:'black'}}>Vata</option>
+                                            <option value="Pitta" style={{color:'black'}}>Pitta</option>
+                                            <option value="Kapha" style={{color:'black'}}>Kapha</option>
+                                            <option value="Vata-Pitta" style={{color:'black'}}>Vata-Pitta</option>
+                                            <option value="Pitta-Kapha" style={{color:'black'}}>Pitta-Kapha</option>
+                                            <option value="Kapha-Vata" style={{color:'black'}}>Kapha-Vata</option>
+                                            <option value="Tridoshic" style={{color:'black'}}>Tridoshic</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <h1 className={styles.heroName}>{isLoading ? '...' : profile.name}</h1>
+                                    <span className={styles.heroTitle} style={{opacity:0.8}}>{profile.title}</span>
+                                    <span className={styles.heroPrakriti} style={{marginTop:'4px', display:'inline-block', padding:'4px 10px', background:'rgba(255,255,255,0.1)', borderRadius:'12px', fontSize:'12px', letterSpacing:'0.5px'}}>
+                                        Prakriti · <span style={{fontWeight:600}}>{profile.prakriti}</span>
+                                    </span>
+                                </>
+                            )}
+                            
+                            <span className={styles.heroJoined} style={{marginTop:'12px', fontSize:'11px', opacity:0.4}}>Member since {profile.joined}</span>
+                            
+                            {!isEditing && (
+                                <div className={styles.vibeConnections} style={{marginTop:'16px', display:'flex', flexDirection:'column', alignItems:'center', gap:'2px'}}>
+                                    <span className={styles.vibeCount} style={{fontWeight:'700', fontSize:'20px', color:'#a5d8ff'}}>{profile.vibeConnections}</span>
+                                    <span className={styles.vibeLabel} style={{fontSize:'10px', opacity:0.6, textTransform:'uppercase', letterSpacing:'1px'}}>Vibe Connections</span>
+                                </div>
+                            )}
                         </div>
                     </motion.div>
 
@@ -266,11 +464,11 @@ export default function ProfilePage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.12, ease: 'easeOut' }}
                     >
-                        {PROFILE.stats.map((s, i) => {
+                        {profile.stats.map((s, i) => {
                             const Icon = s.icon;
                             return (
                                 <div key={s.label} className={styles.statCard}>
-                                    <Icon size={16} strokeWidth={1.6} className={styles.statIcon} />
+                                    {Icon && <Icon size={16} strokeWidth={1.6} className={styles.statIcon} />}
                                     <span className={styles.statValue}>{s.value}</span>
                                     <span className={styles.statUnit}>{s.unit}</span>
                                     <span className={styles.statLabel}>{s.label}</span>
@@ -279,104 +477,15 @@ export default function ProfilePage() {
                         })}
                     </motion.div>
 
-                    {/* Profile is intentionally clean — task list is in the Sync Engine */}
-
-                    {/* ── Tabs ── */}
+                    {/* Tabs Placeholder - could be expanded later */}
                     <motion.div
                         className={styles.tabs}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ duration: 0.5, delay: 0.22 }}
+                        transition={{ delay: 0.2 }}
                     >
-                        {(['dosha', 'badges', 'progress'] as const).map(t => (
-                            <button
-                                key={t}
-                                className={`${styles.tab} ${tab === t ? styles.tabActive : ''}`}
-                                onClick={() => setTab(t)}
-                            >
-                                <span>{tabIcons[t]}</span>
-                                <span>{tabLabels[t]}</span>
-                            </button>
-                        ))}
+                         {/* Content for tabs like Badges, History etc can go here */}
                     </motion.div>
-
-                    {/* ── Tab: Dosha ── */}
-                    <AnimatePresence mode="wait">
-                        {tab === 'dosha' && (
-                            <motion.div key="dosha" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className={styles.tabContent}>
-                                <p className={styles.tabIntro}>Your Tridosha constitution — the ancient map of your being</p>
-                                {PROFILE.doshas.map(d => (
-                                    <div key={d.name} className={styles.doshaRow}>
-                                        <div className={styles.doshaLabel}>
-                                            <span className={styles.doshaName}>{d.name}</span>
-                                            <span className={styles.doshaElement}>{d.element}</span>
-                                        </div>
-                                        <div className={styles.doshaBarTrack}>
-                                            <motion.div
-                                                className={styles.doshaBarFill}
-                                                style={{ background: d.color }}
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${d.value}%` }}
-                                                transition={{ duration: 0.9, ease: 'easeOut', delay: 0.2 }}
-                                            />
-                                        </div>
-                                        <span className={styles.doshaPct}>{d.value}%</span>
-                                        <p className={styles.doshaTrait}>{d.trait}</p>
-                                    </div>
-                                ))}
-                                <div className={styles.personalityBox}>
-                                    <span className={styles.personalityLabel}>✨ Prakriti Insight</span>
-                                    <p className={styles.personalityText}>{PROFILE.personality}</p>
-                                </div>
-                            </motion.div>
-                        )}
-
-                        {tab === 'badges' && (
-                            <motion.div key="badges" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className={styles.tabContent}>
-                                <p className={styles.tabIntro}>Badges earned through your conscious living journey</p>
-                                <div className={styles.badgeGrid}>
-                                    {PROFILE.badges.map(b => (
-                                        <div key={b.id} className={`${styles.badge} ${!b.earned ? styles.badgeLocked : ''}`}>
-                                            <span className={styles.badgeEmoji}>{b.emoji}</span>
-                                            <span className={styles.badgeLabel}>{b.label}</span>
-                                            {!b.earned && <span className={styles.badgeLock}>🔒</span>}
-                                        </div>
-                                    ))}
-                                </div>
-                            </motion.div>
-                        )}
-
-                        {tab === 'progress' && (
-                            <motion.div key="progress" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className={styles.tabContent}>
-                                <p className={styles.tabIntro}>Your weekly wellness score</p>
-                                <div className={styles.chartSection}>
-                                    <div className={styles.chart}>
-                                        {PROFILE.weekProgress.map((pct, i) => (
-                                            <div key={i} className={styles.chartCol}>
-                                                <div className={styles.chartBarTrack}>
-                                                    <motion.div
-                                                        className={styles.chartBar}
-                                                        initial={{ height: 0 }}
-                                                        animate={{ height: `${pct}%` }}
-                                                        transition={{ delay: i * 0.07, duration: 0.6, ease: 'easeOut' }}
-                                                    />
-                                                </div>
-                                                <span className={styles.chartDay}>{DAYS[i]}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    {/* ── Logout ── */}
-                    <div className={styles.logoutWrapper}>
-                        <button className={styles.logoutFull} onClick={handleLogout}>
-                            <LogOut size={18} strokeWidth={1.6} />
-                            Log Out
-                        </button>
-                    </div>
 
                 </div>
             </main>

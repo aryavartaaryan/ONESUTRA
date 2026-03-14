@@ -3,11 +3,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    ArrowLeft, Search, Phone, Video,
+    ArrowLeft, Search, Phone, Video, X,
     Send, LogOut, MessageCircle, Users, Bot,
     CheckCheck, Zap, Plus, Mic,
 } from 'lucide-react';
 import Link from 'next/link';
+import VoiceCallModal from '@/components/VoiceCallModal';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { useUsers } from '@/hooks/useUsers';
 import { useMessages, getChatId, type VoiceNote } from '@/hooks/useMessages';
@@ -19,8 +20,17 @@ import WelcomeFirstSpark from '@/components/SutraTalk/WelcomeFirstSpark';
 import ChatInputBar from '@/components/SutraTalk/ChatInputBar';
 import { DhvaniPlayback } from '@/components/SutraTalk/DhvaniNote';
 import dynamic from 'next/dynamic';
+
+// Dynamic import to prevent SSR issues with browser APIs in WebRTCCallScreen
+const WebRTCCallScreen = dynamic(
+    () => import('@/components/SutraTalk/WebRTCCallScreen'),
+    { ssr: false }
+);
+
 import { useSutraConnectStore } from '@/stores/sutraConnectStore';
 import { useTelegramMessages } from '@/hooks/useTelegramMessages';
+import { GlobalTelegramListener } from '@/components/SutraConnect/GlobalTelegramListener';
+import UserProfilePanel from '@/components/SutraTalk/UserProfilePanel';
 
 // Lazy-load the Telegram auth modal (avoids SSR + loads tdweb only when needed)
 const TelegramAuthModal = dynamic(
@@ -29,17 +39,22 @@ const TelegramAuthModal = dynamic(
 );
 
 // ─── AI Contacts ───────────────────────────────────────────────────────────────
+// Use a stable timestamp for server/client hydration consistency
+const AI_JOINED_AT = 1710313200000; // Fixed timestamp (e.g. Mar 13 2024)
+
 const AI_CONTACTS = [
     {
         uid: 'ai_vaidya', name: 'Digital Vaidya', role: 'AI Agent · Ayurvedic Guide',
         emoji: '🤖', aura: '#E8A030', auraGlow: 'rgba(232,160,48,0.35)', isAI: true,
         statusLabel: 'Available', online: true,
+        joinedAt: AI_JOINED_AT,
         lastMsg: 'ॐ Your Pitta score is optimal today. Begin with Rāga Bhairav.',
     },
     {
         uid: 'ai_rishi', name: 'Rishi AI Coach', role: 'AI Agent · Life Architect',
         emoji: '🔮', aura: '#E860A0', auraGlow: 'rgba(220,80,150,0.28)', isAI: true,
         statusLabel: 'Available', online: true,
+        joinedAt: AI_JOINED_AT,
         lastMsg: 'Your weekly Sankalpa report is ready. 73% completion — excellent!',
     },
 ];
@@ -128,7 +143,17 @@ export default function OneSutraPage() {
     const { user, signOut } = useOneSutraAuth();
     const isTelegramSynced = useSutraConnectStore((s) => s.isTelegramSynced);
     const tgContactCount = Object.keys(useSutraConnectStore((s) => s.contactMap)).length;
+    const messageThreads = useSutraConnectStore((s) => s.messageThreads);
+    const unreadCounts = useSutraConnectStore((s) => s.unreadCounts);
+    const clearUnread = useSutraConnectStore((s) => s.clearUnread); 
+
     const [showTelegramModal, setShowTelegramModal] = useState(false);
+    const [isVoiceCallActive, setIsVoiceCallActive] = useState(false);
+    const [peerCall, setPeerCall] = useState<{
+        callId: string;
+        isInitiator: boolean;
+        remoteContact: { name: string; emoji?: string; photoURL?: string | null; aura: string };
+    } | null>(null);
     const { users: realUsers } = useUsers(user?.uid ?? null);
 
     // Initialize global Telegram client on page load
@@ -146,9 +171,46 @@ export default function OneSutraPage() {
         uid: string; name: string; emoji?: string; photoURL?: string | null;
         aura: string; auraGlow: string; isAI: boolean; statusLabel: string; online: boolean; role: string;
         isTelegram?: boolean; telegramUserId?: string; telegramPhone?: string;
+        lastSeen?: number;
     } | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isAutoPilot, setIsAutoPilot] = useState(false);
+    
+    // ── Profile Panel State ─────────────────────────────────────────────────
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [profileUser, setProfileUser] = useState<any>(null);
+    const [currentUserProfile, setCurrentUserProfile] = useState<any>(null); // Full profile for logged-in user
+
+    // ── Fetch current user full profile (bio, interests, etc.) ──────────────
+    useEffect(() => {
+        if (!user?.uid) return;
+        let unsub: (() => void) | undefined;
+        
+        const fetchProfile = async () => {
+            const { getFirebaseFirestore } = await import('@/lib/firebase');
+            const { doc, onSnapshot } = await import('firebase/firestore');
+            const db = await getFirebaseFirestore();
+            
+            unsub = onSnapshot(doc(db, 'onesutra_users', user.uid), (snap) => {
+                if (snap.exists()) {
+                    setCurrentUserProfile({ uid: user.uid, ...snap.data() });
+                }
+            });
+        };
+        fetchProfile();
+        return () => unsub && unsub();
+    }, [user?.uid]);
+
+    // Sync profileUser with live data (mainly for self-edits)
+    useEffect(() => {
+        if (isProfileOpen && profileUser && user && profileUser.uid === user.uid && currentUserProfile) {
+            // Only update if actually different to avoid loops
+            if (JSON.stringify(profileUser) !== JSON.stringify(currentUserProfile)) {
+                setProfileUser(currentUserProfile);
+            }
+        }
+    }, [currentUserProfile, isProfileOpen, profileUser, user]);
     const [isAutoPilotGenerating, setIsAutoPilotGenerating] = useState(false);
     const [fabOpen, setFabOpen] = useState(false);
 
@@ -250,6 +312,7 @@ export default function OneSutraPage() {
 
     // OneSutra contacts
     const realContacts = realUsers.map((u, i) => ({
+        ...u,
         uid: u.uid, name: u.name, photoURL: u.photoURL,
         aura: AURA_PALETTE[i % AURA_PALETTE.length],
         auraGlow: 'rgba(80,120,200,0.28)',
@@ -339,11 +402,11 @@ export default function OneSutraPage() {
     const realChatIds = user ? realContacts.map(c => getChatId(user.uid, c.uid)) : [];
     const chatMeta = useChats(realChatIds, user?.uid ?? null);
 
-    // ── Pre-compute contacts and sort them only when dependencies change ──
+// Remove dynamic Date.now() from dependencies and mapping to prevent hydration mismatch
     const sortedContacts = React.useMemo(() => {
         // Merge all contacts
         const allContacts = [
-            ...AI_CONTACTS.map(c => ({ ...c, photoURL: undefined as undefined, isTelegram: false, joinedAt: Date.now() })),
+            ...AI_CONTACTS.map(c => ({ ...c, photoURL: undefined as undefined, isTelegram: false })),
             ...realContacts,
             ...telegramContacts,
             ...fallbackTelegramContacts,
@@ -352,12 +415,21 @@ export default function OneSutraPage() {
         // Read and cache TG last message times once per computation to avoid O(N*log N) disk reads
         const tgLastMessageCache: Record<string, number> = {};
         for (const contact of allContacts) {
-            if (contact.isTelegram && contact.telegramUserId && typeof window !== 'undefined') {
-                try {
-                    const tgMessages = JSON.parse(localStorage.getItem(`tg_messages_${contact.telegramUserId}`) || '[]');
-                    tgLastMessageCache[contact.telegramUserId] = tgMessages.length > 0 ? Math.max(...tgMessages.map((m: any) => m.timestamp)) : 0;
-                } catch {
-                    tgLastMessageCache[contact.telegramUserId] = 0;
+            if (contact.isTelegram && contact.telegramUserId) {
+                // If it's in the store (active session), use that
+                const storeMessages = messageThreads[contact.telegramPhone!] || [];
+                if (storeMessages.length > 0) {
+                    tgLastMessageCache[contact.telegramUserId] = storeMessages[storeMessages.length - 1].timestamp;
+                    continue;
+                }
+
+                if (typeof window !== 'undefined') {
+                    try {
+                        const tgMessages = JSON.parse(localStorage.getItem(`tg_messages_${contact.telegramUserId}`) || '[]');
+                        tgLastMessageCache[contact.telegramUserId] = tgMessages.length > 0 ? Math.max(...tgMessages.map((m: any) => m.timestamp)) : 0;
+                    } catch {
+                        tgLastMessageCache[contact.telegramUserId] = 0;
+                    }
                 }
             }
         }
@@ -398,16 +470,24 @@ export default function OneSutraPage() {
         prevMsgCount.current = 0;
         // Clear my unread count when I open the chat
         if (!c.isAI && user) {
-            try {
-                const cid = getChatId(user.uid, c.uid);
-                const { getFirebaseFirestore } = await import('@/lib/firebase');
-                const { doc, setDoc } = await import('firebase/firestore');
-                const db = await getFirebaseFirestore();
-                await setDoc(doc(db, 'onesutra_chats', cid),
-                    { [`unreadCounts.${user.uid}`]: 0 },
-                    { merge: true }
-                );
-            } catch { /* ignore */ }
+            // Telegram contact clearing
+            if (c.isTelegram && (c as any).telegramPhone) {
+                clearUnread((c as any).telegramPhone);
+            }
+            
+            // OneSutra contact clearing
+            if (!c.isTelegram) {
+                try {
+                    const cid = getChatId(user.uid, c.uid);
+                    const { getFirebaseFirestore } = await import('@/lib/firebase');
+                    const { doc, setDoc } = await import('firebase/firestore');
+                    const db = await getFirebaseFirestore();
+                    await setDoc(doc(db, 'onesutra_chats', cid),
+                        { [`unreadCounts.${user.uid}`]: 0 },
+                        { merge: true }
+                    );
+                } catch { /* ignore */ }
+            }
         }
     };
 
@@ -469,6 +549,9 @@ export default function OneSutraPage() {
     return (
         <div style={{ minHeight: '100vh', fontFamily: "'Inter', system-ui, sans-serif", color: 'white', overflowX: 'hidden', position: 'relative' }}>
 
+            {/* ── Global Listener for Real-Time Telegram Updates ───────────────── */}
+            <GlobalTelegramListener />
+
             {/* Nature background */}
             <div style={{ position: 'fixed', inset: 0, zIndex: -3, background: phase.name === 'night' ? 'linear-gradient(160deg,#020508 0%,#080e1a 60%,#030710 100%)' : 'linear-gradient(160deg,#0a1a30 0%,#0e2a18 50%,#081828 100%)' }} />
             {imageUrl && <img key={imageUrl} src={imageUrl} alt="" suppressHydrationWarning style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', zIndex: -2, transition: 'opacity 0.8s ease' }} />}
@@ -518,87 +601,101 @@ export default function OneSutraPage() {
             )}
 
             {user && (
-                <div style={{ minHeight: '100vh', display: 'flex', maxWidth: 1280, margin: '0 auto' }}>
+                <div style={{ height: '100vh', display: 'flex', maxWidth: 1280, margin: '0 auto', overflow: 'hidden' }}>
 
                     {/* ════ SIDEBAR ════ */}
-                    <div className="sutratalk-sidebar" style={{ width: 'clamp(300px,35%,400px)', flexShrink: 0, display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(255,255,255,0.07)', minHeight: '100vh' }}>
+                    <div className="sutratalk-sidebar" style={{ width: 'clamp(300px,35%,400px)', flexShrink: 0, display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(255,255,255,0.07)', height: '100%' }}>
 
                         {/* Header */}
-                        <div style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(2,4,12,0.72)', backdropFilter: 'blur(28px)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '0.75rem 1rem 0.55rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.55rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                    <Link href="/" style={{ color: 'rgba(255,255,255,0.4)', lineHeight: 0 }}><ArrowLeft size={18} strokeWidth={1.6} /></Link>
-                                    <motion.div animate={{ filter: [`drop-shadow(0 0 5px ${accent}60)`, `drop-shadow(0 0 14px ${accent}aa)`, `drop-shadow(0 0 5px ${accent}60)`] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} style={{ width: 26, height: 26, flexShrink: 0 }}>
-                                        <svg viewBox="0 0 28 28" fill="none" width="26" height="26">
-                                            <path d="M14 22 C14 22 6 18 6 12 C6 8 9 6 12 7 C10 4 13 2 14 2 C15 2 18 4 16 7 C19 6 22 8 22 12 C22 18 14 22 14 22Z" fill={`${accent}22`} stroke={accent} strokeWidth="1.2" strokeLinejoin="round" />
-                                            <path d="M14 22 L14 26" stroke={accent} strokeWidth="1.1" strokeLinecap="round" opacity="0.5" />
-                                        </svg>
-                                    </motion.div>
-                                    <div>
-                                        <h1 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, fontFamily: "'Playfair Display', serif", color: 'rgba(255,255,255,0.95)' }}>SUTRAConnect</h1>
-                                        <p style={{ margin: 0, fontSize: '0.5rem', color: `${accent}aa`, letterSpacing: '0.22em', textTransform: 'uppercase', fontFamily: 'monospace' }}>
-                                            Conscious Messenger
-                                        </p>
+                        <div style={{ flexShrink: 0, zIndex: 100, background: 'rgba(2,4,12,0.95)', backdropFilter: 'blur(28px)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '0.75rem 1rem 0.55rem' }}>
+                            {isSearchOpen ? (
+                                <div style={{ display: 'flex', alignItems: 'center', height: 42, gap: 10 }}>
+                                    <div style={{ position: 'relative', flex: 1 }}>
+                                        <Search size={14} style={{ position: 'absolute', left: '0.8rem', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)', pointerEvents: 'none' }} />
+                                        <input 
+                                            autoFocus
+                                            value={searchQuery} 
+                                            onChange={e => setSearchQuery(e.target.value)} 
+                                            placeholder="Search contacts..." 
+                                            style={{ width: '100%', padding: '0.55rem 1rem 0.55rem 2.2rem', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, color: 'white', fontSize: '0.9rem', outline: 'none', fontFamily: "'Inter', sans-serif" }} 
+                                        />
                                     </div>
-                                </div>
-                                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                    <div style={{ width: 30, height: 30, borderRadius: '50%', border: `1.5px solid ${accent}55`, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        {user.photoURL?.trim() ? <img src={user.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: '0.75rem' }}>🧘</span>}
-                                    </div>
-                                    <button onClick={signOut} title="Sign out" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.45)' }}>
-                                        <LogOut size={13} />
+                                    <button onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: 4 }}>
+                                        <X size={20} />
                                     </button>
                                 </div>
-                            </div>
-                            <div style={{ position: 'relative' }}>
-                                <Search size={13} style={{ position: 'absolute', left: '0.8rem', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.22)', pointerEvents: 'none' }} />
-                                <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search…" style={{ width: '100%', padding: '0.55rem 1rem 0.55rem 2.2rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, color: 'rgba(255,255,255,0.75)', fontSize: '0.82rem', outline: 'none', fontFamily: "'Inter', sans-serif", boxSizing: 'border-box' }} />
-                            </div>
-                        </div>
-
-                        {/* ── Telegram Connect Strip ────────────────────────────────────────── */}
-                        {!isTelegramSynced ? (
-                            <motion.div
-                                initial={{ opacity: 0, y: -6 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                style={{
-                                    margin: '0.5rem 0.75rem 0',
-                                    padding: '0.65rem 0.9rem',
-                                    background: 'linear-gradient(135deg, rgba(29,161,242,0.10) 0%, rgba(29,161,242,0.04) 100%)',
-                                    border: '1px solid rgba(29,161,242,0.28)',
-                                    borderRadius: 14,
-                                    display: 'flex', alignItems: 'center', gap: '0.75rem',
-                                    cursor: 'pointer',
-                                }}
-                                onClick={() => setShowTelegramModal(true)}
-                                whileHover={{ scale: 1.01 }}
-                                whileTap={{ scale: 0.98 }}
-                            >
-                                <span style={{ fontSize: '1.2rem', flexShrink: 0 }}>✈️</span>
-                                <div style={{ flex: 1 }}>
-                                    <p style={{ margin: 0, fontSize: '0.78rem', fontWeight: 700, color: 'rgba(255,255,255,0.85)' }}>Connect Telegram</p>
-                                    <p style={{ margin: 0, fontSize: '0.62rem', color: 'rgba(255,255,255,0.38)' }}>Merge your Telegram contacts here</p>
+                            ) : (
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.55rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <Link href="/" style={{ color: 'rgba(255,255,255,0.4)', lineHeight: 0 }}><ArrowLeft size={18} strokeWidth={1.6} /></Link>
+                                        <motion.div animate={{ filter: [`drop-shadow(0 0 5px ${accent}60)`, `drop-shadow(0 0 14px ${accent}aa)`, `drop-shadow(0 0 5px ${accent}60)`] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} style={{ width: 26, height: 26, flexShrink: 0 }}>
+                                            <svg viewBox="0 0 28 28" fill="none" width="26" height="26">
+                                                <path d="M14 22 C14 22 6 18 6 12 C6 8 9 6 12 7 C10 4 13 2 14 2 C15 2 18 4 16 7 C19 6 22 8 22 12 C22 18 14 22 14 22Z" fill={`${accent}22`} stroke={accent} strokeWidth="1.2" strokeLinejoin="round" />
+                                                <path d="M14 22 L14 26" stroke={accent} strokeWidth="1.1" strokeLinecap="round" opacity="0.5" />
+                                            </svg>
+                                        </motion.div>
+                                        <div>
+                                            <h1 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, fontFamily: "'Playfair Display', serif", color: 'rgba(255,255,255,0.95)' }}>SUTRAConnect</h1>
+                                            <p style={{ margin: 0, fontSize: '0.5rem', color: `${accent}aa`, letterSpacing: '0.22em', textTransform: 'uppercase', fontFamily: 'monospace' }}>
+                                                Conscious Messenger
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                                        <button onClick={() => setIsSearchOpen(true)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.7)' }}>
+                                            <Search size={16} />
+                                        </button>
+                                        <div onClick={() => { setProfileUser(currentUserProfile || user); setIsProfileOpen(true); }} style={{ width: 42, height: 42, borderRadius: '50%', border: `1.5px solid ${accent}55`, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                                            {user.photoURL?.trim() ? <img src={user.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: '1.1rem' }}>🧘</span>}
+                                        </div>
+                                    </div>
                                 </div>
-                                <span style={{ fontSize: '0.7rem', color: 'rgba(29,161,242,0.8)', fontWeight: 700 }}>LINK →</span>
-                            </motion.div>
-                        ) : (
-                            <div style={{
-                                margin: '0.5rem 0.75rem 0',
-                                padding: '0.45rem 0.9rem',
-                                background: 'rgba(16,185,129,0.08)',
-                                border: '1px solid rgba(16,185,129,0.22)',
-                                borderRadius: 12,
-                                display: 'flex', alignItems: 'center', gap: '0.5rem',
-                            }}>
-                                <span style={{ fontSize: '0.8rem' }}>✅</span>
-                                <p style={{ margin: 0, fontSize: '0.68rem', color: 'rgba(16,185,129,0.85)' }}>
-                                    Telegram synced · {tgContactCount} contacts
-                                </p>
-                            </div>
-                        )}
+                            )}
+                        </div>
 
                         {/* Contacts */}
                         <div style={{ flex: 1, padding: '0.8rem 0.75rem 5rem', overflowY: 'auto' }}>
+                            {/* ── Telegram Connect Strip (Inside Scrollable Area) ────────────────────────────────────────── */}
+                            {!isTelegramSynced ? (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -6 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    style={{
+                                        margin: '0 0 0.8rem', // Adjusted margin since it's inside padding
+                                        padding: '0.65rem 0.9rem',
+                                        background: 'linear-gradient(135deg, rgba(29,161,242,0.10) 0%, rgba(29,161,242,0.04) 100%)',
+                                        border: '1px solid rgba(29,161,242,0.28)',
+                                        borderRadius: 14,
+                                        display: 'flex', alignItems: 'center', gap: '0.75rem',
+                                        cursor: 'pointer',
+                                    }}
+                                    onClick={() => setShowTelegramModal(true)}
+                                    whileHover={{ scale: 1.01 }}
+                                    whileTap={{ scale: 0.98 }}
+                                >
+                                    <span style={{ fontSize: '1.2rem', flexShrink: 0 }}>✈️</span>
+                                    <div style={{ flex: 1 }}>
+                                        <p style={{ margin: 0, fontSize: '0.78rem', fontWeight: 700, color: 'rgba(255,255,255,0.85)' }}>Connect Telegram</p>
+                                        <p style={{ margin: 0, fontSize: '0.62rem', color: 'rgba(255,255,255,0.38)' }}>Merge your Telegram contacts here</p>
+                                    </div>
+                                    <span style={{ fontSize: '0.7rem', color: 'rgba(29,161,242,0.8)', fontWeight: 700 }}>LINK →</span>
+                                </motion.div>
+                            ) : (
+                                <div style={{
+                                    margin: '0 0 0.8rem', // Adjusted margin since it's inside padding
+                                    padding: '0.45rem 0.9rem',
+                                    background: 'rgba(16,185,129,0.08)',
+                                    border: '1px solid rgba(16,185,129,0.22)',
+                                    borderRadius: 12,
+                                    display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                }}>
+                                    <span style={{ fontSize: '0.8rem' }}>✅</span>
+                                    <p style={{ margin: 0, fontSize: '0.68rem', color: 'rgba(16,185,129,0.85)' }}>
+                                        Telegram synced · {tgContactCount} contacts
+                                    </p>
+                                </div>
+                            )}
+
                             {filtered.map(c => {
                                 const isRealContact = !c.isAI && !c.isTelegram && user;
                                 const cChatId = isRealContact ? getChatId(user!.uid, c.uid) : null;
@@ -614,24 +711,42 @@ export default function OneSutraPage() {
                                             ? { color: '#3B82F6', glow: 'rgba(59,130,246,0.6)' }
                                             : null;
 
-                                // Preview text logic
-                                const unread = meta?.unreadCount ?? 0;
-                                const hasLastMsg = meta && meta.lastMessageText;
+                                // Store-based message info for Telegram (real-time updates)
+                                const storeMessages = isTgContact && (c as any).telegramPhone
+                                    ? messageThreads[(c as any).telegramPhone]
+                                    : [];
+                                const storeLastMsg = storeMessages.length > 0 ? storeMessages[storeMessages.length - 1] : null;
+                                const storeUnreadCount = isTgContact && (c as any).telegramPhone
+                                    ? unreadCounts[(c as any).telegramPhone] || 0
+                                    : 0;
+
+                                // Compatibility with existing code
+                                let unread = meta?.unreadCount ?? 0;
+                                if (isTgContact) {
+                                    unread = storeUnreadCount;
+                                }
+
+                                const hasLastMsg = (meta && meta.lastMessageText) || (isTgContact && storeLastMsg);
                                 const aiHandling = meta?.isAutoPilotActive && meta.lastMessageSenderId !== user?.uid;
 
                                 let previewText: string;
                                 let previewIsAI = false;
                                 let previewIsTatva = false;
 
-                                // Get Telegram message preview if Telegram contact
-                                let tgLastMessage = '';
+                                let tgLastMessageText = '';
                                 let tgLastMessageTime = 0;
-                                if (isTgContact && c.telegramUserId) {
+
+                                // Prefer store (live) over local storage for preview
+                                if (isTgContact && storeLastMsg) {
+                                  tgLastMessageText = storeLastMsg.text;
+                                  tgLastMessageTime = storeLastMsg.timestamp;
+                                } else if (isTgContact && c.telegramUserId) {
+                                    // Fallback to localStorage if store is empty (init load)
                                     try {
                                         const tgMessages = JSON.parse(localStorage.getItem(`tg_messages_${c.telegramUserId}`) || '[]');
                                         if (tgMessages.length > 0) {
                                             const lastMsg = tgMessages[tgMessages.length - 1];
-                                            tgLastMessage = lastMsg.text || '';
+                                            tgLastMessageText = lastMsg.text || '';
                                             tgLastMessageTime = lastMsg.timestamp || 0;
                                         }
                                     } catch (err) {
@@ -642,8 +757,8 @@ export default function OneSutraPage() {
                                 if (!hasLastMsg || !isRealContact) {
                                     previewText = c.isAI
                                         ? ((c as typeof AI_CONTACTS[0]).lastMsg)
-                                        : isTgContact && tgLastMessage
-                                            ? tgLastMessage
+                                        : isTgContact && tgLastMessageText
+                                            ? tgLastMessageText
                                             : isTgContact
                                                 ? 'Start Telegram chat ✈️'
                                                 : 'Say Namaste 🙏';
@@ -839,8 +954,47 @@ export default function OneSutraPage() {
                             <AnimatePresence>
                                 {fabOpen && (
                                     <motion.div initial={{ opacity: 0, y: 20, scale: 0.8 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20, scale: 0.8 }} style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start', marginBottom: 12 }}>
-                                        {[{ icon: <MessageCircle size={16} />, label: 'New Chat' }, { icon: <Bot size={16} />, label: 'Consult AI Vaidya' }, { icon: <Users size={16} />, label: 'Invite Friend' }].map(({ icon, label }) => (
-                                            <button key={label} onClick={() => setFabOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.55rem 1rem', borderRadius: 999, background: 'rgba(10,6,28,0.92)', backdropFilter: 'blur(20px)', border: `1px solid ${accent}55`, color: accent, cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>{icon} {label}</button>
+                                        {[
+                                            { 
+                                                icon: <MessageCircle size={16} />, 
+                                                label: 'New Chat', 
+                                                action: () => { setFabOpen(false); setIsSearchOpen(true); }
+                                            }, 
+                                            { 
+                                                icon: <Bot size={16} />, 
+                                                label: 'Consult AI Vaidya', 
+                                                action: () => { 
+                                                    setFabOpen(false); 
+                                                    // Find Vaidya in AI_CONTACTS (it's the first one usually)
+                                                    const vaidya = AI_CONTACTS.find(c => c.uid === 'ai_vaidya');
+                                                    if(vaidya) setActiveContact(vaidya as any); // Cast as any because of strict type mismatch in list
+                                                } 
+                                            }, 
+                                            { 
+                                                icon: <Users size={16} />, 
+                                                label: 'Invite Friend', 
+                                                action: async () => {
+                                                    setFabOpen(false);
+                                                    const url = window.location.origin;
+                                                    const shareData = {
+                                                        title: 'Join me on SUTRAConnect',
+                                                        text: 'Connect consciously on SUTRAConnect.',
+                                                        url: url
+                                                    };
+                                                    try {
+                                                        if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+                                                            await navigator.share(shareData);
+                                                        } else {
+                                                            await navigator.clipboard.writeText(url);
+                                                            alert('Link copied to clipboard! 🌿\nShare it with your friends.');
+                                                        }
+                                                    } catch (err) {
+                                                        console.error('Error sharing:', err);
+                                                    }
+                                                }
+                                            }
+                                        ].map(({ icon, label, action }) => (
+                                            <button key={label} onClick={action} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.55rem 1rem', borderRadius: 999, background: 'rgba(10,6,28,0.92)', backdropFilter: 'blur(20px)', border: `1px solid ${accent}55`, color: accent, cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>{icon} {label}</button>
                                         ))}
                                     </motion.div>
                                 )}
@@ -852,40 +1006,98 @@ export default function OneSutraPage() {
                     </div>
 
                     {/* ════ CHAT PANEL ════ */}
-                    <div className="sutratalk-chatpanel" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh', minWidth: 0, position: 'relative' }}>
+                    <div className="sutratalk-chatpanel" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', minWidth: 0, position: 'relative' }}>
 
                         {activeContact ? (
                             <>
                                 {/* Header */}
-                                <div style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(6,4,18,0.78)', backdropFilter: 'blur(32px)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '0.75rem 1rem' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                <div style={{ flexShrink: 0, zIndex: 100, background: 'rgba(6,4,18,0.78)', backdropFilter: 'blur(32px)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '0.6rem 0.8rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                         <button onClick={() => { setActiveContact(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.6)', lineHeight: 0, padding: '4px' }}><ArrowLeft size={20} strokeWidth={2} /></button>
-                                        <div style={{ position: 'relative' }}>
-                                            <div style={{ width: 40, height: 40, borderRadius: '50%', border: `2px solid ${activeContact.aura}`, boxShadow: `0 0 14px ${activeContact.auraGlow}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', background: `radial-gradient(circle, ${activeContact.auraGlow}, rgba(0,0,0,0.4))`, overflow: 'hidden' }}>
-                                                {activeContact.photoURL?.trim() ? <img src={activeContact.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span>{activeContact.emoji ?? '🧘'}</span>}
+                                        <div onClick={() => { setProfileUser(activeContact); setIsProfileOpen(true); }} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, cursor: 'pointer' }}>
+                                            <div style={{ position: 'relative' }}>
+                                                <div style={{ width: 38, height: 38, borderRadius: '50%', border: `2px solid ${activeContact.aura}`, boxShadow: `0 0 14px ${activeContact.auraGlow}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', background: `radial-gradient(circle, ${activeContact.auraGlow}, rgba(0,0,0,0.4))`, overflow: 'hidden' }}>
+                                                    {activeContact.photoURL?.trim() ? <img src={activeContact.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span>{activeContact.emoji ?? '🧘'}</span>}
+                                                </div>
+                                                {activeContact.online && <div style={{ position: 'absolute', bottom: 1, right: 1, width: 9, height: 9, borderRadius: '50%', background: '#44DD44', border: '2px solid rgba(6,4,18,1)' }} />}
                                             </div>
-                                            {activeContact.online && <div style={{ position: 'absolute', bottom: 1, right: 1, width: 9, height: 9, borderRadius: '50%', background: '#44DD44', border: '2px solid rgba(6,4,18,1)' }} />}
-                                        </div>
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                                                <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, fontFamily: "'Playfair Display', serif", color: 'white' }}>{activeContact.name}</h2>
-                                                {activeContact.isAI && <span style={{ fontSize: '0.52rem', padding: '0.1rem 0.38rem', background: `${accent}22`, border: `1px solid ${accent}44`, borderRadius: 999, color: accent, letterSpacing: '0.1em', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'monospace' }}>AI</span>}
-                                                {/* Telegram badge */}
-                                                {isTelegramChat && <span style={{ fontSize: '0.52rem', padding: '0.1rem 0.38rem', background: 'rgba(29,161,242,0.15)', border: '1px solid rgba(29,161,242,0.45)', borderRadius: 999, color: '#1DA1F2', letterSpacing: '0.1em', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'monospace' }}>TELEGRAM</span>}
-                                                {/* AutoPilot ON badge (OneSutra only) */}
-                                                {isAutoPilot && !isTelegramChat && <span style={{ fontSize: '0.48rem', padding: '0.08rem 0.3rem', background: 'rgba(245,158,11,0.18)', border: '1px solid rgba(245,158,11,0.45)', borderRadius: 999, color: '#fbbf24', fontFamily: 'monospace', letterSpacing: '0.12em', textTransform: 'uppercase' }}>✨ AutoPilot</span>}
+                                            <div style={{ flex: 1, minWidth: 0, marginRight: 4 }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                    <h2 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, fontFamily: "'Playfair Display', serif", color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{activeContact.name}</h2>
+                                                    {activeContact.isAI && <span style={{ fontSize: '0.5rem', padding: '0.1rem 0.3rem', background: `${accent}22`, border: `1px solid ${accent}44`, borderRadius: 999, color: accent, letterSpacing: '0.1em', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'monospace' }}>AI</span>}
+                                                    {/* Telegram badge */}
+                                                    {isTelegramChat && <span style={{ fontSize: '0.5rem', padding: '0.1rem 0.3rem', background: 'rgba(29,161,242,0.15)', border: '1px solid rgba(29,161,242,0.45)', borderRadius: 999, color: '#1DA1F2', letterSpacing: '0.1em', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'monospace' }}>TG</span>}
+                                                </div>
+                                                <p style={{ margin: 0, fontSize: '0.65rem', color: remoteIsPresent ? '#44DD44' : (activeContact.online ? '#44DD44' : 'rgba(255,255,255,0.35)'), fontFamily: 'monospace', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    {remoteIsPresent ? 'present…' : (activeContact.isAI ? activeContact.statusLabel : (activeContact.lastSeen ? `Last seen ${new Date(activeContact.lastSeen).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` : 'Offline'))}
+                                                </p>
                                             </div>
-                                            <p style={{ margin: 0, fontSize: '0.67rem', color: remoteIsPresent ? '#44DD44' : (activeContact.online ? '#44DD44' : 'rgba(255,255,255,0.35)'), fontFamily: 'monospace' }}>
-                                                {remoteIsPresent ? 'present…' : (activeContact.isAI ? activeContact.statusLabel : 'Conscious connection')}
-                                            </p>
                                         </div>
-                                        <div style={{ display: 'flex', gap: 8 }}>
-                                            <button style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 999, padding: '0.4rem 0.85rem', display: 'flex', alignItems: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.65)' }}><Phone size={13} /></button>
-                                            <button style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 999, padding: '0.4rem 0.85rem', display: 'flex', alignItems: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.65)' }}><Video size={13} /></button>
+                                        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                                            <button
+                                                onClick={async () => {
+                                                    if (!activeContact) return;
+
+                                                    // AI contacts use the Web Speech based assistant call
+                                                    if (activeContact.isAI) {
+                                                        setIsVoiceCallActive(true);
+                                                        return;
+                                                    }
+
+                                                    // Person-to-person calls: only for OneSutra contacts (not Telegram)
+                                                    if (!user || isTelegramChat || !chatId) {
+                                                        alert('Voice calling is currently available only for OneSutra contacts.');
+                                                        return;
+                                                    }
+
+                                                    try {
+                                                        const { getFirebaseFirestore } = await import('@/lib/firebase');
+                                                        const { doc, getDoc, setDoc, serverTimestamp } = await import('firebase/firestore');
+                                                        const db = await getFirebaseFirestore();
+
+                                                        const callDocRef = doc(db, 'sutratalkCalls', chatId);
+                                                        const snap = await getDoc(callDocRef);
+                                                        const data = snap.data() as Record<string, unknown> | undefined;
+                                                        const hasOffer = !!data?.offer;
+                                                        const hasAnswer = !!data?.answer;
+
+                                                        // If there's an existing offer without answer, join as callee, else initiate
+                                                        const isInitiator = !(hasOffer && !hasAnswer);
+
+                                                        if (!snap.exists()) {
+                                                            await setDoc(callDocRef, {
+                                                                chatId,
+                                                                participants: [user.uid, activeContact.uid],
+                                                                mode: 'voice',
+                                                                createdAt: serverTimestamp(),
+                                                            }, { merge: true });
+                                                        }
+
+                                                        setPeerCall({
+                                                            callId: chatId,
+                                                            isInitiator,
+                                                            remoteContact: {
+                                                                name: activeContact.name,
+                                                                emoji: activeContact.emoji,
+                                                                photoURL: activeContact.photoURL,
+                                                                aura: activeContact.aura,
+                                                            },
+                                                        });
+                                                    } catch (err) {
+                                                        console.error('[OneSutra] Failed to start voice call', err);
+                                                        alert('Unable to start call right now. Please try again.');
+                                                    }
+                                                }}
+                                                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 999, padding: '0.4rem 0.6rem', display: 'flex', alignItems: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.65)' }}
+                                            >
+                                                <Phone size={15} />
+                                            </button>
+                                            <button style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 999, padding: '0.4rem 0.6rem', display: 'flex', alignItems: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.65)' }}><Video size={15} /></button>
                                             {/* AutoPilot only for OneSutra chats, not Telegram */}
                                             {!activeContact.isAI && !isTelegramChat && (
-                                                <button onClick={handleAutoPilotToggle} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '0.4rem 0.75rem', borderRadius: 999, background: isAutoPilot ? 'rgba(245,158,11,0.22)' : 'rgba(255,255,255,0.06)', border: `1px solid ${isAutoPilot ? 'rgba(245,158,11,0.55)' : 'rgba(255,255,255,0.10)'}`, cursor: 'pointer', color: isAutoPilot ? '#fbbf24' : 'rgba(255,255,255,0.45)', fontSize: '0.68rem', fontWeight: 600, fontFamily: "'Inter', sans-serif", boxShadow: isAutoPilot ? '0 0 12px rgba(245,158,11,0.3)' : 'none', transition: 'all 0.2s' }}>
-                                                    <Zap size={12} />{isAutoPilot ? 'AI ON' : 'AutoPilot'}
+                                                <button onClick={handleAutoPilotToggle} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0.4rem 0.6rem', borderRadius: 999, background: isAutoPilot ? 'rgba(245,158,11,0.22)' : 'rgba(255,255,255,0.06)', border: `1px solid ${isAutoPilot ? 'rgba(245,158,11,0.55)' : 'rgba(255,255,255,0.10)'}`, cursor: 'pointer', color: isAutoPilot ? '#fbbf24' : 'rgba(255,255,255,0.45)', fontSize: '0.65rem', fontWeight: 600, fontFamily: "'Inter', sans-serif", boxShadow: isAutoPilot ? '0 0 12px rgba(245,158,11,0.3)' : 'none', transition: 'all 0.2s', whiteSpace: 'nowrap' }}>
+                                                    <Zap size={13} fill={isAutoPilot ? '#fbbf24' : 'none'} />
+                                                    {isAutoPilot ? 'ON' : 'AI'}
                                                 </button>
                                             )}
                                         </div>
@@ -896,7 +1108,7 @@ export default function OneSutraPage() {
                                 {!activeContact.isAI && !isTelegramChat && <ActionDashboard chatId={chatId} accent={accent} />}
 
                                 {/* ── Message Feed ── */}
-                                <div style={{ flex: 1, overflowY: 'auto', padding: '1rem 1rem 8rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                                <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
 
                                     {/* Welcome state */}
                                     {messages.length === 0 && !activeContact.isAI && (
@@ -1044,6 +1256,30 @@ export default function OneSutraPage() {
                 </div>
             )}
 
+            {/* ── Person-to-person WebRTC Call Screen (OneSutra contacts) ── */}
+            <AnimatePresence>
+                {peerCall && user && (
+                    <WebRTCCallScreen
+                        callId={peerCall.callId}
+                        isInitiator={peerCall.isInitiator}
+                        mode="voice"
+                        localUserId={user.uid}
+                        remoteContact={peerCall.remoteContact}
+                        accent={accent}
+                        onEnd={() => setPeerCall(null)}
+                    />
+                )}
+            </AnimatePresence>
+
+            {/* ── Voice Call Modal (AI assistant calls) ── */}
+            {isVoiceCallActive && activeContact && (
+                <VoiceCallModal
+                    isOpen={isVoiceCallActive}
+                    onClose={() => setIsVoiceCallActive(false)}
+                    contact={activeContact}
+                />
+            )}
+
             {/* ── Telegram Auth Modal (lazy-loaded, opens on Connect click) ── */}
             <AnimatePresence>
                 {showTelegramModal && user && (
@@ -1054,6 +1290,15 @@ export default function OneSutraPage() {
                     />
                 )}
             </AnimatePresence>
+
+            {/* ── User Profile Panel ── */}
+            <UserProfilePanel
+                isOpen={isProfileOpen}
+                onClose={() => setIsProfileOpen(false)}
+                user={profileUser}
+                currentUserId={user?.uid ?? null}
+                isSelf={profileUser?.uid === user?.uid}
+            />
 
             <style>{`
                 @media (max-width: 767px) {

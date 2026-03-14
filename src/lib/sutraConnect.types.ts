@@ -170,6 +170,9 @@ export interface SutraConnectStore {
     // ── Per-chat unified message threads ─────────────────────────────────────
     /** Key: contact phone number (canonical), Value: sorted merged messages */
     messageThreads: Record<string, UnifiedMessage[]>;
+    
+    /** Key: contact phone number, Value: unread count */
+    unreadCounts: Record<string, number>;
 
     // ── UI overrides ──────────────────────────────────────────────────────────
     sendOverride: SendNetworkOverride;
@@ -178,6 +181,9 @@ export interface SutraConnectStore {
     setTelegramSynced: (userId: string, phone: string) => void;
     setContactMap: (map: Record<string, ContactEntry>) => void;
     upsertMessages: (contactPhone: string, msgs: UnifiedMessage[]) => void;
+    setUnread: (contactPhone: string, count: number) => void;
+    incrementUnread: (contactPhone: string) => void;
+    clearUnread: (contactPhone: string) => void;
     setSendOverride: (override: SendNetworkOverride) => void;
 }
 
