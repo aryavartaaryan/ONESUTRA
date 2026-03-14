@@ -716,9 +716,10 @@ export default function OneSutraPage() {
                                             : null;
 
                                 // Store-based message info for Telegram (real-time updates)
-                                const storeMessages = isTgContact && (c as any).telegramPhone
+                                const storeMessagesRaw = isTgContact && (c as any).telegramPhone
                                     ? messageThreads[(c as any).telegramPhone]
                                     : [];
+                                const storeMessages = Array.isArray(storeMessagesRaw) ? storeMessagesRaw : [];
                                 const storeLastMsg = storeMessages.length > 0 ? storeMessages[storeMessages.length - 1] : null;
                                 const storeUnreadCount = isTgContact && (c as any).telegramPhone
                                     ? unreadCounts[(c as any).telegramPhone] || 0
@@ -747,11 +748,12 @@ export default function OneSutraPage() {
                                 } else if (isTgContact && c.telegramUserId) {
                                     // Fallback to localStorage if store is empty (init load)
                                     try {
-                                        const tgMessages = JSON.parse(localStorage.getItem(`tg_messages_${c.telegramUserId}`) || '[]');
-                                        if (tgMessages.length > 0) {
+                                        const raw = localStorage.getItem(`tg_messages_${c.telegramUserId}`);
+                                        const tgMessages = raw ? JSON.parse(raw) : [];
+                                        if (Array.isArray(tgMessages) && tgMessages.length > 0) {
                                             const lastMsg = tgMessages[tgMessages.length - 1];
-                                            tgLastMessageText = lastMsg.text || '';
-                                            tgLastMessageTime = lastMsg.timestamp || 0;
+                                            tgLastMessageText = lastMsg?.text || '';
+                                            tgLastMessageTime = lastMsg?.timestamp || 0;
                                         }
                                     } catch (err) {
                                         console.error('Error reading TG messages for preview:', err);
