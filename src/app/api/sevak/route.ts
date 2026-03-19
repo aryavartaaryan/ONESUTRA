@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { streamText, type CoreMessage, type StreamTextResult } from 'ai';
+import { streamText, type ModelMessage } from 'ai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { getAdminDb } from '@/lib/firebaseAdmin';
@@ -102,7 +102,7 @@ function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function toCoreMessages(messages: Array<{ role: 'user' | 'assistant'; content: string }>): CoreMessage[] {
+function toCoreMessages(messages: Array<{ role: 'user' | 'assistant'; content: string }>): ModelMessage[] {
     return messages
         .filter((m) => typeof m.content === 'string' && m.content.trim().length > 0)
         .map((m) => ({
@@ -169,9 +169,9 @@ async function persistConversationTurn(userId: string, chatId: string, userText:
 
 async function buildStreamWithRetry(params: {
     systemPrompt: string;
-    messages: CoreMessage[];
+    messages: ModelMessage[];
     onFinish: (assistantText: string) => void;
-}): Promise<StreamTextResult<Record<string, never>, string>> {
+}) {
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
         try {
             return streamText({

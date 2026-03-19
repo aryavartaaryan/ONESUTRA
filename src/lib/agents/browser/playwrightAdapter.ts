@@ -72,7 +72,7 @@ export async function findAmazonTopChoices(query: string): Promise<BrowserChoice
         const searchUrl = `https://www.amazon.in/s?k=${encodeURIComponent(query)}`;
         await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 45_000 });
 
-        const choices = await page.evaluate(() => {
+        const choices: BrowserChoice[] = await page.evaluate(() => {
             const cards = Array.from(document.querySelectorAll('[data-component-type="s-search-result"]')).slice(0, 10);
 
             const parsed = cards

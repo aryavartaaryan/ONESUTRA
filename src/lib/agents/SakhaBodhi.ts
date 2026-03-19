@@ -193,7 +193,7 @@ export class SakhaBodhi {
         args: Parameters<RegisteredTools[K]['execute']>[0];
         ctx: ToolExecutionContext;
     }): Promise<Awaited<ReturnType<RegisteredTools[K]['execute']>>> {
-        const tool = this.tools[params.toolName];
+        const tool = this.tools[params.toolName] as RegisteredTools[K];
         if (!tool) {
             throw new Error(`Unsupported tool: ${String(params.toolName)}`);
         }
@@ -216,7 +216,12 @@ export class SakhaBodhi {
             status: 'in_progress',
         });
 
-        const result = await tool.execute(params.args, params.ctx);
+        const execute = tool.execute as (
+            args: Parameters<RegisteredTools[K]['execute']>[0],
+            ctx: ToolExecutionContext
+        ) => Promise<Awaited<ReturnType<RegisteredTools[K]['execute']>>>;
+
+        const result = await execute(params.args, params.ctx);
 
         await this.memoryStore.updateTaskStatus({
             userId: params.ctx.userId,
