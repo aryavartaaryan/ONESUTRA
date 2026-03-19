@@ -13,17 +13,17 @@ function NavLink({ href, icon, label, badge }: { href: string; icon: React.React
             href={href}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
-            style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: '0 0.35rem', position: 'relative' }}
+            style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '0 0.36rem', position: 'relative' }}
         >
             <span style={{
-                width: 30, height: 30, borderRadius: '50%',
+                width: 31, height: 31, borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 position: 'relative',
-                background: hovered ? 'rgba(212,175,55,0.14)' : 'rgba(255,255,255,0.05)',
-                border: hovered ? '1px solid rgba(212,175,55,0.32)' : '1px solid rgba(255,255,255,0.07)',
-                color: hovered ? 'rgba(212,175,55,0.95)' : 'rgba(255,255,255,0.58)',
-                filter: hovered ? 'drop-shadow(0 0 7px rgba(212,175,55,0.45))' : 'none',
-                transition: 'all 0.22s ease',
+                background: hovered ? 'linear-gradient(145deg, rgba(255, 214, 130, 0.2), rgba(255, 140, 66, 0.12))' : 'rgba(255,255,255,0.045)',
+                border: hovered ? '1px solid rgba(255, 204, 112, 0.45)' : '1px solid rgba(255,255,255,0.1)',
+                color: hovered ? 'rgba(255,236,186,0.98)' : 'rgba(255,255,255,0.66)',
+                boxShadow: hovered ? '0 10px 24px rgba(245, 158, 11, 0.28), inset 0 1px 0 rgba(255,255,255,0.22)' : 'inset 0 1px 0 rgba(255,255,255,0.08)',
+                transition: 'all 0.25s ease',
             }}>
                 {icon}
                 {/* Unread badge */}
@@ -56,10 +56,12 @@ function NavLink({ href, icon, label, badge }: { href: string; icon: React.React
                 </AnimatePresence>
             </span>
             <span style={{
-                fontSize: 8.5, letterSpacing: '0.08em', textTransform: 'uppercase',
+                fontSize: 8.5, letterSpacing: '0.09em', textTransform: 'uppercase',
                 fontFamily: 'system-ui, sans-serif',
-                color: hovered ? 'rgba(212,175,55,0.80)' : 'rgba(255,255,255,0.32)',
-                transition: 'color 0.22s', whiteSpace: 'nowrap',
+                color: hovered ? 'rgba(255, 220, 153, 0.92)' : 'rgba(255,255,255,0.46)',
+                fontWeight: hovered ? 600 : 500,
+                transition: 'color 0.22s, transform 0.22s', whiteSpace: 'nowrap',
+                transform: hovered ? 'translateY(-1px)' : 'translateY(0px)',
             }}>{label}</span>
         </Link>
     );
@@ -72,33 +74,58 @@ interface StickyTopNavProps {
 export default function StickyTopNav({ totalUnread = 0 }: StickyTopNavProps) {
     return (
         <header style={{
-            // ── STRICTLY FIXED — never scrolls away ──────────────────────────
-            position: 'fixed', top: 0, left: 0, right: 0,
+            position: 'fixed',
+            top: 10,
+            left: '50%',
+            transform: 'translateX(-50%)',
             zIndex: 1000,
-            padding: '0.5rem 1rem',
-            background: 'rgba(6,4,18,0.60)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-            borderBottom: '1px solid rgba(255,255,255,0.07)',
+            width: 'min(96vw, 1040px)',
+            padding: '0.62rem 0.9rem',
+            background: 'linear-gradient(120deg, rgba(9, 15, 24, 0.56), rgba(14, 22, 36, 0.38))',
+            backdropFilter: 'blur(22px) saturate(145%)',
+            WebkitBackdropFilter: 'blur(22px) saturate(145%)',
+            border: '1px solid rgba(255,255,255,0.16)',
+            borderRadius: 18,
+            boxShadow: '0 14px 44px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: '0.5rem',
+            overflow: 'hidden',
         }}>
+            <div
+                aria-hidden
+                style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'radial-gradient(120% 80% at 0% 0%, rgba(251, 191, 36, 0.16), transparent 48%), radial-gradient(120% 80% at 100% 100%, rgba(56, 189, 248, 0.12), transparent 56%)',
+                    pointerEvents: 'none',
+                }}
+            />
             {/* Wordmark */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, position: 'relative', zIndex: 1 }}>
                 <span style={{
                     fontFamily: "'Playfair Display', Georgia, serif",
-                    fontSize: '1rem', fontWeight: 700, color: 'rgba(255,255,255,0.90)',
+                    fontSize: '1rem',
+                    fontWeight: 700,
+                    color: 'rgba(255,255,255,0.94)',
+                    textShadow: '0 2px 12px rgba(0,0,0,0.32)',
                 }}>OneSUTRA</span>
                 <span style={{
-                    fontSize: '0.44rem', letterSpacing: '0.2em', textTransform: 'uppercase',
-                    color: 'rgba(255,255,255,0.28)', fontFamily: 'monospace',
+                    fontSize: '0.45rem',
+                    letterSpacing: '0.2em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(255, 228, 163, 0.72)',
+                    fontFamily: 'monospace',
+                    padding: '0.16rem 0.36rem',
+                    borderRadius: 999,
+                    border: '1px solid rgba(255, 214, 130, 0.34)',
+                    background: 'rgba(255, 206, 107, 0.1)',
                 }}>Pranav.AI</span>
             </div>
 
             {/* Nav links */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', position: 'relative', zIndex: 1 }}>
                 <NavLink href="/profile" icon={<User size={12} strokeWidth={1.7} />} label="Profile" />
                 <NavLink href="/outplugs" icon={<Radio size={12} strokeWidth={1.7} />} label="outPLUGS" />
                 <NavLink href="/dhyan-kshetra" icon={<Flame size={12} strokeWidth={1.7} />} label="Meditate" />

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getFirebaseAuth, getFirebaseFirestore } from '@/lib/firebase';
-import { collection, query, orderBy, onSnapshot, doc, setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, setDoc, deleteDoc, updateDoc, deleteField } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 
 export interface TaskItem {
@@ -21,6 +21,24 @@ export interface TaskItem {
     // ── Sankalpa Agent time fields (set by Bodhi's add_sankalpa_task tool) ──
     allocatedMinutes?: number;   // How many minutes the user plans to spend on this task
     startTime?: string;          // Optional start time e.g. "9:00 AM" or "after lunch"
+}
+
+function stripUndefined<T extends Record<string, any>>(obj: T): Partial<T> {
+    const out: Partial<T> = {};
+    for (const [key, value] of Object.entries(obj)) {
+        if (value !== undefined) {
+            (out as any)[key] = value;
+        }
+    }
+    return out;
+}
+
+function toFirestoreUpdate<T extends Record<string, any>>(updates: T): Record<string, any> {
+    const out: Record<string, any> = {};
+    for (const [key, value] of Object.entries(updates)) {
+        out[key] = value === undefined ? deleteField() : value;
+    }
+    return out;
 }
 
 export function useDailyTasks() {
@@ -98,7 +116,8 @@ export function useDailyTasks() {
         if (uid) {
             try {
                 const db = await getFirebaseFirestore();
-                await setDoc(doc(db, 'users', uid, 'tasks', task.id), { ...task, uid });
+                const payload = stripUndefined({ ...task, uid });
+                await setDoc(doc(db, 'users', uid, 'tasks', task.id), payload);
             } catch (error) {
                 console.error("Error adding task:", error);
             }
@@ -113,17 +132,31 @@ export function useDailyTasks() {
     }, [uid]);
 
     const updateTask = useCallback(async (taskId: string, updates: Partial<TaskItem>) => {
-        setTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...updates } : t));
+        setTasks(prev => prev.map(t => {
+            if (t.id !== taskId) return t;
+            const merged = { ...t, ...updates } as Record<string, any>;
+            for (const [k, v] of Object.entries(updates)) {
+                if (v === undefined) delete merged[k];
+            }
+            return merged as TaskItem;
+        }));
         if (uid) {
             try {
                 const db = await getFirebaseFirestore();
-                await updateDoc(doc(db, 'users', uid, 'tasks', taskId), updates);
+                await updateDoc(doc(db, 'users', uid, 'tasks', taskId), toFirestoreUpdate(updates as Record<string, any>));
             } catch (error) {
                 console.error("Error updating task:", error);
             }
         } else {
             setTasks(prev => {
-                const updated = prev.map(t => t.id === taskId ? { ...t, ...updates } : t);
+                const updated = prev.map(t => {
+                    if (t.id !== taskId) return t;
+                    const merged = { ...t, ...updates } as Record<string, any>;
+                    for (const [k, v] of Object.entries(updates)) {
+                        if (v === undefined) delete merged[k];
+                    }
+                    return merged as TaskItem;
+                });
                 localStorage.setItem('pranav_tasks_v3', JSON.stringify(updated));
                 return updated;
             });

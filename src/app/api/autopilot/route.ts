@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { buildAdaptiveSystemInstruction } from '@/lib/agents/emotionMiddleware';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '');
 
@@ -19,9 +20,11 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Missing prompt' }, { status: 400 });
     }
 
+    const adaptive = buildAdaptiveSystemInstruction(systemInstruction, prompt);
+
     const model = genAI.getGenerativeModel({
         model: 'gemini-2.5-flash',
-        ...(systemInstruction ? { systemInstruction } : {}),
+        ...(adaptive.systemInstruction ? { systemInstruction: adaptive.systemInstruction } : {}),
         generationConfig: {
             maxOutputTokens: 200,
             temperature: 0.75,
@@ -36,7 +39,14 @@ export async function POST(req: NextRequest) {
     if (!text) {
         return NextResponse.json({ text: "I'll get back to you! 🙏" });
     }
-    return NextResponse.json({ text });
+    const finalText = adaptive.shouldSuggestBreathing
+        ? `${text}\n\nTry a 5-minute breathing reset: inhale for 4, hold 4, exhale for 6.`
+        : text;
+
+    return NextResponse.json({
+        text: finalText,
+        emotion: adaptive.emotion,
+    });
     // Note: No try/catch — let Next.js surface the real error in logs
     // instead of silently returning a fallback that confuses users
 }

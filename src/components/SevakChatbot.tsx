@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, Mic, MicOff, Send, Volume2, VolumeX } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import styles from './SevakChatbot.module.css';
 
 interface Message {
@@ -11,6 +13,8 @@ interface Message {
 }
 
 export default function SevakChatbot() {
+    const pathname = usePathname();
+    const { user } = useOneSutraAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
@@ -161,6 +165,7 @@ export default function SevakChatbot() {
 
         try {
             const pageContext = getPageContext();
+            const scopedChatId = `sevak_${(pathname || 'global').replace(/[^a-zA-Z0-9_-]/g, '_')}`;
 
             const response = await fetch('/api/sevak', {
                 method: 'POST',
@@ -173,6 +178,8 @@ export default function SevakChatbot() {
                         content: m.content,
                     })),
                     isFirstMessage,
+                    userId: user?.uid,
+                    chatId: scopedChatId,
                 }),
             });
 

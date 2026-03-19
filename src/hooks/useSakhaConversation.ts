@@ -362,7 +362,7 @@ ${phase === 'morning' ? `
 ` : `
 🌙 NIGHT — Wind Down:
 ${isLateNight
-            ? `⚠️ रात के ${currentHour < 10 ? '0' + currentHour : currentHour}:00 बज रहे हैं। तुरंत warmly सोने की सलाह दें:\n"${firstName}, अब तो रात काफी हो गई है। नींद सबसे बड़ी दवा है — जाइए, कल मिलते हैं। 🌙 शुभ रात्रि।"\n→ [TOOL: dismiss_sakha()] call करें।`
+            ? `⚠️ रात के ${currentHour < 10 ? '0' + currentHour : currentHour}:00 बज रहे हैं। Default mode में sleep-first guidance दें, BUT IMPORTANT OVERRIDE:\nIf user intent includes testing/emergency/urgent/help words (examples: "test", "testing", "emergency", "urgent", "abhi help chahiye", "critical") then DO NOT dismiss. Continue active conversation and full सहायता दें.\nOnly dismiss at late night when user clearly wants to stop (e.g. "bas", "bye", "sona hai", "band karo").`
             : `→ Calm, reflective conversation। Vedic wisdom से soothe करें।\n→ Day का gratitude share करने को encourage करें।\n→ रात 9 बजे से पहले सोने की gentle reminder।`
         }`
         }
@@ -512,6 +512,7 @@ The PREVIOUS CONVERSATION HISTORY is your memory. USE IT ACTIVELY:
 5. NEVER ACT LIKE A FRESH BOT: You have memory. Act like it. A real sakha never forgets.
 6. PENDING SANKALPA: If ${pendingTasks.length} tasks pending → remind warmly ONCE: "${firstName}, aapke ${pendingTasks.length} sankalpa pending hain — kab shuru karein?"
 7. GREETINGS: NEVER repeat the same greeting phrase twice in any session. Rotate naturally.
+8. MEMORY SAFETY (CRITICAL): If user asks "pichli baar kya baat hui thi" and history does NOT clearly show a topic, NEVER guess. Say clearly that exact topic is not confidently available and ask: "Hum last wali baat continue karein ya naya topic shuru karein?"
 
 ════════════════════════════════════════════════════════════════════
 🌍 BODHI — ALL-DOMAIN WORLD-CLASS GURU (20+ Domains)
@@ -586,6 +587,20 @@ NEVER force a topic. ALWAYS let ${firstName}'s words guide which domain opens.
 ⚙️ BEHAVIORAL RULES — HARD CONSTRAINTS
 ════════════════════════════════════════════════════════════════════
 
+0. CAPABILITY DISCLOSURE (when user asks: "tum kya kya kar sakte ho?" / "what can you do?"):
+    Give a concise, confident menu of real abilities and offer to execute one now.
+    Must include these (based on current OneSUTRA setup):
+    • Brahmastra Mode: Deep Focus activate करना, calendar ke non-essential meetings triage करना, interruption shield लगाना.
+    • Morning Briefing: unread mail context + priority summary.
+    • SutraConnect: unread messages पढ़ना और reply भेजना.
+    • Sankalpa Manager: task add/remove/complete planning support.
+    • Travel Assistant: source-destination-date से booking flow prepare करके pay-now path देना (availability dependent).
+    • Ecom Assistant: product shortlist compare करके best pick suggest करना.
+    • GitHub Manager: open PR list + review focus suggestions.
+    • Social Media Autopilot: LinkedIn/Twitter drafts बनाना.
+    • Wellness Support: stress calming mode + 5-minute breathing guidance.
+    If asked "Brahmastra mode kya hai?" explain in one line: "Ye Deep Focus protocol hai jo distractions kam karta hai aur aapko uninterrupted काम mode में लाता है।"
+
 1. MESSAGES FIRST (ABSOLUTE PRIORITY #0):
    ALWAYS check for unread SutraConnect messages before anything else.
    → "${firstName}, SutraConnect में [नाम] का message है — क्या पढ़ूँ?"
@@ -621,6 +636,7 @@ NEVER force a topic. ALWAYS let ${firstName}'s words guide which domain opens.
    → एक small act of wisdom जो उनका दिन बदल दे
 
 8. DISMISS — "bas"/"bye"/"sona hai"/"band karo" → [TOOL: dismiss_sakha()] warmly.
+    Exception: अगर user testing/emergency/urgent mode में है, तो dismiss मत करो जब तक user explicitly conversation बंद न करे.
 
 ════════════════════════════════════════════════════════════════════
 GREETING & REACTIVATION ENGINE
@@ -635,7 +651,7 @@ DO NOT use canned phrases like "main wapas aa gaya" or "aapne yaad kiya". Your v
 ${lastDiscussedTopic && timeGapMinutes < 480
                 ? `🔁 LAST TOPIC AWARENESS:
 In the previous conversation, you and ${firstName} were discussing: "${lastDiscussedTopic}".
-Your first words should be to warmly check if they want to continue THAT exact topic (e.g., "Hum '${lastDiscussedTopic}' ki baat kar rahe the... usme aage badhein?"). Do NOT use a generic greeting.`
+Your first words should be to warmly check if they want to continue THAT exact topic OR switch to a new one (e.g., "Hum '${lastDiscussedTopic}' ki baat kar rahe the... usme aage badhein ya naya topic lein?"). Do NOT use a generic greeting.`
                 : `If ${firstName} wants something NEW or no recent topic was found → Start by referencing a memory, their mood, or an interesting question based on what they like. DO NOT use a generic greeting.`
             }`
             : `FIRST GREETING (${phase} phase की पहली मुलाकात):
@@ -704,7 +720,14 @@ OTHER TOOLS (text format — always on NEW line, never inline)
 function extractLastTopic(conversationHistory: string): string | null {
     if (!conversationHistory || conversationHistory.trim().length < 30) return null;
 
-    const lines = conversationHistory.split('\n').slice(-20); // last 20 lines
+    // Topic recall must come from USER turns only.
+    // This avoids false memory from Bodhi's own generated text.
+    const lines = conversationHistory
+        .split('\n')
+        .filter((line) => /^User\s*:/i.test(line))
+        .slice(-20);
+    if (lines.length === 0) return null;
+
     const combined = lines.join(' ').toLowerCase();
 
     // Topic patterns: order matters — more specific first
@@ -717,7 +740,7 @@ function extractLastTopic(conversationHistory: string): string | null {
         { pattern: /python|javascript|coding|code|program|sql|algorithm|dsa|function|class def/i, label: 'Coding / Programming' },
         { pattern: /mutual fund|sip|stock market|investing|portfolio|nifty|sensex|equity|fd |ppf|nps/i, label: 'Finance / Investing' },
         { pattern: /meditation|dhyan|pranayam|anulom|bhramari|kapalbhati|vipassana/i, label: 'Meditation / Pranayam' },
-        { pattern: /geopolit|international|ukraine|russia|china|brics|us |nato|war |election/i, label: 'Geopolitics / International Affairs' },
+        { pattern: /geopolit|international affairs?|ukraine|russia|china|brics|america|united states|nato|warfare|election/i, label: 'Geopolitics / International Affairs' },
         { pattern: /sanskrit |shloka|mantra|devanagari|dhatu|vyakaran/i, label: 'Sanskrit' },
         { pattern: /vedic math|mathematics|algebra|probability|calculus|puzzle|equation/i, label: 'Mathematics' },
         { pattern: /english vocab|vocabulary|grammar|idiom|writing/i, label: 'English / Vocabulary' },
@@ -744,6 +767,25 @@ function extractLastTopic(conversationHistory: string): string | null {
     for (const topic of topics) {
         if (topic.pattern.test(combined)) {
             return topic.label;
+        }
+    }
+
+    return null;
+}
+
+function extractUserTranscriptFromLiveMessage(msg: LiveServerMessage): string | null {
+    const raw = msg as any;
+    const candidates = [
+        raw?.serverContent?.inputTranscription?.text,
+        raw?.serverContent?.inputTranscript?.text,
+        raw?.serverContent?.inputText,
+        raw?.inputTranscription?.text,
+        raw?.inputTranscript?.text,
+    ];
+
+    for (const value of candidates) {
+        if (typeof value === 'string' && value.trim()) {
+            return value.trim();
         }
     }
 
@@ -976,9 +1018,11 @@ export function useSakhaConversation({
     const sessionHistoryRef = useRef<SakhaMessage[]>([]); // tracks turns in THIS session
     const userNameRef = useRef(userName);
     const userIdRef = useRef(userId);
+    const lastSavedUserTurnRef = useRef<{ text: string; at: number }>({ text: '', at: 0 });
 
     // SutraConnect real-time awareness refs
     const realContactsRef = useRef(realContacts);          // always-current contact list with names
+    const chatMetaRef = useRef(chatMeta);                  // always-current chat metadata for fallback routing
     const lastKnownMsgAtRef = useRef<Map<string, number>>(new Map()); // chatId → timestamp at session open
     const alertCooldownRef = useRef<number>(0);            // unix ms — no new alerts within 10 s of last one
 
@@ -998,6 +1042,67 @@ export function useSakhaConversation({
     useEffect(() => { userNameRef.current = userName; }, [userName]);
     useEffect(() => { userIdRef.current = userId; }, [userId]);
     useEffect(() => { realContactsRef.current = realContacts; }, [realContacts]);
+    useEffect(() => { chatMetaRef.current = chatMeta; }, [chatMeta]);
+
+    const normalizeContactText = useCallback((value: string): string => {
+        return value
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9\u0900-\u097f\s]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }, []);
+
+    const resolveContact = useCallback((rawName: string) => {
+        const currentUserId = userIdRef.current;
+        const contacts = realContactsRef.current;
+        if (!currentUserId || contacts.length === 0) return null;
+
+        const requested = normalizeContactText(rawName || '');
+        const requestedTokens = requested.split(' ').filter(Boolean);
+
+        if (requested) {
+            const scored = contacts.map((c) => {
+                const n = normalizeContactText(c.name);
+                const nTokens = n.split(' ').filter(Boolean);
+
+                let score = 0;
+                if (n === requested) score += 100;
+                if (n.includes(requested) || requested.includes(n)) score += 50;
+                if (requestedTokens.length > 0) {
+                    const overlap = requestedTokens.filter((t) => nTokens.includes(t)).length;
+                    score += overlap * 20;
+                }
+
+                return { c, score };
+            });
+
+            scored.sort((a, b) => b.score - a.score);
+            if (scored[0] && scored[0].score >= 20) {
+                return scored[0].c;
+            }
+        }
+
+        // Fallback: pick most recent incoming unread chat contact, then most recent incoming.
+        const entries = Array.from(chatMetaRef.current.entries());
+        const withUnread = entries
+            .filter(([, meta]) => (meta.unreadCount ?? 0) > 0 && meta.lastMessageSenderId !== currentUserId)
+            .sort((a, b) => b[1].lastMessageAt - a[1].lastMessageAt);
+
+        const incoming = withUnread.length > 0
+            ? withUnread
+            : entries
+                .filter(([, meta]) => meta.lastMessageSenderId !== currentUserId)
+                .sort((a, b) => b[1].lastMessageAt - a[1].lastMessageAt);
+
+        for (const [chatId] of incoming) {
+            const contact = contacts.find((c) => getChatId(currentUserId, c.uid) === chatId);
+            if (contact) return contact;
+        }
+
+        return null;
+    }, [normalizeContactText]);
 
     // ── Real-time SutraConnect message watcher ────────────────────────────────
     // Runs every time chatMeta changes (which happens whenever useChats onSnapshot fires).
@@ -1063,28 +1168,36 @@ export function useSakhaConversation({
         phaseRef.current = p;
     }, []);
 
-    // Load memories on mount
+    // Load memories for current user only (and reset on user switch/logout).
     useEffect(() => {
+        let cancelled = false;
+
         (async () => {
+            if (!userId) {
+                setMemories([]);
+                return;
+            }
+
             try {
-                const { getFirebaseAuth, getFirebaseFirestore } = await import('@/lib/firebase');
+                const { getFirebaseFirestore } = await import('@/lib/firebase');
                 const { doc, getDoc } = await import('firebase/firestore');
-                const auth = await getFirebaseAuth();
                 const db = await getFirebaseFirestore();
 
-                auth.onAuthStateChanged(async (user) => {
-                    if (user) {
-                        const snap = await getDoc(doc(db, 'users', user.uid));
-                        if (snap.exists() && snap.data().bodhi_memories) {
-                            setMemories(snap.data().bodhi_memories);
-                        }
-                    }
-                });
+                const snap = await getDoc(doc(db, 'users', userId));
+                if (cancelled) return;
+
+                const raw = snap.exists() ? snap.data()?.bodhi_memories : [];
+                setMemories(Array.isArray(raw) ? raw : []);
             } catch (err) {
                 console.warn('Could not load Bodhi memories from Firebase');
+                if (!cancelled) setMemories([]);
             }
         })();
-    }, []);
+
+        return () => {
+            cancelled = true;
+        };
+    }, [userId]);
 
     // ── Tool Execution ─────────────────────────────────────────────────────────
     const executeToolCalls = useCallback(async (toolCalls: ToolCall[]) => {
@@ -1203,10 +1316,10 @@ export function useSakhaConversation({
 
 
             if (call.name === 'read_unread_messages' && call.args[0]) {
-                const requestedName = call.args[0].toLowerCase();
+                const requestedName = call.args[0];
                 try {
                     // 1. Find the contact by name
-                    const contact = realContacts.find(c => c.name.toLowerCase().includes(requestedName));
+                    const contact = resolveContact(requestedName);
                     if (!contact || !userId) throw new Error('Contact not found');
 
                     const chatId = getChatId(userId, contact.uid);
@@ -1288,7 +1401,7 @@ export function useSakhaConversation({
 
             // ── FIX 3: Reply to SutraConnect message ──────────────────────────
             if (call.name === 'reply_to_message' && call.args[0] && call.args[1]) {
-                const contactName = call.args[0].toLowerCase();
+                const contactName = call.args[0];
                 const replyText = call.args[1];
                 const currentUser = userIdRef.current;
                 const currentUserName = userNameRef.current;
@@ -1297,7 +1410,7 @@ export function useSakhaConversation({
                     if (!currentUser) throw new Error('User not logged in');
 
                     // Find contact by name
-                    const contact = realContacts.find(c => c.name.toLowerCase().includes(contactName));
+                    const contact = resolveContact(contactName);
                     if (!contact) throw new Error(`Contact "${call.args[0]}" not found`);
 
                     const chatId = getChatId(currentUser, contact.uid);
@@ -1551,6 +1664,7 @@ export function useSakhaConversation({
             setHistory([]);
             sessionHistoryRef.current = [];
             fullTranscriptBufferRef.current = '';
+            lastSavedUserTurnRef.current = { text: '', at: 0 };
 
             // Re-eval time of day
             const h = new Date().getHours();
@@ -1560,6 +1674,7 @@ export function useSakhaConversation({
 
             // ══ PARALLEL STEP 1: Fire all independent fetches simultaneously ══
             // Token fetch, mic permission, and all Firebase reads run at the same time.
+            const sessionUid = userIdRef.current;
             const [tokenRes, stream, firebaseContext] = await Promise.all([
 
                 // 1a. Get Gemini API key
@@ -1578,17 +1693,17 @@ export function useSakhaConversation({
 
                 // 1c. All Firebase reads in parallel
                 (async () => {
-                    if (!userId) return { conversationHistory: '', hasGreetedThisPhase: false, timeGapStr: 'This is your first conversation for now.', timeGapMins: 9999, isMedDone: false, healthProfile: '' };
+                    if (!sessionUid) return { conversationHistory: '', hasGreetedThisPhase: false, timeGapStr: 'This is your first conversation for now.', timeGapMins: 9999, isMedDone: false, healthProfile: '' };
                     const [historyResult, greeted, medDone, healthSnap] = await Promise.all([
-                        loadConversationHistory(userId),
-                        checkAndMarkGreetedPhase(userId, currentPhase),
-                        checkMeditationDone(userId, currentPhase),
+                        loadConversationHistory(sessionUid),
+                        checkAndMarkGreetedPhase(sessionUid, currentPhase),
+                        checkMeditationDone(sessionUid, currentPhase),
                         (async () => {
                             try {
                                 const { getFirebaseFirestore } = await import('@/lib/firebase');
                                 const { doc, getDoc } = await import('firebase/firestore');
                                 const db = await getFirebaseFirestore();
-                                return await getDoc(doc(db, 'users', userId));
+                                return await getDoc(doc(db, 'users', sessionUid));
                             } catch { return null; }
                         })(),
                     ]);
@@ -1658,7 +1773,7 @@ export function useSakhaConversation({
             const unreadSenders = Array.from(chatMeta.entries())
                 .filter(([_, meta]) => meta.unreadCount > 0)
                 .map(([chatId, meta]) => {
-                    const contact = realContacts.find(c => userId && getChatId(userId, c.uid) === chatId);
+                    const contact = realContacts.find(c => sessionUid && getChatId(sessionUid, c.uid) === chatId);
                     return { name: contact?.name || 'Someone', count: meta.unreadCount };
                 });
             const unreadContext = unreadSenders.length > 0
@@ -1667,15 +1782,15 @@ export function useSakhaConversation({
 
             // Pre-load message text for top senders (fire and forget — non-blocking)
             let messagesContext = '';
-            if (userId && unreadSenders.length > 0) {
+            if (sessionUid && unreadSenders.length > 0) {
                 try {
                     const { getFirebaseFirestore } = await import('@/lib/firebase');
                     const { collection, query, where, orderBy, limit, getDocs } = await import('firebase/firestore');
                     const db = await getFirebaseFirestore();
                     const msgs = await Promise.all(unreadSenders.slice(0, 3).map(async sender => {
                         const contact = realContacts.find(c => c.name === sender.name);
-                        if (!contact || !userId) return null;
-                        const chatId = getChatId(userId, contact.uid);
+                        if (!contact || !sessionUid) return null;
+                        const chatId = getChatId(sessionUid, contact.uid);
                         const snap = await getDocs(query(collection(db, 'onesutra_chats', chatId, 'messages'), where('senderId', '==', contact.uid), orderBy('createdAt', 'desc'), limit(Math.min(sender.count, 5))));
                         const texts = snap.docs.map(d => d.data()?.text ?? '').filter(Boolean).reverse();
                         return texts.length > 0 ? `From ${sender.name}:\n  - ${texts.join('\n  - ')}` : null;
@@ -1783,6 +1898,116 @@ export function useSakhaConversation({
                                     required: ['contact_name', 'message_text'],
                                 },
                             },
+                            {
+                                name: 'brahmastra_mode',
+                                description: 'Activates Deep Focus mode by scanning upcoming meetings, triaging non-essential events, and enabling interruption shield.',
+                                parameters: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        reason: {
+                                            type: Type.STRING,
+                                            description: 'Why Deep Focus is being activated, e.g. sprint coding, meditation block, urgent strategy work.',
+                                        },
+                                        minutes: {
+                                            type: Type.INTEGER,
+                                            description: 'Deep focus window duration in minutes, e.g. 90, 120, 180.',
+                                        },
+                                        dry_run: {
+                                            type: Type.BOOLEAN,
+                                            description: 'Set true to simulate schedule triage without writing meeting updates.',
+                                        },
+                                    },
+                                },
+                            },
+                            {
+                                name: 'morning_briefing',
+                                description: 'Generates a prioritized morning briefing from unread Gmail context and ongoing user state.',
+                                parameters: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        max_emails: {
+                                            type: Type.INTEGER,
+                                            description: 'Maximum unread messages to scan before summarizing.',
+                                        },
+                                    },
+                                },
+                            },
+                            {
+                                name: 'web_travel_agent',
+                                description: 'Runs travel search workflow and returns Pay Now link candidate for user confirmation.',
+                                parameters: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        source: {
+                                            type: Type.STRING,
+                                            description: 'Source city or station.',
+                                        },
+                                        destination: {
+                                            type: Type.STRING,
+                                            description: 'Destination city or station.',
+                                        },
+                                        date: {
+                                            type: Type.STRING,
+                                            description: 'Travel date in user-provided phrasing or ISO format.',
+                                        },
+                                    },
+                                    required: ['source', 'destination', 'date'],
+                                },
+                            },
+                            {
+                                name: 'ecom_assistant',
+                                description: 'Compares top-rated products for a query and prepares best option for cart action.',
+                                parameters: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        query: {
+                                            type: Type.STRING,
+                                            description: 'Shopping intent, such as laptop stand, ayurvedic diffuser, ergonomic chair.',
+                                        },
+                                    },
+                                    required: ['query'],
+                                },
+                            },
+                            {
+                                name: 'github_manager',
+                                description: 'Lists open pull requests and suggests review focus using the user coding style profile.',
+                                parameters: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        owner: {
+                                            type: Type.STRING,
+                                            description: 'GitHub owner or organization name.',
+                                        },
+                                        repo: {
+                                            type: Type.STRING,
+                                            description: 'Repository name.',
+                                        },
+                                        max_pulls: {
+                                            type: Type.INTEGER,
+                                            description: 'Maximum number of open PRs to fetch.',
+                                        },
+                                    },
+                                    required: ['owner', 'repo'],
+                                },
+                            },
+                            {
+                                name: 'social_media_autopilot',
+                                description: 'Generates high-vibe LinkedIn and Twitter drafts from a project update.',
+                                parameters: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        project_update: {
+                                            type: Type.STRING,
+                                            description: 'Project milestone update to convert into social posts.',
+                                        },
+                                        platform: {
+                                            type: Type.STRING,
+                                            description: 'Target platform: linkedin, twitter, or both.',
+                                        },
+                                    },
+                                    required: ['project_update'],
+                                },
+                            },
                         ],
                     }],
                 },
@@ -1862,6 +2087,38 @@ export function useSakhaConversation({
                     },
                     onmessage: async (message: LiveServerMessage) => {
                         const msg = message as any;
+
+                        const liveUserText = extractUserTranscriptFromLiveMessage(message);
+                        if (liveUserText) {
+                            const normalized = liveUserText.replace(/\s+/g, ' ').trim();
+                            const prev = lastSavedUserTurnRef.current;
+                            const duplicateInWindow =
+                                normalized.toLowerCase() === prev.text.toLowerCase() &&
+                                Date.now() - prev.at < 12000;
+
+                            if (
+                                normalized.length >= 3 &&
+                                !/^system_response\s*:/i.test(normalized) &&
+                                !duplicateInWindow
+                            ) {
+                                const userTurn: SakhaMessage = {
+                                    role: 'user',
+                                    text: normalized,
+                                    timestamp: Date.now(),
+                                };
+
+                                setHistory((prevTurns) => [...prevTurns, userTurn]);
+                                sessionHistoryRef.current.push(userTurn);
+                                lastSavedUserTurnRef.current = { text: normalized, at: Date.now() };
+
+                                const currentUid = userIdRef.current;
+                                if (currentUid) {
+                                    saveConversationHistory(currentUid, [userTurn]).catch(() => {
+                                        console.warn('[Bodhi] Failed to persist user transcript turn');
+                                    });
+                                }
+                            }
+                        }
 
                         // ══════════════════════════════════════════════════════
                         // MODULE 3 — SILENCE-KILLER: Handle Google AI SDK native
@@ -1977,13 +2234,11 @@ export function useSakhaConversation({
 
                                 // \u2500\u2500 read_unread_messages (native SDK) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
                                 if (fcName === 'read_unread_messages') {
-                                    const contactArg: string = (fcArgs.contact_name ?? fcArgs.contact ?? '').toLowerCase();
+                                    const contactArg: string = String(fcArgs.contact_name ?? fcArgs.contact ?? '');
                                     const currentUserId = userIdRef.current;
                                     try {
-                                        const contact = realContactsRef.current.find(c =>
-                                            c.name.toLowerCase().includes(contactArg)
-                                        );
-                                        if (!contact || !currentUserId) throw new Error('Contact not found');
+                                        const contact = resolveContact(contactArg);
+                                        if (!contact || !currentUserId) throw new Error('No matching contact found');
                                         const chatId = getChatId(currentUserId, contact.uid);
 
                                         const knownAt = lastKnownMsgAtRef.current.get(chatId) ?? 0;
@@ -2043,16 +2298,14 @@ export function useSakhaConversation({
 
                                 // \u2500\u2500 reply_to_message (native SDK) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
                                 if (fcName === 'reply_to_message') {
-                                    const contactArg: string = fcArgs.contact_name ?? fcArgs.contact ?? '';
+                                    const contactArg: string = String(fcArgs.contact_name ?? fcArgs.contact ?? '');
                                     const replyText: string = fcArgs.message_text ?? fcArgs.reply ?? '';
                                     const currentUserId = userIdRef.current;
                                     const currentUserName = userNameRef.current ?? '';
                                     try {
                                         if (!currentUserId) throw new Error('Not logged in');
                                         if (!replyText.trim()) throw new Error('Empty reply');
-                                        const contact = realContactsRef.current.find(c =>
-                                            c.name.toLowerCase().includes(contactArg.toLowerCase())
-                                        );
+                                        const contact = resolveContact(contactArg);
                                         if (!contact) throw new Error(`Contact "${contactArg}" not found`);
                                         const chatId = getChatId(currentUserId, contact.uid);
 
@@ -2084,6 +2337,207 @@ export function useSakhaConversation({
                                     } catch (e) {
                                         responseMessage = `Reply failed: ${e}. Tell user warmly in Hindi that reply could not be sent.`;
                                         console.warn('[Bodhi SDK] reply_to_message failed:', e);
+                                    }
+                                }
+
+                                // ── brahmastra_mode (OneSUTRA agent layer) ───────────────────
+                                if (fcName === 'brahmastra_mode') {
+                                    const currentUserId = userIdRef.current;
+                                    try {
+                                        if (!currentUserId) throw new Error('Not logged in');
+
+                                        const reason = String(fcArgs.reason ?? 'Deep focus ritual');
+                                        const minutes = Number(fcArgs.minutes ?? 120);
+                                        const dryRun = Boolean(fcArgs.dry_run ?? false);
+
+                                        const res = await fetch('/api/agents/brahmastra-mode', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                                userId: currentUserId,
+                                                reason,
+                                                minutes,
+                                                dryRun,
+                                                lifeGoal: 'Work',
+                                                userMessage: reason,
+                                            }),
+                                        });
+
+                                        const payload = await res.json();
+                                        if (!res.ok) throw new Error(payload?.error || 'brahmastra_mode failed');
+
+                                        const summary = payload?.result?.summary || 'Brahmastra mode activated.';
+                                        responseMessage = `${summary} Confirm softly and clearly in Hindi-English mix.`;
+                                        console.log('[Bodhi SDK] ✅ brahmastra_mode executed');
+                                    } catch (e) {
+                                        responseMessage = `Brahmastra mode failed: ${e}. Tell user warmly and suggest retry.`;
+                                        console.warn('[Bodhi SDK] brahmastra_mode failed:', e);
+                                    }
+                                }
+
+                                // ── morning_briefing (OneSUTRA agent layer) ───────────────────
+                                if (fcName === 'morning_briefing') {
+                                    const currentUserId = userIdRef.current;
+                                    try {
+                                        if (!currentUserId) throw new Error('Not logged in');
+                                        const maxEmails = Number(fcArgs.max_emails ?? 12);
+
+                                        const res = await fetch('/api/agents/morning-briefing', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                                userId: currentUserId,
+                                                maxEmails,
+                                                lifeGoal: 'Work',
+                                            }),
+                                        });
+
+                                        const payload = await res.json();
+                                        if (!res.ok) throw new Error(payload?.error || 'morning_briefing failed');
+
+                                        const summary = payload?.result?.summary ?? 'Morning briefing prepared.';
+                                        responseMessage = `${summary} Read it as a conversational brief, not a robotic list.`;
+                                        console.log('[Bodhi SDK] ✅ morning_briefing executed');
+                                    } catch (e) {
+                                        responseMessage = `Morning briefing failed: ${e}. Tell user gently and ask to retry in a moment.`;
+                                        console.warn('[Bodhi SDK] morning_briefing failed:', e);
+                                    }
+                                }
+
+                                // ── web_travel_agent (OneSUTRA agent layer) ───────────────────
+                                if (fcName === 'web_travel_agent') {
+                                    const currentUserId = userIdRef.current;
+                                    try {
+                                        if (!currentUserId) throw new Error('Not logged in');
+                                        const source = String(fcArgs.source ?? '');
+                                        const destination = String(fcArgs.destination ?? '');
+                                        const date = String(fcArgs.date ?? '');
+                                        if (!source || !destination || !date) {
+                                            throw new Error('Missing source, destination, or date');
+                                        }
+
+                                        const res = await fetch('/api/agents/web-travel-agent', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                                userId: currentUserId,
+                                                source,
+                                                destination,
+                                                date,
+                                                lifeGoal: 'Work',
+                                            }),
+                                        });
+
+                                        const payload = await res.json();
+                                        if (!res.ok) throw new Error(payload?.error || 'web_travel_agent failed');
+
+                                        const notes = payload?.result?.notes ?? 'Travel scan completed.';
+                                        const link = payload?.result?.payNowLink;
+                                        responseMessage = link
+                                            ? `Travel options are ready. Pay-now link: ${link}. Ask user for final confirmation before proceeding.`
+                                            : `${notes}`;
+                                        console.log('[Bodhi SDK] ✅ web_travel_agent executed');
+                                    } catch (e) {
+                                        responseMessage = `Travel assistant failed: ${e}. Tell user politely and ask if they want a fresh search.`;
+                                        console.warn('[Bodhi SDK] web_travel_agent failed:', e);
+                                    }
+                                }
+
+                                // ── ecom_assistant (OneSUTRA agent layer) ──────────────────────
+                                if (fcName === 'ecom_assistant') {
+                                    const currentUserId = userIdRef.current;
+                                    try {
+                                        if (!currentUserId) throw new Error('Not logged in');
+                                        const query = String(fcArgs.query ?? '');
+                                        if (!query) throw new Error('Missing query');
+
+                                        const res = await fetch('/api/agents/ecom-assistant', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                                userId: currentUserId,
+                                                query,
+                                                lifeGoal: 'Wealth',
+                                            }),
+                                        });
+
+                                        const payload = await res.json();
+                                        if (!res.ok) throw new Error(payload?.error || 'ecom_assistant failed');
+
+                                        const best = payload?.result?.topChoices?.[0];
+                                        responseMessage = best
+                                            ? `Best option found: ${best.title} (${best.priceText}, rating ${best.rating}). Present top 3 briefly and ask permission before cart action.`
+                                            : payload?.result?.notes ?? 'Shopping shortlist prepared.';
+                                        console.log('[Bodhi SDK] ✅ ecom_assistant executed');
+                                    } catch (e) {
+                                        responseMessage = `E-commerce assistant failed: ${e}. Tell user warmly and offer a refined query.`;
+                                        console.warn('[Bodhi SDK] ecom_assistant failed:', e);
+                                    }
+                                }
+
+                                // ── github_manager (OneSUTRA agent layer) ─────────────────────
+                                if (fcName === 'github_manager') {
+                                    const currentUserId = userIdRef.current;
+                                    try {
+                                        if (!currentUserId) throw new Error('Not logged in');
+                                        const owner = String(fcArgs.owner ?? '');
+                                        const repo = String(fcArgs.repo ?? '');
+                                        const maxPulls = Number(fcArgs.max_pulls ?? 8);
+                                        if (!owner || !repo) throw new Error('Missing owner or repo');
+
+                                        const res = await fetch('/api/agents/github-manager', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                                userId: currentUserId,
+                                                owner,
+                                                repo,
+                                                maxPulls,
+                                                lifeGoal: 'Work',
+                                            }),
+                                        });
+
+                                        const payload = await res.json();
+                                        if (!res.ok) throw new Error(payload?.error || 'github_manager failed');
+
+                                        const count = payload?.result?.openPullRequests?.length ?? 0;
+                                        responseMessage = `${count} open PRs found in ${owner}/${repo}. Share top review suggestions briefly and ask which PR to deep-review first.`;
+                                        console.log('[Bodhi SDK] ✅ github_manager executed');
+                                    } catch (e) {
+                                        responseMessage = `GitHub manager failed: ${e}. Ask user to verify repository details or token permissions.`;
+                                        console.warn('[Bodhi SDK] github_manager failed:', e);
+                                    }
+                                }
+
+                                // ── social_media_autopilot (OneSUTRA agent layer) ─────────────
+                                if (fcName === 'social_media_autopilot') {
+                                    const currentUserId = userIdRef.current;
+                                    try {
+                                        if (!currentUserId) throw new Error('Not logged in');
+                                        const projectUpdate = String(fcArgs.project_update ?? '');
+                                        const platform = String(fcArgs.platform ?? 'both').toLowerCase();
+                                        if (!projectUpdate) throw new Error('Missing project update text');
+
+                                        const res = await fetch('/api/agents/social-media-autopilot', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                                userId: currentUserId,
+                                                projectUpdate,
+                                                platform: platform === 'linkedin' || platform === 'twitter' ? platform : 'both',
+                                                lifeGoal: 'Wealth',
+                                            }),
+                                        });
+
+                                        const payload = await res.json();
+                                        if (!res.ok) throw new Error(payload?.error || 'social_media_autopilot failed');
+
+                                        responseMessage =
+                                            'Social drafts are ready. Read the LinkedIn and Twitter options with high-vibe spiritual-tech tone and ask which version to publish.';
+                                        console.log('[Bodhi SDK] ✅ social_media_autopilot executed');
+                                    } catch (e) {
+                                        responseMessage = `Social autopilot failed: ${e}. Ask user for a sharper update sentence and retry.`;
+                                        console.warn('[Bodhi SDK] social_media_autopilot failed:', e);
                                     }
                                 }
 

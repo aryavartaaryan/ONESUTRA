@@ -598,3 +598,380 @@
         grid-template-columns: repeat(3, 1fr);
     }
 }
+
+/* ── Integration Hub ─────────────────────────────────────────────────────── */
+.integrationHubCard {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 18px;
+    padding: 1rem;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.integrationHubHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.integrationHubTitle {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: rgba(255, 245, 224, 0.95);
+    letter-spacing: 0.02em;
+}
+
+.integrationHubSub {
+    margin: 0.3rem 0 0;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.58);
+}
+
+.integrationOpenBtn {
+    border: 1px solid rgba(251, 191, 36, 0.34);
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(251, 146, 60, 0.2));
+    color: rgba(255, 237, 204, 0.95);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.42rem 0.9rem;
+    cursor: pointer;
+}
+
+.integrationQuickStats {
+    margin-top: 0.85rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.integrationQuickStats span {
+    font-size: 0.62rem;
+    color: rgba(255, 255, 255, 0.68);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.integrationOverlay,
+.vaultOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    background: rgba(7, 10, 15, 0.62);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.integrationModal {
+    width: min(920px, 100%);
+    max-height: min(86vh, 820px);
+    overflow: auto;
+    border-radius: 22px;
+    padding: 1rem;
+    background:
+        radial-gradient(140% 120% at 0% 0%, rgba(251, 146, 60, 0.15), transparent 56%),
+        radial-gradient(120% 140% at 100% 100%, rgba(52, 120, 255, 0.18), transparent 58%),
+        rgba(16, 20, 24, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+.integrationModalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.integrationModalTitle {
+    margin: 0;
+    font-size: 1.15rem;
+    color: rgba(255, 246, 225, 0.96);
+    font-weight: 700;
+}
+
+.integrationModalSub {
+    margin: 0.26rem 0 0;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.integrationCloseBtn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.84);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.securityBadgeRow {
+    margin-top: 0.8rem;
+    position: relative;
+}
+
+.securityBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    border-radius: 999px;
+    border: 1px solid rgba(74, 222, 128, 0.35);
+    background: rgba(74, 222, 128, 0.09);
+    color: rgba(210, 255, 227, 0.9);
+    font-size: 0.68rem;
+    padding: 0.32rem 0.62rem;
+}
+
+.securityInfoBtn {
+    border: none;
+    background: transparent;
+    color: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+}
+
+.securityTooltip {
+    margin-top: 0.45rem;
+    max-width: 420px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(10, 12, 18, 0.86);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.66rem;
+    padding: 0.45rem 0.56rem;
+}
+
+.integrationSearchWrap {
+    margin-top: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    padding: 0.5rem 0.65rem;
+    color: rgba(255, 255, 255, 0.62);
+}
+
+.integrationSearchInput {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.78rem;
+    outline: none;
+}
+
+.integrationTabRow {
+    margin-top: 0.9rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+}
+
+.integrationTabBtn {
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.56rem 0.62rem;
+    cursor: pointer;
+}
+
+.integrationTabBtnActive {
+    background: rgba(251, 191, 36, 0.16);
+    border-color: rgba(251, 191, 36, 0.3);
+    color: rgba(255, 238, 207, 0.95);
+}
+
+.integrationSectionDescription {
+    margin: 0.75rem 0 0;
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 0.73rem;
+}
+
+.integrationGrid {
+    margin-top: 0.8rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.integrationItem {
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.06);
+    padding: 0.72rem;
+}
+
+.integrationItemHead {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.45rem;
+    align-items: flex-start;
+}
+
+.integrationItem h4 {
+    margin: 0;
+    font-size: 0.84rem;
+    color: rgba(255, 249, 232, 0.95);
+}
+
+.integrationItem p {
+    margin: 0.22rem 0 0;
+    font-size: 0.67rem;
+    color: rgba(255, 255, 255, 0.56);
+    line-height: 1.35;
+}
+
+.integrationConnected,
+.integrationDisconnected {
+    font-size: 0.62rem;
+    border-radius: 999px;
+    padding: 0.2rem 0.45rem;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.integrationConnected {
+    border: 1px solid rgba(74, 222, 128, 0.35);
+    color: rgba(198, 255, 218, 0.95);
+    background: rgba(74, 222, 128, 0.1);
+}
+
+.integrationDisconnected {
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: rgba(255, 255, 255, 0.62);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.integrationActions {
+    margin-top: 0.62rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: center;
+}
+
+.integrationActionPrimary,
+.integrationActionGhost {
+    border-radius: 10px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 0.42rem 0.56rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.integrationActionPrimary {
+    border: 1px solid rgba(251, 191, 36, 0.32);
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(251, 146, 60, 0.2));
+    color: rgba(255, 236, 198, 0.95);
+}
+
+.integrationActionGhost {
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.integrationHint {
+    font-size: 0.61rem;
+    color: rgba(255, 255, 255, 0.58);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.22rem;
+}
+
+.vaultModal {
+    width: min(500px, 100%);
+    border-radius: 18px;
+    background: rgba(14, 18, 24, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    padding: 1rem;
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.4);
+}
+
+.vaultModalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+}
+
+.vaultModalHeader h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: rgba(255, 245, 222, 0.96);
+}
+
+.vaultFieldLabel {
+    display: block;
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.62);
+    margin: 0.5rem 0 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.vaultInput,
+.vaultTextarea {
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    font-size: 0.74rem;
+    padding: 0.55rem 0.65rem;
+    outline: none;
+}
+
+.vaultTextarea {
+    min-height: 84px;
+    resize: vertical;
+}
+
+.vaultCheckboxRow {
+    margin-top: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.69rem;
+}
+
+.vaultActions {
+    margin-top: 0.85rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.45rem;
+}
+
+@media (max-width: 860px) {
+    .integrationGrid {
+        grid-template-columns: 1fr;
+    }
+}

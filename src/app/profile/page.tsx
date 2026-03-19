@@ -2,18 +2,39 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, ChevronLeft, Star, Zap, Leaf, BookOpen, Heart, BarChart3, Edit2, Save, X, Loader2 } from 'lucide-react';
+import { LogOut, ChevronLeft, Star, Zap, Heart, BarChart3, Edit2, Save, X, Loader2, ShieldCheck, Search, Link2, LockKeyhole, ExternalLink, Info, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCircadianBackground } from '@/hooks/useCircadianBackground';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { getFirebaseFirestore } from '@/lib/firebase';
-import { doc, onSnapshot, updateDoc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import styles from './page.module.css';
 
 // ════════════════════════════════════════════════════════
 //  TYPES & DEFAULTS
 // ════════════════════════════════════════════════════════
 type Dosha = 'vata' | 'pitta' | 'kapha';
+type IntegrationTab = 'oauth' | 'vault';
+type VaultToolKey = 'amazon' | 'flipkart' | 'blinkit' | 'irctc' | 'yatra';
+type OAuthToolKey = 'google_workspace' | 'linkedin' | 'github' | 'slack' | 'twitter_x' | 'instagram' | 'telegram' | 'whatsapp_webhook';
+
+interface IntegrationTool {
+    key: OAuthToolKey | VaultToolKey;
+    label: string;
+    subtitle: string;
+    category: IntegrationTab;
+    oauthUrl?: string;
+}
+
+interface IntegrationFlag {
+    connected: boolean;
+    connectedAt?: string;
+}
+
+interface UserIntegrations {
+    oauth: Record<OAuthToolKey, IntegrationFlag>;
+    vault: Record<VaultToolKey, IntegrationFlag>;
+}
 
 interface UserProfileData {
     name: string;
@@ -46,6 +67,42 @@ const DEFAULT_PROFILE: UserProfileData = {
         { id: 'calm', label: 'Calm Mind', emoji: '🪷', earned: false },
     ],
 };
+
+const OAUTH_TOOLS: IntegrationTool[] = [
+    { key: 'google_workspace', label: 'Google Workspace', subtitle: 'Gmail, Calendar, Drive workflows', category: 'oauth', oauthUrl: '/api/agents/oauth/start?provider=google_workspace' },
+    { key: 'linkedin', label: 'LinkedIn', subtitle: 'Profile and posting actions', category: 'oauth', oauthUrl: '/api/agents/oauth/start?provider=linkedin' },
+    { key: 'github', label: 'GitHub', subtitle: 'PR insights and review intelligence', category: 'oauth', oauthUrl: '/api/agents/oauth/start?provider=github' },
+    { key: 'slack', label: 'Slack', subtitle: 'Team messaging and reminders', category: 'oauth', oauthUrl: '/api/agents/oauth/start?provider=slack' },
+    { key: 'twitter_x', label: 'Twitter (X)', subtitle: 'Posting and thread drafting', category: 'oauth', oauthUrl: '/api/agents/oauth/start?provider=twitter_x' },
+    { key: 'instagram', label: 'Instagram', subtitle: 'Social publishing workflows', category: 'oauth', oauthUrl: '/api/agents/oauth/start?provider=instagram' },
+    { key: 'telegram', label: 'Telegram', subtitle: 'Bot and message workflows', category: 'oauth', oauthUrl: '/api/agents/oauth/start?provider=telegram' },
+    { key: 'whatsapp_webhook', label: 'WhatsApp Webhook', subtitle: 'Notification and event dispatch', category: 'oauth', oauthUrl: '/api/agents/oauth/start?provider=whatsapp_webhook' },
+];
+
+const VAULT_TOOLS: IntegrationTool[] = [
+    { key: 'amazon', label: 'Amazon', subtitle: 'AI cart and product actions', category: 'vault' },
+    { key: 'flipkart', label: 'Flipkart', subtitle: 'Shopping automation flow', category: 'vault' },
+    { key: 'blinkit', label: 'Blinkit', subtitle: 'Instant grocery execution', category: 'vault' },
+    { key: 'irctc', label: 'IRCTC', subtitle: 'Train booking browser workflow', category: 'vault' },
+    { key: 'yatra', label: 'Yatra.com', subtitle: 'Travel booking browser workflow', category: 'vault' },
+];
+
+const OAUTH_KEYS = OAUTH_TOOLS.map(t => t.key) as OAuthToolKey[];
+const VAULT_KEYS = VAULT_TOOLS.map(t => t.key) as VaultToolKey[];
+
+function defaultIntegrations(): UserIntegrations {
+    const oauth = {} as Record<OAuthToolKey, IntegrationFlag>;
+    OAUTH_KEYS.forEach((k) => {
+        oauth[k] = { connected: false };
+    });
+
+    const vault = {} as Record<VaultToolKey, IntegrationFlag>;
+    VAULT_KEYS.forEach((k) => {
+        vault[k] = { connected: false };
+    });
+
+    return { oauth, vault };
+}
 
 function normalizeDosha(prakriti: string): Dosha {
     const lower = (prakriti || '').toLowerCase();
@@ -175,7 +232,7 @@ function VibeAvatarBody({ dosha, size = 110 }: { dosha: Dosha; size?: number }) 
 //  MAIN COMPONENT
 // ════════════════════════════════════════════════════════
 export default function ProfilePage() {
-    const { user } = useOneSutraAuth();
+    const { user, signOut } = useOneSutraAuth();
     const router = useRouter();
     const { imageUrl, loaded } = useCircadianBackground('vedic');
     
@@ -183,6 +240,21 @@ export default function ProfilePage() {
     const [profile, setProfile] = useState<UserProfileData>(DEFAULT_PROFILE);
     const [isLoading, setIsLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
+    const [isHubOpen, setIsHubOpen] = useState(false);
+    const [integrationTab, setIntegrationTab] = useState<IntegrationTab>('oauth');
+    const [integrationSearch, setIntegrationSearch] = useState('');
+    const [integrations, setIntegrations] = useState<UserIntegrations>(defaultIntegrations());
+    const [showSecurityInfo, setShowSecurityInfo] = useState(false);
+    const [isVaultModalOpen, setIsVaultModalOpen] = useState(false);
+    const [activeVaultTool, setActiveVaultTool] = useState<VaultToolKey | null>(null);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [vaultForm, setVaultForm] = useState({
+        username: '',
+        password: '',
+        otpRealtime: true,
+        notes: '',
+    });
+    const [vaultSaving, setVaultSaving] = useState(false);
     
     // Form State
     const [editForm, setEditForm] = useState({
@@ -190,6 +262,93 @@ export default function ProfilePage() {
         title: '',
         prakriti: '',
     });
+
+    const filteredTools = useMemo(() => {
+        const source = integrationTab === 'oauth' ? OAUTH_TOOLS : VAULT_TOOLS;
+        const q = integrationSearch.trim().toLowerCase();
+        if (!q) return source;
+        return source.filter((tool) => `${tool.label} ${tool.subtitle}`.toLowerCase().includes(q));
+    }, [integrationTab, integrationSearch]);
+
+    const integrationCount = useMemo(() => {
+        const oauthConnected = OAUTH_KEYS.filter((k) => integrations.oauth[k]?.connected).length;
+        const vaultConnected = VAULT_KEYS.filter((k) => integrations.vault[k]?.connected).length;
+        return {
+            oauthConnected,
+            vaultConnected,
+            total: oauthConnected + vaultConnected,
+            all: OAUTH_KEYS.length + VAULT_KEYS.length,
+        };
+    }, [integrations]);
+
+    const openVaultModal = (toolKey: VaultToolKey) => {
+        setActiveVaultTool(toolKey);
+        setVaultForm({ username: '', password: '', otpRealtime: true, notes: '' });
+        setIsVaultModalOpen(true);
+    };
+
+    const closeVaultModal = () => {
+        setIsVaultModalOpen(false);
+        setActiveVaultTool(null);
+    };
+
+    const toBase64 = (input: Uint8Array) => {
+        let binary = '';
+        for (let i = 0; i < input.byteLength; i++) {
+            binary += String.fromCharCode(input[i]);
+        }
+        return btoa(binary);
+    };
+
+    const encryptVaultPayload = async (uid: string, plain: string) => {
+        if (typeof window === 'undefined' || !window.crypto?.subtle) {
+            throw new Error('Secure encryption APIs are unavailable in this browser');
+        }
+
+        const passphrase = process.env.NEXT_PUBLIC_INTEGRATION_VAULT_KEY;
+        if (!passphrase) {
+            throw new Error('Vault encryption key is missing (NEXT_PUBLIC_INTEGRATION_VAULT_KEY)');
+        }
+
+        const enc = new TextEncoder();
+        const keyMaterial = await window.crypto.subtle.importKey(
+            'raw',
+            enc.encode(passphrase),
+            'PBKDF2',
+            false,
+            ['deriveKey']
+        );
+
+        const salt = enc.encode(`onesutra-vault-${uid}`);
+        const key = await window.crypto.subtle.deriveKey(
+            {
+                name: 'PBKDF2',
+                salt,
+                iterations: 120000,
+                hash: 'SHA-256',
+            },
+            keyMaterial,
+            { name: 'AES-GCM', length: 256 },
+            false,
+            ['encrypt']
+        );
+
+        const iv = window.crypto.getRandomValues(new Uint8Array(12));
+        const cipherBuffer = await window.crypto.subtle.encrypt(
+            { name: 'AES-GCM', iv },
+            key,
+            enc.encode(plain)
+        );
+
+        return {
+            algorithm: 'AES-GCM',
+            kdf: 'PBKDF2-SHA256',
+            iterations: 120000,
+            iv: toBase64(iv),
+            ciphertext: toBase64(new Uint8Array(cipherBuffer)),
+            encodedAt: new Date().toISOString(),
+        };
+    };
 
     // Fetch data using onSnapshot for real-time updates
     useEffect(() => {
@@ -261,6 +420,53 @@ export default function ProfilePage() {
         return () => unsubscribe();
     }, [user, isEditing]); // Refetch if user changes. isEditing dependency ensures form sync logic works correctly if data updates while not editing.
 
+    useEffect(() => {
+        if (!user) {
+            setIntegrations(defaultIntegrations());
+            return;
+        }
+
+        let unsub = () => {};
+
+        (async () => {
+            const db = await getFirebaseFirestore();
+            const integrationRef = doc(db, 'users', user.uid, 'integrations', 'main');
+            unsub = onSnapshot(integrationRef, (snap) => {
+                if (!snap.exists()) {
+                    setIntegrations(defaultIntegrations());
+                    return;
+                }
+
+                const data = snap.data() as Partial<UserIntegrations>;
+                const defaults = defaultIntegrations();
+
+                const oauth = { ...defaults.oauth };
+                OAUTH_KEYS.forEach((k) => {
+                    oauth[k] = {
+                        connected: Boolean(data.oauth?.[k]?.connected),
+                        connectedAt: data.oauth?.[k]?.connectedAt,
+                    };
+                });
+
+                const vault = { ...defaults.vault };
+                VAULT_KEYS.forEach((k) => {
+                    vault[k] = {
+                        connected: Boolean(data.vault?.[k]?.connected),
+                        connectedAt: data.vault?.[k]?.connectedAt,
+                    };
+                });
+
+                setIntegrations({ oauth, vault });
+            });
+        })().catch((err) => {
+            console.error('Failed to subscribe integrations', err);
+        });
+
+        return () => {
+            unsub();
+        };
+    }, [user]);
+
 
     const handleSave = async () => {
         if (!user) return;
@@ -298,11 +504,120 @@ export default function ProfilePage() {
         }
     };
 
-    const handleLogout = () => {
-        // localStorage.removeItem('pranav_has_started');
-        // localStorage.removeItem('vedic_user_name');
-        // Actually sign out if possible via auth context, but for now just clear local and redirect
-        router.push('/');
+    const handleLogout = async () => {
+        if (isLoggingOut) return;
+        setIsLoggingOut(true);
+        try {
+            await signOut();
+            if (typeof window !== 'undefined') {
+                localStorage.removeItem('pranav_has_started');
+                localStorage.removeItem('vedic_user_name');
+                localStorage.removeItem('onesutra_user_profile');
+            }
+        } catch (error) {
+            console.error('Logout failed', error);
+        } finally {
+            router.replace('/');
+            router.refresh();
+            setIsLoggingOut(false);
+        }
+    };
+
+    const setOAuthConnection = async (toolKey: OAuthToolKey, connected: boolean) => {
+        if (!user) return;
+        const db = await getFirebaseFirestore();
+        const integrationRef = doc(db, 'users', user.uid, 'integrations', 'main');
+        await setDoc(
+            integrationRef,
+            {
+                oauth: {
+                    [toolKey]: {
+                        connected,
+                        connectedAt: connected ? new Date().toISOString() : null,
+                    },
+                },
+                updatedAt: serverTimestamp(),
+            },
+            { merge: true }
+        );
+    };
+
+    const setVaultConnection = async (toolKey: VaultToolKey, connected: boolean) => {
+        if (!user) return;
+        const db = await getFirebaseFirestore();
+        const integrationRef = doc(db, 'users', user.uid, 'integrations', 'main');
+        await setDoc(
+            integrationRef,
+            {
+                vault: {
+                    [toolKey]: {
+                        connected,
+                        connectedAt: connected ? new Date().toISOString() : null,
+                    },
+                },
+                updatedAt: serverTimestamp(),
+            },
+            { merge: true }
+        );
+    };
+
+    const handleOAuthAction = async (tool: IntegrationTool) => {
+        if (!user || tool.category !== 'oauth') return;
+        const key = tool.key as OAuthToolKey;
+        const currentlyConnected = integrations.oauth[key]?.connected;
+
+        if (currentlyConnected) {
+            await setOAuthConnection(key, false);
+            return;
+        }
+
+        await setOAuthConnection(key, true);
+        if (tool.oauthUrl && typeof window !== 'undefined') {
+            window.open(tool.oauthUrl, '_blank', 'noopener,noreferrer');
+        }
+    };
+
+    const handleVaultSubmit = async () => {
+        if (!user || !activeVaultTool) return;
+        if (!vaultForm.username.trim() || !vaultForm.password.trim()) {
+            alert('Username and password are required for Vault setup.');
+            return;
+        }
+
+        setVaultSaving(true);
+        try {
+            const db = await getFirebaseFirestore();
+            const payload = {
+                username: vaultForm.username.trim(),
+                password: vaultForm.password,
+                otpRealtime: vaultForm.otpRealtime,
+                notes: vaultForm.notes.trim(),
+            };
+
+            const encrypted = await encryptVaultPayload(user.uid, JSON.stringify(payload));
+            const credRef = doc(db, 'users', user.uid, 'integrations', 'vault_credentials', activeVaultTool);
+
+            await setDoc(
+                credRef,
+                {
+                    service: activeVaultTool,
+                    encrypted,
+                    otpInstruction: vaultForm.otpRealtime
+                        ? 'Bodhi will ask for OTP in real-time during execution.'
+                        : 'OTP prompt disabled by user settings.',
+                    updatedAt: serverTimestamp(),
+                },
+                { merge: true }
+            );
+
+            await setVaultConnection(activeVaultTool, true);
+            closeVaultModal();
+        } catch (err: any) {
+            console.error('Vault save failed', err);
+            alert(err?.message || 'Failed to save encrypted credentials.');
+        } finally {
+            setVaultSaving(false);
+        }
     };
 
     // Calculate display dosha from current form state if editing, else profile
@@ -370,8 +685,8 @@ export default function ProfilePage() {
                             </div>
                         )}
 
-                        <button className={styles.logoutBtn} onClick={handleLogout} title="Log Out">
-                            <LogOut size={16} strokeWidth={1.8} />
+                        <button className={styles.logoutBtn} onClick={handleLogout} title="Log Out" disabled={isLoggingOut}>
+                            {isLoggingOut ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} strokeWidth={1.8} />}
                         </button>
                     </div>
                 </motion.header>
@@ -487,8 +802,243 @@ export default function ProfilePage() {
                          {/* Content for tabs like Badges, History etc can go here */}
                     </motion.div>
 
+                    <motion.section
+                        className={styles.integrationHubCard}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.55, delay: 0.15, ease: 'easeOut' }}
+                    >
+                        <div className={styles.integrationHubHeader}>
+                            <div>
+                                <h3 className={styles.integrationHubTitle}>Integration Hub</h3>
+                                <p className={styles.integrationHubSub}>Connect tools for OneSUTRA Super App workflows</p>
+                            </div>
+                            <button className={styles.integrationOpenBtn} onClick={() => setIsHubOpen(true)}>
+                                Open Hub
+                            </button>
+                        </div>
+
+                        <div className={styles.integrationQuickStats}>
+                            <span>{integrationCount.total}/{integrationCount.all} connected</span>
+                            <span>OAuth: {integrationCount.oauthConnected}/{OAUTH_KEYS.length}</span>
+                            <span>Vault: {integrationCount.vaultConnected}/{VAULT_KEYS.length}</span>
+                        </div>
+                    </motion.section>
+
                 </div>
             </main>
+
+            <AnimatePresence>
+                {isHubOpen && (
+                    <motion.div
+                        className={styles.integrationOverlay}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <motion.div
+                            className={styles.integrationModal}
+                            initial={{ opacity: 0, y: 24, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 24, scale: 0.98 }}
+                            transition={{ duration: 0.25, ease: 'easeOut' }}
+                        >
+                            <div className={styles.integrationModalHeader}>
+                                <div>
+                                    <h2 className={styles.integrationModalTitle}>OneSUTRA Integration Hub</h2>
+                                    <p className={styles.integrationModalSub}>Vedic-Modern control center for connected tools</p>
+                                </div>
+                                <button className={styles.integrationCloseBtn} onClick={() => setIsHubOpen(false)}>
+                                    <X size={18} />
+                                </button>
+                            </div>
+
+                            <div className={styles.securityBadgeRow}>
+                                <span className={styles.securityBadge}>
+                                    <ShieldCheck size={14} />
+                                    End-to-end encrypted vault storage
+                                    <button
+                                        className={styles.securityInfoBtn}
+                                        onMouseEnter={() => setShowSecurityInfo(true)}
+                                        onMouseLeave={() => setShowSecurityInfo(false)}
+                                        onClick={() => setShowSecurityInfo((v) => !v)}
+                                        type="button"
+                                    >
+                                        <Info size={14} />
+                                    </button>
+                                </span>
+                                {showSecurityInfo && (
+                                    <div className={styles.securityTooltip}>
+                                        Vault data is encrypted before write and credentials are never shown again on the frontend.
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className={styles.integrationSearchWrap}>
+                                <Search size={15} />
+                                <input
+                                    value={integrationSearch}
+                                    onChange={(e) => setIntegrationSearch(e.target.value)}
+                                    placeholder="Search integrations..."
+                                    className={styles.integrationSearchInput}
+                                />
+                            </div>
+
+                            <div className={styles.integrationTabRow}>
+                                <button
+                                    className={`${styles.integrationTabBtn} ${integrationTab === 'oauth' ? styles.integrationTabBtnActive : ''}`}
+                                    onClick={() => setIntegrationTab('oauth')}
+                                >
+                                    Official API Connections
+                                </button>
+                                <button
+                                    className={`${styles.integrationTabBtn} ${integrationTab === 'vault' ? styles.integrationTabBtnActive : ''}`}
+                                    onClick={() => setIntegrationTab('vault')}
+                                >
+                                    AI Browser Automation Vault
+                                </button>
+                            </div>
+
+                            <p className={styles.integrationSectionDescription}>
+                                {integrationTab === 'oauth'
+                                    ? 'Connect your accounts securely via official authorization.'
+                                    : "Enable Sakha Bodhi's Playwright/Browser agents. Credentials are encrypted and stored securely."}
+                            </p>
+
+                            <div className={styles.integrationGrid}>
+                                {filteredTools.map((tool) => {
+                                    const connected =
+                                        tool.category === 'oauth'
+                                            ? integrations.oauth[tool.key as OAuthToolKey]?.connected
+                                            : integrations.vault[tool.key as VaultToolKey]?.connected;
+
+                                    return (
+                                        <div key={tool.key} className={styles.integrationItem}>
+                                            <div className={styles.integrationItemHead}>
+                                                <div>
+                                                    <h4>{tool.label}</h4>
+                                                    <p>{tool.subtitle}</p>
+                                                </div>
+                                                {connected ? (
+                                                    <span className={styles.integrationConnected}><CheckCircle2 size={14} /> Connected</span>
+                                                ) : (
+                                                    <span className={styles.integrationDisconnected}>Not Connected</span>
+                                                )}
+                                            </div>
+
+                                            <div className={styles.integrationActions}>
+                                                {tool.category === 'oauth' ? (
+                                                    <>
+                                                        <button
+                                                            className={styles.integrationActionPrimary}
+                                                            onClick={() => handleOAuthAction(tool)}
+                                                        >
+                                                            <Link2 size={14} />
+                                                            {connected ? 'Disconnect' : 'Connect'}
+                                                        </button>
+                                                        {!connected && (
+                                                            <span className={styles.integrationHint}>
+                                                                Redirects to OAuth flow <ExternalLink size={12} />
+                                                            </span>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            className={styles.integrationActionPrimary}
+                                                            onClick={() => openVaultModal(tool.key as VaultToolKey)}
+                                                        >
+                                                            <LockKeyhole size={14} />
+                                                            {connected ? 'Update Vault' : 'Connect Vault'}
+                                                        </button>
+                                                        {connected && (
+                                                            <button
+                                                                className={styles.integrationActionGhost}
+                                                                onClick={() => setVaultConnection(tool.key as VaultToolKey, false)}
+                                                            >
+                                                                Disconnect
+                                                            </button>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {isVaultModalOpen && activeVaultTool && (
+                    <motion.div
+                        className={styles.vaultOverlay}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <motion.div
+                            className={styles.vaultModal}
+                            initial={{ opacity: 0, y: 20, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 20, scale: 0.98 }}
+                        >
+                            <div className={styles.vaultModalHeader}>
+                                <h3>Secure Vault Setup · {activeVaultTool.toUpperCase()}</h3>
+                                <button className={styles.integrationCloseBtn} onClick={closeVaultModal}>
+                                    <X size={16} />
+                                </button>
+                            </div>
+
+                            <label className={styles.vaultFieldLabel}>Username / Email</label>
+                            <input
+                                className={styles.vaultInput}
+                                value={vaultForm.username}
+                                onChange={(e) => setVaultForm((p) => ({ ...p, username: e.target.value }))}
+                                placeholder="Enter account username"
+                            />
+
+                            <label className={styles.vaultFieldLabel}>Password</label>
+                            <input
+                                className={styles.vaultInput}
+                                type="password"
+                                value={vaultForm.password}
+                                onChange={(e) => setVaultForm((p) => ({ ...p, password: e.target.value }))}
+                                placeholder="Enter password"
+                            />
+
+                            <label className={styles.vaultCheckboxRow}>
+                                <input
+                                    type="checkbox"
+                                    checked={vaultForm.otpRealtime}
+                                    onChange={(e) => setVaultForm((p) => ({ ...p, otpRealtime: e.target.checked }))}
+                                />
+                                Bodhi will ask for OTP in real-time when executing a task
+                            </label>
+
+                            <label className={styles.vaultFieldLabel}>Execution Notes (Optional)</label>
+                            <textarea
+                                className={styles.vaultTextarea}
+                                value={vaultForm.notes}
+                                onChange={(e) => setVaultForm((p) => ({ ...p, notes: e.target.value }))}
+                                placeholder="Any login nuances, preferred flow, or 2FA notes"
+                            />
+
+                            <div className={styles.vaultActions}>
+                                <button className={styles.integrationActionGhost} onClick={closeVaultModal} disabled={vaultSaving}>
+                                    Cancel
+                                </button>
+                                <button className={styles.integrationActionPrimary} onClick={handleVaultSubmit} disabled={vaultSaving}>
+                                    {vaultSaving ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
+                                    {vaultSaving ? 'Encrypting...' : 'Save Encrypted Vault'}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </>
     );
 }

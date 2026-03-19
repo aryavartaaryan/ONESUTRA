@@ -20,9 +20,12 @@ import EphemeralGreeting from '@/components/HomePage/EphemeralGreeting';
 import StickyTopNav from '@/components/HomePage/StickyTopNav';
 import MagicSyncModule from '@/components/Dashboard/MagicSyncModule';
 import DailyInsightsCarousel from '@/components/Dashboard/DailyInsightsCarousel';
+import BrahmastraFocusCard from '@/components/Dashboard/BrahmastraFocusCard';
 import { useTimeOfDay } from '@/hooks/useTimeOfDay';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { useDailyTasks } from '@/hooks/useDailyTasks';
+import { useEnergyProtector } from '@/hooks/useEnergyProtector';
+import { useBrahmastraState } from '@/hooks/useBrahmastraState';
 
 import { useLanguage } from '@/context/LanguageContext';
 import homeStyles from './vedic-home.module.css';
@@ -99,6 +102,25 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSakhaActive, setIsSakhaActive] = useState(false);
   const [isAudioUnlocked, setIsAudioUnlocked] = useState(false);
+  const [showBreakNotice, setShowBreakNotice] = useState(false);
+
+  const brahmastraState = useBrahmastraState(userId);
+
+  useEnergyProtector({
+    enabled: hasStarted,
+    onBreakSuggested: () => {
+      setShowBreakNotice(true);
+      unlockAudio();
+      setIsSakhaActive(true);
+    },
+    voiceInterrupt: true,
+  });
+
+  useEffect(() => {
+    if (!showBreakNotice) return;
+    const t = setTimeout(() => setShowBreakNotice(false), 10000);
+    return () => clearTimeout(t);
+  }, [showBreakNotice]);
 
 
 
@@ -235,6 +257,33 @@ export default function Home() {
 
       <main className={dashStyles.dashboardPage} style={{ position: 'relative', zIndex: 2, background: 'transparent' }}>
 
+        {showBreakNotice && (
+          <motion.div
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.35 }}
+            style={{
+              position: 'fixed',
+              top: 14,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 1200,
+              padding: '10px 14px',
+              borderRadius: 999,
+              background: 'rgba(18, 37, 31, 0.92)',
+              border: '1px solid rgba(252, 201, 120, 0.35)',
+              color: 'rgba(255, 241, 214, 0.96)',
+              fontSize: 13,
+              letterSpacing: '0.02em',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+              backdropFilter: 'blur(6px)',
+            }}
+          >
+            Energy Protector: 2-hour focus complete. Sakha recommends a mindful 5-minute break.
+          </motion.div>
+        )}
+
         {/* ══ FIXED TOP NAV ══ */}
         <StickyTopNav />
 
@@ -242,6 +291,24 @@ export default function Home() {
         <div style={{ marginTop: '1.25rem' }}>
           <DailyInsightsCarousel />
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          style={{ marginTop: '1rem' }}
+        >
+          <BrahmastraFocusCard
+            active={brahmastraState.active}
+            focusWindowMinutes={brahmastraState.focusWindowMinutes}
+            impactedMeetings={brahmastraState.impactedMeetings}
+            subtitle={
+              brahmastraState.reason
+                ? `Current mantra: ${brahmastraState.reason}`
+                : 'Silence the noise. Guard the inner fire.'
+            }
+          />
+        </motion.div>
 
         {/* ══ TIME-BASED LAYOUT ENGINE ══
             Morning & Evening (meditation hours): LeelaCard elevated above Sync Engine
