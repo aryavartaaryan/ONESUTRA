@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import styles from './DailyInsights.module.css';
 
@@ -64,6 +64,15 @@ export default function DailyInsights() {
         handleSwipe(e.clientX - startX.current);
     }, [active, cards.length]);
 
+    // Auto-slide: move cards one-by-one towards left continuously.
+    useEffect(() => {
+        const autoTimer = window.setInterval(() => {
+            setActive((prev) => (prev + 1) % cards.length);
+        }, 2600);
+
+        return () => window.clearInterval(autoTimer);
+    }, [cards.length]);
+
     return (
         <div className={styles.wrapper}>
             {/* Header row */}
@@ -87,7 +96,7 @@ export default function DailyInsights() {
                 <motion.div
                     className={styles.rail}
                     animate={{ x: `calc(-${active} * (var(--card-w) + 0.75rem))` }}
-                    transition={{ type: 'spring', stiffness: 280, damping: 30 }}
+                    transition={{ duration: 0.55, ease: 'easeOut' }}
                 >
                     {cards.map((c, i) => (
                         <div key={i} className={`${styles.card} ${i === active ? styles.cardActive : ''}`}>

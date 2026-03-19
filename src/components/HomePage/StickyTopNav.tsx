@@ -103,25 +103,38 @@ export default function StickyTopNav({ totalUnread = 0 }: StickyTopNavProps) {
                 }}
             />
             {/* Wordmark */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, position: 'relative', zIndex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, position: 'relative', zIndex: 1 }}>
+                <span
+                    style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: '50%',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        overflow: 'hidden',
+                        border: '1px solid rgba(255, 214, 130, 0.46)',
+                        background: 'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.26), rgba(255,206,107,0.12))',
+                        boxShadow: '0 0 12px rgba(245, 158, 11, 0.28), inset 0 1px 0 rgba(255,255,255,0.16)',
+                    }}
+                >
+                    <img
+                        src="/images/pranav.png"
+                        alt="Pranav"
+                        style={{ width: '88%', height: '88%', objectFit: 'contain' }}
+                    />
+                </span>
                 <span style={{
                     fontFamily: "'Playfair Display', Georgia, serif",
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    color: 'rgba(255,255,255,0.94)',
-                    textShadow: '0 2px 12px rgba(0,0,0,0.32)',
+                    fontSize: '1.02rem',
+                    fontWeight: 800,
+                    letterSpacing: '0.02em',
+                    background: 'linear-gradient(95deg, #fff4cf 10%, #f7d88a 52%, #f7efe0 96%)',
+                    WebkitBackgroundClip: 'text',
+                    backgroundClip: 'text',
+                    color: 'transparent',
+                    textShadow: '0 2px 12px rgba(0,0,0,0.18)',
                 }}>OneSUTRA</span>
-                <span style={{
-                    fontSize: '0.45rem',
-                    letterSpacing: '0.2em',
-                    textTransform: 'uppercase',
-                    color: 'rgba(255, 228, 163, 0.72)',
-                    fontFamily: 'monospace',
-                    padding: '0.16rem 0.36rem',
-                    borderRadius: 999,
-                    border: '1px solid rgba(255, 214, 130, 0.34)',
-                    background: 'rgba(255, 206, 107, 0.1)',
-                }}>Pranav.AI</span>
             </div>
 
             {/* Nav links */}

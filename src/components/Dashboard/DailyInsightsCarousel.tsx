@@ -192,6 +192,8 @@ export default function DailyInsightsCarousel() {
     const seed = getTodaySeed();
     const today = new Date();
     const festival = getTodayFestival(today);
+    const [isMobile, setIsMobile] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(0);
 
     // Ordered wisdom cards (stable daily rotation)
     const orderedWisdom = [
@@ -202,6 +204,31 @@ export default function DailyInsightsCarousel() {
     // Panchang goes in the second block (index 1 visually)
     const firstWisdom = orderedWisdom[0];
     const restWisdom = orderedWisdom.slice(1);
+    const totalSlides = (firstWisdom ? 1 : 0) + 1 + restWisdom.length;
+
+    useEffect(() => {
+        const updateViewport = () => {
+            setIsMobile(window.matchMedia('(max-width: 820px)').matches);
+        };
+
+        updateViewport();
+        window.addEventListener('resize', updateViewport);
+        return () => window.removeEventListener('resize', updateViewport);
+    }, []);
+
+    useEffect(() => {
+        if (!isMobile || totalSlides <= 1) return;
+
+        const timer = window.setInterval(() => {
+            setActiveIndex((prev) => (prev + 1) % totalSlides);
+        }, 3000);
+
+        return () => window.clearInterval(timer);
+    }, [isMobile, totalSlides]);
+
+    useEffect(() => {
+        if (activeIndex >= totalSlides) setActiveIndex(0);
+    }, [activeIndex, totalSlides]);
 
     return (
         <section aria-label="Daily Insights" style={{ padding: '0 0 0.5rem' }}>
@@ -216,23 +243,63 @@ export default function DailyInsightsCarousel() {
                 )}
             </div>
 
-            {/* Scrollable track */}
-            <div style={{ display: 'flex', gap: '0.85rem', overflowX: 'auto', paddingLeft: '1rem', paddingRight: '1rem', paddingBottom: '0.5rem', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
-                className="hide-scrollbar">
+            {/* Mobile: auto slider with dots */}
+            {isMobile ? (
+                <>
+                    <div className={styles.mobileViewport}>
+                        <motion.div
+                            className={styles.mobileRail}
+                            animate={{ x: `-${activeIndex * 100}%` }}
+                            transition={{ duration: 0.55, ease: 'easeOut' }}
+                        >
+                            {firstWisdom && (
+                                <div className={styles.mobileSlide}>
+                                    <WisdomCard card={firstWisdom} bg={firstWisdom.bg} delay={0} />
+                                </div>
+                            )}
 
-                {/* 1. First Wisdom card */}
-                {firstWisdom && (
-                    <WisdomCard card={firstWisdom} bg={firstWisdom.bg} delay={0} />
-                )}
+                            <div className={styles.mobileSlide}>
+                                <PanchangCard bg="rgba(251,191,36,0.12)" festival={festival} delay={0.07} />
+                            </div>
 
-                {/* 2. Panchang card — placed SECOND */}
-                <PanchangCard bg="rgba(251,191,36,0.12)" festival={festival} delay={0.07} />
+                            {restWisdom.map((card, i) => (
+                                <div key={card.transliteration} className={styles.mobileSlide}>
+                                    <WisdomCard card={card} bg={card.bg} delay={(i + 2) * 0.07} />
+                                </div>
+                            ))}
+                        </motion.div>
+                    </div>
 
-                {/* 3. The rest of the Wisdom cards */}
-                {restWisdom.map((card, i) => (
-                    <WisdomCard key={card.transliteration} card={card} bg={card.bg} delay={(i + 2) * 0.07} />
-                ))}
-            </div>
+                    <div className={styles.mobileDots}>
+                        {Array.from({ length: totalSlides }).map((_, idx) => (
+                            <button
+                                key={idx}
+                                className={`${styles.mobileDot} ${idx === activeIndex ? styles.mobileDotActive : ''}`}
+                                onClick={() => setActiveIndex(idx)}
+                                aria-label={`Go to insight ${idx + 1}`}
+                            />
+                        ))}
+                    </div>
+                </>
+            ) : (
+                <div
+                    style={{ display: 'flex', gap: '0.85rem', overflowX: 'auto', paddingLeft: '1rem', paddingRight: '1rem', paddingBottom: '0.5rem', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
+                    className="hide-scrollbar"
+                >
+                    {/* 1. First Wisdom card */}
+                    {firstWisdom && (
+                        <WisdomCard card={firstWisdom} bg={firstWisdom.bg} delay={0} />
+                    )}
+
+                    {/* 2. Panchang card — placed SECOND */}
+                    <PanchangCard bg="rgba(251,191,36,0.12)" festival={festival} delay={0.07} />
+
+                    {/* 3. The rest of the Wisdom cards */}
+                    {restWisdom.map((card, i) => (
+                        <WisdomCard key={card.transliteration} card={card} bg={card.bg} delay={(i + 2) * 0.07} />
+                    ))}
+                </div>
+            )}
         </section>
     );
 }
