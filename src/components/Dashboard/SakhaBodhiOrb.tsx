@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSakhaConversation, type DayPhase } from '@/hooks/useSakhaConversation';
 import { type TaskItem } from '@/hooks/useDailyTasks';
+import AgenticWebView from '@/components/AgenticWebView';
 import styles from './SakhaBodhiOrb.module.css';
 
 // ─── Phase meta ───────────────────────────────────────────────────────────────
@@ -65,6 +66,8 @@ export default function SakhaBodhiOrb({
         sakhaState,
         phase,
         micVolume,
+        webViewAction,
+        closeWebView,
         activate,
         deactivate,
     } = useSakhaConversation({
@@ -102,6 +105,24 @@ export default function SakhaBodhiOrb({
                 sakhaState === 'speaking' ? 'Speaking' : '';
 
     const showLiveDot = sakhaState === 'listening' || sakhaState === 'speaking';
+
+    const isWebViewOpen = Boolean(webViewAction?.action === 'OPEN_WEBVIEW' && webViewAction.url);
+
+    const handleDismiss = () => {
+        deactivate();
+        // Keep component mounted while WebView is open so video/page continues.
+        if (!isWebViewOpen) {
+            onDismiss();
+        }
+    };
+
+    const handleWebViewClose = () => {
+        closeWebView();
+        // If Sakha is already dismissed, now we can safely unmount parent wrapper.
+        if (sakhaState === 'dismissed') {
+            onDismiss();
+        }
+    };
 
     // ── Blob scale driven by mic volume while listening ───────────────────────
     const listenBlobScale = sakhaState === 'listening' ? 1 + micVolume * 0.22 : 1;
@@ -153,15 +174,16 @@ export default function SakhaBodhiOrb({
                     sakhaState === 'speaking' ? 'speaking' : 'idle';
 
     return (
-        <AnimatePresence>
-            {sakhaState !== 'dismissed' && (
-                <motion.div
-                    className={styles.backdrop}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.45 }}
-                >
+        <>
+            <AnimatePresence>
+                {sakhaState !== 'dismissed' && (
+                    <motion.div
+                        className={styles.backdrop}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.45 }}
+                    >
                     {/* ── HIDDEN SVG — Goo filter definition ────────────────────── */}
                     <svg
                         style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}
@@ -335,14 +357,22 @@ export default function SakhaBodhiOrb({
                     {/* Subtitles intentional hidden from UI */}
 
                     {/* ── Dismiss button ────────────────────────────────────────── */}
-                    <button
-                        className={styles.dismissBtn}
-                        onClick={() => { deactivate(); onDismiss(); }}
-                    >
-                        Dismiss Sakha
-                    </button>
-                </motion.div>
-            )}
-        </AnimatePresence>
+                        <button
+                            className={styles.dismissBtn}
+                            onClick={handleDismiss}
+                        >
+                            Dismiss Sakha
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <AgenticWebView
+                isOpen={isWebViewOpen}
+                url={webViewAction?.url ?? ''}
+                title={webViewAction?.title}
+                onClose={handleWebViewClose}
+            />
+        </>
     );
 }

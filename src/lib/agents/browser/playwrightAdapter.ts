@@ -8,7 +8,9 @@ type BrowserChoice = {
 async function getPlaywrightOrNull() {
     const moduleName = 'playwright';
     try {
-        const mod = await import(moduleName);
+        // Keep playwright truly optional: avoid static bundler resolution.
+        const dynamicImporter = new Function('modulePath', 'return import(modulePath)') as (modulePath: string) => Promise<any>;
+        const mod = await dynamicImporter(moduleName);
         return mod;
     } catch {
         return null;

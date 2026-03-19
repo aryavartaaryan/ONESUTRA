@@ -63,7 +63,7 @@ export async function POST(req: Request) {
         // 4. Run Gemini 2.5 Flash to generate the personality summary
         if (!process.env.GEMINI_API_KEY) {
             console.warn('[Personality Agent] GEMINI_API_KEY missing');
-            return NextResponse.json({ error: 'Missing API Key' }, { status: 500 });
+            return NextResponse.json({ status: 'skipped', reason: 'missing_api_key' });
         }
 
         const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });

@@ -19,6 +19,12 @@ export interface SakhaMessage {
     timestamp: number;
 }
 
+export interface AgenticWebViewAction {
+    action: 'OPEN_WEBVIEW';
+    url: string;
+    title?: string;
+}
+
 interface UseSakhaConversationOptions {
     userName?: string;
     sankalpaItems: TaskItem[];
@@ -991,6 +997,7 @@ export function useSakhaConversation({
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [memories, setMemories] = useState<string[]>([]);
+    const [webViewAction, setWebViewAction] = useState<AgenticWebViewAction | null>(null);
 
     // Live Session Refs
     const sessionRef = useRef<Session | null>(null);
@@ -1652,6 +1659,23 @@ export function useSakhaConversation({
         }
     }, []);
 
+    const dismissForWebView = useCallback(() => {
+        const sessionTurns = sessionHistoryRef.current;
+        const currentUid = userIdRef.current;
+        if (currentUid && sessionTurns.length > 0) {
+            saveConversationHistory(currentUid, sessionTurns).catch(() => {
+                console.warn('[Bodhi] Failed to persist session history');
+            });
+        }
+        sessionHistoryRef.current = [];
+
+        cleanupAll();
+        setSakhaState('dismissed');
+        setIsListening(false);
+        setCurrentSentence('');
+        setMicVolume(0);
+    }, [cleanupAll]);
+
     // ── Activate Sakha (Start Live Session) ──────────────────────────────────────────────
     const activate = useCallback(async () => {
         try {
@@ -1665,6 +1689,7 @@ export function useSakhaConversation({
             sessionHistoryRef.current = [];
             fullTranscriptBufferRef.current = '';
             lastSavedUserTurnRef.current = { text: '', at: 0 };
+            setWebViewAction(null);
 
             // Re-eval time of day
             const h = new Date().getHours();
@@ -1934,7 +1959,7 @@ export function useSakhaConversation({
                             },
                             {
                                 name: 'web_travel_agent',
-                                description: 'Runs travel search workflow and returns Pay Now link candidate for user confirmation.',
+                                description: 'Runs travel search workflow and may return OPEN_WEBVIEW action with deep-link URL for final booking view.',
                                 parameters: {
                                     type: Type.OBJECT,
                                     properties: {
@@ -1956,13 +1981,41 @@ export function useSakhaConversation({
                             },
                             {
                                 name: 'ecom_assistant',
-                                description: 'Compares top-rated products for a query and prepares best option for cart action.',
+                                description: 'Finds best product choices and may return OPEN_WEBVIEW action with direct product URL for in-app checkout view.',
                                 parameters: {
                                     type: Type.OBJECT,
                                     properties: {
                                         query: {
                                             type: Type.STRING,
                                             description: 'Shopping intent, such as laptop stand, ayurvedic diffuser, ergonomic chair.',
+                                        },
+                                    },
+                                    required: ['query'],
+                                },
+                            },
+                            {
+                                name: 'ecom_concierge',
+                                description: 'Alias of ecom_assistant: returns best product shortlist and OPEN_WEBVIEW final page URL.',
+                                parameters: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        query: {
+                                            type: Type.STRING,
+                                            description: 'Shopping intent, such as laptop stand, ayurvedic diffuser, ergonomic chair.',
+                                        },
+                                    },
+                                    required: ['query'],
+                                },
+                            },
+                            {
+                                name: 'youtube_navigator',
+                                description: 'Finds a relevant YouTube video and returns OPEN_WEBVIEW URL for in-app playback.',
+                                parameters: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        query: {
+                                            type: Type.STRING,
+                                            description: 'Video search query, e.g. Data Science roadmap 2026, Python pandas tutorial.',
                                         },
                                     },
                                     required: ['query'],
@@ -2433,8 +2486,17 @@ export function useSakhaConversation({
 
                                         const notes = payload?.result?.notes ?? 'Travel scan completed.';
                                         const link = payload?.result?.payNowLink;
+                                        const viewAction = payload?.result?.webViewAction;
+                                        if (viewAction?.action === 'OPEN_WEBVIEW' && typeof viewAction.url === 'string') {
+                                            setWebViewAction({
+                                                action: 'OPEN_WEBVIEW',
+                                                url: viewAction.url,
+                                                title: viewAction.title ?? 'Travel Booking',
+                                            });
+                                            dismissForWebView();
+                                        }
                                         responseMessage = link
-                                            ? `Travel options are ready. Pay-now link: ${link}. Ask user for final confirmation before proceeding.`
+                                            ? `Sutradhar, I found your travel options. Opening final page now so you can complete booking.`
                                             : `${notes}`;
                                         console.log('[Bodhi SDK] ✅ web_travel_agent executed');
                                     } catch (e) {
@@ -2444,7 +2506,7 @@ export function useSakhaConversation({
                                 }
 
                                 // ── ecom_assistant (OneSUTRA agent layer) ──────────────────────
-                                if (fcName === 'ecom_assistant') {
+                                if (fcName === 'ecom_assistant' || fcName === 'ecom_concierge') {
                                     const currentUserId = userIdRef.current;
                                     try {
                                         if (!currentUserId) throw new Error('Not logged in');
@@ -2465,13 +2527,55 @@ export function useSakhaConversation({
                                         if (!res.ok) throw new Error(payload?.error || 'ecom_assistant failed');
 
                                         const best = payload?.result?.topChoices?.[0];
+                                        const viewAction = payload?.result?.webViewAction;
+                                        if (viewAction?.action === 'OPEN_WEBVIEW' && typeof viewAction.url === 'string') {
+                                            setWebViewAction({
+                                                action: 'OPEN_WEBVIEW',
+                                                url: viewAction.url,
+                                                title: viewAction.title ?? best?.title ?? 'Product Page',
+                                            });
+                                            dismissForWebView();
+                                        }
                                         responseMessage = best
-                                            ? `Best option found: ${best.title} (${best.priceText}, rating ${best.rating}). Present top 3 briefly and ask permission before cart action.`
+                                            ? `Sutradhar, I found the best option and opened the page now so you can complete purchase.`
                                             : payload?.result?.notes ?? 'Shopping shortlist prepared.';
                                         console.log('[Bodhi SDK] ✅ ecom_assistant executed');
                                     } catch (e) {
                                         responseMessage = `E-commerce assistant failed: ${e}. Tell user warmly and offer a refined query.`;
                                         console.warn('[Bodhi SDK] ecom_assistant failed:', e);
+                                    }
+                                }
+
+                                // ── youtube_navigator (Agentic WebView video flow) ─────────────
+                                if (fcName === 'youtube_navigator') {
+                                    try {
+                                        const query = String(fcArgs.query ?? '').trim();
+                                        if (!query) throw new Error('Missing query');
+
+                                        const res = await fetch('/api/agents/youtube-navigator', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ query }),
+                                        });
+
+                                        const payload = await res.json();
+                                        if (!res.ok) throw new Error(payload?.error || 'youtube_navigator failed');
+
+                                        const viewAction = payload?.result;
+                                        if (viewAction?.action === 'OPEN_WEBVIEW' && typeof viewAction.url === 'string') {
+                                            setWebViewAction({
+                                                action: 'OPEN_WEBVIEW',
+                                                url: viewAction.url,
+                                                title: viewAction.title ?? `${query} · YouTube`,
+                                            });
+                                            dismissForWebView();
+                                        }
+
+                                        responseMessage = 'Sutradhar, I found a strong video match and opened it now. Want me to queue 2 more options after this?';
+                                        console.log('[Bodhi SDK] ✅ youtube_navigator executed');
+                                    } catch (e) {
+                                        responseMessage = `YouTube navigator failed: ${e}. Ask user for a sharper query (topic + level + language).`;
+                                        console.warn('[Bodhi SDK] youtube_navigator failed:', e);
                                     }
                                 }
 
@@ -2792,7 +2896,7 @@ export function useSakhaConversation({
             setSakhaState('error');
             cleanupAll();
         }
-    }, [cleanupAll, float32ToBase64PCM, base64PCMToFloat32, enqueueAudio, userName, executeToolCalls]);
+    }, [cleanupAll, float32ToBase64PCM, base64PCMToFloat32, enqueueAudio, userName, executeToolCalls, dismissForWebView]);
 
 
     // ── Deactivate Sakha ───────────────────────────────────────────────────────
@@ -2814,6 +2918,10 @@ export function useSakhaConversation({
         setMicVolume(0);
     }, [cleanupAll]);
 
+    const closeWebView = useCallback(() => {
+        setWebViewAction(null);
+    }, []);
+
     // ── Also capture user's spoken input into session history ─────────────────
     // We hook into the history state changes to also track user turns.
     // Since Gemini Live API doesn't give us transcripts of user speech by default,
@@ -2826,6 +2934,8 @@ export function useSakhaConversation({
         history,
         micVolume,
         isListening,
+        webViewAction,
+        closeWebView,
         activate,
         deactivate,
         error

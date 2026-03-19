@@ -23,6 +23,11 @@ export async function webTravelAgentTool(
             provider,
             payNowLink,
             notes: `Live browser execution completed for ${provider}. Pay Now link captured and ready for confirmation.`,
+            webViewAction: {
+                action: 'OPEN_WEBVIEW',
+                url: payNowLink,
+                title: `${provider} · Final Booking`,
+            },
         };
     }
 

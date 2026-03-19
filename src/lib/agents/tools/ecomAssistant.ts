@@ -11,11 +11,19 @@ export async function ecomAssistantTool(
 ): Promise<EcomAssistantResult> {
     const liveChoices = await findAmazonTopChoices(args.query);
     if (liveChoices && liveChoices.length > 0) {
+        const selected = liveChoices[0];
         return {
             topChoices: liveChoices,
             selectedChoiceIndex: 0,
             cartAction: 'simulated',
-            notes: 'Live browser shortlist generated from Amazon search results. Cart action remains simulated for safety.',
+            notes: 'Live browser shortlist generated from Amazon search results. Opening best match for final user checkout.',
+            webViewAction: selected?.productUrl
+                ? {
+                    action: 'OPEN_WEBVIEW',
+                    url: selected.productUrl,
+                    title: selected.title,
+                }
+                : undefined,
         };
     }
 
@@ -41,10 +49,17 @@ export async function ecomAssistantTool(
         },
     ];
 
+    const fallbackUrl = `https://www.amazon.in/s?k=${base}`;
+
     return {
         topChoices,
         selectedChoiceIndex: 0,
         cartAction: 'simulated',
-        notes: 'Fallback shortlist used. Enable browser tools with Playwright for live search extraction.',
+        notes: 'Fallback shortlist used. Opening Amazon search results in WebView so user can proceed manually.',
+        webViewAction: {
+            action: 'OPEN_WEBVIEW',
+            url: fallbackUrl,
+            title: `${args.query} · Amazon Search`,
+        },
     };
 }

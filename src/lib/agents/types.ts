@@ -108,6 +108,11 @@ export interface WebTravelAgentResult {
     provider: 'Yatra' | 'IRCTC' | 'unavailable';
     payNowLink: string | null;
     notes: string;
+    webViewAction?: {
+        action: 'OPEN_WEBVIEW';
+        url: string;
+        title?: string;
+    };
 }
 
 export interface EcomAssistantRequest {
@@ -125,6 +130,11 @@ export interface EcomAssistantResult {
     selectedChoiceIndex: number;
     cartAction: 'added' | 'simulated';
     notes: string;
+    webViewAction?: {
+        action: 'OPEN_WEBVIEW';
+        url: string;
+        title?: string;
+    };
 }
 
 export interface GitHubManagerRequest {
