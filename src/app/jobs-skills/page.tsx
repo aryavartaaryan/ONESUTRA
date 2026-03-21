@@ -8,7 +8,6 @@ import {
     BookOpen, Users, Zap,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useCircadianBackground } from '@/hooks/useCircadianBackground';
 import { useLanguage } from '@/context/LanguageContext';
 
 // ─── Job Categories ────────────────────────────────────────────────────────────
@@ -58,7 +57,6 @@ const SKILL_COURSES = [
 
 export default function JobsSkillsPage() {
     const { lang } = useLanguage();
-    const { imageUrl: bgUrl } = useCircadianBackground();
     const [activeTab, setActiveTab] = useState<'jobs' | 'skills'>('jobs');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -81,10 +79,23 @@ export default function JobsSkillsPage() {
     return (
         <div style={{
             minHeight: '100vh',
-            background: bgUrl ? `url(${bgUrl}) center / cover no-repeat` : 'linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 50%, #0a1628 100%)',
+            position: 'relative',
+            overflow: 'hidden',
+            background: [
+                'radial-gradient(circle at 18% 12%, rgba(14,165,233,0.22) 0%, transparent 42%)',
+                'radial-gradient(circle at 84% 24%, rgba(251,191,36,0.16) 0%, transparent 36%)',
+                'radial-gradient(circle at 68% 82%, rgba(147,51,234,0.16) 0%, transparent 42%)',
+                'linear-gradient(145deg, #040714 0%, #0a1230 42%, #101737 72%, #050914 100%)',
+            ].join(', '),
             color: 'white',
             fontFamily: "'Inter', system-ui, sans-serif",
         }}>
+            <div style={{
+                position: 'absolute', inset: 0,
+                background: 'linear-gradient(180deg, rgba(2,6,23,0.52) 0%, rgba(2,6,23,0.66) 100%)',
+                pointerEvents: 'none',
+            }} />
+
             {/* ── Header ── */}
             <div style={{
                 position: 'sticky', top: 0, zIndex: 100,
@@ -103,17 +114,17 @@ export default function JobsSkillsPage() {
                         <Briefcase size={22} style={{ color: '#60A5FA' }} />
                     </motion.div>
                     <div>
-                        <h1 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, fontFamily: "'Playfair Display', serif", color: 'rgba(255,255,255,0.95)' }}>
+                        <h1 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, fontFamily: "'Playfair Display', serif", color: 'rgba(255,255,255,0.97)', textShadow: '0 0 14px rgba(147,197,253,0.35)' }}>
                             {lang === 'hi' ? 'नौकरी और कौशल' : 'Jobs & Skills'}
                         </h1>
-                        <p style={{ margin: 0, fontSize: '0.5rem', color: 'rgba(96,165,250,0.8)', letterSpacing: '0.22em', textTransform: 'uppercase', fontFamily: 'monospace' }}>
+                        <p style={{ margin: 0, fontSize: '0.5rem', color: 'rgba(147,197,253,0.92)', letterSpacing: '0.22em', textTransform: 'uppercase', fontFamily: 'monospace', textShadow: '0 0 10px rgba(96,165,250,0.45)' }}>
                             {lang === 'hi' ? 'कर्म क्षेत्र' : 'Karma Kshetra'}
                         </p>
                     </div>
                 </div>
             </div>
 
-            <div style={{ maxWidth: 720, margin: '0 auto', padding: '1rem 1rem 6rem' }}>
+            <div style={{ maxWidth: 720, margin: '0 auto', padding: '1rem 1rem 6rem', position: 'relative', zIndex: 1 }}>
 
                 {/* ── Search Bar ── */}
                 <div style={{ position: 'relative', marginBottom: '1.2rem' }}>
@@ -204,8 +215,9 @@ export default function JobsSkillsPage() {
                             {/* ── Job Listings ── */}
                             <h3 style={{
                                 fontSize: '0.75rem', fontWeight: 600,
-                                color: 'rgba(255,255,255,0.45)', letterSpacing: '0.15em',
+                                color: 'rgba(196,181,253,0.9)', letterSpacing: '0.15em',
                                 textTransform: 'uppercase', fontFamily: 'monospace',
+                                textShadow: '0 0 10px rgba(167,139,250,0.3)',
                                 marginBottom: '0.8rem',
                             }}>
                                 {lang === 'hi' ? '✨ उपलब्ध अवसर' : '✨ Available Opportunities'}
@@ -229,7 +241,7 @@ export default function JobsSkillsPage() {
                                     >
                                         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
                                             <div>
-                                                <h4 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700, color: 'rgba(255,255,255,0.95)' }}>{job.title}</h4>
+                                                <h4 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700, color: 'rgba(255,255,255,0.97)', textShadow: '0 0 12px rgba(148,163,184,0.25)' }}>{job.title}</h4>
                                                 <p style={{ margin: '0.2rem 0 0', fontSize: '0.75rem', color: job.color, fontWeight: 500 }}>{job.company}</p>
                                             </div>
                                             <ChevronRight size={16} style={{ color: 'rgba(255,255,255,0.25)', flexShrink: 0, marginTop: 2 }} />
@@ -276,8 +288,9 @@ export default function JobsSkillsPage() {
                             {/* ── Skills / Courses ── */}
                             <h3 style={{
                                 fontSize: '0.75rem', fontWeight: 600,
-                                color: 'rgba(255,255,255,0.45)', letterSpacing: '0.15em',
+                                color: 'rgba(196,181,253,0.9)', letterSpacing: '0.15em',
                                 textTransform: 'uppercase', fontFamily: 'monospace',
+                                textShadow: '0 0 10px rgba(167,139,250,0.3)',
                                 marginBottom: '0.8rem',
                             }}>
                                 {lang === 'hi' ? '📚 कौशल विकास पाठ्यक्रम' : '📚 Skill Development Courses'}
@@ -309,7 +322,7 @@ export default function JobsSkillsPage() {
                                                 <course.icon size={20} style={{ color: course.color }} />
                                             </div>
                                             <div style={{ flex: 1, minWidth: 0 }}>
-                                                <h4 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 700, color: 'rgba(255,255,255,0.95)' }}>{course.title}</h4>
+                                                <h4 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 700, color: 'rgba(255,255,255,0.97)', textShadow: '0 0 12px rgba(148,163,184,0.25)' }}>{course.title}</h4>
                                                 <p style={{ margin: '0.15rem 0 0', fontSize: '0.72rem', color: 'rgba(255,255,255,0.5)' }}>
                                                     {lang === 'hi' ? 'प्रशिक्षक' : 'by'} {course.instructor}
                                                 </p>

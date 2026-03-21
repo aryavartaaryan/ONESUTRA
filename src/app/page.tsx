@@ -18,6 +18,7 @@ import SakhaBodhiOrb from '@/components/Dashboard/SakhaBodhiOrb';
 
 import EphemeralGreeting from '@/components/HomePage/EphemeralGreeting';
 import StickyTopNav from '@/components/HomePage/StickyTopNav';
+import StickyFeedbackButton from '@/components/StickyFeedbackButton';
 import MagicSyncModule from '@/components/Dashboard/MagicSyncModule';
 import DailyInsightsCarousel from '@/components/Dashboard/DailyInsightsCarousel';
 import BrahmastraFocusCard from '@/components/Dashboard/BrahmastraFocusCard';
@@ -453,6 +454,9 @@ export default function Home() {
       <VoiceCallModal isOpen={isCallModalOpen} onClose={() => setIsCallModalOpen(false)} />
       <AbountModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
       <UserProfile isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} userName={userName} />
+
+      {/* Sticky Feedback Button */}
+      <StickyFeedbackButton />
     </>
   );
 }

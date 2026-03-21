@@ -74,20 +74,39 @@ function getTodayFestival(date: Date): Festival | null {
 }
 
 // ── Wisdom cards ───────────────────────────────────────────────────────────────
-const WISDOM = [
-    { sanskrit: 'सर्वे भवन्तु सुखिनः', transliteration: 'Sarve Bhavantu Sukhinah', meaning: 'May all beings be happy. May all beings be free from illness.', emoji: '🪷', bg: 'rgba(214, 141, 58, 0.18)' },
-    { sanskrit: 'तत् त्वम् असि', transliteration: 'Tat Tvam Asi', meaning: 'Thou art That. Your true self is one with the universal consciousness.', emoji: '🌅', bg: 'rgba(100, 216, 203, 0.15)' },
-    { sanskrit: 'अहं ब्रह्मास्मि', transliteration: 'Aham Brahmasmi', meaning: 'I am Brahman — the infinite, the light, the divine itself.', emoji: '✨', bg: 'rgba(155, 140, 255, 0.15)' },
-    { sanskrit: 'योगः कर्मसु कौशलम्', transliteration: 'Yogaḥ Karmasu Kauśalam', meaning: 'Excellence in action is yoga. Do every task with your whole being.', emoji: '🌿', bg: 'rgba(90, 200, 130, 0.15)' },
-    { sanskrit: 'ॐ शान्तिः शान्तिः शान्तिः', transliteration: 'Om Shanti Shanti Shantih', meaning: 'Peace in body, peace in mind, peace in spirit.', emoji: '🕊️', bg: 'rgba(255, 255, 255, 0.12)' },
-    { sanskrit: 'प्राणायामो हि परमो धर्मः', transliteration: 'Prāṇāyāmo hi Paramo Dharmaḥ', meaning: 'Breath regulation is the highest virtue. Your breath is your anchor.', emoji: '🌬️', bg: 'rgba(214, 141, 58, 0.16)' },
+type WisdomItem = {
+    id: string;
+    sanskrit: string;
+    transliteration: string;
+    meaning: string;
+    emoji: string;
+    bg: string;
+};
+
+const FALLBACK_WISDOM: WisdomItem[] = [
+    { id: 'fallback-1', sanskrit: 'ॐ नमः शिवाय', transliteration: 'Om Namah Shivaya', meaning: 'I bow to Shiva, the auspicious inner self.', emoji: '🔱', bg: 'rgba(155, 140, 255, 0.16)' },
+    { id: 'fallback-2', sanskrit: 'ॐ गं गणपतये नमः', transliteration: 'Om Gam Ganapataye Namah', meaning: 'Salutations to Ganesha, remover of obstacles.', emoji: '🐘', bg: 'rgba(214, 141, 58, 0.18)' },
+    { id: 'fallback-3', sanskrit: 'हरे राम हरे राम', transliteration: 'Hare Rama Hare Rama', meaning: 'Invoke Rama for joy, dharma and calmness.', emoji: '🪔', bg: 'rgba(255, 175, 95, 0.16)' },
+    { id: 'fallback-4', sanskrit: 'हरे कृष्ण हरे कृष्ण', transliteration: 'Hare Krishna Hare Krishna', meaning: 'Chant Krishna naam for devotion and bliss.', emoji: '🦚', bg: 'rgba(100, 216, 203, 0.16)' },
+    { id: 'fallback-5', sanskrit: 'गायत्री मन्त्र', transliteration: 'Om Bhur Bhuvah Svaha', meaning: 'May divine light awaken our intellect.', emoji: '☀️', bg: 'rgba(251, 191, 36, 0.16)' },
+    { id: 'fallback-6', sanskrit: 'लोकाः समस्ताः सुखिनो भवन्तु', transliteration: 'Lokah Samastah Sukhino Bhavantu', meaning: 'May all beings everywhere be happy and free.', emoji: '🌍', bg: 'rgba(90, 200, 130, 0.15)' },
+    { id: 'fallback-7', sanskrit: 'ॐ त्र्यम्बकं यजामहे', transliteration: 'Maha Mrityunjaya Mantra', meaning: 'Healing, protection and fearless life force.', emoji: '🌿', bg: 'rgba(120, 198, 255, 0.15)' },
+    { id: 'fallback-8', sanskrit: 'ॐ श्रीं महालक्ष्म्यै नमः', transliteration: 'Om Shreem Mahalakshmyai Namah', meaning: 'Invoke Lakshmi for grace and abundance.', emoji: '✨', bg: 'rgba(255, 130, 190, 0.15)' },
 ];
 
-function getTodaySeed() {
-    const now = new Date();
-    return now.getFullYear() * 1000 + Math.floor(
-        (Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - Date.UTC(now.getFullYear(), 0, 0)) / 86400000
-    );
+const MANTRA_DECOR = [
+    { emoji: '🔱', bg: 'rgba(155, 140, 255, 0.16)' },
+    { emoji: '🪔', bg: 'rgba(255, 175, 95, 0.16)' },
+    { emoji: '🦚', bg: 'rgba(100, 216, 203, 0.16)' },
+    { emoji: '☀️', bg: 'rgba(251, 191, 36, 0.16)' },
+    { emoji: '🌿', bg: 'rgba(120, 198, 255, 0.15)' },
+    { emoji: '✨', bg: 'rgba(255, 130, 190, 0.15)' },
+    { emoji: '🙏', bg: 'rgba(90, 200, 130, 0.15)' },
+    { emoji: '🕉️', bg: 'rgba(214, 141, 58, 0.18)' },
+];
+
+function toTransliterationHint(deity: string) {
+    return deity.replace('Bhagavad Gita • ', '');
 }
 
 // ── Components ─────────────────────────────────────────────────────────────────
@@ -176,7 +195,7 @@ function PanchangCard({ bg, festival, delay = 0 }: { bg: string; festival: Festi
 }
 
 /** Wisdom / Sanskrit mantra card */
-function WisdomCard({ card, bg, delay = 0 }: { card: typeof WISDOM[0]; bg: string; delay?: number }) {
+function WisdomCard({ card, bg, delay = 0 }: { card: WisdomItem; bg: string; delay?: number }) {
     return (
         <InsightCard bg={bg} delay={delay}>
             <span style={{ fontSize: '1.6rem', display: 'block', marginBottom: '0.55rem', filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.35))' }}>{card.emoji}</span>
@@ -189,19 +208,16 @@ function WisdomCard({ card, bg, delay = 0 }: { card: typeof WISDOM[0]; bg: strin
 
 // ── Main export ────────────────────────────────────────────────────────────────
 export default function DailyInsightsCarousel() {
-    const seed = getTodaySeed();
     const today = new Date();
     const festival = getTodayFestival(today);
     const [isMobile, setIsMobile] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
+    const [wisdomCards, setWisdomCards] = useState<WisdomItem[]>(FALLBACK_WISDOM);
 
-    // Ordered wisdom cards (stable daily rotation)
-    const orderedWisdom = [
-        ...WISDOM.slice(seed % WISDOM.length),
-        ...WISDOM.slice(0, seed % WISDOM.length),
-    ];
+    // Live mantra cards from backend API (fallback to local list)
+    const orderedWisdom = wisdomCards;
 
-    // Panchang goes in the second block (index 1 visually)
+    // Panchang goes in the first block
     const firstWisdom = orderedWisdom[0];
     const restWisdom = orderedWisdom.slice(1);
     const totalSlides = (firstWisdom ? 1 : 0) + 1 + restWisdom.length;
@@ -214,6 +230,52 @@ export default function DailyInsightsCarousel() {
         updateViewport();
         window.addEventListener('resize', updateViewport);
         return () => window.removeEventListener('resize', updateViewport);
+    }, []);
+
+    useEffect(() => {
+        let active = true;
+
+        const fetchMantras = async () => {
+            try {
+                const response = await fetch('/api/mantra?count=7', { cache: 'no-store' });
+                if (!response.ok) return;
+
+                const data = await response.json();
+                const items = Array.isArray(data?.items) ? data.items : [data];
+
+                const mapped: WisdomItem[] = items
+                    .map((item: unknown, idx: number) => {
+                        const row = (item && typeof item === 'object') ? item as Record<string, unknown> : {};
+                        const decor = MANTRA_DECOR[idx % MANTRA_DECOR.length];
+                        const sanskrit = String(row.sanskrit || '').trim();
+                        const meaning = String(row.meaning || '').trim();
+                        const deity = String(row.deity || '').trim();
+
+                        if (!sanskrit) return null;
+
+                        return {
+                            id: `live-${idx}-${deity || 'mantra'}-${sanskrit.slice(0, 10)}`,
+                            sanskrit,
+                            transliteration: toTransliterationHint(deity || `Gita Verse ${idx + 1}`),
+                            meaning: meaning || 'Translation not available for this verse.',
+                            emoji: decor.emoji,
+                            bg: decor.bg,
+                        };
+                    })
+                    .filter(Boolean) as WisdomItem[];
+
+                if (active && mapped.length > 0) {
+                    setWisdomCards(mapped);
+                }
+            } catch {
+                // Keep fallback mantras silently when API is unavailable.
+            }
+        };
+
+        fetchMantras();
+        return () => {
+            active = false;
+        };
     }, []);
 
     useEffect(() => {
@@ -252,18 +314,18 @@ export default function DailyInsightsCarousel() {
                             animate={{ x: `-${activeIndex * 100}%` }}
                             transition={{ duration: 0.55, ease: 'easeOut' }}
                         >
+                            <div className={styles.mobileSlide}>
+                                <PanchangCard bg="rgba(251,191,36,0.12)" festival={festival} delay={0} />
+                            </div>
+
                             {firstWisdom && (
                                 <div className={styles.mobileSlide}>
-                                    <WisdomCard card={firstWisdom} bg={firstWisdom.bg} delay={0} />
+                                    <WisdomCard card={firstWisdom} bg={firstWisdom.bg} delay={0.07} />
                                 </div>
                             )}
 
-                            <div className={styles.mobileSlide}>
-                                <PanchangCard bg="rgba(251,191,36,0.12)" festival={festival} delay={0.07} />
-                            </div>
-
                             {restWisdom.map((card, i) => (
-                                <div key={card.transliteration} className={styles.mobileSlide}>
+                                <div key={card.id} className={styles.mobileSlide}>
                                     <WisdomCard card={card} bg={card.bg} delay={(i + 2) * 0.07} />
                                 </div>
                             ))}
@@ -286,17 +348,17 @@ export default function DailyInsightsCarousel() {
                     style={{ display: 'flex', gap: '0.85rem', overflowX: 'auto', paddingLeft: '1rem', paddingRight: '1rem', paddingBottom: '0.5rem', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
                     className="hide-scrollbar"
                 >
-                    {/* 1. First Wisdom card */}
-                    {firstWisdom && (
-                        <WisdomCard card={firstWisdom} bg={firstWisdom.bg} delay={0} />
-                    )}
+                    {/* 1. Panchang card */}
+                    <PanchangCard bg="rgba(251,191,36,0.12)" festival={festival} delay={0} />
 
-                    {/* 2. Panchang card — placed SECOND */}
-                    <PanchangCard bg="rgba(251,191,36,0.12)" festival={festival} delay={0.07} />
+                    {/* 2. First Wisdom card */}
+                    {firstWisdom && (
+                        <WisdomCard card={firstWisdom} bg={firstWisdom.bg} delay={0.07} />
+                    )}
 
                     {/* 3. The rest of the Wisdom cards */}
                     {restWisdom.map((card, i) => (
-                        <WisdomCard key={card.transliteration} card={card} bg={card.bg} delay={(i + 2) * 0.07} />
+                        <WisdomCard key={card.id} card={card} bg={card.bg} delay={(i + 2) * 0.07} />
                     ))}
                 </div>
             )}

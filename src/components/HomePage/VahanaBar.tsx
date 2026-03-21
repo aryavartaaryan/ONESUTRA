@@ -11,12 +11,8 @@ export default function VahanaBar() {
     const { lang } = useLanguage();
     const pathname = usePathname();
 
-    // 5 bottom items: Home | Sutra | Jobs & Skills | Acharya | PranaVIBEs
+    // 5 bottom items: Sutra | Jobs | Home | Acharya | PranaVIBEs
     const NAV = [
-        {
-            id: 'home', href: '/', Icon: Home,
-            label: lang === 'hi' ? 'गृह' : 'Home',
-        },
         {
             id: 'onesutra', href: '/onesutra', Icon: MessageCircle,
             label: lang === 'hi' ? 'सूत्र' : 'SUTRAConnect',
@@ -25,6 +21,10 @@ export default function VahanaBar() {
         {
             id: 'jobs', href: '/jobs-skills', Icon: Briefcase,
             label: lang === 'hi' ? 'नौकरी & कौशल' : 'Jobs & Skills',
+        },
+        {
+            id: 'home', href: '/', Icon: Home,
+            label: lang === 'hi' ? 'गृह' : 'Home',
         },
         {
             id: 'acharya', href: '/acharya-samvad', Icon: Mic,
@@ -56,6 +56,8 @@ export default function VahanaBar() {
             {NAV.map(({ id, href, Icon, label, ...rest }) => {
                 const isActive = (id === 'home' && pathname === '/') ||
                     (id !== 'home' && pathname.startsWith(href));
+                const isHome = id === 'home';
+                const isHomeActive = isHome && isActive;
                 const isAccent = 'accent' in rest && rest.accent;
                 return (
                     <Link key={id} href={href} style={{ textDecoration: 'none', flex: 1 }}>
@@ -65,18 +67,25 @@ export default function VahanaBar() {
                             style={{
                                 display: 'flex', flexDirection: 'column',
                                 alignItems: 'center', justifyContent: 'center',
-                                gap: 3, paddingBlock: '0.35rem',
-                                borderRadius: '1.25rem', position: 'relative',
+                                gap: 3, paddingBlock: isHomeActive ? '0.2rem' : '0.45rem',
+                                borderRadius: isHomeActive ? '50%' : '1.25rem', position: 'relative',
+                                transform: isHomeActive ? 'translateY(-12px)' : 'none',
+                                width: isHomeActive ? '60px' : '100%',
+                                height: isHomeActive ? '60px' : 'auto',
+                                margin: '0 auto',
                             }}
                         >
                             {isActive && (
-                                <motion.div
-                                    layoutId="vahana-active"
+                                <div
                                     style={{
-                                        position: 'absolute', inset: 0, borderRadius: '1.25rem',
-                                        background: 'rgba(255,255,255,0.08)',
+                                        position: 'absolute',
+                                        top: 0, right: 0, bottom: 0, left: 0,
+                                        borderRadius: isHomeActive ? '50%' : '1.25rem',
+                                        background: isHomeActive ? 'transparent' : 'rgba(255,255,255,0.08)',
+                                        boxShadow: isHomeActive ? 'none' : 'inset 0 1px 0 rgba(255,255,255,0.12)',
+                                        animation: isHomeActive ? 'home-glow-pulse 2.5s infinite ease-in-out' : 'none',
+                                        zIndex: 0
                                     }}
-                                    transition={{ type: 'spring', stiffness: 340, damping: 28 }}
                                 />
                             )}
                             {isAccent && (
@@ -87,22 +96,29 @@ export default function VahanaBar() {
                                 />
                             )}
                             <Icon
-                                size={19} strokeWidth={isActive ? 2.1 : 1.6}
+                                size={isHomeActive ? 22 : 19} strokeWidth={isActive ? 2.1 : 1.6}
                                 style={{
                                     color: isActive ? 'rgba(255,255,255,0.95)'
                                         : isAccent ? 'rgba(251,146,60,0.85)'
                                             : 'rgba(255,255,255,0.40)',
-                                    transition: 'color 0.25s', position: 'relative', zIndex: 1,
+                                    filter: isHomeActive
+                                        ? 'drop-shadow(0 0 5px rgba(251,191,36,0.6)) drop-shadow(0 0 10px rgba(56,189,248,0.4))'
+                                        : 'none',
+                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    position: 'relative', zIndex: 1,
+                                    marginTop: isHomeActive ? '3px' : '0'
                                 }}
                             />
                             <span style={{
-                                fontSize: 9.5, fontWeight: isActive ? 600 : 400,
+                                fontSize: isHomeActive ? 10.5 : 9.5, 
+                                fontWeight: isActive ? 600 : 400,
                                 fontFamily: 'system-ui, sans-serif',
                                 letterSpacing: isAccent ? '0.04em' : '0.01em',
-                                color: isActive ? 'rgba(255,255,255,0.88)'
+                                color: isActive ? 'rgba(255,255,255,0.95)'
                                     : isAccent ? 'rgba(251,146,60,0.78)'
                                         : 'rgba(255,255,255,0.34)',
-                                transition: 'color 0.25s', position: 'relative', zIndex: 1,
+                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                position: 'relative', zIndex: 1,
                             }}>{label}</span>
                         </motion.div>
                     </Link>

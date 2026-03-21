@@ -121,12 +121,11 @@ export default function StickyTopNav({ totalUnread = 0 }: StickyTopNavProps) {
             WebkitBackdropFilter: 'blur(22px) saturate(145%)',
             border: '1px solid rgba(255,255,255,0.16)',
             borderRadius: 18,
-            boxShadow: '0 14px 44px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+            animation: 'header-glow-pulse 3s infinite ease-in-out',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: '0.2rem',
-            overflow: 'hidden',
         }}>
             <style>{`
                 @media (max-width: 768px) {
