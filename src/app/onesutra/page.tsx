@@ -69,6 +69,18 @@ function fmtTime(ms: number): string {
     return new Date(ms).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 }
 
+function toMillisSafe(value: any): number {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (value?.toMillis) {
+        const ms = value.toMillis();
+        return Number.isFinite(ms) ? ms : 0;
+    }
+    if (value?.seconds) {
+        return (value.seconds * 1000) + Math.floor((value.nanoseconds ?? 0) / 1_000_000);
+    }
+    return 0;
+}
+
 // ── Date separator label ───────────────────────────────────────────────────────
 function dateSeparatorLabel(ms: number): string {
     const d = new Date(ms);
@@ -452,12 +464,65 @@ export default function OneSutraPage() {
 
             unsub = onSnapshot(doc(db, 'onesutra_users', user.uid), (snap) => {
                 if (snap.exists()) {
-                    setCurrentUserProfile({ uid: user.uid, ...snap.data() });
+                    const data = snap.data() as any;
+                    const lastSeenMs = toMillisSafe(data.lastSeen) || toMillisSafe(data.lastSeenServer);
+                    setCurrentUserProfile({
+                        uid: user.uid,
+                        ...data,
+                        lastSeen: lastSeenMs,
+                        online: Boolean(data.isOnline),
+                    });
                 }
             });
         };
         fetchProfile();
         return () => unsub && unsub();
+    }, [user?.uid]);
+
+    // ── Real online presence heartbeat for contact list dot ─────────────────
+    useEffect(() => {
+        if (!user?.uid || typeof window === 'undefined') return;
+
+        let active = true;
+        let timer: ReturnType<typeof setInterval> | null = null;
+
+        const writePresence = async (isOnline: boolean) => {
+            try {
+                const { getFirebaseFirestore } = await import('@/lib/firebase');
+                const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
+                const db = await getFirebaseFirestore();
+                await setDoc(doc(db, 'onesutra_users', user.uid), {
+                    isOnline,
+                    // Numeric ms is instantly readable across clients without Timestamp parsing ambiguity.
+                    lastSeen: Date.now(),
+                    lastSeenServer: serverTimestamp(),
+                }, { merge: true });
+            } catch {
+                // Ignore transient presence write failures.
+            }
+        };
+
+        const goOnline = () => { if (active) writePresence(true); };
+        const goOffline = () => { writePresence(false); };
+
+        goOnline();
+        timer = setInterval(goOnline, 30_000);
+
+        const onVisibility = () => {
+            if (document.visibilityState === 'visible') goOnline();
+            else goOffline();
+        };
+
+        window.addEventListener('visibilitychange', onVisibility);
+        window.addEventListener('beforeunload', goOffline);
+
+        return () => {
+            active = false;
+            if (timer) clearInterval(timer);
+            window.removeEventListener('visibilitychange', onVisibility);
+            window.removeEventListener('beforeunload', goOffline);
+            goOffline();
+        };
     }, [user?.uid]);
 
     // Listen for incoming call invites (ringing state)
@@ -639,7 +704,7 @@ export default function OneSutraPage() {
         isAI: false,
         isTelegram: false,
         statusLabel: 'oneSUTRA Member',
-        online: false,
+        online: Boolean((u as any).online),
         role: u.email ?? 'Member',
         joinedAt: (u as any).createdAt ?? Date.now(),
     }));
@@ -1051,11 +1116,11 @@ export default function OneSutraPage() {
                                     ? unreadCounts[(c as any).telegramPhone] || 0
                                     : 0;
 
-                                // Compatibility with existing code
-                                let unread = meta?.unreadCount ?? 0;
-                                if (isTgContact) {
-                                    unread = storeUnreadCount;
-                                }
+                                // Use source-of-truth unread counters.
+                                const baseUnread = meta?.unreadCount ?? 0;
+                                let unread = isTgContact
+                                    ? storeUnreadCount
+                                    : baseUnread;
 
                                 const hasLastMsg = (meta && meta.lastMessageText) || (isTgContact && storeLastMsg);
                                 const aiHandling = meta?.isAutoPilotActive && meta.lastMessageSenderId !== user?.uid;
@@ -1107,8 +1172,8 @@ export default function OneSutraPage() {
                                 const isAutoPilotChat = meta?.isAutoPilotActive ?? false;
                                 const isActive = activeContact?.uid === c.uid;
                                 const hasUnread = unread > 0 && !isActive;
-                                const isRecentlyActive = !!(c as any).lastSeen && (Date.now() - Number((c as any).lastSeen) < 5 * 60 * 1000);
-                                const showOnlineDot = !!c.online || isRecentlyActive;
+                                const unreadLabel = unread > 9 ? '9+' : String(unread);
+                                const showOnlineDot = !!c.online || (!!(c as any).lastSeen && (Date.now() - Number((c as any).lastSeen) < 45_000));
 
                                 // Last message time OR join date
                                 let lastMsgTime = meta?.lastMessageAt
@@ -1212,16 +1277,56 @@ export default function OneSutraPage() {
                                                 }}>{c.name}</span>
                                                 {c.isAI && <span style={{ fontSize: '0.44rem', padding: '0.06rem 0.32rem', background: `${accent}22`, border: `1px solid ${accent}44`, borderRadius: 999, color: accent, letterSpacing: '0.12em', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'monospace', flexShrink: 0 }}>AI</span>}
                                                 {isAutoPilotChat && !c.isAI && <span style={{ fontSize: '0.72rem', flexShrink: 0 }}>✨</span>}
-                                                {/* Timestamp OR join date — top right */}
-                                                {(lastMsgTime || joinDate) && (
-                                                    <span style={{
-                                                        fontSize: '0.6rem', flexShrink: 0, marginLeft: 'auto',
-                                                        color: hasUnread ? '#25D366' : joinDate ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.28)',
-                                                        fontFamily: 'monospace', letterSpacing: '0.02em',
-                                                        fontWeight: hasUnread ? 700 : 400,
+                                                {/* Timestamp + unread orb stack (right side) */}
+                                                {(lastMsgTime || joinDate || hasUnread) && (
+                                                    <div style={{
+                                                        marginLeft: 'auto',
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        alignItems: 'center',
+                                                        gap: 5,
+                                                        flexShrink: 0,
                                                     }}>
-                                                        {lastMsgTime || (joinDate ? `Joined ${joinDate}` : '')}
-                                                    </span>
+                                                        {(lastMsgTime || joinDate) && (
+                                                            <span style={{
+                                                                fontSize: '0.6rem',
+                                                                color: hasUnread ? 'rgba(214,232,255,0.92)' : joinDate ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.28)',
+                                                                fontFamily: 'monospace',
+                                                                letterSpacing: '0.02em',
+                                                                fontWeight: hasUnread ? 700 : 400,
+                                                            }}>
+                                                                {lastMsgTime || (joinDate ? `Joined ${joinDate}` : '')}
+                                                            </span>
+                                                        )}
+                                                        {hasUnread && (
+                                                            <motion.div
+                                                                initial={{ scale: 0.7, opacity: 0 }}
+                                                                animate={{ scale: 1, opacity: 1 }}
+                                                                transition={{ type: 'spring', stiffness: 360, damping: 18 }}
+                                                                style={{
+                                                                    width: 22,
+                                                                    height: 22,
+                                                                    borderRadius: '50%',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    background: 'radial-gradient(circle at 30% 30%, rgba(145,208,255,0.45) 0%, rgba(37,99,235,0.58) 58%, rgba(8,37,94,0.72) 100%)',
+                                                                    border: '1px solid rgba(170,220,255,0.42)',
+                                                                    backdropFilter: 'blur(8px) saturate(150%)',
+                                                                    WebkitBackdropFilter: 'blur(8px) saturate(150%)',
+                                                                    boxShadow: '0 0 12px rgba(37,99,235,0.85), 0 0 24px rgba(29,78,216,0.45), inset 0 1px 2px rgba(255,255,255,0.24)',
+                                                                    color: '#F8FCFF',
+                                                                    fontSize: '0.62rem',
+                                                                    fontWeight: 700,
+                                                                    lineHeight: 1,
+                                                                    letterSpacing: '-0.01em',
+                                                                    fontFamily: "'Inter', system-ui, sans-serif",
+                                                                }}
+                                                            >
+                                                                {unreadLabel}
+                                                            </motion.div>
+                                                        )}
+                                                    </div>
                                                 )}
                                                 {/* Telegram badge */}
                                                 {isTgContact && (
@@ -1256,27 +1361,6 @@ export default function OneSutraPage() {
                                             </p>
                                         </div>
 
-                                        {/* WhatsApp-style unread count badge */}
-                                        {hasUnread && (
-                                            <motion.div
-                                                initial={{ scale: 0, opacity: 0 }}
-                                                animate={{ scale: 1, opacity: 1 }}
-                                                transition={{ type: 'spring', stiffness: 380, damping: 18 }}
-                                                style={{
-                                                    minWidth: 22, height: 22,
-                                                    borderRadius: 999, flexShrink: 0,
-                                                    background: '#25D366',
-                                                    boxShadow: '0 2px 8px rgba(37,211,102,0.55)',
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    fontSize: '0.62rem', fontWeight: 800, color: '#ffffff',
-                                                    padding: '0 5px',
-                                                    letterSpacing: '-0.01em',
-                                                    fontFamily: 'system-ui, sans-serif',
-                                                }}
-                                            >
-                                                {unread > 99 ? '99+' : unread}
-                                            </motion.div>
-                                        )}
                                     </motion.div>
                                 );
                             })}
@@ -1353,7 +1437,7 @@ export default function OneSutraPage() {
                                                 <div style={{ width: 38, height: 38, borderRadius: '50%', border: `2px solid ${activeContact.aura}`, boxShadow: `0 0 14px ${activeContact.auraGlow}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', background: `radial-gradient(circle, ${activeContact.auraGlow}, rgba(0,0,0,0.4))`, overflow: 'hidden' }}>
                                                     {activeContact.photoURL?.trim() ? <img src={activeContact.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span>{activeContact.emoji ?? '🧘'}</span>}
                                                 </div>
-                                                {activeContact.online && <div style={{ position: 'absolute', bottom: 1, right: 1, width: 9, height: 9, borderRadius: '50%', background: '#44DD44', border: '2px solid rgba(6,4,18,1)' }} />}
+                                                {(remoteIsPresent || activeContact.online || (!!(activeContact as any).lastSeen && (Date.now() - Number((activeContact as any).lastSeen) < 45_000))) && <div style={{ position: 'absolute', bottom: 1, right: 1, width: 9, height: 9, borderRadius: '50%', background: '#44DD44', border: '2px solid rgba(6,4,18,1)' }} />}
                                             </div>
                                             <div style={{ flex: 1, minWidth: 0, marginRight: 4 }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -1362,8 +1446,13 @@ export default function OneSutraPage() {
                                                     {/* Telegram badge */}
                                                     {isTelegramChat && <span style={{ fontSize: '0.5rem', padding: '0.1rem 0.3rem', background: 'rgba(29,161,242,0.15)', border: '1px solid rgba(29,161,242,0.45)', borderRadius: 999, color: '#1DA1F2', letterSpacing: '0.1em', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'monospace' }}>TG</span>}
                                                 </div>
-                                                <p style={{ margin: 0, fontSize: '0.65rem', color: remoteIsPresent ? '#44DD44' : (activeContact.online ? '#44DD44' : 'rgba(255,255,255,0.35)'), fontFamily: 'monospace', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                    {remoteIsPresent ? 'present…' : (activeContact.isAI ? activeContact.statusLabel : (activeContact.lastSeen ? `Last seen ${new Date(activeContact.lastSeen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Offline'))}
+                                                <p style={{ margin: 0, fontSize: '0.65rem', color: (remoteIsPresent || activeContact.online || (!!(activeContact as any).lastSeen && (Date.now() - Number((activeContact as any).lastSeen) < 45_000))) ? '#44DD44' : 'rgba(255,255,255,0.35)', fontFamily: 'monospace', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    {remoteIsPresent ? 'present…' : (activeContact.isAI ? activeContact.statusLabel : (() => {
+                                                        const lastSeenMs = toMillisSafe((activeContact as any).lastSeen);
+                                                        return lastSeenMs > 0
+                                                            ? `Last seen ${new Date(lastSeenMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                                                            : 'Offline';
+                                                    })())}
                                                 </p>
                                             </div>
                                         </div>

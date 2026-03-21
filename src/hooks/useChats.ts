@@ -49,7 +49,11 @@ export function useChats(chatIds: string[], currentUserId: string | null): Map<s
                         if (!data) return;
 
                         const ts = data.lastMessage?.createdAt;
-                        const lastAt = ts?.toMillis ? ts.toMillis() : (ts?.seconds ? ts.seconds * 1000 : 0);
+                        const lastAt = ts?.toMillis
+                            ? ts.toMillis()
+                            : (ts?.seconds
+                                ? (ts.seconds * 1000) + Math.floor((ts.nanoseconds ?? 0) / 1_000_000)
+                                : 0);
 
                         const meta: ChatMeta = {
                             chatId,

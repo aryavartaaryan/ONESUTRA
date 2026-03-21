@@ -14,6 +14,7 @@ export interface SutraUser {
     photoURL?: string | null;
     email?: string | null;
     lastSeen?: number;
+    online?: boolean;
     bio?: string;
     items?: string[];
     username?: string;
@@ -67,16 +68,30 @@ export function useUsers(currentUserId: string | null) {
                 const q = query(usersRef, orderBy('name', 'asc'));
 
                 unsub = onSnapshot(q, (snap) => {
+                    const now = Date.now();
                     const all = snap.docs.map(d => {
                         const data = d.data();
                         const ts = data.lastSeen;
-                        const ms = ts?.toMillis ? ts.toMillis() : (ts?.seconds ? ts.seconds * 1000 : 0);
+                        const ms = typeof ts === 'number'
+                            ? ts
+                            : (ts?.toMillis
+                                ? ts.toMillis()
+                                : (ts?.seconds
+                                    ? (ts.seconds * 1000) + Math.floor((ts.nanoseconds ?? 0) / 1_000_000)
+                                    : 0));
+                        const hasExplicitOnline = typeof data.isOnline === 'boolean';
+                        const isFresh = ms > 0 && (now - ms) < 45_000;
+                        const isStaleForExplicit = ms > 0 && (now - ms) > 180_000;
+                        const isOnline = hasExplicitOnline
+                            ? (Boolean(data.isOnline) && !isStaleForExplicit)
+                            : isFresh;
                         return {
                             uid: data.uid ?? d.id,
                             name: data.name ?? 'Traveller',
                             photoURL: data.photoURL ?? null,
                             email: data.email ?? null,
                             lastSeen: ms,
+                            online: isOnline,
                             bio: data.bio ?? '',
                             interests: data.interests ?? [],
                             hobbies: data.hobbies ?? [],

@@ -35,6 +35,20 @@ export default function UserProfilePanel({ isOpen, onClose, user, currentUserId,
 
     if (!user) return null;
 
+    const lastSeenMs = (() => {
+        const raw: any = (user as any).lastSeen;
+        if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
+        if (raw?.toMillis) {
+            const ms = raw.toMillis();
+            return Number.isFinite(ms) ? ms : 0;
+        }
+        if (raw?.seconds) {
+            return (raw.seconds * 1000) + Math.floor((raw.nanoseconds ?? 0) / 1_000_000);
+        }
+        return 0;
+    })();
+    const isActiveNow = Boolean((user as any).online) || (lastSeenMs > 0 && (Date.now() - lastSeenMs < 60_000 * 5));
+
     const handleSave = async () => {
         if (!currentUserId) return;
         setIsSaving(true);
@@ -213,9 +227,9 @@ export default function UserProfilePanel({ isOpen, onClose, user, currentUserId,
 
                                 {/* Active Status */}
                                 <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px', background: 'rgba(255,255,255,0.05)', borderRadius: 999 }}>
-                                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: ((user as any).online || (user.lastSeen && (Date.now() - user.lastSeen < 60000 * 5))) ? '#44DD44' : 'rgba(255,255,255,0.3)', boxShadow: ((user as any).online || (user.lastSeen && (Date.now() - user.lastSeen < 60000 * 5))) ? '0 0 8px #44DD44' : 'none' }} />
+                                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: isActiveNow ? '#44DD44' : 'rgba(255,255,255,0.3)', boxShadow: isActiveNow ? '0 0 8px #44DD44' : 'none' }} />
                                     <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>
-                                        {((user as any).online || (user.lastSeen && (Date.now() - user.lastSeen < 60000 * 5))) ? 'Active Now' : user.lastSeen ? `Last seen ${new Date(user.lastSeen).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` : 'Offline'}
+                                        {isActiveNow ? 'Active Now' : lastSeenMs > 0 ? `Last seen ${new Date(lastSeenMs).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` : 'Offline'}
                                     </span>
                                 </div>
                             </div>

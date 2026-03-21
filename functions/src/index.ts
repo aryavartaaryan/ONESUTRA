@@ -54,8 +54,7 @@ export const onMessageCreated = functions.firestore.onDocumentCreated(
         // ── STEP A: Update lastMessage + increment unread count ────────────────────
         const chatSnap = await chatRef.get();
         const chatData = chatSnap.data() ?? {};
-        const currentUnread: number = chatData.unreadCounts?.[recipientId] ?? 0;
-        const newUnread = currentUnread + 1;
+        const approxNewUnread: number = (Number(chatData.unreadCounts?.[recipientId]) || 0) + 1;
 
         await chatRef.set({
             lastMessage: {
@@ -64,7 +63,7 @@ export const onMessageCreated = functions.firestore.onDocumentCreated(
                 senderName: msg.senderName ?? "Traveller",
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
             },
-            [`unreadCounts.${recipientId}`]: newUnread,
+            [`unreadCounts.${recipientId}`]: admin.firestore.FieldValue.increment(1),
             messageCount: admin.firestore.FieldValue.increment(1),
         }, { merge: true });
 
@@ -82,8 +81,8 @@ export const onMessageCreated = functions.firestore.onDocumentCreated(
             functions.logger.warn("Vibe classification failed", e);
         }
 
-        // ── STEP C: Tatva Snippet — only if newUnread > 2 ─────────────────────────
-        if (newUnread > 2) {
+        // ── STEP C: Tatva Snippet — only if unread is likely above threshold ───────
+        if (approxNewUnread > 2) {
             try {
                 const recentMsgs = await db
                     .collection(`onesutra_chats/${chatId}/messages`)

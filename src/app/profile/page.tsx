@@ -595,7 +595,7 @@ export default function ProfilePage() {
             };
 
             const encrypted = await encryptVaultPayload(user.uid, JSON.stringify(payload));
-            const credRef = doc(db, 'users', user.uid, 'integrations', 'vault_credentials', activeVaultTool);
+            const credRef = doc(db, 'users', user.uid, 'integrations', 'main', 'vault_credentials', activeVaultTool);
 
             await setDoc(
                 credRef,
