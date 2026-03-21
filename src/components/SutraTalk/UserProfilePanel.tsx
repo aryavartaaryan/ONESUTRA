@@ -40,15 +40,15 @@ export default function UserProfilePanel({ isOpen, onClose, user, currentUserId,
         setIsSaving(true);
         try {
             const { getFirebaseFirestore } = await import('@/lib/firebase');
-            const { doc, updateDoc } = await import('firebase/firestore');
+            const { doc, setDoc } = await import('firebase/firestore');
             const db = await getFirebaseFirestore();
             
-            await updateDoc(doc(db, 'onesutra_users', currentUserId), {
+            await setDoc(doc(db, 'onesutra_users', currentUserId), {
                 bio: editBio,
                 username: editUsername,
                 interests: editInterests,
                 hobbies: editHobbies
-            });
+            }, { merge: true });
             setIsEditing(false);
         } catch (error) {
             console.error('Error saving profile:', error);
@@ -87,6 +87,12 @@ export default function UserProfilePanel({ isOpen, onClose, user, currentUserId,
                             type="text"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
+                            onBlur={() => {
+                                if (input.trim()) {
+                                    addTag(values, setValues, input);
+                                    setInput('');
+                                }
+                            }}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                     e.preventDefault();
@@ -97,6 +103,16 @@ export default function UserProfilePanel({ isOpen, onClose, user, currentUserId,
                             placeholder={`Add ${label.toLowerCase()}... (Enter)`}
                             style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 12px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
                         />
+                        <button
+                            type="button"
+                            onClick={() => {
+                                addTag(values, setValues, input);
+                                setInput('');
+                            }}
+                            style={{ marginTop: 8, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, padding: '6px 10px', color: 'white', cursor: 'pointer', fontSize: '0.8rem' }}
+                        >
+                            Add
+                        </button>
                     </div>
                 ) : (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>

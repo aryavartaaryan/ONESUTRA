@@ -3,27 +3,62 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Radio, Flame, Globe, MessageCircle } from 'lucide-react';
+import { User, Plug, Flower2, Aperture, MessageCircle } from 'lucide-react';
 
-// ── Single nav link: icon + label with gold hover glow ────────────────────────
-function NavLink({ href, icon, label, badge }: { href: string; icon: React.ReactNode; label: string; badge?: number }) {
+type GlowTheme = 'gold' | 'blue' | 'green' | 'violet';
+
+const glowStyles = {
+    gold: {
+        bg: 'linear-gradient(145deg, rgba(255, 214, 130, 0.22), rgba(255, 140, 66, 0.15))',
+        border: 'rgba(255, 204, 112, 0.5)',
+        text: 'rgba(255, 236, 186, 0.98)',
+        shadow: '0 10px 24px rgba(245, 158, 11, 0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
+    },
+    blue: {
+        bg: 'linear-gradient(145deg, rgba(130, 214, 255, 0.22), rgba(66, 140, 255, 0.15))',
+        border: 'rgba(112, 204, 255, 0.5)',
+        text: 'rgba(186, 236, 255, 0.98)',
+        shadow: '0 10px 24px rgba(11, 158, 245, 0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
+    },
+    green: {
+        bg: 'linear-gradient(145deg, rgba(130, 255, 150, 0.22), rgba(66, 255, 100, 0.15))',
+        border: 'rgba(112, 255, 150, 0.5)',
+        text: 'rgba(186, 255, 200, 0.98)',
+        shadow: '0 10px 24px rgba(11, 245, 100, 0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
+    },
+    violet: {
+        bg: 'linear-gradient(145deg, rgba(180, 130, 255, 0.22), rgba(120, 66, 255, 0.15))',
+        border: 'rgba(180, 112, 255, 0.5)',
+        text: 'rgba(230, 186, 255, 0.98)',
+        shadow: '0 10px 24px rgba(140, 11, 245, 0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
+    }
+};
+
+// ── Single nav link: icon + label with specific theme hover glow ────────────────────────
+function NavLink({ href, icon, label, badge, className, theme = 'gold' }: { href: string; icon: React.ReactNode; label: string; badge?: number; className?: string; theme?: GlowTheme }) {
     const [hovered, setHovered] = useState(false);
+    const activeStyles = glowStyles[theme];
+    
     return (
         <Link
             href={href}
+            className={className ? `${className} nav-item` : "nav-item"}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
             style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '0 0.36rem', position: 'relative' }}
         >
             <span style={{
-                width: 31, height: 31, borderRadius: '50%',
+                width: 32, height: 32, borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 position: 'relative',
-                background: hovered ? 'linear-gradient(145deg, rgba(255, 214, 130, 0.2), rgba(255, 140, 66, 0.12))' : 'rgba(255,255,255,0.045)',
-                border: hovered ? '1px solid rgba(255, 204, 112, 0.45)' : '1px solid rgba(255,255,255,0.1)',
-                color: hovered ? 'rgba(255,236,186,0.98)' : 'rgba(255,255,255,0.66)',
-                boxShadow: hovered ? '0 10px 24px rgba(245, 158, 11, 0.28), inset 0 1px 0 rgba(255,255,255,0.22)' : 'inset 0 1px 0 rgba(255,255,255,0.08)',
-                transition: 'all 0.25s ease',
+                background: hovered ? activeStyles.bg : 'rgba(255,255,255,0.045)',
+                border: hovered ? `1px solid ${activeStyles.border}` : '1px solid rgba(255,255,255,0.1)',
+                color: hovered ? activeStyles.text : 'rgba(255,255,255,0.66)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                boxShadow: hovered ? activeStyles.shadow : 'inset 0 1px 0 rgba(255,255,255,0.08), 0 4px 6px rgba(0,0,0,0.2)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                transform: hovered ? 'scale(1.05)' : 'scale(1)',
             }}>
                 {icon}
                 {/* Unread badge */}
@@ -73,13 +108,13 @@ interface StickyTopNavProps {
 
 export default function StickyTopNav({ totalUnread = 0 }: StickyTopNavProps) {
     return (
-        <header style={{
+        <header className="mobile-header" style={{
             position: 'fixed',
             top: 10,
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 1000,
-            width: 'min(96vw, 1040px)',
+            width: 'min(98vw, 1040px)',
             padding: '0.62rem 0.9rem',
             background: 'linear-gradient(120deg, rgba(9, 15, 24, 0.56), rgba(14, 22, 36, 0.38))',
             backdropFilter: 'blur(22px) saturate(145%)',
@@ -90,9 +125,44 @@ export default function StickyTopNav({ totalUnread = 0 }: StickyTopNavProps) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: '0.5rem',
+            gap: '0.2rem',
             overflow: 'hidden',
         }}>
+            <style>{`
+                @media (max-width: 768px) {
+                    .desktop-only-link {
+                        display: none !important;
+                    }
+                    .mobile-header {
+                        padding: 0.4rem 0.2rem !important;
+                        width: 100vw !important;
+                        border-radius: 12px !important;
+                        top: 5px !important;
+                    }
+                    .mobile-nav-container {
+                        gap: 0 !important;
+                    }
+                    .nav-item {
+                        padding: 0 0.15rem !important;
+                    }
+                    .brand-text {
+                        font-size: 1.15rem !important;
+                        letter-spacing: 0.02em !important;
+                    }
+                    .brand-logo-container {
+                        width: 34px !important;
+                        height: 34px !important;
+                    }
+                }
+                @media (max-width: 380px) {
+                    .nav-item {
+                        padding: 0 0.05rem !important;
+                    }
+                    .nav-item span:last-child {
+                        font-size: 7.5px !important;
+                    }
+                }
+            `}</style>
             <div
                 aria-hidden
                 style={{
@@ -103,47 +173,51 @@ export default function StickyTopNav({ totalUnread = 0 }: StickyTopNavProps) {
                 }}
             />
             {/* Wordmark */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, position: 'relative', zIndex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0, position: 'relative', zIndex: 1 }}>
                 <span
+                    className="brand-logo-container"
                     style={{
-                        width: 36,
-                        height: 36,
+                        width: 40,
+                        height: 40,
                         borderRadius: '50%',
                         display: 'inline-flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         overflow: 'hidden',
-                        border: '1px solid rgba(255, 214, 130, 0.46)',
-                        background: 'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.26), rgba(255,206,107,0.12))',
-                        boxShadow: '0 0 12px rgba(245, 158, 11, 0.28), inset 0 1px 0 rgba(255,255,255,0.16)',
+                        border: '1.5px solid rgba(255, 214, 130, 0.65)',
+                        background: 'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.4), rgba(255,206,107,0.15))',
+                        boxShadow: '0 8px 24px rgba(245, 158, 11, 0.4), inset 0 2px 6px rgba(255,255,255,0.6), inset 0 -4px 8px rgba(0,0,0,0.5)',
+                        zIndex: 2,
                     }}
                 >
                     <img
                         src="/images/pranav.png"
                         alt="Pranav"
-                        style={{ width: '88%', height: '88%', objectFit: 'contain' }}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                 </span>
-                <span style={{
+                <span className="brand-text" style={{
                     fontFamily: "'Playfair Display', Georgia, serif",
-                    fontSize: '1.02rem',
+                    fontSize: '1.4rem',
                     fontWeight: 800,
-                    letterSpacing: '0.02em',
-                    background: 'linear-gradient(95deg, #fff4cf 10%, #f7d88a 52%, #f7efe0 96%)',
+                    letterSpacing: '0.04em',
+                    background: 'linear-gradient(135deg, #ffffff 0%, #ffe9a6 40%, #ffc640 100%)',
                     WebkitBackgroundClip: 'text',
                     backgroundClip: 'text',
                     color: 'transparent',
-                    textShadow: '0 2px 12px rgba(0,0,0,0.18)',
-                }}>OneSUTRA</span>
+                    filter: 'drop-shadow(0px 8px 12px rgba(0,0,0,0.8)) drop-shadow(0px 4px 20px rgba(245, 158, 11, 0.5)) drop-shadow(0px 2px 4px rgba(255, 214, 130, 0.6))',
+                    marginLeft: '2px',
+                    zIndex: 1,
+                }}>neSUTRA</span>
             </div>
 
             {/* Nav links */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', position: 'relative', zIndex: 1 }}>
-                <NavLink href="/profile" icon={<User size={12} strokeWidth={1.7} />} label="Profile" />
-                <NavLink href="/outplugs" icon={<Radio size={12} strokeWidth={1.7} />} label="outPLUGS" />
-                <NavLink href="/dhyan-kshetra" icon={<Flame size={12} strokeWidth={1.7} />} label="Meditate" />
-                <NavLink href="/onesutra" icon={<MessageCircle size={12} strokeWidth={1.7} />} label="Messages" badge={totalUnread} />
-                <NavLink href="/project-leela" icon={<Globe size={12} strokeWidth={1.7} />} label="Leela" />
+            <div className="mobile-nav-container" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', position: 'relative', zIndex: 1, flexWrap: 'nowrap' }}>
+                <NavLink href="/profile" theme="gold" icon={<User size={14} strokeWidth={1.8} />} label="Profile" />
+                <NavLink href="/outplugs" theme="blue" icon={<Plug size={14} strokeWidth={1.8} />} label="outPLUGS" />
+                <NavLink href="/dhyan-kshetra" theme="green" icon={<Flower2 size={14} strokeWidth={1.8} />} label="Meditate" />
+                <NavLink href="/onesutra" theme="gold" icon={<MessageCircle size={14} strokeWidth={1.8} />} label="Messages" badge={totalUnread} className="desktop-only-link" />
+                <NavLink href="/project-leela" theme="violet" icon={<Aperture size={14} strokeWidth={1.8} />} label="Leela" />
             </div>
         </header>
     );

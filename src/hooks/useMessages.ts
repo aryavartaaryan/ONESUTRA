@@ -27,6 +27,12 @@ export interface ChatMessage {
     sentBy?: 'user' | 'ai';          // 'ai' = AutoPilot generated
     voiceNote?: VoiceNote;           // present for Dhvani audio messages
     deliveryMode?: 'normal' | 'soft' | 'dawn';
+    callMeta?: {
+        type?: 'not-picked';
+        mode?: 'audio' | 'video';
+        callerId?: string;
+        calleeId?: string;
+    };
 }
 
 export function getChatId(uid1: string, uid2: string): string {
@@ -70,6 +76,7 @@ export function useMessages(chatId: string | null, currentUserId: string | null)
                             sentBy: data.sentBy,
                             voiceNote: data.voiceNote,
                             deliveryMode: data.deliveryMode,
+                            callMeta: data.callMeta,
                         };
                     }));
                     setLoading(false);

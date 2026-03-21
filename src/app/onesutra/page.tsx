@@ -33,6 +33,11 @@ import { useTelegramSession } from '@/hooks/useTelegramSession';
 import { GlobalTelegramListener } from '@/components/SutraConnect/GlobalTelegramListener';
 import UserProfilePanel from '@/components/SutraTalk/UserProfilePanel';
 
+// Lazy load DyteCall component
+const DyteCall = dynamic(() => import('@/components/SutraTalk/DyteCall'), {
+    ssr: false,
+});
+
 // Lazy-load the Telegram auth modal (avoids SSR + loads tdweb only when needed)
 const TelegramAuthModal = dynamic(
     () => import('@/components/SutraConnect/SutraConnect').then(m => m.TelegramAuthModal),
@@ -151,11 +156,270 @@ export default function OneSutraPage() {
 
     const [showTelegramModal, setShowTelegramModal] = useState(false);
     const [isVoiceCallActive, setIsVoiceCallActive] = useState(false);
-    const [peerCall, setPeerCall] = useState<{
-        callId: string;
-        isInitiator: boolean;
-        remoteContact: { name: string; emoji?: string; photoURL?: string | null; aura: string };
+    const ringIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const ringCtxRef = useRef<AudioContext | null>(null);
+    
+    // States for Audio/Video calls (Dyte SDK + invite flow)
+    const [isCalling, setIsCalling] = useState<{ mode: 'audio' | 'video', contact: any, inviteId?: string, phase: 'ringing' | 'connecting' } | null>(null);
+    const [dyteAuthToken, setDyteAuthToken] = useState<string | null>(null);
+    const [incomingCall, setIncomingCall] = useState<{
+        inviteId: string;
+        mode: 'audio' | 'video';
+        callerId: string;
+        callerName: string;
+        callerPhotoURL?: string | null;
+        chatId: string;
     } | null>(null);
+
+    const playRingPulse = useCallback(async () => {
+        try {
+            const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
+            if (!Ctx) return;
+
+            if (!ringCtxRef.current) {
+                ringCtxRef.current = new Ctx();
+            }
+            const ctx = ringCtxRef.current;
+            if (ctx.state === 'suspended') {
+                await ctx.resume().catch(() => undefined);
+            }
+
+            const oscA = ctx.createOscillator();
+            const oscB = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            oscA.type = 'sine';
+            oscB.type = 'triangle';
+            oscA.frequency.setValueAtTime(740, ctx.currentTime);
+            oscB.frequency.setValueAtTime(880, ctx.currentTime);
+
+            gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.11, ctx.currentTime + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.42);
+
+            oscA.connect(gain);
+            oscB.connect(gain);
+            gain.connect(ctx.destination);
+
+            oscA.start();
+            oscB.start(ctx.currentTime + 0.02);
+            oscA.stop(ctx.currentTime + 0.43);
+            oscB.stop(ctx.currentTime + 0.43);
+        } catch {
+            // no-op
+        }
+    }, []);
+
+    const startRingingTone = useCallback(() => {
+        if (ringIntervalRef.current) return;
+        playRingPulse();
+        ringIntervalRef.current = setInterval(() => {
+            playRingPulse();
+        }, 1500);
+    }, [playRingPulse]);
+
+    const stopRingingTone = useCallback(() => {
+        if (ringIntervalRef.current) {
+            clearInterval(ringIntervalRef.current);
+            ringIntervalRef.current = null;
+        }
+        if (ringCtxRef.current) {
+            ringCtxRef.current.close().catch(() => undefined);
+            ringCtxRef.current = null;
+        }
+    }, []);
+
+    const pushMissedCallMessage = useCallback(async (
+        targetChatId: string,
+        recipientId: string,
+        mode: 'audio' | 'video',
+        callerName?: string,
+        callerId?: string
+    ) => {
+        if (!user) return;
+        try {
+            const { getFirebaseFirestore } = await import('@/lib/firebase');
+            const { collection, addDoc, doc, setDoc, serverTimestamp, increment } = await import('firebase/firestore');
+            const db = await getFirebaseFirestore();
+
+            const text = callerName
+                ? `📵 Not picked ${mode} call from ${callerName}`
+                : `📵 Not picked ${mode} call`;
+
+            await addDoc(collection(db, 'onesutra_chats', targetChatId, 'messages'), {
+                text,
+                senderId: user.uid,
+                senderName: user.name,
+                createdAt: serverTimestamp(),
+                sentBy: 'user',
+                deliveryMode: 'normal',
+                callMeta: {
+                    type: 'not-picked',
+                    mode,
+                    callerId: callerId ?? user.uid,
+                    calleeId: recipientId,
+                },
+            });
+
+            await setDoc(doc(db, 'onesutra_chats', targetChatId), {
+                lastMessage: {
+                    text,
+                    senderId: user.uid,
+                    senderName: user.name,
+                    sentBy: 'user',
+                    createdAt: serverTimestamp(),
+                },
+                [`unreadCounts.${recipientId}`]: increment(1),
+            }, { merge: true });
+        } catch (err) {
+            console.error('[OneSutra] Failed to persist missed call message', err);
+        }
+    }, [user]);
+
+    // Call init function (only runs after call is accepted)
+    const startDyteCall = useCallback(async (contact: any, isVideo: boolean) => {
+        setIsCalling(prev => prev ? { ...prev, phase: 'connecting' } : { mode: isVideo ? 'video' : 'audio', contact, phase: 'connecting' });
+        try {
+            const response = await fetch('/api/create-meeting', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contactName: contact.name,
+                    contactId: contact.uid,
+                    userId: user?.uid,
+                    isVideo
+                })
+            });
+            const data = await response.json();
+            if (response.ok && data.token) {
+                stopRingingTone();
+                setDyteAuthToken(data.token);
+            } else {
+                const details = data?.dyte?.error?.message || data?.hint || data?.error || 'Failed to initialize call';
+                alert(details);
+                stopRingingTone();
+                setIsCalling(null);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Error creating meeting');
+            stopRingingTone();
+            setIsCalling(null);
+        }
+    }, [stopRingingTone, user]);
+
+    // Outgoing call invite + timeout -> missed call
+    const initiateOutgoingCall = useCallback(async (contact: any, isVideo: boolean) => {
+        if (!user) return;
+        try {
+            const { getFirebaseFirestore } = await import('@/lib/firebase');
+            const { collection, addDoc, doc, onSnapshot, updateDoc, getDoc, serverTimestamp } = await import('firebase/firestore');
+            const db = await getFirebaseFirestore();
+            const targetChatId = getChatId(user.uid, contact.uid);
+
+            const inviteRef = await addDoc(collection(db, 'sutratalk_call_invites'), {
+                chatId: targetChatId,
+                mode: isVideo ? 'video' : 'audio',
+                status: 'ringing',
+                callerId: user.uid,
+                callerName: user.name,
+                callerPhotoURL: user.photoURL ?? null,
+                calleeId: contact.uid,
+                createdAt: serverTimestamp(),
+            });
+
+            setIsCalling({ mode: isVideo ? 'video' : 'audio', contact, inviteId: inviteRef.id, phase: 'ringing' });
+            startRingingTone();
+
+            let cleaned = false;
+            const cleanup = () => { cleaned = true; unsubscribe(); clearTimeout(timeoutId); };
+
+            const unsubscribe = onSnapshot(doc(db, 'sutratalk_call_invites', inviteRef.id), async (snap) => {
+                if (!snap.exists() || cleaned) return;
+                const status = snap.data()?.status;
+
+                if (status === 'accepted') {
+                    cleanup();
+                    stopRingingTone();
+                    await startDyteCall(contact, isVideo);
+                    return;
+                }
+
+                if (status === 'rejected' || status === 'cancelled' || status === 'missed') {
+                    cleanup();
+                    stopRingingTone();
+                    setIsCalling(null);
+                }
+            });
+
+            const timeoutId = setTimeout(async () => {
+                try {
+                    const snap = await getDoc(doc(db, 'sutratalk_call_invites', inviteRef.id));
+                    if (!snap.exists()) return;
+                    if (snap.data()?.status === 'ringing') {
+                        await updateDoc(doc(db, 'sutratalk_call_invites', inviteRef.id), {
+                            status: 'missed',
+                            endedAt: serverTimestamp(),
+                        });
+                        await pushMissedCallMessage(targetChatId, contact.uid, isVideo ? 'video' : 'audio');
+                    }
+                } catch (err) {
+                    console.error('[OneSutra] Invite timeout error', err);
+                }
+            }, 30000);
+        } catch (err) {
+            console.error('[OneSutra] Failed to initiate call invite', err);
+            alert('Unable to place call right now.');
+            stopRingingTone();
+            setIsCalling(null);
+        }
+    }, [pushMissedCallMessage, startDyteCall, startRingingTone, stopRingingTone, user]);
+
+    // Incoming side fallback: if caller drops/offline, mark invite as missed locally too
+    useEffect(() => {
+        if (!incomingCall || !user) return;
+
+        let cancelled = false;
+        const timer = setTimeout(async () => {
+            if (cancelled) return;
+            try {
+                const { getFirebaseFirestore } = await import('@/lib/firebase');
+                const { doc, getDoc, updateDoc, serverTimestamp } = await import('firebase/firestore');
+                const db = await getFirebaseFirestore();
+                const ref = doc(db, 'sutratalk_call_invites', incomingCall.inviteId);
+                const snap = await getDoc(ref);
+                if (!snap.exists()) return;
+                if (snap.data()?.status === 'ringing') {
+                    await updateDoc(ref, { status: 'missed', endedAt: serverTimestamp() });
+                    await pushMissedCallMessage(incomingCall.chatId, incomingCall.callerId, incomingCall.mode, incomingCall.callerName, incomingCall.callerId);
+                    setIncomingCall(null);
+                }
+            } catch (err) {
+                console.error('[OneSutra] Incoming timeout missed-call fallback failed', err);
+            }
+        }, 30000);
+
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
+    }, [incomingCall, pushMissedCallMessage, user]);
+
+    // Ringing tone for both outgoing ringing and incoming calls
+    useEffect(() => {
+        const shouldRing = !!incomingCall || isCalling?.phase === 'ringing';
+        if (shouldRing) startRingingTone();
+        else stopRingingTone();
+
+        return () => {
+            if (!shouldRing) stopRingingTone();
+        };
+    }, [incomingCall, isCalling?.phase, startRingingTone, stopRingingTone]);
+
+    useEffect(() => {
+        return () => stopRingingTone();
+    }, [stopRingingTone]);
+
     const { users: realUsers } = useUsers(user?.uid ?? null);
 
     // Bootstrap Telegram session silently on page load
@@ -196,6 +460,44 @@ export default function OneSutraPage() {
         return () => unsub && unsub();
     }, [user?.uid]);
 
+    // Listen for incoming call invites (ringing state)
+    useEffect(() => {
+        if (!user?.uid) return;
+        let unsub: (() => void) | undefined;
+
+        (async () => {
+            const { getFirebaseFirestore } = await import('@/lib/firebase');
+            const { collection, query, where, limit, onSnapshot } = await import('firebase/firestore');
+            const db = await getFirebaseFirestore();
+
+            const q = query(
+                collection(db, 'sutratalk_call_invites'),
+                where('calleeId', '==', user.uid),
+                where('status', '==', 'ringing'),
+                limit(1)
+            );
+
+            unsub = onSnapshot(q, (snap) => {
+                const d = snap.docs[0];
+                if (!d) {
+                    setIncomingCall(null);
+                    return;
+                }
+                const v = d.data() as any;
+                setIncomingCall({
+                    inviteId: d.id,
+                    mode: (v.mode === 'video' ? 'video' : 'audio'),
+                    callerId: v.callerId,
+                    callerName: v.callerName ?? 'Unknown',
+                    callerPhotoURL: v.callerPhotoURL ?? null,
+                    chatId: v.chatId,
+                });
+            });
+        })();
+
+        return () => { if (unsub) unsub(); };
+    }, [user?.uid]);
+
     // Sync profileUser with live data (mainly for self-edits)
     useEffect(() => {
         if (isProfileOpen && profileUser && user && profileUser.uid === user.uid && currentUserProfile) {
@@ -205,6 +507,30 @@ export default function OneSutraPage() {
             }
         }
     }, [currentUserProfile, isProfileOpen, profileUser, user]);
+
+    // Realtime profile sync for whichever user is open in profile panel
+    useEffect(() => {
+        if (!isProfileOpen || !profileUser?.uid) return;
+        // Skip AI pseudo users and Telegram pseudo contacts
+        if (profileUser.uid.startsWith('ai_') || profileUser.uid.startsWith('tg_')) return;
+
+        let unsub: (() => void) | undefined;
+        (async () => {
+            const { getFirebaseFirestore } = await import('@/lib/firebase');
+            const { doc, onSnapshot } = await import('firebase/firestore');
+            const db = await getFirebaseFirestore();
+
+            unsub = onSnapshot(doc(db, 'onesutra_users', profileUser.uid), (snap) => {
+                if (!snap.exists()) return;
+                const live = { uid: profileUser.uid, ...snap.data() };
+                setProfileUser((prev: any) => ({ ...(prev || {}), ...live }));
+            });
+        })();
+
+        return () => {
+            if (unsub) unsub();
+        };
+    }, [isProfileOpen, profileUser?.uid]);
     const [isAutoPilotGenerating, setIsAutoPilotGenerating] = useState(false);
     const [fabOpen, setFabOpen] = useState(false);
 
@@ -781,6 +1107,8 @@ export default function OneSutraPage() {
                                 const isAutoPilotChat = meta?.isAutoPilotActive ?? false;
                                 const isActive = activeContact?.uid === c.uid;
                                 const hasUnread = unread > 0 && !isActive;
+                                const isRecentlyActive = !!(c as any).lastSeen && (Date.now() - Number((c as any).lastSeen) < 5 * 60 * 1000);
+                                const showOnlineDot = !!c.online || isRecentlyActive;
 
                                 // Last message time OR join date
                                 let lastMsgTime = meta?.lastMessageAt
@@ -857,16 +1185,16 @@ export default function OneSutraPage() {
                                                     ? <img src={(c as { photoURL?: string | null }).photoURL!} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                                     : <span>{(c as { emoji?: string }).emoji ?? '🧘'}</span>}
                                             </div>
-                                            {c.online && (
+                                            {showOnlineDot && (
                                                 <motion.div
-                                                    animate={{ scale: [1, 1.2, 1] }}
-                                                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                                                    animate={{ scale: [1, 1.35, 1], opacity: [0.9, 1, 0.9] }}
+                                                    transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
                                                     style={{
                                                         position: 'absolute', bottom: 0, right: 0,
-                                                        width: 14, height: 14, borderRadius: '50%',
-                                                        background: 'linear-gradient(135deg, #5DDD88 0%, #44CC77 100%)',
-                                                        border: '2.5px solid rgba(4,6,16,0.9)',
-                                                        boxShadow: '0 0 8px rgba(93,221,136,0.6), inset 0 1px 0 rgba(255,255,255,0.3)',
+                                                        width: 12, height: 12, borderRadius: '50%',
+                                                        background: '#44DD44',
+                                                        border: 'none',
+                                                        boxShadow: '0 0 10px rgba(68,221,68,0.9), 0 0 18px rgba(68,221,68,0.45)',
                                                     }}
                                                 />
                                             )}
@@ -1044,61 +1372,41 @@ export default function OneSutraPage() {
                                                 onClick={async () => {
                                                     if (!activeContact) return;
 
-                                                    // AI contacts use the Web Speech based assistant call
                                                     if (activeContact.isAI) {
                                                         setIsVoiceCallActive(true);
                                                         return;
                                                     }
 
-                                                    // Person-to-person calls: only for OneSutra contacts (not Telegram)
-                                                    if (!user || isTelegramChat || !chatId) {
-                                                        alert('Voice calling is currently available only for OneSutra contacts.');
-                                                        return;
-                                                    }
-
                                                     try {
-                                                        const { getFirebaseFirestore } = await import('@/lib/firebase');
-                                                        const { doc, getDoc, setDoc, serverTimestamp } = await import('firebase/firestore');
-                                                        const db = await getFirebaseFirestore();
-
-                                                        const callDocRef = doc(db, 'sutratalkCalls', chatId);
-                                                        const snap = await getDoc(callDocRef);
-                                                        const data = snap.data() as Record<string, unknown> | undefined;
-                                                        const hasOffer = !!data?.offer;
-                                                        const hasAnswer = !!data?.answer;
-
-                                                        // If there's an existing offer without answer, join as callee, else initiate
-                                                        const isInitiator = !(hasOffer && !hasAnswer);
-
-                                                        if (!snap.exists()) {
-                                                            await setDoc(callDocRef, {
-                                                                chatId,
-                                                                participants: [user.uid, activeContact.uid],
-                                                                mode: 'voice',
-                                                                createdAt: serverTimestamp(),
-                                                            }, { merge: true });
-                                                        }
-
-                                                        setPeerCall({
-                                                            callId: chatId,
-                                                            isInitiator,
-                                                            remoteContact: {
-                                                                name: activeContact.name,
-                                                                emoji: activeContact.emoji,
-                                                                photoURL: activeContact.photoURL,
-                                                                aura: activeContact.aura,
-                                                            },
-                                                        });
+                                                        await navigator.mediaDevices.getUserMedia({ audio: true });
+                                                        await initiateOutgoingCall(activeContact, false);
                                                     } catch (err) {
-                                                        console.error('[OneSutra] Failed to start voice call', err);
-                                                        alert('Unable to start call right now. Please try again.');
+                                                        alert("Microphone permission required for calling.");
                                                     }
                                                 }}
                                                 style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 999, padding: '0.4rem 0.6rem', display: 'flex', alignItems: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.65)' }}
                                             >
                                                 <Phone size={15} />
                                             </button>
-                                            <button style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 999, padding: '0.4rem 0.6rem', display: 'flex', alignItems: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.65)' }}><Video size={15} /></button>
+                                            <button 
+                                                onClick={async () => {
+                                                    if (!activeContact) return;
+                                                    
+                                                    if (!activeContact?.isAI) {
+                                                        try {
+                                                            await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+                                                            await initiateOutgoingCall(activeContact, true);
+                                                        } catch (err) {
+                                                            alert("Camera and Microphone permissions required for video calling.");
+                                                        }
+                                                    } else {
+                                                        alert("Video call not yet supported for AI");
+                                                    }
+                                                }}
+                                                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 999, padding: '0.4rem 0.6rem', display: 'flex', alignItems: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.65)' }}
+                                            >
+                                                <Video size={15} />
+                                            </button>
                                             {/* AutoPilot only for OneSutra chats, not Telegram */}
                                             {!activeContact.isAI && !isTelegramChat && (
                                                 <button onClick={handleAutoPilotToggle} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0.4rem 0.6rem', borderRadius: 999, background: isAutoPilot ? 'rgba(245,158,11,0.22)' : 'rgba(255,255,255,0.06)', border: `1px solid ${isAutoPilot ? 'rgba(245,158,11,0.55)' : 'rgba(255,255,255,0.10)'}`, cursor: 'pointer', color: isAutoPilot ? '#fbbf24' : 'rgba(255,255,255,0.45)', fontSize: '0.65rem', fontWeight: 600, fontFamily: "'Inter', sans-serif", boxShadow: isAutoPilot ? '0 0 12px rgba(245,158,11,0.3)' : 'none', transition: 'all 0.2s', whiteSpace: 'nowrap' }}>
@@ -1161,6 +1469,50 @@ export default function OneSutraPage() {
                                         // For Telegram messages, senderId is 'me' for sent messages
                                         const isMe = msg.senderId === 'me' || msg.senderId === user.uid;
                                         const isAIMade = msg.sentBy === 'ai';
+
+                                        const callMeta = (msg as any).callMeta as { type?: 'not-picked'; mode?: 'audio' | 'video'; callerId?: string } | undefined;
+                                        const textLower = String(msg.text || '').toLowerCase();
+                                        const regexMode = textLower.includes('video') ? 'video' : (textLower.includes('audio') ? 'audio' : undefined);
+                                        const callMode = callMeta?.mode || regexMode;
+                                        const isCallLog = callMeta?.type === 'not-picked' || /not picked\s+(audio|video)\s+call|missed\s+(audio|video)\s+call/.test(textLower);
+
+                                        if (isCallLog && callMode) {
+                                            const amCaller = callMeta?.callerId ? callMeta.callerId === user?.uid : isMe;
+                                            const label = amCaller ? `Not picked ${callMode} call` : `Missed ${callMode} call`;
+
+                                            return (
+                                                <motion.div key={msg.id}
+                                                    initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                    transition={{ duration: 0.22, ease: 'easeOut' }}
+                                                    style={{ display: 'flex', justifyContent: 'center', padding: '0.15rem 0' }}
+                                                >
+                                                    <div style={{
+                                                        display: 'inline-flex', alignItems: 'center', gap: 8,
+                                                        padding: '0.5rem 0.85rem', borderRadius: 999,
+                                                        background: amCaller ? 'rgba(245,158,11,0.16)' : 'rgba(239,68,68,0.16)',
+                                                        border: amCaller ? '1px solid rgba(245,158,11,0.45)' : '1px solid rgba(239,68,68,0.45)',
+                                                        boxShadow: amCaller
+                                                            ? '0 0 18px rgba(245,158,11,0.20), 0 4px 14px rgba(0,0,0,0.25)'
+                                                            : '0 0 18px rgba(239,68,68,0.18), 0 4px 14px rgba(0,0,0,0.25)',
+                                                        backdropFilter: 'blur(12px)',
+                                                        WebkitBackdropFilter: 'blur(12px)',
+                                                    }}>
+                                                        <Phone size={14} style={{ color: amCaller ? '#f59e0b' : '#f87171' }} />
+                                                        <span style={{
+                                                            fontSize: '0.73rem',
+                                                            letterSpacing: '0.04em',
+                                                            fontWeight: 700,
+                                                            color: amCaller ? '#fcd34d' : '#fecaca',
+                                                            textTransform: 'uppercase',
+                                                            fontFamily: 'monospace',
+                                                        }}>
+                                                            {label}
+                                                        </span>
+                                                    </div>
+                                                </motion.div>
+                                            );
+                                        }
 
                                         return (
                                             <motion.div key={msg.id}
@@ -1262,18 +1614,155 @@ export default function OneSutraPage() {
                 </div>
             )}
 
-            {/* ── Person-to-person WebRTC Call Screen (OneSutra contacts) ── */}
+            {/* ── Dyte Video Call Screen ── */}
+            {dyteAuthToken && (
+                <DyteCall 
+                    authToken={dyteAuthToken} 
+                    mode={isCalling?.mode ?? 'audio'}
+                    onLeave={() => {
+                        setDyteAuthToken(null);
+                        setIsCalling(null);
+                    }} 
+                />
+            )}
+
+            {/* ── Dyte Initializing State Modal ── */}
             <AnimatePresence>
-                {peerCall && user && (
-                    <WebRTCCallScreen
-                        callId={peerCall.callId}
-                        isInitiator={peerCall.isInitiator}
-                        mode="voice"
-                        localUserId={user.uid}
-                        remoteContact={peerCall.remoteContact}
-                        accent={accent}
-                        onEnd={() => setPeerCall(null)}
-                    />
+                {isCalling && !dyteAuthToken && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        style={{
+                            position: 'fixed', inset: 0, zIndex: 9999,
+                            background: 'rgba(2,4,14,0.85)', backdropFilter: 'blur(20px)',
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
+                        }}
+                    >
+                        <div style={{
+                            width: 120, height: 120, borderRadius: '50%',
+                            border: `3px solid ${isCalling.contact.aura || accent}`,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3.5rem',
+                            background: `radial-gradient(circle, ${isCalling.contact.auraGlow || accent}33, rgba(0,0,0,0.6))`
+                        }}>
+                            {isCalling.contact.photoURL?.trim() ? (
+                                <img src={isCalling.contact.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                            ) : (
+                                <span>{isCalling.contact.emoji ?? '🧘'}</span>
+                            )}
+                        </div>
+                        <h2 style={{ margin: '1.5rem 0 0.5rem', fontSize: '1.5rem', fontWeight: 700, fontFamily: "'Playfair Display', serif", color: 'white' }}>
+                            {isCalling.contact.name}
+                        </h2>
+                        <p style={{ margin: 0, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.1em', fontSize: '0.8rem', textTransform: 'uppercase' }}>
+                            {isCalling.phase === 'ringing' ? `Ringing (${isCalling.mode})...` : `Connecting (${isCalling.mode})...`}
+                        </p>
+                        {isCalling.phase === 'ringing' && (
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        if (isCalling.inviteId) {
+                                            const { getFirebaseFirestore } = await import('@/lib/firebase');
+                                            const { doc, updateDoc, serverTimestamp } = await import('firebase/firestore');
+                                            const db = await getFirebaseFirestore();
+                                            await updateDoc(doc(db, 'sutratalk_call_invites', isCalling.inviteId), {
+                                                status: 'missed',
+                                                endedAt: serverTimestamp(),
+                                            });
+                                            if (user?.uid && isCalling.contact?.uid) {
+                                                const targetChatId = getChatId(user.uid, isCalling.contact.uid);
+                                                await pushMissedCallMessage(targetChatId, isCalling.contact.uid, isCalling.mode);
+                                            }
+                                        }
+                                    } catch (err) {
+                                        console.error('[OneSutra] Failed to cancel invite', err);
+                                    } finally {
+                                        setIsCalling(null);
+                                    }
+                                }}
+                                style={{ marginTop: '1rem', border: 'none', borderRadius: 999, padding: '0.55rem 1rem', cursor: 'pointer', background: 'rgba(239,68,68,0.2)', color: '#fca5a5' }}
+                            >
+                                Cancel Call
+                            </button>
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* ── Incoming Call Modal ── */}
+            <AnimatePresence>
+                {incomingCall && user && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        style={{
+                            position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 10000,
+                            minWidth: 320, maxWidth: '92vw',
+                            background: 'rgba(6,4,18,0.92)', border: '1px solid rgba(255,255,255,0.15)',
+                            borderRadius: 20, backdropFilter: 'blur(24px)', padding: '1rem 1.2rem',
+                            boxShadow: '0 12px 36px rgba(0,0,0,0.45)'
+                        }}
+                    >
+                        <p style={{ margin: 0, fontSize: '0.72rem', color: 'rgba(255,255,255,0.55)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                            Incoming {incomingCall.mode} call
+                        </p>
+                        <h3 style={{ margin: '0.3rem 0 0.8rem', color: 'white', fontSize: '1rem' }}>{incomingCall.callerName}</h3>
+                        <div style={{ display: 'flex', gap: 10 }}>
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        const { getFirebaseFirestore } = await import('@/lib/firebase');
+                                        const { doc, updateDoc, serverTimestamp } = await import('firebase/firestore');
+                                        const db = await getFirebaseFirestore();
+                                        await updateDoc(doc(db, 'sutratalk_call_invites', incomingCall.inviteId), {
+                                            status: 'rejected',
+                                            endedAt: serverTimestamp(),
+                                        });
+                                        await pushMissedCallMessage(incomingCall.chatId, incomingCall.callerId, incomingCall.mode, incomingCall.callerName, incomingCall.callerId);
+                                    } catch (err) {
+                                        console.error('[OneSutra] Reject call failed', err);
+                                    } finally {
+                                        setIncomingCall(null);
+                                    }
+                                }}
+                                style={{ flex: 1, border: 'none', borderRadius: 999, padding: '0.6rem', cursor: 'pointer', background: 'rgba(239,68,68,0.2)', color: '#fecaca', fontWeight: 600 }}
+                            >
+                                Reject
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        const { getFirebaseFirestore } = await import('@/lib/firebase');
+                                        const { doc, updateDoc, serverTimestamp } = await import('firebase/firestore');
+                                        const db = await getFirebaseFirestore();
+                                        await updateDoc(doc(db, 'sutratalk_call_invites', incomingCall.inviteId), {
+                                            status: 'accepted',
+                                            acceptedAt: serverTimestamp(),
+                                        });
+
+                                        const callerContact = sortedContacts.find((c) => c.uid === incomingCall.callerId) ?? {
+                                            uid: incomingCall.callerId,
+                                            name: incomingCall.callerName,
+                                            photoURL: incomingCall.callerPhotoURL ?? null,
+                                            emoji: '🧘', aura: accent, auraGlow: `${accent}55`, isAI: false,
+                                            statusLabel: 'oneSUTRA Member', online: true, role: 'Member', isTelegram: false,
+                                        };
+
+                                        setActiveContact(callerContact as any);
+                                        setIncomingCall(null);
+                                        await startDyteCall(callerContact, incomingCall.mode === 'video');
+                                    } catch (err) {
+                                        console.error('[OneSutra] Accept call failed', err);
+                                        setIncomingCall(null);
+                                    }
+                                }}
+                                style={{ flex: 1, border: 'none', borderRadius: 999, padding: '0.6rem', cursor: 'pointer', background: 'rgba(16,185,129,0.26)', color: '#bbf7d0', fontWeight: 600 }}
+                            >
+                                Accept
+                            </button>
+                        </div>
+                    </motion.div>
                 )}
             </AnimatePresence>
 

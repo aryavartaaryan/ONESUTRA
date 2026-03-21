@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.43",
+    "@dytesdk/react-ui-kit": "^3.0.8",
+    "@dytesdk/react-web-core": "^3.1.11",
     "@google/genai": "^1.44.0",
     "@google/generative-ai": "^0.24.1",
     "@langchain/langgraph": "^1.2.3",
