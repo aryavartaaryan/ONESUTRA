@@ -192,6 +192,7 @@ export default function OneSutraPage() {
                 ringCtxRef.current = new Ctx();
             }
             const ctx = ringCtxRef.current;
+            if (!ctx) return;
             if (ctx.state === 'suspended') {
                 await ctx.resume().catch(() => undefined);
             }
