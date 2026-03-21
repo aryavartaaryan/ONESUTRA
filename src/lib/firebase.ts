@@ -22,12 +22,12 @@ let _persistenceEnabled = false;
 // Unified console.error patch to suppress harmless/noise errors from Firestore and GramJS
 if (typeof window !== 'undefined') {
     const originalConsoleError = console.error;
-    console.error = (...args: any[]) => {
-        // 1. Convert to string for typical matching
-        const msg = args[0]?.toString?.() ?? '';
+    const originalConsoleWarn = console.warn;
 
-        // 2. Check for Firestore internal errors
+    const shouldSuppressConsoleNoise = (args: any[]): boolean => {
+        const msg = args[0]?.toString?.() ?? '';
         const fullMsg = args.map(a => (typeof a === 'string' ? a : (a?.message || a?.toString?.() || ''))).join(' ');
+
         if (fullMsg.includes('primary lease') ||
             fullMsg.includes('Backfill Indexes') ||
             fullMsg.includes('Apply remote event') ||
@@ -35,12 +35,15 @@ if (typeof window !== 'undefined') {
             fullMsg.includes('Could not reach Cloud Firestore backend') ||
             fullMsg.includes('Failed to obtain primary lease') ||
             fullMsg.includes('Acknowledge batch') ||
-            fullMsg.includes('Release target')
+            fullMsg.includes('Release target') ||
+            fullMsg.includes("WebChannelConnection RPC 'Write' stream") ||
+            fullMsg.includes("WebChannelConnection RPC 'Listen' stream") ||
+            fullMsg.includes('transport errored. Name: undefined Message: undefined')
         ) {
-            return; // Silently drop these
+            return true;
         }
 
-        // 3. Detect empty `{}` objects or completely generic Telegram connection timeouts
+        // Detect empty `{}` objects or completely generic Telegram connection timeouts
         const isEmptyObject =
             typeof args[0] === 'object' &&
             args[0] !== null &&
@@ -51,21 +54,21 @@ if (typeof window !== 'undefined') {
             // Next.js error overlays trigger when an empty object is sent to console.error
             // This is almost exclusively thrown by GramJS / MTProtoSender on connection drops.
             console.log('[TELEGRAM_ERROR_SUPPRESSED] Empty connection timeout object');
-            return;
+            return true;
         }
 
-        // 4. Capture stack trace to detect explicitly passed error objects
+        // Capture stack trace to detect explicitly passed error objects
         if (typeof args[0] === 'object' && args[0] !== null) {
             const objStack = args[0].stack || '';
             if (objStack.includes('MTProtoSender.connect') ||
                 objStack.includes('TelegramClient.connect') ||
                 objStack.includes('telegram')) {
                 console.log('[TELEGRAM_ERROR_SUPPRESSED] Connection error object');
-                return;
+                return true;
             }
         }
 
-        // 5. Look for Telegram in the immediate call stack if all else fails
+        // Look for Telegram in the immediate call stack if all else fails
         const callStack = new Error().stack || '';
         if (callStack.includes('MTProtoSender.connect') ||
             callStack.includes('TelegramClient.connect') ||
@@ -74,11 +77,21 @@ if (typeof window !== 'undefined') {
             // Check if what is being logged is just a single empty string or bracket
             if (msg === '{}' || msg === '' || msg === '[]') {
                 console.log('[TELEGRAM_ERROR_SUPPRESSED] Empty connection drop via call-stack');
-                return;
+                return true;
             }
         }
 
+        return false;
+    };
+
+    console.error = (...args: any[]) => {
+        if (shouldSuppressConsoleNoise(args)) return;
         originalConsoleError.apply(console, args);
+    };
+
+    console.warn = (...args: any[]) => {
+        if (shouldSuppressConsoleNoise(args)) return;
+        originalConsoleWarn.apply(console, args);
     };
 }
 

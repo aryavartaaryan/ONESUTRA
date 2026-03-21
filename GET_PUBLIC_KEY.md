@@ -3,7 +3,7 @@
 ## The Issue
 Your assistant ID is configured correctly: `392feb66-378a-4852-bbea-e7fa638d4015`
 
-But you need to add your **Public Key** to make the voice call work.
+But you  need to add your **Public Key** to make the voice call work.
 
 ## How to Get Your Public Key
 

@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 
+interface SankalpaTask {
+    done?: boolean;
+    text?: string;
+}
+
 // ── Rate Limiting / Debounce Constants ──────────────────────────────────────
 // Only analyze if it's been at least 12 hours since the last analysis, Or if it's the very first time.
 const DEBOUNCE_MS = 12 * 60 * 60 * 1000;
@@ -55,9 +60,9 @@ export async function POST(req: Request) {
             .join('\n');
 
         // 3. Fetch user's current tasks to add context
-        const tasks = userData?.sankalpa_items || [];
+        const tasks = (userData?.sankalpa_items ?? []) as SankalpaTask[];
         const taskContext = tasks.length > 0
-            ? `\nCURRENT TASKS:\n${tasks.map((t: any) => `- [${t.done ? 'DONE' : 'PENDING'}] ${t.text}`).join('\n')}`
+            ? `\nCURRENT TASKS:\n${tasks.map((t) => `- [${t.done ? 'DONE' : 'PENDING'}] ${t.text ?? 'Untitled Task'}`).join('\n')}`
             : '';
 
         // 4. Run Gemini 2.5 Flash to generate the personality summary
@@ -111,6 +116,10 @@ Rules for the summary:
 
     } catch (error) {
         console.error('[Personality Agent] Error:', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({
+            status: 'skipped',
+            reason: 'internal_error',
+            message: 'Personality analysis failed safely. The main session can continue.',
+        });
     }
 }

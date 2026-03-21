@@ -122,6 +122,81 @@
     background: #fff;
 }
 
+.secureFallback {
+    height: 100%;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    text-align: center;
+    padding: 1.25rem;
+    background:
+        radial-gradient(80% 62% at 50% 0%, rgba(251, 191, 36, 0.16), transparent 65%),
+        radial-gradient(90% 70% at 100% 100%, rgba(56, 189, 248, 0.12), transparent 62%),
+        linear-gradient(180deg, rgba(8, 16, 28, 0.9), rgba(7, 12, 22, 0.94));
+}
+
+.secureIconWrap {
+    width: 46px;
+    height: 46px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 241, 210, 0.95);
+    border: 1px solid rgba(251, 191, 36, 0.5);
+    background: linear-gradient(130deg, rgba(245, 158, 11, 0.3), rgba(251, 191, 36, 0.18));
+    box-shadow: 0 10px 34px rgba(245, 158, 11, 0.22);
+}
+
+.secureTitle {
+    margin: 0;
+    color: rgba(255, 247, 228, 0.98);
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 1.12rem;
+    font-weight: 700;
+}
+
+.secureText {
+    margin: 0;
+    max-width: 560px;
+    color: rgba(231, 240, 252, 0.92);
+    font-size: 0.84rem;
+    line-height: 1.45;
+}
+
+.secureSubText {
+    margin: 0;
+    color: rgba(186, 206, 232, 0.84);
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+}
+
+.secureButton {
+    margin-top: 0.2rem;
+    border: 1px solid rgba(251, 191, 36, 0.6);
+    border-radius: 999px;
+    padding: 0.7rem 1.2rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: rgba(255, 248, 232, 0.98);
+    background: linear-gradient(132deg, rgba(245, 158, 11, 0.42), rgba(251, 191, 36, 0.28));
+    display: inline-flex;
+    align-items: center;
+    gap: 0.42rem;
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+        0 14px 34px rgba(245, 158, 11, 0.24);
+}
+
+.secureButton:hover {
+    filter: brightness(1.08);
+}
+
 .blockHint {
     position: absolute;
     inset: auto 12px 12px 12px;

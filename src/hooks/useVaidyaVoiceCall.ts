@@ -347,16 +347,26 @@ export function useVaidyaVoiceCall(config?: VaidyaVoiceConfig): UseVaidyaVoiceCa
             // 2. Initialize Google GenAI
             const ai = new GoogleGenAI({ apiKey });
 
-            // 3. Request microphone access
-            const stream = await navigator.mediaDevices.getUserMedia({
-                audio: {
-                    sampleRate: INPUT_SAMPLE_RATE,
-                    channelCount: 1,
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    autoGainControl: true,
-                },
-            });
+            // 3. Request microphone access (with fallback)
+            let stream: MediaStream;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        sampleRate: INPUT_SAMPLE_RATE,
+                        channelCount: 1,
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true,
+                    },
+                });
+            } catch (err: any) {
+                if (err.name === 'NotFoundError' || err.name === 'NotReadableError') {
+                    console.warn('[Vaidya] Audio exact constraints failed, falling back to any available audio device.');
+                    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                } else {
+                    throw err;
+                }
+            }
             mediaStreamRef.current = stream;
 
             // 4. Create audio contexts

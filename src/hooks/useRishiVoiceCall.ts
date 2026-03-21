@@ -225,9 +225,19 @@ export function useRishiVoiceCall(config: RishiVoiceConfig): UseRishiVoiceCallRe
 
             const ai = new GoogleGenAI({ apiKey });
 
-            const stream = await navigator.mediaDevices.getUserMedia({
-                audio: { sampleRate: INPUT_SAMPLE_RATE, channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-            });
+            let stream: MediaStream;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    audio: { sampleRate: INPUT_SAMPLE_RATE, channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+                });
+            } catch (err: any) {
+                if (err.name === 'NotFoundError' || err.name === 'NotReadableError') {
+                    console.warn('[Rishi] Audio exact constraints failed, falling back to any available audio device.');
+                    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                } else {
+                    throw err;
+                }
+            }
             mediaStreamRef.current = stream;
 
             const captureCtx = new AudioContext({ sampleRate: INPUT_SAMPLE_RATE });

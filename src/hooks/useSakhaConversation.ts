@@ -402,6 +402,11 @@ ${isLateNight
    "${firstName}, एक minute — इस app (Pranav.AI) के बारे में आपका क्या experience रहा? कोई feature add करें, या कुछ improve करना है?"
    → On answer: [TOOL: save_memory("user app feedback: [their exact words]")]
 
+🌐 GOOGLE NAVIGATION RULE — ABSOLUTE:
+- If the user asks to buy a physical product, compare prices, find shopping options, or says things like "best quality ghee" / "buy" / "price", ALWAYS call google_navigator with searchType: "shopping".
+- If the user asks for general information, tutorials, news links, or normal web lookup, call google_navigator with searchType: "web".
+- Never paste raw google.com home links in plain text when the tool can open results directly in webview.
+
 🎮 TODAY'S CREATIVE CHALLENGE (offer if ${firstName} seems free):
 ${todayChallenge}
 → Don't just announce — make it FUN. Use excitement, humor, encouragement.
@@ -1705,16 +1710,26 @@ export function useSakhaConversation({
                 // 1a. Get Gemini API key
                 fetch('/api/gemini-live-token', { method: 'POST' }),
 
-                // 1b. Mic permission (most time-consuming on first use)
-                navigator.mediaDevices.getUserMedia({
-                    audio: {
-                        sampleRate: INPUT_SAMPLE_RATE,
-                        channelCount: 1,
-                        echoCancellation: true,
-                        noiseSuppression: true,
-                        autoGainControl: true,
-                    },
-                }),
+                // 1b. Mic permission (with fallback for device constraints)
+                (async () => {
+                    try {
+                        return await navigator.mediaDevices.getUserMedia({
+                            audio: {
+                                sampleRate: INPUT_SAMPLE_RATE,
+                                channelCount: 1,
+                                echoCancellation: true,
+                                noiseSuppression: true,
+                                autoGainControl: true,
+                            },
+                        });
+                    } catch (err: any) {
+                        if (err.name === 'NotFoundError' || err.name === 'NotReadableError') {
+                            console.warn('[Bodhi] Audio exact constraints failed, falling back to any available audio device.');
+                            return await navigator.mediaDevices.getUserMedia({ audio: true });
+                        }
+                        throw err;
+                    }
+                })(),
 
                 // 1c. All Firebase reads in parallel
                 (async () => {
@@ -1981,7 +1996,7 @@ export function useSakhaConversation({
                             },
                             {
                                 name: 'ecom_assistant',
-                                description: 'Finds best product choices and may return OPEN_WEBVIEW action with direct product URL for in-app checkout view.',
+                                description: 'Curated e-commerce shortlist assistant. Use this only when user explicitly asks for a curated shortlist/comparison flow; for direct product search or prices, prefer google_navigator with searchType="shopping".',
                                 parameters: {
                                     type: Type.OBJECT,
                                     properties: {
@@ -2009,7 +2024,7 @@ export function useSakhaConversation({
                             },
                             {
                                 name: 'youtube_navigator',
-                                description: 'Finds a relevant YouTube video and returns OPEN_WEBVIEW URL for in-app playback.',
+                                description: 'Finds a specific YouTube video via backend search and returns OPEN_WEBVIEW with a strict /embed/{videoId} URL. NEVER return generic youtube.com home/search/watch links directly in text.',
                                 parameters: {
                                     type: Type.OBJECT,
                                     properties: {
@@ -2019,6 +2034,24 @@ export function useSakhaConversation({
                                         },
                                     },
                                     required: ['query'],
+                                },
+                            },
+                            {
+                                name: 'google_navigator',
+                                description: 'Builds a direct Google URL and returns OPEN_WEBVIEW. Use searchType="shopping" for product buying/price checks and searchType="web" for general web information.',
+                                parameters: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        query: {
+                                            type: Type.STRING,
+                                            description: 'Search term, e.g. best quality A2 cow ghee, Data Science tutorials.',
+                                        },
+                                        searchType: {
+                                            type: Type.STRING,
+                                            description: 'Either "web" or "shopping".',
+                                        },
+                                    },
+                                    required: ['query', 'searchType'],
                                 },
                             },
                             {
@@ -2513,6 +2546,24 @@ export function useSakhaConversation({
                                         const query = String(fcArgs.query ?? '');
                                         if (!query) throw new Error('Missing query');
 
+                                        const q = query.toLowerCase();
+                                        const shoppingIntentRegex = /(buy|price|shopping|shop|order|purchase|compare|deal|offer|under\s*\d+|amazon|flipkart|blinkit|myntra|nykaa|meesho|best\s+quality|best\s+price|where\s+to\s+buy)/i;
+                                        const infoIntentRegex = /(tutorial|course|roadmap|learn|what\s+is|how\s+to|guide|history|news|meaning|definition|explain)/i;
+                                        const shouldForceGoogleShopping = shoppingIntentRegex.test(q) && !infoIntentRegex.test(q);
+
+                                        if (shouldForceGoogleShopping) {
+                                            const targetUrl = `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(query)}`;
+                                            setWebViewAction({
+                                                action: 'OPEN_WEBVIEW',
+                                                url: targetUrl,
+                                                title: `${query} · Google Shopping`,
+                                            });
+                                            dismissForWebView();
+                                            responseMessage = 'Sutradhar, I opened Google Shopping results directly for this product query.';
+                                            console.log('[Bodhi SDK] ✅ ecom_assistant routed to google shopping');
+                                            continue;
+                                        }
+
                                         const res = await fetch('/api/agents/ecom-assistant', {
                                             method: 'POST',
                                             headers: { 'Content-Type': 'application/json' },
@@ -2561,6 +2612,14 @@ export function useSakhaConversation({
                                         const payload = await res.json();
                                         if (!res.ok) throw new Error(payload?.error || 'youtube_navigator failed');
 
+                                        if (payload?.ok === false) {
+                                            responseMessage = String(
+                                                payload?.message || 'Failed to search YouTube. Ask the user to try a different keyword.'
+                                            );
+                                            console.warn('[Bodhi SDK] youtube_navigator fallback:', payload?.message);
+                                            continue;
+                                        }
+
                                         const viewAction = payload?.result;
                                         if (viewAction?.action === 'OPEN_WEBVIEW' && typeof viewAction.url === 'string') {
                                             setWebViewAction({
@@ -2569,13 +2628,46 @@ export function useSakhaConversation({
                                                 title: viewAction.title ?? `${query} · YouTube`,
                                             });
                                             dismissForWebView();
+                                            responseMessage = 'Sutradhar, I found a strong video match and opened it now. Want me to queue 2 more options after this?';
+                                        } else {
+                                            responseMessage = 'Failed to search YouTube. Ask the user to try a different keyword.';
+                                            console.warn('[Bodhi SDK] youtube_navigator returned no OPEN_WEBVIEW payload');
                                         }
-
-                                        responseMessage = 'Sutradhar, I found a strong video match and opened it now. Want me to queue 2 more options after this?';
                                         console.log('[Bodhi SDK] ✅ youtube_navigator executed');
                                     } catch (e) {
                                         responseMessage = `YouTube navigator failed: ${e}. Ask user for a sharper query (topic + level + language).`;
                                         console.warn('[Bodhi SDK] youtube_navigator failed:', e);
+                                    }
+                                }
+
+                                // ── google_navigator (Agentic WebView Google/Search flow) ────
+                                if (fcName === 'google_navigator') {
+                                    try {
+                                        const query = String(fcArgs.query ?? '').trim();
+                                        const rawSearchType = String(fcArgs.searchType ?? 'web').trim().toLowerCase();
+                                        if (!query) throw new Error('Missing query');
+
+                                        const searchType = rawSearchType === 'shopping' ? 'shopping' : 'web';
+                                        const encodedQuery = encodeURIComponent(query);
+                                        const targetUrl = searchType === 'shopping'
+                                            ? `https://www.google.com/search?tbm=shop&q=${encodedQuery}`
+                                            : `https://www.google.com/search?q=${encodedQuery}`;
+
+                                        setWebViewAction({
+                                            action: 'OPEN_WEBVIEW',
+                                            url: targetUrl,
+                                            title: `${query} · Google ${searchType === 'shopping' ? 'Shopping' : 'Search'}`,
+                                        });
+                                        dismissForWebView();
+
+                                        responseMessage =
+                                            searchType === 'shopping'
+                                                ? 'Sutradhar, I opened Google Shopping results for this product query.'
+                                                : 'Sutradhar, I opened Google Search results for your query.';
+                                        console.log('[Bodhi SDK] ✅ google_navigator executed');
+                                    } catch (error) {
+                                        console.error('Google Navigator Tool Error:', error);
+                                        responseMessage = 'Error: Failed to construct the Google Search URL. Please tell the user to try again.';
                                     }
                                 }
 
