@@ -221,7 +221,7 @@ export default function SacredPortalGrid() {
     }, []);
 
     // Increased cosmic radius for wider spacing with one extra icon in the orbit.
-    const radius = 225;
+    const radius = 300; // Updated from 225 to 300
 
     return (
         <div style={{ position: 'relative', width: '100%', minHeight: '720px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3rem 0', overflow: 'visible' }}>
@@ -246,11 +246,17 @@ export default function SacredPortalGrid() {
                                 <motion.div
                                     whileHover={{ scale: 1.15, boxShadow: `0 0 35px rgba(${item.color}, 0.9)` }}
                                     style={{
-                                        width: 60, height: 60, borderRadius: '50%', flexShrink: 0,
+                                        width: 80, // Updated from 60 to 80
+                                        height: 80, // Updated from 60 to 80
+                                        borderRadius: '50%',
+                                        flexShrink: 0,
                                         background: `radial-gradient(circle, rgba(${item.color},0.35) 0%, rgba(${item.color},0.05) 70%)`,
                                         border: `1.5px solid rgba(${item.color},0.5)`,
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        fontSize: '1.6rem', boxShadow: `0 0 20px rgba(${item.color}, 0.3)`,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '1.6rem',
+                                        boxShadow: `0 0 20px rgba(${item.color}, 0.3)`,
                                         backdropFilter: 'blur(10px)',
                                     }}
                                 >
