@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const CATEGORIES = ["Ayurvedic", "Khadi", "Organic Food", "Swadeshi Handicrafts"];
 
@@ -31,17 +33,20 @@ export default function ProductForm({ initialData }: { initialData?: any }) {
 
       if (!res.ok) throw new Error("Failed to save product");
 
-      alert("Product saved successfully!");
-      if (initialData?.isAdmin) {
-         router.push("/swadesi-product/admin-products");
-      } else {
-         router.push("/swadesi-product/seller-products");
-      }
-      router.refresh();
+      toast.success(initialData ? "Product updated successfully! 🛠️" : "Product published successfully! 🚀");
+      
+      setTimeout(() => {
+          if (initialData?.isAdmin) {
+             router.push("/swadesi-product/admin-products");
+          } else {
+             router.push("/swadesi-product/seller-products");
+          }
+          router.refresh();
+      }, 1500);
+      
     } catch (error) {
       console.error(error);
-      alert("Error saving product");
-    } finally {
+      toast.error("Error saving product.");
       setLoading(false);
     }
   };

@@ -25,6 +25,7 @@ import ConditionalVahanaBar from "@/components/ConditionalVahanaBar";
 import ZoomManager from "@/components/ZoomManager";
 import GlobalAutoPilot from "@/components/GlobalAutoPilot";
 import GlobalFCM from '@/components/GlobalFCM';
+import ToastProvider from '@/components/ToastProvider';
 
 export default function RootLayout({
   children,
@@ -37,6 +38,7 @@ export default function RootLayout({
         <ZoomManager />
         <OutplugsProvider>
           <LanguageProvider>
+            <ToastProvider />
             <GlobalAutoPilot />
             <ConditionalVahanaBar />
             <main>

@@ -79,10 +79,52 @@ export const addMockSellerApp = (app: any) => {
    });
 };
 
-export const approveMockSellerApp = (id: string) => {
+export const approveMockSellerApp = (id: string, adminEmail: string) => {
    const apps = getMockSellerApps();
    const appIndex = apps.findIndex((a: any) => a.id === id);
    if (appIndex !== -1) {
       apps[appIndex].status = "approved";
+      apps[appIndex].approvedBy = adminEmail;
+      return true;
    }
+   return false;
+};
+
+// DONATIONS MOCK STORE
+let donations: any[] = [];
+
+export const getMockDonations = () => {
+  return [...donations];
+};
+
+export const addMockDonation = (amount: number, message: string, user: string) => {
+  const newDonation = {
+    id: Date.now().toString(),
+    amount,
+    message,
+    user,
+    date: new Date().toISOString()
+  };
+  donations.push(newDonation);
+  return newDonation;
+};
+
+// PRO USERS & APP USERS MOCK STORE
+let proUsers: any[] = [
+    { email: "aryasumant@oneshutra.in", name: "Arya Sumant", date: new Date().toISOString() }
+];
+
+export const getMockProUsers = () => {
+   return [...proUsers];
+};
+
+export const addMockProUser = (email: string, name: string) => {
+   const newPro = { email, name, date: new Date().toISOString() };
+   proUsers.push(newPro);
+   return newPro;
+};
+
+export const getTotalAppUsersCount = () => {
+   // Fake dynamic count for demo purposes until real DB is active
+   return 1428 + proUsers.length + donations.length;
 };

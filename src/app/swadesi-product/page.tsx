@@ -3,9 +3,8 @@ import Link from "next/link";
 import BecomeSellerForm from "@/components/product/BecomeSellerForm";
 import ProductSearchBar from "@/components/product/ProductSearchBar";
 import BuyProductButton from "@/components/product/BuyProductButton";
+import SwadeshiAuthButtons from "@/components/product/SwadeshiAuthButtons";
 import { getMockProducts, getMockSellerApps } from "@/lib/mockStore";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 const CATEGORIES = ["All", "Ayurvedic", "Khadi", "Organic Food", "Swadeshi Handicrafts", "Herbal Cosmetics", "Pooja Essentials", "Handlooms"];
 
@@ -15,21 +14,9 @@ export default async function CustomerProductListPage(props: {
   const searchParamsData = await props.searchParams;
   const category = searchParamsData.category;
   const searchStr = searchParamsData.search || "";
-
-  let session = null;
-  try {
-    session = await getServerSession(authOptions);
-  } catch (e) {}
-
-  const userEmail = session?.user?.email;
-  const userRole = (session?.user as any)?.role;
-  const isAdmin = userRole === "SUPER_ADMIN" || userEmail === "aryasumantsaini123@gmail.com";
   
   const sellerApps = getMockSellerApps();
-  const isApprovedSeller = sellerApps.some((app: any) => app.email === userEmail && app.status === "approved");
-
-  const canSeeAdmin = isAdmin;
-  const canSeeSeller = isAdmin || isApprovedSeller;
+  const approvedSellerEmails = sellerApps.filter((a: any) => a.status === "approved").map((a: any) => a.email);
 
   const currentCategory = (typeof category === "string" && CATEGORIES.includes(category)) ? category : "All";
   let products = getMockProducts();
@@ -46,34 +33,43 @@ export default async function CustomerProductListPage(props: {
       <style>{`
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .market-title { font-size: 2.8rem; }
+        .mobile-orders-btn { display: none; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-gold), var(--accent-saffron)); color: #000; font-size: 1.2rem; text-decoration: none; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); flex-shrink: 0; }
+        .desktop-orders-btn { display: flex; align-items: center; gap: 0.5rem; justify-content: center; padding: 0 1.2rem; height: 100%; border-radius: 8px; font-weight: 700; color: var(--text-main); text-decoration: none; min-height: 48px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); white-space: nowrap; flex-shrink: 0; }
+        .search-row { display: flex; gap: 1rem; align-items: stretch; width: 100%; flex-wrap: nowrap; }
+        .search-container { flex: 1; min-width: 0; }
+        
+        @media (max-width: 600px) {
+           .desktop-orders-btn { display: none !important; }
+           .mobile-orders-btn { display: flex !important; }
+           .market-title { font-size: 1.8rem !important; flex: 1; margin-right: 0.5rem; }
+           .search-row { flex-direction: column; }
+        }
       `}</style>
       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", borderBottom: "1px solid rgba(255,255,255,0.1)", paddingBottom: "1.5rem", marginBottom: "2.5rem" }}>
         <div style={{ marginBottom: "1rem", flex: "1 1 500px", maxWidth: "800px", width: "100%" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem", marginBottom: "0.5rem" }}>
-             <h1 style={{ fontSize: "2.8rem", fontWeight: "bold", color: "var(--accent-gold)", letterSpacing: "-0.5px" }}>Swadeshi Marketplace</h1>
-             <Link href="/swadesi-product/my-orders" className="glass-panel" style={{ padding: "0.6rem 1rem", fontSize: "0.95rem", color: "var(--text-main)", fontWeight: "bold", textDecoration: "none", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-               🛒 My Orders
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+             <h1 className="market-title" style={{ fontWeight: "bold", color: "var(--accent-gold)", letterSpacing: "-0.5px" }}>Swadeshi Marketplace</h1>
+             <Link href="/swadesi-product/my-orders" className="mobile-orders-btn" title="My Orders">
+               🛒
              </Link>
           </div>
           <p style={{ color: "var(--text-muted)", fontSize: "1.1rem", marginBottom: "1.5rem" }}>Discover authentic, homemade, and traditional products directly from verified sellers.</p>
-          <ProductSearchBar />
+          
+          <div className="search-row">
+              <div className="search-container">
+                  <ProductSearchBar />
+              </div>
+              <Link href="/swadesi-product/my-orders" className="desktop-orders-btn glass-panel" title="My Orders">
+                 🛒 My Orders
+              </Link>
+          </div>
         </div>
         
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", alignItems: "flex-end", maxWidth: "100%" }}>
-          <div style={{ display: "flex", gap: "0.8rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
-            
-            {canSeeAdmin && (
-               <Link href="/swadesi-product/admin-products" className="glass-panel" style={{ padding: "0.6rem 1.2rem", fontSize: "0.95rem", color: "#FCA5A5", fontWeight: "bold", textDecoration: "none" }}>
-                 🛠 Admin Dashboard
-               </Link>
-            )}
-            
-            {canSeeSeller && (
-               <Link href="/swadesi-product/seller-products" className="glass-panel" style={{ padding: "0.6rem 1.2rem", fontSize: "0.95rem", color: "var(--accent-sage)", fontWeight: "bold", textDecoration: "none" }}>
-                 🏪 Seller Dashboard
-               </Link>
-            )}
-          </div>
+          <SwadeshiAuthButtons approvedSellerEmails={approvedSellerEmails} />
+          
           <div className="hide-scrollbar" style={{ display: "flex", gap: "0.5rem", flexWrap: "nowrap", overflowX: "auto", whiteSpace: "nowrap", padding: "0.5rem", WebkitOverflowScrolling: "touch", width: "100%", maxWidth: "100vw" }}>
             {CATEGORIES.map(cat => (
               <Link 

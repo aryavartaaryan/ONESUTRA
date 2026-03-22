@@ -22,6 +22,7 @@ import StickyFeedbackButton from '@/components/StickyFeedbackButton';
 import MagicSyncModule from '@/components/Dashboard/MagicSyncModule';
 import DailyInsightsCarousel from '@/components/Dashboard/DailyInsightsCarousel';
 import BrahmastraFocusCard from '@/components/Dashboard/BrahmastraFocusCard';
+import UpgradeDonateCard from '@/components/Dashboard/UpgradeDonateCard';
 import { useTimeOfDay } from '@/hooks/useTimeOfDay';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { useDailyTasks } from '@/hooks/useDailyTasks';
@@ -357,7 +358,9 @@ export default function Home() {
           </div>
 
           {/* RIGHT SIDEBAR */}
-          <aside className={dashStyles.sidebarRight} />
+          <aside className={dashStyles.sidebarRight}>
+             <UpgradeDonateCard />
+          </aside>
         </div>
 
       </main>

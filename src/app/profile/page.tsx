@@ -8,6 +8,7 @@ import { useCircadianBackground } from '@/hooks/useCircadianBackground';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { getFirebaseFirestore } from '@/lib/firebase';
 import { doc, onSnapshot, updateDoc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { getMockSellerApps } from "@/lib/mockStore";
 import styles from './page.module.css';
 
 // ════════════════════════════════════════════════════════
@@ -240,6 +241,12 @@ export default function ProfilePage() {
     const [profile, setProfile] = useState<UserProfileData>(DEFAULT_PROFILE);
     const [isLoading, setIsLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
+    
+    // Admin & Seller Authorization Check
+    const isAdmin = user && ["studywithpwno.1@gmail.com", "studywithpwno.1@gmaiil.com", "aryavartaayan9@gmail.com"].includes((user as any)?.email);
+    const sellerApps = getMockSellerApps();
+    const isApprovedSeller = user && sellerApps.some((app: any) => app.email === (user as any)?.email && app.status === "approved");
+    const canSeeSeller = isAdmin || isApprovedSeller;
     const [isHubOpen, setIsHubOpen] = useState(false);
     const [integrationTab, setIntegrationTab] = useState<IntegrationTab>('oauth');
     const [integrationSearch, setIntegrationSearch] = useState('');
@@ -657,7 +664,26 @@ export default function ProfilePage() {
                         <span className={styles.topBarSub}>Your Conscious Space</span>
                     </div>
                     
-                    <div className={styles.topActions} style={{display:'flex', gap:'12px', alignItems:'center'}}>
+                        <div className={styles.topActions} style={{display:'flex', gap:'12px', alignItems:'center'}}>
+                         {canSeeSeller && (
+                            <button 
+                                onClick={() => router.push('/swadesi-product/seller-products')}
+                                style={{ background: 'rgba(167, 243, 208, 0.15)', border: '1px solid rgba(167, 243, 208, 0.3)', borderRadius: '8px', padding: '0 12px', height: '36px', display: 'flex', alignItems: 'center', color: '#A7F3D0', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                title="Seller Dashboard"
+                            >
+                                🏪 Seller
+                            </button>
+                         )}
+                         {isAdmin && (
+                            <button 
+                                onClick={() => router.push('/swadesi-product/admin-products')}
+                                style={{ background: 'rgba(252, 165, 165, 0.15)', border: '1px solid rgba(252, 165, 165, 0.3)', borderRadius: '8px', padding: '0 12px', height: '36px', display: 'flex', alignItems: 'center', color: '#FCA5A5', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                title="Admin Dashboard"
+                            >
+                                🛠 Admin
+                            </button>
+                         )}
+
                          {/* Edit Toggle */}
                         {user && !isEditing ? (
                             <button 
