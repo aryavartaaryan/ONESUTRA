@@ -97,7 +97,8 @@ const MENU_ITEMS = [
     { id: 'sutra-vibe', title: 'SutraVibe', icon: '🎵', isModal: true, color: '250,204,21' },
     { id: 'guru-gurukul', title: 'Guru-Gurukul', icon: '🏛️', href: '/guru-gurukul', color: '239,68,68' },
     { id: 'swadesi-product', title: 'Swadesi Product', icon: '🛍️', href: '/swadesi-product', color: '245,158,11' },
-    { id: 'arya-sangrah', title: 'Arya-Sangrah', icon: '📚', href: '/arya-sangrah', color: '56,189,248' }
+    { id: 'arya-sangrah', title: 'Arya-Sangrah', icon: '📚', href: '/arya-sangrah', color: '56,189,248' },
+    { id: 'vedic-games', title: 'Vedic Games', icon: '🎲', href: '/vedic-games', color: '236,72,153' }
 ];
 
 function PortalSlot({ href, children }: { href: string; children: React.ReactNode }) {

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Plug, Flower2, Aperture, MessageCircle } from 'lucide-react';
+import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 
 type GlowTheme = 'gold' | 'blue' | 'green' | 'violet';
 
@@ -107,13 +108,31 @@ interface StickyTopNavProps {
 }
 
 export default function StickyTopNav({ totalUnread = 0 }: StickyTopNavProps) {
+    const { user } = useOneSutraAuth();
     const [isPro, setIsPro] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
     
     React.useEffect(() => {
         setIsMounted(true);
-        setIsPro(localStorage.getItem('has_oneshutra_pro') === 'true');
-    }, []);
+        // Default to localStorage for immediate UI showing
+        const localPro = localStorage.getItem('has_oneshutra_pro') === 'true';
+        setIsPro(localPro);
+
+        // Verifying with API if user is logged in
+        if (user?.email) {
+            fetch(`/api/pro?email=${encodeURIComponent(user.email)}`)
+                .then(res => res.json())
+                .then(data => {
+                    setIsPro(data.isPro);
+                    if (data.isPro) {
+                        localStorage.setItem('has_oneshutra_pro', 'true');
+                    } else {
+                        localStorage.removeItem('has_oneshutra_pro');
+                    }
+                })
+                .catch(err => console.error("Error checking Pro status", err));
+        }
+    }, [user?.email]);
 
     return (
         <header className="mobile-header" style={{
@@ -224,11 +243,13 @@ export default function StickyTopNav({ totalUnread = 0 }: StickyTopNavProps) {
                     }}>🔥</span>
                 ) : (
                     <Link href="/upgrade" style={{ 
-                        marginLeft: '4px', padding: '2px 6px', fontSize: '0.65rem', fontWeight: 800, 
-                        background: 'linear-gradient(90deg, #f59e0b, #d97706)', color: '#fff', 
-                        borderRadius: '4px', textDecoration: 'none', letterSpacing: '0.05em',
-                        boxShadow: '0 2px 8px rgba(245, 158, 11, 0.4)', zIndex: 2
-                    }}>PRO</Link>
+                        marginLeft: '5px', padding: '1px 6px', fontSize: '0.65rem', fontWeight: 700, 
+                        background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.05) 100%)',
+                        color: '#fcd34d', borderRadius: '6px', textDecoration: 'none', letterSpacing: '0.04em',
+                        border: '1px solid rgba(245, 158, 11, 0.4)',
+                        boxShadow: '0 2px 10px rgba(245, 158, 11, 0.2)', zIndex: 2,
+                        textTransform: 'uppercase', display: 'flex', alignItems: 'center'
+                    }}>Pro</Link>
                 )}
             </div>
 

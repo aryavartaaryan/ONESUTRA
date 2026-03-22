@@ -25,7 +25,7 @@ export default function SellerDashboard() {
             <span style={{ color: "var(--accent-saffron)" }}>⚡</span> My Listed Products
           </h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            {myProducts.map(p => (
+            {myProducts.map((p: any) => (
               <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.2rem 1.5rem", background: "rgba(0,0,0,0.3)", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.05)" }}>
                 <div>
                   <h3 style={{ fontWeight: "bold", color: "var(--text-main)", fontSize: "1.1rem" }}>{p.name}</h3>

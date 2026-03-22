@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, ChevronLeft, Star, Zap, Heart, BarChart3, Edit2, Save, X, Loader2, ShieldCheck, Search, Link2, LockKeyhole, ExternalLink, Info, CheckCircle2 } from 'lucide-react';
+import { LogOut, ChevronLeft, Star, Zap, Heart, BarChart3, Edit2, Save, X, Loader2, ShieldCheck, Search, Link2, LockKeyhole, ExternalLink, Info, CheckCircle2, ChevronDown, LifeBuoy, FileText, ShieldAlert, CreditCard, Trash2, Smartphone } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCircadianBackground } from '@/hooks/useCircadianBackground';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
@@ -262,6 +262,10 @@ export default function ProfilePage() {
         notes: '',
     });
     const [vaultSaving, setVaultSaving] = useState(false);
+    
+    // UI State for Settings Accordion
+    const [expandedSection, setExpandedSection] = useState<string | null>(null);
+    const toggleSection = (id: string) => setExpandedSection(p => p === id ? null : id);
     
     // Form State
     const [editForm, setEditForm] = useState({
@@ -850,6 +854,122 @@ export default function ProfilePage() {
                             <span>Vault: {integrationCount.vaultConnected}/{VAULT_KEYS.length}</span>
                         </div>
                     </motion.section>
+
+                    {/* ── Settings & Information ── */}
+                    <motion.section
+                        className={styles.settingsCard}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.55, delay: 0.2, ease: 'easeOut' }}
+                    >
+                        <div className={styles.settingsCardHeader}>
+                            <h3 className={styles.settingsCardTitle}>Settings & Information</h3>
+                        </div>
+
+                        {[
+                            {
+                                id: 'help',
+                                icon: <LifeBuoy size={16} strokeWidth={1.8} className={styles.accordionIcon} />,
+                                label: 'Help and Support',
+                                content: (
+                                    <>
+                                        Agar aapko koi bhi problem ho, please humein contact karein:
+                                        <br/><br/>
+                                        <strong>Email:</strong> aryanaaryavart9@gmail.com<br/>
+                                        <strong>Alt Email:</strong> studywithpwno.1@gmail.com
+                                    </>
+                                )
+                            },
+                            {
+                                id: 'rate',
+                                icon: <Star size={16} strokeWidth={1.8} className={styles.accordionIcon} />,
+                                label: 'Rate the App',
+                                content: (
+                                    <>
+                                        Aapka feedback humare liye bahut keemti hai. App ko rate karne ke liye PlayStore ya AppStore par jaayein. (Coming Soon)
+                                    </>
+                                )
+                            },
+                            {
+                                id: 'terms',
+                                icon: <FileText size={16} strokeWidth={1.8} className={styles.accordionIcon} />,
+                                label: 'Terms and Conditions',
+                                content: (
+                                    <>
+                                        By using our application, you agree to our terms of service, which ensure a respectful and secure environment for all seekers. Detailed terms are available on our main website.
+                                    </>
+                                )
+                            },
+                            {
+                                id: 'privacy',
+                                icon: <ShieldAlert size={16} strokeWidth={1.8} className={styles.accordionIcon} />,
+                                label: 'Privacy Policy',
+                                content: (
+                                    <>
+                                        Your data is encrypted and secure. We do not sell your personal data. Integrations use secure OAuth flow, and Vault credentials are AES-GCM encrypted locally.
+                                    </>
+                                )
+                            },
+                            {
+                                id: 'refund',
+                                icon: <CreditCard size={16} strokeWidth={1.8} className={styles.accordionIcon} />,
+                                label: 'Refund and Cancellation',
+                                content: (
+                                    <>
+                                        We offer a 7-day no-questions-asked refund policy for OneSHUTRA Pro subscriptions. Contact our support email for prompt processing.
+                                    </>
+                                )
+                            },
+                            {
+                                id: 'delete',
+                                icon: <Trash2 size={16} strokeWidth={1.8} color="#fca5a5" className={styles.accordionIcon} />,
+                                label: 'Delete Account',
+                                content: (
+                                    <>
+                                        <p style={{ margin: '0 0 10px 0', color: '#fca5a5' }}>
+                                            Warning: Deleting your account will permanently remove all your data, integrations, and progress. This action cannot be undone.
+                                        </p>
+                                        <button className={styles.dangerButton} onClick={() => alert("Account deletion request initiated. Please contact support to confirm.")}>
+                                            <Trash2 size={14} /> Permanently Delete Account
+                                        </button>
+                                    </>
+                                )
+                            }
+                        ].map((section) => {
+                            const isOpen = expandedSection === section.id;
+                            return (
+                                <div key={section.id} className={styles.accordionItem}>
+                                    <button className={styles.accordionHeader} onClick={() => toggleSection(section.id)}>
+                                        <div className={styles.accordionHeaderIcon}>
+                                            {section.icon}
+                                            <span>{section.label}</span>
+                                        </div>
+                                        <ChevronDown size={16} strokeWidth={2} className={`${styles.accordionChevron} ${isOpen ? styles.accordionChevronOpen : ''}`} />
+                                    </button>
+                                    <AnimatePresence initial={false}>
+                                        {isOpen && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.25, ease: 'easeOut' }}
+                                                className={styles.accordionContent}
+                                            >
+                                                <div className={styles.accordionInner}>
+                                                    {section.content}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            );
+                        })}
+                    </motion.section>
+
+                    <div className={styles.appVersion}>
+                        <Smartphone size={10} style={{ display: 'inline', marginRight: '4px', opacity: 0.6 }} />
+                        App Version 1.0.3 (Sattvik Build)
+                    </div>
 
                 </div>
             </main>

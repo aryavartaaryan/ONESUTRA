@@ -92,7 +92,7 @@ export default async function CustomerProductListPage(props: {
       {/* UI UPGRADE: Native inline grid layout inside Dark Mode containers */}
       <div style={{ display: "flex", flexDirection: "column", gap: "3rem", marginBottom: "4rem" }}>
         {CATEGORIES.filter(c => c !== "All").map(cat => {
-          const catProducts = products.filter(p => p.category === cat);
+          const catProducts = products.filter((p: any) => p.category === cat);
           if (currentCategory !== "All" && currentCategory !== cat) return null;
           if (catProducts.length === 0) return null;
           

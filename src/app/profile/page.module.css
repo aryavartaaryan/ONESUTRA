@@ -798,9 +798,119 @@
 
 .integrationTabBtnActive {
     background: rgba(251, 191, 36, 0.16);
-    border-color: rgba(251, 191, 36, 0.3);
-    color: rgba(255, 238, 207, 0.95);
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.32);
 }
+
+/* ── Settings Accordion ─────────────────────────────────────────────────── */
+.settingsCard {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 1rem 0;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    margin-top: 0.5rem;
+}
+
+.settingsCardHeader {
+    padding: 0 1.2rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    margin-bottom: 0.5rem;
+}
+
+.settingsCardTitle {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.accordionItem {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.accordionItem:last-child {
+    border-bottom: none;
+}
+
+.accordionHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.8rem 1.2rem;
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s;
+}
+
+.accordionHeader:hover {
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.accordionHeaderIcon {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.accordionIcon {
+    opacity: 0.7;
+}
+
+.accordionChevron {
+    transition: transform 0.3s ease;
+    opacity: 0.5;
+}
+.accordionChevronOpen {
+    transform: rotate(180deg);
+}
+
+.accordionContent {
+    overflow: hidden;
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.75rem;
+    line-height: 1.5;
+}
+.accordionInner {
+    padding: 0.5rem 1.2rem 1.2rem;
+}
+
+.dangerButton {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.dangerButton:hover {
+    background: rgba(239, 68, 68, 0.25);
+}
+
+.appVersion {
+    text-align: center;
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.3);
+    margin-top: 1.5rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
 
 .integrationSectionDescription {
     margin: 0.75rem 0 0;

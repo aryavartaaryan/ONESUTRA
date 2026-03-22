@@ -1,5 +1,15 @@
 import { NextResponse } from "next/server";
-import { addMockProUser } from "@/lib/mockStore";
+import { addMockProUser, getMockProUsers } from "@/lib/mockStore";
+
+export async function GET(req: Request) {
+    const url = new URL(req.url);
+    const email = url.searchParams.get("email");
+    if (!email) return NextResponse.json({ isPro: false });
+    
+    const proUsers = getMockProUsers();
+    const isPro = proUsers.some((u: any) => u.email.toLowerCase() === email.toLowerCase());
+    return NextResponse.json({ isPro });
+}
 
 export async function POST(req: Request) {
     try {
