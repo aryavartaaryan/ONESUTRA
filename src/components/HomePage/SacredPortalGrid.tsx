@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, X, SkipBack, SkipForward } from 'lucide-react';
@@ -96,6 +96,7 @@ const MENU_ITEMS = [
     { id: 'outplugs', title: 'outPLUGS', icon: '✧', href: '/outplugs', color: '232,93,4' },
     { id: 'sutra-vibe', title: 'SutraVibe', icon: '🎵', isModal: true, color: '250,204,21' },
     { id: 'guru-gurukul', title: 'Guru-Gurukul', icon: '🏛️', href: '/guru-gurukul', color: '239,68,68' },
+    { id: 'swadesi-product', title: 'Swadesi Product', icon: '🛍️', href: '/swadesi-product', color: '245,158,11' },
     { id: 'arya-sangrah', title: 'Arya-Sangrah', icon: '📚', href: '/arya-sangrah', color: '56,189,248' }
 ];
 
@@ -211,20 +212,20 @@ export default function SacredPortalGrid() {
     
     useEffect(() => {
         const handleResize = () => {
-            // Screen width vs required width (about 550px to be completely safe with tooltips and shadows)
-            setScale(Math.min(1, window.innerWidth / 550));
+            // Scale against a larger orbit canvas to keep spacing comfortable on narrow screens.
+            setScale(Math.min(1, window.innerWidth / 680));
         };
         handleResize(); // initial check
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Expand the orbit path a bit so nodes don't collide with the glowing center flame
-    const radius = 190;
+    // Increased cosmic radius for wider spacing with one extra icon in the orbit.
+    const radius = 225;
 
     return (
-        <div style={{ position: 'relative', width: '100%', minHeight: '600px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3rem 0', overflow: 'visible' }}>
-            <div style={{ position: 'relative', width: '420px', height: '420px', display: 'flex', alignItems: 'center', justifyContent: 'center', transform: `scale(${scale})` }}>
+        <div style={{ position: 'relative', width: '100%', minHeight: '720px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3rem 0', overflow: 'visible' }}>
+            <div style={{ position: 'relative', width: '500px', height: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center', transform: `scale(${scale})` }}>
                 <ChiragCenter />
 
                 {/* The Rotating Orbit */}

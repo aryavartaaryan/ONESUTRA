@@ -857,8 +857,24 @@
     z-index: 6;
 }
 
+.mandalQuickLeft,
+.mandalQuickRight {
+    position: absolute;
+    bottom: -1.1rem;
+    transform: translateY(0);
+    z-index: 6;
+}
+
 .mandalSideLeft {
     left: -4.8rem;
+}
+
+.mandalQuickLeft {
+    left: -4.8rem;
+}
+
+.mandalQuickRight {
+    right: -4.8rem;
 }
 
 .mandalSideRight {
@@ -900,6 +916,14 @@
     background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.7));
 }
 
+.mandalAryaSangrahBtn {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(2, 132, 199, 0.72));
+}
+
+.mandalGuruGurukulBtn {
+    background: linear-gradient(135deg, rgba(248, 113, 113, 0.15), rgba(185, 28, 28, 0.74));
+}
+
 .mandalSideLabelHi {
     font-family: var(--font-sanskrit);
     font-size: 0.86rem;
@@ -935,6 +959,18 @@
         transform: none;
     }
 
+    .mandalQuickLeft {
+        left: 0;
+        bottom: -1rem;
+        transform: none;
+    }
+
+    .mandalQuickRight {
+        right: 0;
+        bottom: -1rem;
+        transform: none;
+    }
+
     .mandalSideButton {
         min-width: 7.2rem;
         padding: 0.65rem 0.9rem;
@@ -945,6 +981,11 @@
     .mandalSideLeft,
     .mandalSideRight {
         top: -4.1rem;
+    }
+
+    .mandalQuickLeft,
+    .mandalQuickRight {
+        bottom: -0.7rem;
     }
 
     .mandalSideButton {

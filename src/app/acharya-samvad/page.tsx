@@ -5,7 +5,7 @@ import styles from './digital-vaidya.module.css';
 import { Mic, MicOff, PhoneOff, X, ChevronRight, Search } from 'lucide-react';
 import { BilingualString, BilingualList } from '@/lib/types';
 import translations from '@/lib/vaidya-translations.json';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import TypewriterMessage from '@/components/TypewriterMessage';
 import { useLanguage } from '@/context/LanguageContext';
 import AcharyaGuruOrb, { OrbStatus } from '@/components/Dashboard/AcharyaGuruOrb';
@@ -126,6 +126,7 @@ interface Message {
 }
 
 function AcharyaContent() {
+    const router = useRouter();
     const searchParams = useSearchParams();
     const initialLang = (searchParams?.get('lang') as 'en' | 'hi') || 'hi';
 
@@ -177,7 +178,6 @@ function AcharyaContent() {
     };
 
     const t = translations[lang];
-
     const sanitizeText = useCallback((text: string): string => {
         if (!text) return '';
         let s = text.normalize('NFC');
@@ -456,26 +456,27 @@ function AcharyaContent() {
 
                             {/* 5 Rishi nodes — pentagonal arrangement */}
                             {RISHIS.map((rishi) => (
-                                <motion.button
-                                    key={rishi.id}
-                                    className={styles.rishiNode}
-                                    style={{ '--rishi-color': rishi.color } as React.CSSProperties}
-                                    data-rishi={rishi.id}
-                                    onClick={() => setSelectedRishi(rishi)}
-                                    whileHover={{ scale: 1.08 }}
-                                    whileTap={{ scale: 0.94 }}
-                                    initial={{ opacity: 0, scale: 0.7 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: RISHIS.indexOf(rishi) * 0.1 + 0.2, type: 'spring', stiffness: 260, damping: 20 }}
-                                >
-                                    <span className={styles.rishiNodeSymbol}>{rishi.symbol}</span>
-                                    <span className={styles.rishiNodeName} style={{ color: rishi.color }}>
-                                        {lang === 'hi' ? rishi.name : rishi.nameEn}
-                                    </span>
-                                    <span className={styles.rishiNodeTitle}>
-                                        {lang === 'hi' ? rishi.title : rishi.titleEn}
-                                    </span>
-                                </motion.button>
+                                <React.Fragment key={rishi.id}>
+                                    <motion.button
+                                        className={styles.rishiNode}
+                                        style={{ '--rishi-color': rishi.color } as React.CSSProperties}
+                                        data-rishi={rishi.id}
+                                        onClick={() => setSelectedRishi(rishi)}
+                                        whileHover={{ scale: 1.08 }}
+                                        whileTap={{ scale: 0.94 }}
+                                        initial={{ opacity: 0, scale: 0.7 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ delay: RISHIS.indexOf(rishi) * 0.1 + 0.2, type: 'spring', stiffness: 260, damping: 20 }}
+                                    >
+                                        <span className={styles.rishiNodeSymbol}>{rishi.symbol}</span>
+                                        <span className={styles.rishiNodeName} style={{ color: rishi.color }}>
+                                            {lang === 'hi' ? rishi.name : rishi.nameEn}
+                                        </span>
+                                        <span className={styles.rishiNodeTitle}>
+                                            {lang === 'hi' ? rishi.title : rishi.titleEn}
+                                        </span>
+                                    </motion.button>
+                                </React.Fragment>
                             ))}
 
                             {/* Center: Acharya Orb + Voice button */}
@@ -514,6 +515,32 @@ function AcharyaContent() {
                                     <span className={styles.mandalSideLabelHi}>ग्रंथ · पुस्तकें</span>
                                     <span className={styles.mandalSideLabelEn}>Texts &amp; Scriptures</span>
                                 </button>
+                            </div>
+
+                            <div className={styles.mandalQuickLeft}>
+                                <motion.button
+                                    type="button"
+                                    className={`${styles.mandalSideButton} ${styles.mandalAryaSangrahBtn}`}
+                                    onClick={() => router.push('/arya-sangrah')}
+                                    whileHover={{ scale: 1.03 }}
+                                    whileTap={{ scale: 0.96 }}
+                                >
+                                    <span className={styles.mandalSideLabelHi}>आर्य संग्रह</span>
+                                    <span className={styles.mandalSideLabelEn}>Arya-Sangrah</span>
+                                </motion.button>
+                            </div>
+
+                            <div className={styles.mandalQuickRight}>
+                                <motion.button
+                                    type="button"
+                                    className={`${styles.mandalSideButton} ${styles.mandalGuruGurukulBtn}`}
+                                    onClick={() => router.push('/guru-gurukul')}
+                                    whileHover={{ scale: 1.03 }}
+                                    whileTap={{ scale: 0.96 }}
+                                >
+                                    <span className={styles.mandalSideLabelHi}>गुरु गुरुकुल</span>
+                                    <span className={styles.mandalSideLabelEn}>Guru-Gurukul</span>
+                                </motion.button>
                             </div>
                         </section>
 
