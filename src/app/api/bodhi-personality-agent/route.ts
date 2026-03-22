@@ -9,6 +9,34 @@ interface SankalpaTask {
 // ── Rate Limiting / Debounce Constants ──────────────────────────────────────
 // Only analyze if it's been at least 12 hours since the last analysis, Or if it's the very first time.
 const DEBOUNCE_MS = 12 * 60 * 60 * 1000;
+const GEMINI_MAX_ATTEMPTS = 2;
+const GEMINI_MODELS = ['gemini-2.0-flash', 'gemini-2.5-flash'] as const;
+
+function sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRetryableGeminiNetworkError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') return false;
+
+    const err = error as {
+        message?: string;
+        code?: string;
+        cause?: { message?: string; code?: string };
+    };
+
+    const message = `${err.message ?? ''} ${err.cause?.message ?? ''}`.toLowerCase();
+    const code = `${err.code ?? ''} ${err.cause?.code ?? ''}`;
+
+    return (
+        code.includes('UND_ERR_CONNECT_TIMEOUT') ||
+        code.includes('ETIMEDOUT') ||
+        code.includes('ECONNRESET') ||
+        message.includes('connect timeout') ||
+        message.includes('fetch failed') ||
+        message.includes('socket hang up')
+    );
+}
 
 export async function POST(req: Request) {
     try {
@@ -89,14 +117,60 @@ Rules for the summary:
 
         console.log(`[Personality Agent] Generating profile for ${userId}...`);
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.0-flash',
-            contents: userPrompt,
-            config: {
-                systemInstruction: systemPrompt,
-                temperature: 0.7,
+        let response: Awaited<ReturnType<typeof ai.models.generateContent>> | null = null;
+        let lastGeminiError: unknown = null;
+        let usedModel: (typeof GEMINI_MODELS)[number] | null = null;
+
+        for (const [modelIndex, modelName] of GEMINI_MODELS.entries()) {
+            for (let attempt = 1; attempt <= GEMINI_MAX_ATTEMPTS; attempt++) {
+                try {
+                    response = await ai.models.generateContent({
+                        model: modelName,
+                        contents: userPrompt,
+                        config: {
+                            systemInstruction: systemPrompt,
+                            temperature: 0.7,
+                        }
+                    });
+                    usedModel = modelName;
+                    break;
+                } catch (err) {
+                    lastGeminiError = err;
+                    const retryable = isRetryableGeminiNetworkError(err);
+                    const isLastAttemptForModel = attempt === GEMINI_MAX_ATTEMPTS;
+                    const hasFallbackModel = modelIndex < GEMINI_MODELS.length - 1;
+
+                    if (!retryable) {
+                        throw err;
+                    }
+
+                    if (isLastAttemptForModel) {
+                        if (!hasFallbackModel) {
+                            throw err;
+                        }
+
+                        console.warn(
+                            `[Personality Agent] ${modelName} timed out after ${GEMINI_MAX_ATTEMPTS} attempts. Switching to fallback model...`
+                        );
+                        break;
+                    }
+
+                    const backoffMs = 1200 * attempt;
+                    console.warn(
+                        `[Personality Agent] ${modelName} attempt ${attempt} failed with network timeout. Retrying in ${backoffMs}ms...`
+                    );
+                    await sleep(backoffMs);
+                }
             }
-        });
+
+            if (response) {
+                break;
+            }
+        }
+
+        if (!response) {
+            throw lastGeminiError ?? new Error('Gemini request failed');
+        }
 
         const newProfile = response.text;
 
@@ -110,7 +184,7 @@ Rules for the summary:
             bodhi_last_personality_analysis_time: Date.now()
         }, { merge: true });
 
-        console.log(`[Personality Agent] Successfully updated profile for ${userId}`);
+        console.log(`[Personality Agent] Successfully updated profile for ${userId} using ${usedModel ?? 'unknown_model'}`);
 
         return NextResponse.json({ status: 'success', profileLength: newProfile.length });
 
