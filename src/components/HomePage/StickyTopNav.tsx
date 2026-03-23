@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Plug, Flower2, Aperture, MessageCircle } from 'lucide-react';
+import { User, Plug, Flower2, Gamepad2, ShoppingBag } from 'lucide-react';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 
 type GlowTheme = 'gold' | 'blue' | 'green' | 'violet';
@@ -256,9 +256,9 @@ export default function StickyTopNav({ totalUnread = 0 }: StickyTopNavProps) {
             {/* Nav links */}
             <div className="mobile-nav-container" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', position: 'relative', zIndex: 1, flexWrap: 'nowrap' }}>
                 <NavLink href="/profile" theme="gold" icon={<User size={14} strokeWidth={1.8} />} label="Profile" />
-                <NavLink href="/outplugs" theme="blue" icon={<Plug size={14} strokeWidth={1.8} />} label="outPLUGS" />
-                <NavLink href="/onesutra" theme="gold" icon={<MessageCircle size={14} strokeWidth={1.8} />} label="Messages" badge={totalUnread} className="desktop-only-link" />
-                <NavLink href="/project-leela" theme="violet" icon={<Aperture size={14} strokeWidth={1.8} />} label="Leela" />
+                <NavLink href="/outplugs" theme="blue" icon={<Plug size={14} strokeWidth={1.8} />} label="outPLUGS" className="desktop-only-link" />
+                <NavLink href="/swadesi-product" theme="gold" icon={<ShoppingBag size={14} strokeWidth={1.8} />} label="Products" />
+                <NavLink href="/vedic-games" theme="violet" icon={<Gamepad2 size={14} strokeWidth={1.8} />} label="Games" />
             </div>
         </header>
     );

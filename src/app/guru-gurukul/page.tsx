@@ -75,14 +75,14 @@ export default function GuruGurukulPage() {
                     }}>
                         <BookOpen size={18} /> प्रसिद्ध गुरुकुल (Famous Gurukuls)
                     </button>
-                    <Link href="/arya-sangrah" style={{ textDecoration: 'none' }}>
+                    <Link href="/vedic-sangrah" style={{ textDecoration: 'none' }}>
                         <button style={{ 
                             padding: '0.75rem 1.5rem', borderRadius: '1rem', border: '1px solid rgba(255, 154, 68, 0.4)', 
                             background: 'rgba(255, 154, 68, 0.1)', color: '#ffbc80', fontWeight: 600, 
                             display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer',
                             boxShadow: '0 4px 20px rgba(255, 154, 68, 0.15)', transition: 'all 0.3s'
                         }}>
-                            <BookOpen size={18} /> आर्य संग्रह - वैदिक संध्या एवं अग्निहोत्र 
+                            <BookOpen size={18} /> वैदिक संग्रह - वैदिक संध्या एवं अग्निहोत्र 
                         </button>
                     </Link>
                     <Link href="/laghu-sandhya" style={{ textDecoration: 'none' }}>

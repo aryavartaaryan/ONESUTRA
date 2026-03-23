@@ -63,7 +63,7 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.15, duration: 0.6, ease: 'easeInOut' }}
                             >
-                                हमारा धर्म
+                                हमारे बारे में
                             </motion.span>
 
                             <motion.h2
@@ -71,8 +71,9 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
                                 initial={{ opacity: 0, y: 14 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.2, duration: 0.7, ease: 'easeInOut' }}
+                                style={{ fontSize: '1.4rem' }}
                             >
-                                Our Dharma
+                                भारतीय संस्कृति और वैदिक परंपरा का नवजागरण
                             </motion.h2>
 
                             <motion.div
@@ -81,19 +82,27 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.3, duration: 0.7, ease: 'easeInOut' }}
                             >
-                                <p>
-                                    Welcome to <strong>JustVibe</strong>. We are on a mission to harmonize the
-                                    ancient wisdom of the great Rishis with the limitless potential of modern
-                                    Artificial Intelligence.
-                                </p>
-                                <p>
-                                    Our objective is simple yet profound: <em>to create a digital sanctuary that heals.</em>{' '}
-                                    By fusing Vedic traditions with technology, we aim to build a society that is not
-                                    just smarter, but more grounded, conscious, and spiritually aligned.
-                                </p>
+                                <div>
+                                    <h3 style={{ fontSize: '1.05rem', color: '#8B6914', marginBottom: '0.3rem', fontFamily: "'Noto Serif Devanagari', serif" }}>प्रस्तावना:</h3>
+                                    <p>
+                                        नमस्कार! <strong>OneSHUTRA</strong> केवल एक डिजिटल मंच नहीं, बल्कि एक संकल्प है। इस पहल की शुरुआत हम दो साथियों—<strong>आर्यावर्त आर्यन</strong> और <strong>आर्य सुमन्त</strong>—ने एक पवित्र उद्देश्य के साथ की है: अपनी महान भारतीय संस्कृति और वैदिक परंपराओं को आज के आधुनिक युग में पुनर्स्थापित करना।
+                                    </p>
+                                </div>
+                                <div style={{ marginTop: '0.5rem' }}>
+                                    <h3 style={{ fontSize: '1.05rem', color: '#8B6914', marginBottom: '0.3rem', fontFamily: "'Noto Serif Devanagari', serif" }}>हमारा दृष्टिकोण:</h3>
+                                    <p>
+                                        आज के इस तीव्र तकनीकी युग में, हमारा दृढ़ विश्वास है कि समाज की वास्तविक शक्ति हमारी जड़ों में ही निहित है। उन्नत तकनीक के माध्यम से हम वेदों के ज्ञान, संस्कारों और हमारी सनातन धरोहर को एक नए, सुलभ और प्रभावशाली रूप में प्रस्तुत कर रहे हैं। हमारा उद्देश्य इस ऑनलाइन माध्यम से प्राचीन वैदिक ज्ञान को आज की पीढ़ी तक पहुँचाना है, ताकि वे अपनी संस्कृति पर गर्व कर सकें और उसे अपने जीवन में अपना सकें।
+                                    </p>
+                                </div>
+                                <div style={{ marginTop: '0.5rem' }}>
+                                    <h3 style={{ fontSize: '1.05rem', color: '#8B6914', marginBottom: '0.3rem', fontFamily: "'Noto Serif Devanagari', serif" }}>आपसे हमारा निवेदन:</h3>
+                                    <p>
+                                        हमारा यह तकनीकी और सांस्कृतिक प्रयास समाज के बड़ों, दानदाताओं और संस्कृति-प्रेमियों के सहयोग व आशीर्वाद के बिना अधूरा है। हम आपसे विनम्र आग्रह करते हैं कि आप इस सांस्कृतिक महायज्ञ में हमारा साथ दें, हमारा मार्गदर्शन करें और हमारा संबल बनें। आपके बहुमूल्य समर्थन से ही हम अपने इस डिजिटल संकल्प को एक जन-आंदोलन में बदल सकते हैं।
+                                    </p>
+                                </div>
                                 <div className={styles.divider} />
-                                <p className={styles.creator}>
-                                    Created by <strong>Aryan Choudhary</strong>
+                                <p className={styles.creator} style={{ fontStyle: 'italic', fontWeight: '500', color: '#6B4C2A', marginTop: '0.5rem' }}>
+                                    आइए, मिलकर अपनी सांस्कृतिक धरोहर को सहेजें और <strong>'कृण्वन्तो विश्वमार्यम्'</strong> (हम विश्व को श्रेष्ठ बनाएँ) के वैदिक संदेश को सार्थक करें।
                                 </p>
                             </motion.div>
                         </div>

@@ -521,12 +521,12 @@ function AcharyaContent() {
                                 <motion.button
                                     type="button"
                                     className={`${styles.mandalSideButton} ${styles.mandalAryaSangrahBtn}`}
-                                    onClick={() => router.push('/arya-sangrah')}
+                                    onClick={() => router.push('/vedic-sangrah')}
                                     whileHover={{ scale: 1.03 }}
                                     whileTap={{ scale: 0.96 }}
                                 >
-                                    <span className={styles.mandalSideLabelHi}>आर्य संग्रह</span>
-                                    <span className={styles.mandalSideLabelEn}>Arya-Sangrah</span>
+                                    <span className={styles.mandalSideLabelHi}>वैदिक संग्रह</span>
+                                    <span className={styles.mandalSideLabelEn}>Vedic-Sangrah</span>
                                 </motion.button>
                             </div>
 

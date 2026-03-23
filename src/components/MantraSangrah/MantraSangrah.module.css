@@ -1336,3 +1336,396 @@
 .channelCard:hover .visitBtn {
   background: rgba(239, 68, 68, 0.3);
 }
+
+/* ============================================
+   PREMIUM GLASSMORPHIC CARDS FOR VEDIC SANGRAH LANDING
+   ============================================ */
+
+.landingGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    width: 100%;
+    max-width: 1000px;
+    padding: 0 20px;
+    margin-top: 40px;
+}
+
+.premiumCard {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 36px 24px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 215, 0, 0.02));
+    border: 1px solid rgba(255, 215, 0, 0.15);
+    border-radius: 24px;
+    text-align: center;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    min-height: 200px;
+    outline: none;
+}
+
+.premiumCard::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 24px;
+    padding: 2px;
+    background: linear-gradient(135deg, rgba(255,215,0,0.6), transparent, rgba(255,165,0,0.6));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.premiumCard:hover {
+    transform: translateY(-8px);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 215, 0, 0.05));
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.15);
+}
+
+.premiumCard:hover::before {
+    opacity: 1;
+}
+
+.premiumCardIcon {
+    margin-bottom: 20px;
+    color: #FFD700;
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.4));
+    transition: transform 0.4s ease;
+}
+
+.premiumCard:hover .premiumCardIcon {
+    transform: scale(1.15);
+    color: #FFE55C;
+}
+
+.premiumCardTitle {
+    font-family: 'Noto Serif Devanagari', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #FDF5E6;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.premiumCardDesc {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.65);
+    line-height: 1.5;
+    max-width: 95%;
+}
+
+.mantraCardEnhanced {
+    background: linear-gradient(145deg, rgba(25, 20, 15, 0.8), rgba(15, 10, 5, 0.9));
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.mantraCardEnhanced:hover {
+    border-color: rgba(255, 215, 0, 0.5);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.15);
+    transform: translateY(-4px);
+}
+
+.modalContentEnhanced {
+    background: linear-gradient(165deg, #1c1510 0%, #0d0a08 100%);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 0 100px rgba(255, 215, 0, 0.03);
+    border-radius: 20px;
+    padding: 32px;
+    max-width: 600px;
+    width: 90%;
+    margin: auto;
+    color: #FDF5E6;
+}
+
+.modalContentEnhanced .modalTitle {
+    color: #FFD700;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+/* ============================================
+   MANTRA PAGE HEADER LAYOUT FIXES
+   ============================================ */
+
+.sangrahContainer {
+    width: 100%;
+    min-height: 100vh;
+    background: #0d0a08;
+    color: #fca5a5;
+    display: flex;
+    flex-direction: column;
+}
+
+.landingWrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 2rem;
+    min-height: 100vh;
+}
+
+.headerTop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 1rem;
+    padding: 20px 24px 0 24px;
+}
+
+.backButton {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #FFD700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-right: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.backButton:hover {
+    background: rgba(255, 215, 0, 0.1);
+    transform: scale(1.05);
+    border-color: rgba(255, 215, 0, 0.4);
+}
+
+.title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 2rem;
+    font-family: 'Noto Serif Devanagari', serif;
+    color: #FFD700;
+    text-shadow: 0 2px 10px rgba(255, 215, 0, 0.3);
+    margin: 0;
+}
+
+.placeholder {
+    width: 48px;
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 2rem;
+}
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    padding: 0 24px 30px;
+}
+
+.searchBar {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 20px;
+    padding: 4px 16px;
+    transition: all 0.3s ease;
+}
+
+.searchBar:focus-within {
+    border-color: rgba(255, 215, 0, 0.6);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.searchIcon {
+    color: #FFD700;
+    margin-right: 12px;
+}
+
+.searchInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #fdf5e6;
+    padding: 10px 0;
+    font-size: 1rem;
+    outline: none;
+}
+
+.categoryTabs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filterIcon {
+    color: #FFD700;
+    margin-right: 8px;
+}
+
+.tabBtn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    padding: 8px 16px;
+    border-radius: 20px;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.tabBtn:hover {
+    background: rgba(255, 215, 0, 0.1);
+    border-color: rgba(255, 215, 0, 0.4);
+}
+
+.activeTab {
+    background: rgba(255, 215, 0, 0.15);
+    border-color: #FFD700;
+    color: #FFD700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+}
+
+.gridContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+    padding: 0 24px 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* ============================================
+   SEQUENTIAL MANTRA READING VIEW
+   ============================================ */
+
+.fullMantraContainer {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 24px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 60px;
+}
+
+.categorySection {
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.categoryHeading {
+    font-family: 'Noto Serif Devanagari', serif;
+    font-size: 2.2rem;
+    color: #FFD700;
+    text-align: center;
+    border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+    padding-bottom: 16px;
+    margin: 0 0 20px 0;
+    text-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+}
+
+.categoryIcon {
+    color: #FF9933;
+    filter: drop-shadow(0 0 8px rgba(255, 153, 51, 0.6));
+}
+
+.mantraList {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.fullMantraCard {
+    background: linear-gradient(165deg, rgba(25, 20, 15, 0.6), rgba(15, 10, 5, 0.8));
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition: all 0.4s ease;
+}
+
+.fullMantraCard:hover {
+    border-color: rgba(255, 215, 0, 0.5);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.1);
+    transform: translateY(-4px);
+}
+
+.mantraTitle {
+    font-family: 'Noto Serif Devanagari', serif;
+    font-size: 1.6rem;
+    color: #FF9933;
+    margin-top: 0;
+    margin-bottom: 24px;
+    text-align: center;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
+}
+
+.mantraText {
+    font-family: 'Noto Serif Devanagari', serif;
+    font-size: 1.35rem;
+    line-height: 2;
+    color: #FDF5E6;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+    margin-bottom: 30px;
+}
+
+.mantraText p {
+    margin: 10px 0;
+}
+
+.mantraMeaning {
+    background: rgba(255, 215, 0, 0.03);
+    border-radius: 16px;
+    padding: 24px;
+    border-top: 1px solid rgba(255, 215, 0, 0.15);
+}
+
+.mantraMeaning h4 {
+    color: #FFD700;
+    margin: 0 0 12px 0;
+    font-size: 1.1rem;
+    font-family: 'Noto Serif Devanagari', serif;
+}
+
+.mantraMeaning p {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 1.05rem;
+    line-height: 1.8;
+    margin: 0;
+}

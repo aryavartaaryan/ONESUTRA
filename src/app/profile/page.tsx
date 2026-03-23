@@ -866,7 +866,39 @@ export default function ProfilePage() {
                             <h3 className={styles.settingsCardTitle}>Settings & Information</h3>
                         </div>
 
+                        {/* Settings sections array */}
                         {[
+                            {
+                                id: 'about',
+                                icon: <Info size={16} strokeWidth={1.8} className={styles.accordionIcon} />,
+                                label: 'About Us',
+                                content: (
+                                    <>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                            <h4 style={{ fontSize: '15px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>भारतीय संस्कृति और वैदिक परंपरा का नवजागरण</h4>
+                                            
+                                            <div>
+                                                <strong style={{ color: '#8b6914', display: 'block', marginBottom: '4px' }}>प्रस्तावना:</strong>
+                                                <p style={{ margin: 0, lineHeight: 1.6 }}>नमस्कार! OneSHUTRA केवल एक डिजिटल मंच नहीं, बल्कि एक संकल्प है। इस पहल की शुरुआत हम दो साथियों—आर्यावर्त आर्यन और आर्य सुमन्त —ने एक पवित्र उद्देश्य के साथ की है: अपनी महान भारतीय संस्कृति और वैदिक परंपराओं को आज के आधुनिक युग में पुनर्स्थापित करना।</p>
+                                            </div>
+                                            
+                                            <div>
+                                                <strong style={{ color: '#8b6914', display: 'block', marginBottom: '4px' }}>हमारा दृष्टिकोण:</strong>
+                                                <p style={{ margin: 0, lineHeight: 1.6 }}>आज के इस तीव्र तकनीकी युग में, हमारा दृढ़ विश्वास है कि समाज की वास्तविक शक्ति हमारी जड़ों में ही निहित है। उन्नत तकनीक के माध्यम से हम वेदों के ज्ञान, संस्कारों और हमारी सनातन धरोहर को एक नए, सुलभ और प्रभावशाली रूप में प्रस्तुत कर रहे हैं। हमारा उद्देश्य इस ऑनलाइन माध्यम से प्राचीन वैदिक ज्ञान को आज की पीढ़ी तक पहुँचाना है, ताकि वे अपनी संस्कृति पर गर्व कर सकें और उसे अपने जीवन में अपना सकें।</p>
+                                            </div>
+                                            
+                                            <div>
+                                                <strong style={{ color: '#8b6914', display: 'block', marginBottom: '4px' }}>आपसे हमारा निवेदन:</strong>
+                                                <p style={{ margin: 0, lineHeight: 1.6 }}>हमारा यह तकनीकी और सांस्कृतिक प्रयास समाज के बड़ों, दानदाताओं और संस्कृति-प्रेमियों के सहयोग व आशीर्वाद के बिना अधूरा है। हम आपसे विनम्र आग्रह करते हैं कि आप इस सांस्कृतिक महायज्ञ में हमारा साथ दें, हमारा मार्गदर्शन करें और हमारा संबल बनें। आपके बहुमूल्य समर्थन से ही हम अपने इस डिजिटल संकल्प को एक जन-आंदोलन में बदल सकते हैं।</p>
+                                            </div>
+                                            
+                                            <div style={{ fontStyle: 'italic', color: '#e07a5f', fontWeight: 500, marginTop: '4px' }}>
+                                                आइए, मिलकर अपनी सांस्कृतिक धरोहर को सहेजें और 'कृण्वन्तो विश्वमार्यम्' (हम विश्व को श्रेष्ठ बनाएँ) के वैदिक संदेश को सार्थक करें।
+                                            </div>
+                                        </div>
+                                    </>
+                                )
+                            },
                             {
                                 id: 'help',
                                 icon: <LifeBuoy size={16} strokeWidth={1.8} className={styles.accordionIcon} />,
