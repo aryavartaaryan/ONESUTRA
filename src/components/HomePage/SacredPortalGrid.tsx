@@ -111,6 +111,22 @@ function PortalSlot({ href, children }: { href: string; children: React.ReactNod
     );
 }
 
+// Sparkle particle positions around the flame
+const SPARKLES = [
+    { x: -55, y: -55, size: 7, delay: 0,    color: '#FFD700' },
+    { x:  55, y: -65, size: 5, delay: 0.4,  color: '#FF9E00' },
+    { x: -70, y:  10, size: 6, delay: 0.8,  color: '#FFD700' },
+    { x:  70, y:   5, size: 4, delay: 1.2,  color: '#FF6B00' },
+    { x: -40, y: -90, size: 5, delay: 0.3,  color: '#FFEA00' },
+    { x:  40, y: -85, size: 6, delay: 0.7,  color: '#FFB300' },
+    { x: -80, y: -35, size: 4, delay: 1.0,  color: '#FF9E00' },
+    { x:  80, y: -30, size: 5, delay: 1.5,  color: '#FFD700' },
+    { x:   0, y: -100, size: 6, delay: 0.2, color: '#FFEA00' },
+    { x: -30, y:  60, size: 4, delay: 0.9,  color: '#FF6B00' },
+    { x:  30, y:  65, size: 5, delay: 0.6,  color: '#FFD700' },
+    { x:  -5, y:  75, size: 3, delay: 1.3,  color: '#FF9E00' },
+];
+
 // --- Diwali Chirag Component ---
 function ChiragCenter() {
     return (
@@ -126,32 +142,69 @@ function ChiragCenter() {
             zIndex: 10,
         }}>
             {/* Lamp and Flame Container */}
-            <div style={{ position: 'relative', width: '150px', height: '180px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ position: 'relative', width: '190px', height: '220px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+
+                {/* ✨ SPARKLES around the flame */}
+                {SPARKLES.map((s, i) => (
+                    <motion.div
+                        key={i}
+                        animate={{
+                            scale: [0, 1.2, 0],
+                            opacity: [0, 1, 0],
+                            rotate: [0, 180, 360],
+                        }}
+                        transition={{
+                            duration: 1.4 + (i % 4) * 0.3,
+                            repeat: Infinity,
+                            delay: s.delay,
+                            ease: 'easeInOut',
+                        }}
+                        style={{
+                            position: 'absolute',
+                            left: `calc(50% + ${s.x}px)`,
+                            top: `calc(40% + ${s.y}px)`,
+                            width: s.size * 2,
+                            height: s.size * 2,
+                            zIndex: 5,
+                            pointerEvents: 'none',
+                        }}
+                    >
+                        {/* 4-pointed star sparkle */}
+                        <svg width={s.size * 2} height={s.size * 2} viewBox="0 0 10 10">
+                            <polygon
+                                points="5,0 6,4 10,5 6,6 5,10 4,6 0,5 4,4"
+                                fill={s.color}
+                                style={{ filter: `drop-shadow(0 0 3px ${s.color})` }}
+                            />
+                        </svg>
+                    </motion.div>
+                ))}
+
                 {/* Glow Behind Flame */}
                 <motion.div
-                    animate={{ scale: [1, 1.25, 1], opacity: [0.6, 0.95, 0.6] }}
+                    animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0.95, 0.6] }}
                     transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-                    style={{ position: 'absolute', top: '15px', width: '130px', height: '130px', background: 'radial-gradient(circle, rgba(255,140,0,0.85) 0%, transparent 65%)', borderRadius: '50%', filter: 'blur(16px)', zIndex: 0 }}
+                    style={{ position: 'absolute', top: '10px', width: '160px', height: '160px', background: 'radial-gradient(circle, rgba(255,140,0,0.85) 0%, transparent 65%)', borderRadius: '50%', filter: 'blur(18px)', zIndex: 0 }}
                 />
 
                 {/* Flame Container */}
                 <motion.div
-                    style={{ position: 'relative', width: '45px', height: '80px', zIndex: 2, transformOrigin: 'bottom center', marginBottom: '-8px' }}
+                    style={{ position: 'relative', width: '54px', height: '96px', zIndex: 2, transformOrigin: 'bottom center', marginBottom: '-8px' }}
                     animate={{ rotate: [-2, 2, -1, 3, -1], scaleY: [1, 1.08, 0.92, 1.05, 1] }}
                     transition={{ duration: 0.6, repeat: Infinity, ease: 'linear' }}
                 >
                     {/* Outer Flame */}
-                    <div style={{ position: 'absolute', width: '100%', height: '100%', background: '#ff7b00', borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%', boxShadow: '0 0 35px #ff7b00, 0 0 60px #ff9e00' }} />
+                    <div style={{ position: 'absolute', width: '100%', height: '100%', background: '#ff7b00', borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%', boxShadow: '0 0 40px #ff7b00, 0 0 70px #ff9e00' }} />
                     {/* Middle Flame */}
                     <div style={{ position: 'absolute', width: '70%', height: '80%', left: '15%', top: '20%', background: '#ffaa00', borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%' }} />
                     {/* Inner Flame */}
                     <div style={{ position: 'absolute', width: '40%', height: '50%', left: '30%', top: '45%', background: '#ffea00', borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%' }} />
                     {/* Wick */}
-                    <div style={{ position: 'absolute', width: '5px', height: '22px', background: '#2d1810', bottom: '0', left: '20px', borderRadius: '4px' }} />
+                    <div style={{ position: 'absolute', width: '5px', height: '22px', background: '#2d1810', bottom: '0', left: '24px', borderRadius: '4px' }} />
                 </motion.div>
 
-                {/* Highly Designed Mitti Ka Diya (Clay Lamp) SVG */}
-                <div style={{ position: 'relative', width: '150px', height: '85px', zIndex: 1, filter: 'drop-shadow(0px 15px 25px rgba(255, 90, 0, 0.7))' }}>
+                {/* Highly Designed Mitti Ka Diya (Clay Lamp) SVG — Bigger */}
+                <div style={{ position: 'relative', width: '190px', height: '105px', zIndex: 1, filter: 'drop-shadow(0px 18px 28px rgba(255, 90, 0, 0.75))' }}>
                     <svg viewBox="0 0 120 60" style={{ width: '100%', height: '100%', display: 'block' }}>
                         <defs>
                             <linearGradient id="clayGradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -164,45 +217,101 @@ function ChiragCenter() {
                                 <stop offset="100%" stopColor="#f57f17" />
                             </linearGradient>
                         </defs>
-
-                        {/* Diya Base */}
                         <path d="M 10 20 C 10 55, 110 55, 110 20 Z" fill="url(#clayGradient)" stroke="#4a1a01" strokeWidth="1.5" />
-                        
-                        {/* Decorative patterns mimicking painted mitti diya */}
                         <path d="M 25 30 Q 60 50 95 30" fill="none" stroke="#ffca28" strokeWidth="2" strokeDasharray="3 3" opacity="0.8"/>
                         <path d="M 35 40 Q 60 55 85 40" fill="none" stroke="#ffffff" strokeWidth="1" strokeDasharray="2 2" opacity="0.6"/>
                         <circle cx="60" cy="38" r="4" fill="#ffca28" opacity="0.9" />
                         <circle cx="45" cy="34" r="2.5" fill="#ffffff" opacity="0.8" />
                         <circle cx="75" cy="34" r="2.5" fill="#ffffff" opacity="0.8" />
-                        
-                        {/* Top Rim */}
                         <ellipse cx="60" cy="20" rx="53" ry="14" fill="#8d3209" stroke="#542004" strokeWidth="1.5" />
-                        
-                        {/* Inner Bowl & Oil */}
                         <ellipse cx="60" cy="20" rx="46" ry="10" fill="#6d2303" />
                         <ellipse cx="60" cy="21" rx="42" ry="7" fill="url(#oilGradient)" opacity="0.85" />
                         <ellipse cx="60" cy="21" rx="40" ry="6" fill="#ffe082" opacity="0.5" />
-                        
-                        {/* Spout for bati (wick) */}
                         <path d="M 45 10 C 53 0, 67 0, 75 10" fill="#8d3209" />
                         <ellipse cx="60" cy="9" rx="12" ry="4" fill="#6d2303" />
-                        
-                        {/* Highlights & Shadows for 3D effect */}
                         <path d="M 15 22 C 15 40, 45 47, 60 47 C 75 47, 105 40, 105 22" fill="none" stroke="#ffffff" strokeWidth="1" opacity="0.15" />
                     </svg>
                 </div>
             </div>
             
-            {/* Moved text container with proper spacing */}
-            <div style={{ marginTop: '0.25rem', textAlign: 'center' }}>
-                <p style={{ margin: 0, fontSize: '0.9rem', letterSpacing: '0.45em', textTransform: 'uppercase', color: 'rgba(255, 190, 50, 0.95)', fontFamily: 'monospace', fontWeight: 800, textShadow: '0 0 15px rgba(255, 140, 0, 0.9)' }}>
+            {/* Cosmic Orbit Text */}
+            <div style={{ marginTop: '0.35rem', textAlign: 'center' }}>
+                <p style={{ margin: 0, fontSize: '0.95rem', letterSpacing: '0.48em', textTransform: 'uppercase', color: 'rgba(255, 190, 50, 0.95)', fontFamily: 'monospace', fontWeight: 800, textShadow: '0 0 18px rgba(255, 140, 0, 0.95)' }}>
                     Cosmic
                 </p>
-                <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.9rem', letterSpacing: '0.45em', textTransform: 'uppercase', color: 'rgba(255, 190, 50, 0.95)', fontFamily: 'monospace', fontWeight: 800, textShadow: '0 0 15px rgba(255, 140, 0, 0.9)' }}>
+                <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.95rem', letterSpacing: '0.48em', textTransform: 'uppercase', color: 'rgba(255, 190, 50, 0.95)', fontFamily: 'monospace', fontWeight: 800, textShadow: '0 0 18px rgba(255, 140, 0, 0.95)' }}>
                     Orbit
                 </p>
             </div>
         </div>
+    );
+}
+
+// Comet definitions — angle in degrees (direction of travel), starting from random edges
+const COMETS = [
+    { angle: 135, top: '-5%',  left: '10%',  size: 80, dur: 2.2, delay: 0.0,  color: '#FFD700' },
+    { angle: 150, top: '5%',   left: '60%',  size: 60, dur: 1.8, delay: 1.4,  color: '#FF9E00' },
+    { angle: 120, top: '15%',  left: '-5%',  size: 70, dur: 2.5, delay: 3.1,  color: '#FFEA00' },
+    { angle: 160, top: '-8%',  left: '35%',  size: 55, dur: 1.6, delay: 5.2,  color: '#FFC107' },
+    { angle: 140, top: '0%',   left: '80%',  size: 65, dur: 2.0, delay: 2.7,  color: '#FF7B00' },
+    { angle: 125, top: '8%',   left: '25%',  size: 75, dur: 2.8, delay: 4.5,  color: '#FFD700' },
+];
+
+function DhoomKetur() {
+    return (
+        <>
+            {COMETS.map((c, i) => {
+                const rad = (c.angle * Math.PI) / 180;
+                const dx = Math.cos(rad) * c.size * 6;
+                const dy = Math.sin(rad) * c.size * 6;
+                return (
+                    <motion.div
+                        key={i}
+                        style={{
+                            position: 'absolute',
+                            top: c.top,
+                            left: c.left,
+                            width: c.size,
+                            height: 2,
+                            pointerEvents: 'none',
+                            zIndex: 3,
+                            transformOrigin: 'left center',
+                            rotate: c.angle,
+                            borderRadius: 99,
+                            background: `linear-gradient(to right, ${c.color}, rgba(255,255,255,0.9), transparent)`,
+                            boxShadow: `0 0 8px ${c.color}, 0 0 16px ${c.color}88`,
+                            filter: `blur(0.5px)`,
+                        }}
+                        initial={{ x: 0, y: 0, opacity: 0, scaleX: 0 }}
+                        animate={{
+                            x: [0, dx],
+                            y: [0, dy],
+                            opacity: [0, 1, 1, 0],
+                            scaleX: [0, 1, 1, 0.3],
+                        }}
+                        transition={{
+                            duration: c.dur,
+                            repeat: Infinity,
+                            delay: c.delay,
+                            repeatDelay: 5 + (i * 1.7),
+                            ease: [0.2, 0, 1, 0.8],
+                        }}
+                    >
+                        {/* Bright head of the comet */}
+                        <motion.div style={{
+                            position: 'absolute',
+                            right: -5,
+                            top: -4,
+                            width: 10,
+                            height: 10,
+                            borderRadius: '50%',
+                            background: '#fff',
+                            boxShadow: `0 0 10px 4px ${c.color}`,
+                        }} />
+                    </motion.div>
+                );
+            })}
+        </>
     );
 }
 
@@ -213,21 +322,23 @@ export default function SacredPortalGrid() {
     
     useEffect(() => {
         const handleResize = () => {
-            // Scale against a larger orbit canvas to keep spacing comfortable on narrow screens.
-            setScale(Math.min(1, window.innerWidth / 680));
+            setScale(Math.min(1, window.innerWidth / 760));
         };
-        handleResize(); // initial check
+        handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Increased cosmic radius for wider spacing with one extra icon in the orbit.
-    const radius = 300; // Updated from 225 to 300
+    const radius = 320;
 
     return (
-        <div style={{ position: 'relative', width: '100%', minHeight: '720px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3rem 0', overflow: 'visible' }}>
-            <div style={{ position: 'relative', width: '500px', height: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center', transform: `scale(${scale})` }}>
+        <div style={{ position: 'relative', width: '100%', minHeight: '800px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3rem 0', overflow: 'visible' }}>
+            <div style={{ position: 'relative', width: '620px', height: '620px', display: 'flex', alignItems: 'center', justifyContent: 'center', transform: `scale(${scale})` }}>
+                {/* ☄️ Dhoom Ketur — background comets */}
+                <DhoomKetur />
+
                 <ChiragCenter />
+
 
                 {/* The Rotating Orbit */}
                 <motion.div
