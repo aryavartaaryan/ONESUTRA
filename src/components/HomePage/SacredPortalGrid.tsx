@@ -90,7 +90,7 @@ function RaagModal({ onClose }: { onClose: () => void }) {
 const MENU_ITEMS = [
     { id: 'pranaverse', title: 'PranaVIBEs', icon: '🌀', href: '/pranaverse', color: '20,184,166' },
     { id: 'sutraconnect', title: 'SUTRAConnect', icon: '🪷', href: '/onesutra', color: '192,132,252' },
-    { id: 'acharya', title: 'Acharya', icon: 'ॐ', href: '/acharya-samvad', color: '165,180,252' },
+    { id: 'acharya', title: 'Guru', icon: 'ॐ', href: '/acharya-samvad', color: '165,180,252' },
     { id: 'dhyan', title: 'Dhyan', icon: '🕉️', href: '/dhyan-kshetra', color: '251,191,36' },
     { id: 'vedic-rasoi', title: 'Vedic Rasoi', icon: '🌿', href: '/vedic-rasoi', color: '163,230,53' },
     { id: 'outplugs', title: 'outPLUGS', icon: '✧', href: '/outplugs', color: '232,93,4' },
@@ -113,18 +113,18 @@ function PortalSlot({ href, children }: { href: string; children: React.ReactNod
 
 // Sparkle particle positions around the flame
 const SPARKLES = [
-    { x: -55, y: -55, size: 7, delay: 0,    color: '#FFD700' },
-    { x:  55, y: -65, size: 5, delay: 0.4,  color: '#FF9E00' },
-    { x: -70, y:  10, size: 6, delay: 0.8,  color: '#FFD700' },
-    { x:  70, y:   5, size: 4, delay: 1.2,  color: '#FF6B00' },
-    { x: -40, y: -90, size: 5, delay: 0.3,  color: '#FFEA00' },
-    { x:  40, y: -85, size: 6, delay: 0.7,  color: '#FFB300' },
-    { x: -80, y: -35, size: 4, delay: 1.0,  color: '#FF9E00' },
-    { x:  80, y: -30, size: 5, delay: 1.5,  color: '#FFD700' },
-    { x:   0, y: -100, size: 6, delay: 0.2, color: '#FFEA00' },
-    { x: -30, y:  60, size: 4, delay: 0.9,  color: '#FF6B00' },
-    { x:  30, y:  65, size: 5, delay: 0.6,  color: '#FFD700' },
-    { x:  -5, y:  75, size: 3, delay: 1.3,  color: '#FF9E00' },
+    { x: -55, y: -55, size: 7, delay: 0, color: '#FFD700' },
+    { x: 55, y: -65, size: 5, delay: 0.4, color: '#FF9E00' },
+    { x: -70, y: 10, size: 6, delay: 0.8, color: '#FFD700' },
+    { x: 70, y: 5, size: 4, delay: 1.2, color: '#FF6B00' },
+    { x: -40, y: -90, size: 5, delay: 0.3, color: '#FFEA00' },
+    { x: 40, y: -85, size: 6, delay: 0.7, color: '#FFB300' },
+    { x: -80, y: -35, size: 4, delay: 1.0, color: '#FF9E00' },
+    { x: 80, y: -30, size: 5, delay: 1.5, color: '#FFD700' },
+    { x: 0, y: -100, size: 6, delay: 0.2, color: '#FFEA00' },
+    { x: -30, y: 60, size: 4, delay: 0.9, color: '#FF6B00' },
+    { x: 30, y: 65, size: 5, delay: 0.6, color: '#FFD700' },
+    { x: -5, y: 75, size: 3, delay: 1.3, color: '#FF9E00' },
 ];
 
 // --- Diwali Chirag Component ---
@@ -218,8 +218,8 @@ function ChiragCenter() {
                             </linearGradient>
                         </defs>
                         <path d="M 10 20 C 10 55, 110 55, 110 20 Z" fill="url(#clayGradient)" stroke="#4a1a01" strokeWidth="1.5" />
-                        <path d="M 25 30 Q 60 50 95 30" fill="none" stroke="#ffca28" strokeWidth="2" strokeDasharray="3 3" opacity="0.8"/>
-                        <path d="M 35 40 Q 60 55 85 40" fill="none" stroke="#ffffff" strokeWidth="1" strokeDasharray="2 2" opacity="0.6"/>
+                        <path d="M 25 30 Q 60 50 95 30" fill="none" stroke="#ffca28" strokeWidth="2" strokeDasharray="3 3" opacity="0.8" />
+                        <path d="M 35 40 Q 60 55 85 40" fill="none" stroke="#ffffff" strokeWidth="1" strokeDasharray="2 2" opacity="0.6" />
                         <circle cx="60" cy="38" r="4" fill="#ffca28" opacity="0.9" />
                         <circle cx="45" cy="34" r="2.5" fill="#ffffff" opacity="0.8" />
                         <circle cx="75" cy="34" r="2.5" fill="#ffffff" opacity="0.8" />
@@ -233,7 +233,7 @@ function ChiragCenter() {
                     </svg>
                 </div>
             </div>
-            
+
             {/* Cosmic Orbit Text */}
             <div style={{ marginTop: '0.35rem', textAlign: 'center' }}>
                 <p style={{ margin: 0, fontSize: '0.95rem', letterSpacing: '0.48em', textTransform: 'uppercase', color: 'rgba(255, 190, 50, 0.95)', fontFamily: 'monospace', fontWeight: 800, textShadow: '0 0 18px rgba(255, 140, 0, 0.95)' }}>
@@ -249,12 +249,12 @@ function ChiragCenter() {
 
 // Comet definitions — angle in degrees (direction of travel), starting from random edges
 const COMETS = [
-    { angle: 135, top: '-5%',  left: '10%',  size: 80, dur: 2.2, delay: 0.0,  color: '#FFD700' },
-    { angle: 150, top: '5%',   left: '60%',  size: 60, dur: 1.8, delay: 1.4,  color: '#FF9E00' },
-    { angle: 120, top: '15%',  left: '-5%',  size: 70, dur: 2.5, delay: 3.1,  color: '#FFEA00' },
-    { angle: 160, top: '-8%',  left: '35%',  size: 55, dur: 1.6, delay: 5.2,  color: '#FFC107' },
-    { angle: 140, top: '0%',   left: '80%',  size: 65, dur: 2.0, delay: 2.7,  color: '#FF7B00' },
-    { angle: 125, top: '8%',   left: '25%',  size: 75, dur: 2.8, delay: 4.5,  color: '#FFD700' },
+    { angle: 135, top: '-5%', left: '10%', size: 80, dur: 2.2, delay: 0.0, color: '#FFD700' },
+    { angle: 150, top: '5%', left: '60%', size: 60, dur: 1.8, delay: 1.4, color: '#FF9E00' },
+    { angle: 120, top: '15%', left: '-5%', size: 70, dur: 2.5, delay: 3.1, color: '#FFEA00' },
+    { angle: 160, top: '-8%', left: '35%', size: 55, dur: 1.6, delay: 5.2, color: '#FFC107' },
+    { angle: 140, top: '0%', left: '80%', size: 65, dur: 2.0, delay: 2.7, color: '#FF7B00' },
+    { angle: 125, top: '8%', left: '25%', size: 75, dur: 2.8, delay: 4.5, color: '#FFD700' },
 ];
 
 function DhoomKetur() {
@@ -319,7 +319,7 @@ function DhoomKetur() {
 export default function SacredPortalGrid() {
     const [raagOpen, setRaagOpen] = useState(false);
     const [scale, setScale] = useState(1);
-    
+
     useEffect(() => {
         const handleResize = () => {
             setScale(Math.min(1, window.innerWidth / 760));
@@ -374,12 +374,12 @@ export default function SacredPortalGrid() {
                                 >
                                     {item.icon}
                                 </motion.div>
-                                <div style={{ 
-                                    fontSize: '0.65rem', 
-                                    fontWeight: 700, 
-                                    color: `rgba(${item.color}, 0.95)`, 
-                                    letterSpacing: '0.12em', 
-                                    textTransform: 'uppercase', 
+                                <div style={{
+                                    fontSize: '0.65rem',
+                                    fontWeight: 700,
+                                    color: `rgba(${item.color}, 0.95)`,
+                                    letterSpacing: '0.12em',
+                                    textTransform: 'uppercase',
                                     textShadow: `0 0 10px rgba(${item.color}, 0.8)`,
                                     whiteSpace: 'nowrap',
                                     textAlign: 'center',

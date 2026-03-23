@@ -15,7 +15,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getTelegramMessagingService } from '@/lib/telegramMessaging';
-import { initializeGlobalClient } from '@/lib/telegramClientManager';
+import { initializeGlobalClient, isGlobalClientInitialized } from '@/lib/telegramClientManager';
 
 export interface TelegramMessage {
     id: string;
@@ -85,7 +85,16 @@ export function useTelegramMessages(chatId: string | null, telegramUserId?: stri
             return;
         }
 
-        // Service not ready — attempt silent session restore
+        // If global client is already initialized (by useTelegramSession at root),
+        // just read the service readiness directly — don't call initializeGlobalClient()
+        // again as that would create a second MTProto connection (AUTH_KEY_DUPLICATED).
+        if (isGlobalClientInitialized()) {
+            setIsServiceReady(getTelegramMessagingService().isReady);
+            return;
+        }
+
+        // True fallback: no client at all (e.g. page opened directly without root bootstrap).
+        // Only call init if the client is genuinely absent.
         initializeGlobalClient()
             .then((restored) => {
                 if (restored) setIsServiceReady(getTelegramMessagingService().isReady);

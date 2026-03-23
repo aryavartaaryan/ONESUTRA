@@ -3,11 +3,23 @@
  * telegramClientManager.ts — Production-Grade Telegram Client Manager
  * ─────────────────────────────────────────────────────────────────────────────
  * Manages a singleton GramJS TelegramClient with:
+ *   ✅ Window-level singleton — survives Next.js HMR reloads (prevents AUTH_KEY_DUPLICATED)
+ *   ✅ Explicit disconnect() before reconnect — kills old WebSocket before creating new one
  *   ✅ Persistent session restore from localStorage on startup
  *   ✅ ensureConnected() wrapper — auto-reconnects before every operation
- *   ✅ 25-second keep-alive ping to prevent MTProto WebSocket drop
- *   ✅ AUTH_KEY_UNREGISTERED detection → clears session + fires UI event
+ *   ✅ 30-second keep-alive ping to prevent MTProto WebSocket drop
+ *   ✅ AUTH_KEY_DUPLICATED / AUTH_KEY_UNREGISTERED detection → session clear + UI event
  *   ✅ Idempotent init — concurrent calls share the same Promise
+ *
+ * ROOT CAUSE FIX: AUTH_KEY_DUPLICATED
+ * ─────────────────────────────────────
+ * In Next.js dev mode, HMR resets module-level variables (let _client = null)
+ * but the OLD GramJS WebSocket connection stays alive in the browser.
+ * When initializeGlobalClient() creates a NEW client with the same session key,
+ * Telegram's servers see TWO simultaneous connections → sends 406 AUTH_KEY_DUPLICATED.
+ *
+ * Solution: store the live client on `window.__sutraconnect_tg` so HMR-surviving
+ * singletons can be found and cleanly disconnected before a new one is created.
  */
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -16,56 +28,72 @@
 
 export const SESSION_KEY = 'sutraconnect_tg_session';
 
-// DOM event fired when server invalidates the auth key (e.g. user killed session
-// in native Telegram app). UI listens for this to show re-login prompt.
+// DOM event fired when server invalidates the auth key
 export const SESSION_EXPIRED_EVENT = 'telegram-session-expired';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Internal singleton state
+// Window-level singleton interface (survives HMR)
 // ─────────────────────────────────────────────────────────────────────────────
 
-let _client: any = null;
-let _initPromise: Promise<void> | null = null;
-let _keepAliveTimer: ReturnType<typeof setInterval> | null = null;
-let _isReady = false;
+declare global {
+    interface Window {
+        __sutraconnect_tg?: {
+            client: any;
+            keepAliveTimer: ReturnType<typeof setInterval> | null;
+            isReady: boolean;
+            initPromise: Promise<void> | null;
+        };
+    }
+}
+
+function getStore() {
+    if (typeof window === 'undefined') return null;
+    if (!window.__sutraconnect_tg) {
+        window.__sutraconnect_tg = {
+            client: null,
+            keepAliveTimer: null,
+            isReady: false,
+            initPromise: null,
+        };
+    }
+    return window.__sutraconnect_tg;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Public Getters / Setters
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function getGlobalTelegramClient(): any {
-    return _client;
+    return getStore()?.client ?? null;
 }
 
 export function setGlobalTelegramClient(client: any): void {
-    _client = client;
-    _isReady = !!client;
+    const store = getStore();
+    if (!store) return;
+    store.client = client;
+    store.isReady = !!client;
     console.log('[TelegramClient] Global client set:', !!client);
 }
 
 export function isGlobalClientInitialized(): boolean {
-    return _isReady && !!_client;
+    const store = getStore();
+    return !!(store?.isReady && store?.client);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ensureConnected — call this before EVERY Telegram API operation
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Ensures the GramJS client is connected before proceeding.
- * If the client is not connected it will silently reconnect.
- * Throws only if there is no client at all (user not logged in).
- */
 export async function ensureConnected(): Promise<void> {
-    if (!_client) {
+    const store = getStore();
+    if (!store?.client) {
         throw new Error('Telegram client not initialised. Please log in first.');
     }
 
     try {
-        // GramJS exposes `.connected` as a getter
-        if (!_client.connected) {
+        if (!store.client.connected) {
             console.log('[TelegramClient] Not connected — reconnecting silently...');
-            await _client.connect();
+            await store.client.connect();
             console.log('[TelegramClient] ✅ Reconnected successfully');
         }
     } catch (err: any) {
@@ -80,18 +108,33 @@ export async function ensureConnected(): Promise<void> {
 
 export function handleClientError(err: any): void {
     const msg: string = err?.message ?? String(err);
+    const errCode: number = err?.code ?? err?.errorCode ?? 0;
+    const errMsg: string = err?.errorMessage ?? '';
+
+    const isDuplicated =
+        msg.includes('AUTH_KEY_DUPLICATED') ||
+        errMsg === 'AUTH_KEY_DUPLICATED' ||
+        errCode === 406;
+
     const isExpired =
+        isDuplicated ||
         msg.includes('AUTH_KEY_UNREGISTERED') ||
         msg.includes('AUTH_KEY_INVALID') ||
         msg.includes('SESSION_REVOKED') ||
         msg.includes('USER_DEACTIVATED') ||
-        err?.errorMessage === 'AUTH_KEY_UNREGISTERED';
+        errMsg === 'AUTH_KEY_UNREGISTERED';
 
     if (isExpired) {
-        console.warn('[TelegramClient] ⚠️ Auth key expired or revoked — clearing session');
+        if (isDuplicated) {
+            // AUTH_KEY_DUPLICATED: session key is still valid but there's a competing connection.
+            // Clear the session so user re-authenticates fresh with a new key.
+            console.warn('[TelegramClient] ⚠️ AUTH_KEY_DUPLICATED — competing connection detected. Clearing session.');
+        } else {
+            console.warn('[TelegramClient] ⚠️ Auth key expired or revoked — clearing session');
+        }
+
         clearGlobalClient();
 
-        // Fire UI event so components can react
         if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent(SESSION_EXPIRED_EVENT));
         }
@@ -104,67 +147,91 @@ export function handleClientError(err: any): void {
 
 function startKeepAlive(): void {
     stopKeepAlive();
+    const store = getStore();
+    if (!store) return;
 
-    _keepAliveTimer = setInterval(async () => {
-        if (!_client || !_isReady) return;
+    store.keepAliveTimer = setInterval(async () => {
+        const s = getStore();
+        if (!s?.client || !s.isReady) return;
 
         try {
-            if (!_client.connected) {
+            if (!s.client.connected) {
                 console.log('[TelegramClient] Keep-alive: client disconnected — reconnecting...');
-                await _client.connect();
+                await s.client.connect();
 
-                // Re-attach message listener after reconnect
                 const { reinitMessagingListener } = await import('./telegramMessaging');
                 await reinitMessagingListener();
 
                 console.log('[TelegramClient] ✅ Keep-alive reconnect succeeded');
             } else {
-                // Lightweight ping to keep the MTProto connection alive
                 try {
                     const { Api } = await import('telegram');
-                    await _client.invoke(new Api.Ping({ pingId: BigInt(Math.floor(Math.random() * 1e12)) as any }));
+                    await s.client.invoke(new Api.Ping({ pingId: BigInt(Math.floor(Math.random() * 1e12)) as any }));
                 } catch (_pingErr) {
-                    // Ping failure is non-fatal — connection will self-heal on next check
+                    // Ping failure is non-fatal
                 }
             }
         } catch (err: any) {
             handleClientError(err);
-            // Don't propagate — keep the interval running for next tick
         }
-    }, 25_000); // Every 25 seconds
+    }, 30_000); // Every 30 seconds
 }
 
 function stopKeepAlive(): void {
-    if (_keepAliveTimer !== null) {
-        clearInterval(_keepAliveTimer);
-        _keepAliveTimer = null;
+    const store = getStore();
+    if (!store) return;
+    if (store.keepAliveTimer !== null) {
+        clearInterval(store.keepAliveTimer);
+        store.keepAliveTimer = null;
     }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// killExistingClient — Explicitly disconnect any surviving WebSocket
+// This is the KEY fix for AUTH_KEY_DUPLICATED in HMR / dev mode.
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function killExistingClient(): Promise<void> {
+    const store = getStore();
+    if (!store?.client) return;
+
+    console.log('[TelegramClient] 🔪 Disconnecting existing client before re-init...');
+    stopKeepAlive();
+
+    try {
+        store.client.removeAllListeners?.();
+        await store.client.disconnect();
+        // Give Telegram's servers 1.5 seconds to register the disconnect
+        // before we create a new connection with the same auth key.
+        await new Promise<void>((r) => setTimeout(r, 1500));
+    } catch (_) {
+        // best-effort
+    }
+
+    store.client = null;
+    store.isReady = false;
+    console.log('[TelegramClient] ✅ Old client disconnected');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // initializeGlobalClient — Restore session on app startup (IDEMPOTENT)
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Call ONCE on app startup to silently restore a previous Telegram session.
- * - If no session in localStorage → resolves immediately (returns false via callback)
- * - If session exists → connects, checks auth, initialises messaging service
- * - If auth key is invalid → clears session + fires SESSION_EXPIRED_EVENT
- *
- * Returns `true` if session was successfully restored, `false` otherwise.
- */
 export async function initializeGlobalClient(): Promise<boolean> {
-    // Already fully initialised
-    if (_isReady && _client) return true;
+    const store = getStore();
+    if (!store) return false;
+
+    // Already fully initialised — skip
+    if (store.isReady && store.client) return true;
 
     // Prevent double-init race: share the same Promise across concurrent callers
-    if (_initPromise) {
-        await _initPromise;
-        return _isReady && !!_client;
+    if (store.initPromise) {
+        await store.initPromise;
+        return store.isReady && !!store.client;
     }
 
     let resolveInit!: () => void;
-    _initPromise = new Promise<void>((res) => { resolveInit = res; });
+    store.initPromise = new Promise<void>((res) => { resolveInit = res; });
 
     let restored = false;
 
@@ -190,55 +257,61 @@ export async function initializeGlobalClient(): Promise<boolean> {
             return false;
         }
 
+        // ⚡ CRITICAL: Kill any surviving WebSocket from a previous HMR cycle
+        // before creating a new client with the same auth key.
+        await killExistingClient();
+
         console.log('[TelegramClient] 🔄 Restoring session from localStorage...');
         const { TelegramClient, StringSession } = await loadGramJS();
         const session = new StringSession(savedSession);
 
         const client = new TelegramClient(session, API_ID, API_HASH, {
-            connectionRetries: 5,
-            retryDelay: 1000,
+            connectionRetries: 3,
+            retryDelay: 3000,
             autoReconnect: true,
             deviceModel: 'PranavSamadhaan Web',
             systemVersion: 'Web 2.0',
             appVersion: '2.0.0',
             langCode: 'en',
             useWSS: true,
+            requestRetries: 2,
         });
 
         await client.connect();
 
-        // Check if auth key is still valid on Telegram servers
+        // Verify the auth key is still valid on Telegram servers
         const isAuthorised = await client.checkAuthorization();
 
         if (!isAuthorised) {
             console.warn('[TelegramClient] Session exists but auth failed — clearing');
             localStorage.removeItem(SESSION_KEY);
+            try { await client.disconnect(); } catch (_) { }
             resolveInit();
             return false;
         }
 
-        // ✅ Session valid — wire everything up
-        _client = client;
-        _isReady = true;
+        // ✅ Session valid — store on window (survives HMR)
+        store.client = client;
+        store.isReady = true;
 
         console.log('[TelegramClient] ✅ Session restored successfully');
 
-        // Initialise the messaging service (sets up NewMessage listener)
         const { initializeTelegramMessaging } = await import('./telegramMessaging');
         await initializeTelegramMessaging(client);
 
-        // Start keep-alive ping
         startKeepAlive();
 
         restored = true;
     } catch (err: any) {
         console.error('[TelegramClient] Session restore failed:', err);
         handleClientError(err);
-        _client = null;
-        _isReady = false;
+        const s = getStore();
+        if (s) { s.client = null; s.isReady = false; }
     } finally {
-        _initPromise = null;
+        // Resolve BEFORE nulling so concurrent awaiters see the final state
         resolveInit();
+        const s = getStore();
+        if (s) s.initPromise = null;
     }
 
     return restored;
@@ -248,25 +321,22 @@ export async function initializeGlobalClient(): Promise<boolean> {
 // Called after a fresh login (phone+OTP) to wire up keep-alive
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Call this after a successful first-time login to activate keep-alive.
- * `setGlobalTelegramClient()` must have already been called.
- */
 export function activateKeepAlive(): void {
-    if (_client) startKeepAlive();
+    if (getStore()?.client) startKeepAlive();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Re-initialize messaging service (after unexpected disconnect/restore)
+// Re-initialize messaging service
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function reinitializeMessagingService(): Promise<void> {
-    if (!_client) {
+    const store = getStore();
+    if (!store?.client) {
         throw new Error('No global client — cannot re-initialise messaging service');
     }
     await ensureConnected();
     const { initializeTelegramMessaging } = await import('./telegramMessaging');
-    await initializeTelegramMessaging(_client);
+    await initializeTelegramMessaging(store.client);
     console.log('[TelegramClient] Messaging service re-initialised');
 }
 
@@ -276,13 +346,16 @@ export async function reinitializeMessagingService(): Promise<void> {
 
 export function clearGlobalClient(): void {
     stopKeepAlive();
-    if (_client) {
-        try { _client.disconnect(); } catch (_) { /* best-effort */ }
+    const store = getStore();
+    if (store?.client) {
+        try { store.client.disconnect(); } catch (_) { /* best-effort */ }
+        store.client = null;
+        store.isReady = false;
+        store.initPromise = null;
     }
-    _client = null;
-    _isReady = false;
-    _initPromise = null;
-    localStorage.removeItem(SESSION_KEY);
+    if (typeof window !== 'undefined') {
+        localStorage.removeItem(SESSION_KEY);
+    }
     console.log('[TelegramClient] Global client cleared + session wiped');
 }
 

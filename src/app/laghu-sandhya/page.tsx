@@ -75,10 +75,10 @@ export default function LaghuSandhyaPage() {
     return (
         <div style={{ minHeight: '100vh', background: 'linear-gradient(to bottom, #0a0a0a, #1a1510)', color: '#fff', padding: '2rem 1rem', fontFamily: 'Poppins, sans-serif' }}>
             <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-                
+
                 {/* Header */}
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '2rem' }}>
-                    <Link href="/guru-gurukul" style={{ color: '#f472b6', background: 'rgba(244, 114, 182, 0.1)', padding: '0.75rem', borderRadius: '50%', marginRight: '1.5rem', display: 'flex' }}>
+                    <Link href="/" style={{ color: '#f472b6', background: 'rgba(244, 114, 182, 0.1)', padding: '0.75rem', borderRadius: '50%', marginRight: '1.5rem', display: 'flex' }}>
                         <ArrowLeft size={24} />
                     </Link>
                     <div>
@@ -92,9 +92,9 @@ export default function LaghuSandhyaPage() {
                 </div>
 
                 {/* Voice Guru Trigger */}
-                <motion.div 
+                <motion.div
                     whileHover={{ scale: 1.02 }}
-                    style={{ 
+                    style={{
                         background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(236, 72, 153, 0.05))',
                         border: '1px solid rgba(236, 72, 153, 0.4)',
                         borderRadius: '1.5rem', padding: '2rem', textAlign: 'center', marginBottom: '3rem',
@@ -108,7 +108,7 @@ export default function LaghuSandhyaPage() {
                     </div>
                     <Volume2 size={48} color="#f472b6" style={{ marginBottom: '1rem' }} />
                     <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '2rem', color: '#fff' }}>Voice Guru (वॉयस गुरु)</h2>
-                    <p style={{ margin: 0, color: '#fbcfe8', fontSize: '1.1rem' }}>इस पर क्लिक करें और "संध्या गुरु" के साथ निरंतर संध्या उपासना प्रारम्भ करें। <br/><span style={{ fontSize: '0.9rem', opacity: 0.8 }}>(Click here to start reciting non-stop with the AI Guru)</span></p>
+                    <p style={{ margin: 0, color: '#fbcfe8', fontSize: '1.1rem' }}>इस पर क्लिक करें और "संध्या गुरु" के साथ निरंतर संध्या उपासना प्रारम्भ करें। <br /><span style={{ fontSize: '0.9rem', opacity: 0.8 }}>(Click here to start reciting non-stop with the AI Guru)</span></p>
                     <button style={{ marginTop: '1.5rem', background: '#ec4899', color: '#fff', border: 'none', padding: '0.75rem 2rem', borderRadius: '2rem', fontSize: '1.1rem', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
                         <PlayCircle size={20} /> Start Sandhya
                     </button>
@@ -117,23 +117,23 @@ export default function LaghuSandhyaPage() {
                 {/* Text Content */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                     {LAGHU_SANDHYA_MANTRAS.map((item, idx) => (
-                        <div key={item.id} style={{ 
-                            background: 'rgba(255,255,255,0.03)', 
-                            borderLeft: '4px solid #f472b6', 
-                            padding: '1.5rem 2rem', 
+                        <div key={item.id} style={{
+                            background: 'rgba(255,255,255,0.03)',
+                            borderLeft: '4px solid #f472b6',
+                            padding: '1.5rem 2rem',
                             borderRadius: '0 1rem 1rem 0'
                         }}>
                             <h3 style={{ margin: '0 0 1rem 0', color: '#fbcfe8', fontSize: '1.3rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <Feather size={20} color="#ec4899" />
                                 {item.title}
                             </h3>
-                            <div style={{ 
+                            <div style={{
                                 fontSize: '1.25rem', color: '#fff', lineHeight: 1.8, marginBottom: '1rem',
-                                whiteSpace: 'pre-line' 
+                                whiteSpace: 'pre-line'
                             }}>
                                 {item.sanskrit}
                             </div>
-                            <div style={{ 
+                            <div style={{
                                 background: 'rgba(236, 72, 153, 0.05)', padding: '1rem', borderRadius: '0.5rem',
                                 color: '#a1a1aa', fontSize: '1rem', fontStyle: 'italic'
                             }}>
@@ -142,7 +142,7 @@ export default function LaghuSandhyaPage() {
                         </div>
                     ))}
                 </div>
-                
+
                 <div style={{ textAlign: 'center', marginTop: '4rem', padding: '2rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                     <Heart size={32} color="#ec4899" style={{ margin: '0 auto 1rem' }} />
                     <p style={{ color: '#a1a1aa' }}>इति लघु वैदिक संध्या विधि सम्पूर्णम्</p>
@@ -151,10 +151,10 @@ export default function LaghuSandhyaPage() {
             </div>
 
             {/* AI Voice Modal */}
-            <SandhyaVoiceModal 
-                isOpen={isVoiceModalOpen} 
-                onClose={() => setIsVoiceModalOpen(false)} 
-                lang="hi" 
+            <SandhyaVoiceModal
+                isOpen={isVoiceModalOpen}
+                onClose={() => setIsVoiceModalOpen(false)}
+                lang="hi"
             />
         </div>
     );

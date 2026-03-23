@@ -76,7 +76,7 @@ const OAUTH_TOOLS: IntegrationTool[] = [
     { key: 'slack', label: 'Slack', subtitle: 'Team messaging and reminders', category: 'oauth', oauthUrl: '/api/agents/oauth/start?provider=slack' },
     { key: 'twitter_x', label: 'Twitter (X)', subtitle: 'Posting and thread drafting', category: 'oauth', oauthUrl: '/api/agents/oauth/start?provider=twitter_x' },
     { key: 'instagram', label: 'Instagram', subtitle: 'Social publishing workflows', category: 'oauth', oauthUrl: '/api/agents/oauth/start?provider=instagram' },
-    { key: 'telegram', label: 'Telegram', subtitle: 'Bot and message workflows', category: 'oauth', oauthUrl: '/api/agents/oauth/start?provider=telegram' },
+    { key: 'telegram', label: 'Telegram', subtitle: 'Bot and message workflows', category: 'oauth', oauthUrl: process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL || 'https://t.me/SakhaBodhibot' },
     { key: 'whatsapp_webhook', label: 'WhatsApp Webhook', subtitle: 'Notification and event dispatch', category: 'oauth', oauthUrl: '/api/agents/oauth/start?provider=whatsapp_webhook' },
 ];
 
@@ -236,12 +236,12 @@ export default function ProfilePage() {
     const { user, signOut } = useOneSutraAuth();
     const router = useRouter();
     const { imageUrl, loaded } = useCircadianBackground('vedic');
-    
+
     // State
     const [profile, setProfile] = useState<UserProfileData>(DEFAULT_PROFILE);
     const [isLoading, setIsLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
-    
+
     // Admin & Seller Authorization Check
     const isAdmin = user && ["studywithpwno.1@gmail.com", "studywithpwno.1@gmaiil.com", "aryavartaayan9@gmail.com"].includes((user as any)?.email);
     const sellerApps = getMockSellerApps();
@@ -262,11 +262,9 @@ export default function ProfilePage() {
         notes: '',
     });
     const [vaultSaving, setVaultSaving] = useState(false);
-    
     // UI State for Settings Accordion
     const [expandedSection, setExpandedSection] = useState<string | null>(null);
     const toggleSection = (id: string) => setExpandedSection(p => p === id ? null : id);
-    
     // Form State
     const [editForm, setEditForm] = useState({
         name: '',
@@ -369,17 +367,17 @@ export default function ProfilePage() {
             return;
         }
 
-        let unsubscribe = () => {};
+        let unsubscribe = () => { };
 
         const fetchProfile = async () => {
             try {
                 const db = await getFirebaseFirestore();
                 const userDocRef = doc(db, 'onesutra_users', user.uid);
-                
+
                 unsubscribe = onSnapshot(userDocRef, (docSnap) => {
                     if (docSnap.exists()) {
                         const data = docSnap.data();
-                        
+
                         // Merge with defaults
                         setProfile(prev => ({
                             ...prev,
@@ -395,10 +393,10 @@ export default function ProfilePage() {
                                 icon: ({ 'Star': Star, 'Heart': Heart, 'Zap': Zap, 'BarChart3': BarChart3 } as any)[s.iconName] || Star // Map string icon names if stored
                             })) : DEFAULT_PROFILE.stats
                         }));
-                        
+
                         // Sync edit form with fetched data initially
                         if (!isEditing) {
-                             setEditForm({
+                            setEditForm({
                                 name: data.name || user.name || '',
                                 title: data.title || 'Sattvik Seeker',
                                 prakriti: data.prakriti || 'Vata-Pitta',
@@ -437,7 +435,7 @@ export default function ProfilePage() {
             return;
         }
 
-        let unsub = () => {};
+        let unsub = () => { };
 
         (async () => {
             const db = await getFirebaseFirestore();
@@ -485,10 +483,10 @@ export default function ProfilePage() {
         try {
             const db = await getFirebaseFirestore();
             const userRef = doc(db, 'onesutra_users', user.uid);
-            
+
             // Check if doc exists first, if not setDoc (merge), else updateDoc
             const snap = await getDoc(userRef);
-            
+
             const updates = {
                 name: editForm.name,
                 title: editForm.title,
@@ -505,7 +503,7 @@ export default function ProfilePage() {
                     email: user.email // Store email for reference
                 });
             }
-            
+
             setIsEditing(false);
         } catch (err) {
             console.error("Failed to save profile", err);
@@ -579,6 +577,20 @@ export default function ProfilePage() {
 
         if (currentlyConnected) {
             await setOAuthConnection(key, false);
+            return;
+        }
+
+        if (key === 'telegram') {
+            await setOAuthConnection(key, true);
+            const redirectUrl = tool.oauthUrl || 'https://t.me/SakhaBodhibot';
+            try {
+                const urlObj = new URL(redirectUrl);
+                urlObj.searchParams.set('start', user.uid);
+                window.open(urlObj.toString(), '_blank', 'noopener,noreferrer');
+            } catch (e) {
+                // Fallback if URL parsing fails
+                window.open(`${redirectUrl}?start=${user.uid}`, '_blank', 'noopener,noreferrer');
+            }
             return;
         }
 
@@ -667,48 +679,47 @@ export default function ProfilePage() {
                         <span className={styles.topBarTitle}>Sanctuary</span>
                         <span className={styles.topBarSub}>Your Conscious Space</span>
                     </div>
-                    
-                        <div className={styles.topActions} style={{display:'flex', gap:'12px', alignItems:'center'}}>
-                         {canSeeSeller && (
-                            <button 
+                    <div className={styles.topActions} style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                        {canSeeSeller && (
+                            <button
                                 onClick={() => router.push('/swadesi-product/seller-products')}
                                 style={{ background: 'rgba(167, 243, 208, 0.15)', border: '1px solid rgba(167, 243, 208, 0.3)', borderRadius: '8px', padding: '0 12px', height: '36px', display: 'flex', alignItems: 'center', color: '#A7F3D0', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
                                 title="Seller Dashboard"
                             >
                                 🏪 Seller
                             </button>
-                         )}
-                         {isAdmin && (
-                            <button 
+                        )}
+                        {isAdmin && (
+                            <button
                                 onClick={() => router.push('/swadesi-product/admin-products')}
                                 style={{ background: 'rgba(252, 165, 165, 0.15)', border: '1px solid rgba(252, 165, 165, 0.3)', borderRadius: '8px', padding: '0 12px', height: '36px', display: 'flex', alignItems: 'center', color: '#FCA5A5', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
                                 title="Admin Dashboard"
                             >
                                 🛠 Admin
                             </button>
-                         )}
+                        )}
 
-                         {/* Edit Toggle */}
+                        {/* Edit Toggle */}
                         {user && !isEditing ? (
-                            <button 
-                                className={styles.iconBtn} 
-                                onClick={() => setIsEditing(true)} 
+                            <button
+                                className={styles.iconBtn}
+                                onClick={() => setIsEditing(true)}
                                 title="Edit Profile"
-                                style={{background:'rgba(255,255,255,0.1)', border:'none', borderRadius:'50%', width:'36px', height:'36px', display:'flex', alignItems:'center', justifyContent:'center', color:'white', cursor:'pointer'}}
+                                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer' }}
                             >
                                 <Edit2 size={16} strokeWidth={1.8} />
                             </button>
                         ) : user && (
-                            <div style={{display:'flex', gap:'8px'}}>
-                                <button 
-                                    onClick={() => setIsEditing(false)} 
-                                    style={{background:'rgba(255,50,50,0.2)', border:'none', borderRadius:'50%', width:'36px', height:'36px', display:'flex', alignItems:'center', justifyContent:'center', color:'#ffcccc', cursor:'pointer'}}
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                    onClick={() => setIsEditing(false)}
+                                    style={{ background: 'rgba(255,50,50,0.2)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffcccc', cursor: 'pointer' }}
                                 >
                                     <X size={18} />
                                 </button>
-                                <button 
-                                    onClick={handleSave} 
-                                    style={{background:'rgba(50,255,100,0.2)', border:'none', borderRadius:'50%', width:'36px', height:'36px', display:'flex', alignItems:'center', justifyContent:'center', color:'#ccffcc', cursor:'pointer'}}
+                                <button
+                                    onClick={handleSave}
+                                    style={{ background: 'rgba(50,255,100,0.2)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccffcc', cursor: 'pointer' }}
                                 >
                                     {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Save size={18} />}
                                 </button>
@@ -740,63 +751,63 @@ export default function ProfilePage() {
                             </motion.div>
                             <span className={styles.avatarOmOverlay}>ॐ</span>
                         </div>
-                        
+
                         <div className={styles.heroInfo}>
                             {isEditing ? (
-                                <div className={styles.editForm} style={{display:'flex', flexDirection:'column', gap:'8px', width:'100%'}}>
-                                    <div style={{display:'flex', flexDirection:'column', gap:'4px'}}>
-                                        <label style={{fontSize:'10px', color:'rgba(255,255,255,0.5)', textTransform:'uppercase', letterSpacing:'0.5px'}}>Name</label>
-                                        <input 
-                                            type="text" 
+                                <div className={styles.editForm} style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <label style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Name</label>
+                                        <input
+                                            type="text"
                                             value={editForm.name}
-                                            onChange={(e) => setEditForm(prev => ({...prev, name: e.target.value}))}
+                                            onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
                                             placeholder="Your Name"
-                                            style={{background:'rgba(255,255,255,0.1)', border:'none', color:'white', padding:'8px 12px', borderRadius:'8px', fontSize:'16px', outline:'none'}}
+                                            style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '8px 12px', borderRadius: '8px', fontSize: '16px', outline: 'none' }}
                                         />
                                     </div>
-                                    <div style={{display:'flex', flexDirection:'column', gap:'4px'}}>
-                                        <label style={{fontSize:'10px', color:'rgba(255,255,255,0.5)', textTransform:'uppercase', letterSpacing:'0.5px'}}>Title</label>
-                                        <input 
-                                            type="text" 
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <label style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Title</label>
+                                        <input
+                                            type="text"
                                             value={editForm.title}
-                                            onChange={(e) => setEditForm(prev => ({...prev, title: e.target.value}))}
+                                            onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
                                             placeholder="Example: Searcher, Yogi"
-                                            style={{background:'rgba(255,255,255,0.1)', border:'none', color:'white', padding:'8px 12px', borderRadius:'8px', fontSize:'14px', outline:'none'}}
+                                            style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '8px 12px', borderRadius: '8px', fontSize: '14px', outline: 'none' }}
                                         />
                                     </div>
-                                    <div style={{display:'flex', flexDirection:'column', gap:'4px'}}>
-                                        <label style={{fontSize:'10px', color:'rgba(255,255,255,0.5)', textTransform:'uppercase', letterSpacing:'0.5px'}}>Prakriti</label>
-                                        <select 
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <label style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Prakriti</label>
+                                        <select
                                             value={editForm.prakriti}
-                                            onChange={(e) => setEditForm(prev => ({...prev, prakriti: e.target.value}))}
-                                            style={{background:'rgba(255,255,255,0.1)', border:'none', color:'white', padding:'8px 12px', borderRadius:'8px', fontSize:'14px', outline:'none', appearance:'none'}}
+                                            onChange={(e) => setEditForm(prev => ({ ...prev, prakriti: e.target.value }))}
+                                            style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '8px 12px', borderRadius: '8px', fontSize: '14px', outline: 'none', appearance: 'none' }}
                                         >
-                                            <option value="Vata" style={{color:'black'}}>Vata</option>
-                                            <option value="Pitta" style={{color:'black'}}>Pitta</option>
-                                            <option value="Kapha" style={{color:'black'}}>Kapha</option>
-                                            <option value="Vata-Pitta" style={{color:'black'}}>Vata-Pitta</option>
-                                            <option value="Pitta-Kapha" style={{color:'black'}}>Pitta-Kapha</option>
-                                            <option value="Kapha-Vata" style={{color:'black'}}>Kapha-Vata</option>
-                                            <option value="Tridoshic" style={{color:'black'}}>Tridoshic</option>
+                                            <option value="Vata" style={{ color: 'black' }}>Vata</option>
+                                            <option value="Pitta" style={{ color: 'black' }}>Pitta</option>
+                                            <option value="Kapha" style={{ color: 'black' }}>Kapha</option>
+                                            <option value="Vata-Pitta" style={{ color: 'black' }}>Vata-Pitta</option>
+                                            <option value="Pitta-Kapha" style={{ color: 'black' }}>Pitta-Kapha</option>
+                                            <option value="Kapha-Vata" style={{ color: 'black' }}>Kapha-Vata</option>
+                                            <option value="Tridoshic" style={{ color: 'black' }}>Tridoshic</option>
                                         </select>
                                     </div>
                                 </div>
                             ) : (
                                 <>
                                     <h1 className={styles.heroName}>{isLoading ? '...' : profile.name}</h1>
-                                    <span className={styles.heroTitle} style={{opacity:0.8}}>{profile.title}</span>
-                                    <span className={styles.heroPrakriti} style={{marginTop:'4px', display:'inline-block', padding:'4px 10px', background:'rgba(255,255,255,0.1)', borderRadius:'12px', fontSize:'12px', letterSpacing:'0.5px'}}>
-                                        Prakriti · <span style={{fontWeight:600}}>{profile.prakriti}</span>
+                                    <span className={styles.heroTitle} style={{ opacity: 0.8 }}>{profile.title}</span>
+                                    <span className={styles.heroPrakriti} style={{ marginTop: '4px', display: 'inline-block', padding: '4px 10px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '12px', letterSpacing: '0.5px' }}>
+                                        Prakriti · <span style={{ fontWeight: 600 }}>{profile.prakriti}</span>
                                     </span>
                                 </>
                             )}
-                            
-                            <span className={styles.heroJoined} style={{marginTop:'12px', fontSize:'11px', opacity:0.4}}>Member since {profile.joined}</span>
-                            
+
+                            <span className={styles.heroJoined} style={{ marginTop: '12px', fontSize: '11px', opacity: 0.4 }}>Member since {profile.joined}</span>
+
                             {!isEditing && (
-                                <div className={styles.vibeConnections} style={{marginTop:'16px', display:'flex', flexDirection:'column', alignItems:'center', gap:'2px'}}>
-                                    <span className={styles.vibeCount} style={{fontWeight:'700', fontSize:'20px', color:'#a5d8ff'}}>{profile.vibeConnections}</span>
-                                    <span className={styles.vibeLabel} style={{fontSize:'10px', opacity:0.6, textTransform:'uppercase', letterSpacing:'1px'}}>Vibe Connections</span>
+                                <div className={styles.vibeConnections} style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                                    <span className={styles.vibeCount} style={{ fontWeight: '700', fontSize: '20px', color: '#a5d8ff' }}>{profile.vibeConnections}</span>
+                                    <span className={styles.vibeLabel} style={{ fontSize: '10px', opacity: 0.6, textTransform: 'uppercase', letterSpacing: '1px' }}>Vibe Connections</span>
                                 </div>
                             )}
                         </div>
@@ -829,7 +840,7 @@ export default function ProfilePage() {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}
                     >
-                         {/* Content for tabs like Badges, History etc can go here */}
+                        {/* Content for tabs like Badges, History etc can go here */}
                     </motion.div>
 
                     <motion.section
@@ -906,8 +917,8 @@ export default function ProfilePage() {
                                 content: (
                                     <>
                                         Agar aapko koi bhi problem ho, please humein contact karein:
-                                        <br/><br/>
-                                        <strong>Email:</strong> aryanaaryavart9@gmail.com<br/>
+                                        <br /><br />
+                                        <strong>Email:</strong> aryanaaryavart9@gmail.com<br />
                                         <strong>Alt Email:</strong> studywithpwno.1@gmail.com
                                     </>
                                 )

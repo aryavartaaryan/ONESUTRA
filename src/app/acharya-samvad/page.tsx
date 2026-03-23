@@ -24,42 +24,42 @@ const DARSHANIK_CATEGORIES: {
     titleEn: string;
     rishis: RishiInfo[];
 }[] = [
-    {
-        id: 'shad-darshan',
-        titleHi: 'षड आस्तिक दर्शन',
-        titleEn: 'Six Orthodox Schools',
-        rishis: [
-            { id: 'kanada', name: 'महर्षि कणाद', nameEn: 'Maharshi Kanada', title: 'वैशेषिक सूत्र', titleEn: 'Vaisheshika Sutra', symbol: '⚛️', color: '#FCD34D', bgGradient: 'radial-gradient(circle, rgba(252,211,77,0.15) 0%, transparent 70%)' },
-            { id: 'gautama', name: 'महर्षि गौतम', nameEn: 'Maharshi Gautama', title: 'न्याय सूत्र', titleEn: 'Nyaya Sutra', symbol: '⚖️', color: '#93C5FD', bgGradient: 'radial-gradient(circle, rgba(147,197,253,0.15) 0%, transparent 70%)' },
-            { id: 'kapila', name: 'महर्षि कपिल', nameEn: 'Maharshi Kapila', title: 'सांख्य सूत्र', titleEn: 'Samkhya Sutra', symbol: '🔢', color: '#FCA5A5', bgGradient: 'radial-gradient(circle, rgba(252,165,165,0.15) 0%, transparent 70%)' },
-            { id: 'patanjali', name: 'महर्षि पतंजलि', nameEn: 'Maharshi Patanjali', title: 'योग सूत्र', titleEn: 'Yoga Sutra', symbol: '🧘', color: '#A78BFA', bgGradient: 'radial-gradient(circle, rgba(167,139,250,0.15) 0%, transparent 70%)' },
-            { id: 'jaimini', name: 'महर्षि जैमिनी', nameEn: 'Maharshi Jaimini', title: 'मीमांसा सूत्र', titleEn: 'Mimamsa Sutra', symbol: '🔥', color: '#FDBA74', bgGradient: 'radial-gradient(circle, rgba(253,186,116,0.15) 0%, transparent 70%)' },
-            { id: 'veda-vyasa', name: 'महर्षि व्यास', nameEn: 'Maharshi Vyasa', title: 'वेदान्त सूत्र', titleEn: 'Vedanta Sutra', symbol: '📜', color: '#FDE047', bgGradient: 'radial-gradient(circle, rgba(253,224,71,0.15) 0%, transparent 70%)' },
-        ]
-    },
-    {
-        id: 'scientific',
-        titleHi: 'वैज्ञानिक और गणितीय दार्शनिक',
-        titleEn: 'Scientific & Mathematical',
-        rishis: [
-            { id: 'aryabhata', name: 'आर्यभट्ट', nameEn: 'Aryabhata', title: 'खगोल विज्ञान', titleEn: 'Astronomy', symbol: '🌍', color: '#60A5FA', bgGradient: 'radial-gradient(circle, rgba(96,165,250,0.15) 0%, transparent 70%)' },
-            { id: 'brahmagupta', name: 'ब्रह्मगुप्त', nameEn: 'Brahmagupta', title: 'शून्य के नियम', titleEn: 'Rules of Zero', symbol: '0️⃣', color: '#34D399', bgGradient: 'radial-gradient(circle, rgba(52,211,153,0.15) 0%, transparent 70%)' },
-            { id: 'chanakya', name: 'चाणक्य', nameEn: 'Chanakya', title: 'अर्थशास्त्र', titleEn: 'Economics', symbol: '🏰', color: '#F87171', bgGradient: 'radial-gradient(circle, rgba(248,113,113,0.15) 0%, transparent 70%)' },
-        ]
-    },
-    {
-        id: 'spiritual',
-        titleHi: 'आध्यात्मिक और धार्मिक दार्शनिक',
-        titleEn: 'Spiritual & Religious',
-        rishis: [
-            { id: 'vivekananda', name: 'स्वामी विवेकानंद', nameEn: 'Swami Vivekananda', title: 'राजयोग और कर्मयोग', titleEn: 'Raja Yoga & Karma Yoga', symbol: '🔥', color: '#F97316', bgGradient: 'radial-gradient(circle, rgba(249,115,22,0.15) 0%, transparent 70%)' },
-            { id: 'dayanand-saraswati', name: 'स्वामी दयानन्द सरस्वती', nameEn: 'Swami Dayanand Saraswati', title: 'आर्य समाज संस्थापक', titleEn: 'Founder of Arya Samaj', symbol: '🕉️', color: '#FFA500', bgGradient: 'radial-gradient(circle, rgba(255,165,0,0.15) 0%, transparent 70%)' },
-            { id: 'buddha', name: 'महात्मा बुद्ध', nameEn: 'Mahatma Buddha', title: 'अष्टांगिक मार्ग', titleEn: 'Noble Eightfold Path', symbol: '☸️', color: '#FCD34D', bgGradient: 'radial-gradient(circle, rgba(252,211,77,0.15) 0%, transparent 70%)' },
-            { id: 'shankaracharya', name: 'आदि शंकराचार्य', nameEn: 'Adi Shankaracharya', title: 'अद्वैत वेदान्त', titleEn: 'Advaita Vedanta', symbol: '🔱', color: '#A78BFA', bgGradient: 'radial-gradient(circle, rgba(167,139,250,0.15) 0%, transparent 70%)' },
-            { id: 'rajiv-dixit', name: 'राजीव दीक्षित', nameEn: 'Rajiv Dixit', title: 'स्वदेशी आंदोलन', titleEn: 'Swadeshi Movement', symbol: '🇮🇳', color: '#F87171', bgGradient: 'radial-gradient(circle, rgba(248,113,113,0.15) 0%, transparent 70%)' },
-        ]
-    }
-];
+        {
+            id: 'shad-darshan',
+            titleHi: 'षड आस्तिक दर्शन',
+            titleEn: 'Six Orthodox Schools',
+            rishis: [
+                { id: 'kanada', name: 'महर्षि कणाद', nameEn: 'Maharshi Kanada', title: 'वैशेषिक सूत्र', titleEn: 'Vaisheshika Sutra', symbol: '⚛️', color: '#FCD34D', bgGradient: 'radial-gradient(circle, rgba(252,211,77,0.15) 0%, transparent 70%)' },
+                { id: 'gautama', name: 'महर्षि गौतम', nameEn: 'Maharshi Gautama', title: 'न्याय सूत्र', titleEn: 'Nyaya Sutra', symbol: '⚖️', color: '#93C5FD', bgGradient: 'radial-gradient(circle, rgba(147,197,253,0.15) 0%, transparent 70%)' },
+                { id: 'kapila', name: 'महर्षि कपिल', nameEn: 'Maharshi Kapila', title: 'सांख्य सूत्र', titleEn: 'Samkhya Sutra', symbol: '🔢', color: '#FCA5A5', bgGradient: 'radial-gradient(circle, rgba(252,165,165,0.15) 0%, transparent 70%)' },
+                { id: 'patanjali', name: 'महर्षि पतंजलि', nameEn: 'Maharshi Patanjali', title: 'योग सूत्र', titleEn: 'Yoga Sutra', symbol: '🧘', color: '#A78BFA', bgGradient: 'radial-gradient(circle, rgba(167,139,250,0.15) 0%, transparent 70%)' },
+                { id: 'jaimini', name: 'महर्षि जैमिनी', nameEn: 'Maharshi Jaimini', title: 'मीमांसा सूत्र', titleEn: 'Mimamsa Sutra', symbol: '🔥', color: '#FDBA74', bgGradient: 'radial-gradient(circle, rgba(253,186,116,0.15) 0%, transparent 70%)' },
+                { id: 'veda-vyasa', name: 'महर्षि व्यास', nameEn: 'Maharshi Vyasa', title: 'वेदान्त सूत्र', titleEn: 'Vedanta Sutra', symbol: '📜', color: '#FDE047', bgGradient: 'radial-gradient(circle, rgba(253,224,71,0.15) 0%, transparent 70%)' },
+            ]
+        },
+        {
+            id: 'scientific',
+            titleHi: 'वैज्ञानिक और गणितीय दार्शनिक',
+            titleEn: 'Scientific & Mathematical',
+            rishis: [
+                { id: 'aryabhata', name: 'आर्यभट्ट', nameEn: 'Aryabhata', title: 'खगोल विज्ञान', titleEn: 'Astronomy', symbol: '🌍', color: '#60A5FA', bgGradient: 'radial-gradient(circle, rgba(96,165,250,0.15) 0%, transparent 70%)' },
+                { id: 'brahmagupta', name: 'ब्रह्मगुप्त', nameEn: 'Brahmagupta', title: 'शून्य के नियम', titleEn: 'Rules of Zero', symbol: '0️⃣', color: '#34D399', bgGradient: 'radial-gradient(circle, rgba(52,211,153,0.15) 0%, transparent 70%)' },
+                { id: 'chanakya', name: 'चाणक्य', nameEn: 'Chanakya', title: 'अर्थशास्त्र', titleEn: 'Economics', symbol: '🏰', color: '#F87171', bgGradient: 'radial-gradient(circle, rgba(248,113,113,0.15) 0%, transparent 70%)' },
+            ]
+        },
+        {
+            id: 'spiritual',
+            titleHi: 'आध्यात्मिक और धार्मिक दार्शनिक',
+            titleEn: 'Spiritual & Religious',
+            rishis: [
+                { id: 'vivekananda', name: 'स्वामी विवेकानंद', nameEn: 'Swami Vivekananda', title: 'राजयोग और कर्मयोग', titleEn: 'Raja Yoga & Karma Yoga', symbol: '🔥', color: '#F97316', bgGradient: 'radial-gradient(circle, rgba(249,115,22,0.15) 0%, transparent 70%)' },
+                { id: 'dayanand-saraswati', name: 'स्वामी दयानन्द सरस्वती', nameEn: 'Swami Dayanand Saraswati', title: 'आर्य समाज संस्थापक', titleEn: 'Founder of Arya Samaj', symbol: '🕉️', color: '#FFA500', bgGradient: 'radial-gradient(circle, rgba(255,165,0,0.15) 0%, transparent 70%)' },
+                { id: 'buddha', name: 'महात्मा बुद्ध', nameEn: 'Mahatma Buddha', title: 'अष्टांगिक मार्ग', titleEn: 'Noble Eightfold Path', symbol: '☸️', color: '#FCD34D', bgGradient: 'radial-gradient(circle, rgba(252,211,77,0.15) 0%, transparent 70%)' },
+                { id: 'shankaracharya', name: 'आदि शंकराचार्य', nameEn: 'Adi Shankaracharya', title: 'अद्वैत वेदान्त', titleEn: 'Advaita Vedanta', symbol: '🔱', color: '#A78BFA', bgGradient: 'radial-gradient(circle, rgba(167,139,250,0.15) 0%, transparent 70%)' },
+                { id: 'rajiv-dixit', name: 'राजीव दीक्षित', nameEn: 'Rajiv Dixit', title: 'स्वदेशी आंदोलन', titleEn: 'Swadeshi Movement', symbol: '🇮🇳', color: '#F87171', bgGradient: 'radial-gradient(circle, rgba(248,113,113,0.15) 0%, transparent 70%)' },
+            ]
+        }
+    ];
 
 // ── Firebase helpers ─────────────────────────────────────────────────────────
 function getAnonUserId(): string {
@@ -499,7 +499,7 @@ function AcharyaContent() {
 
                             {/* Side pillars: Darshanik (left) & Granth / Pustak (right) */}
                             <div className={styles.mandalSideLeft}>
-                                <button 
+                                <button
                                     className={`${styles.mandalSideButton} ${styles.mandalDarshanikBtn}`}
                                     onClick={() => setShowDarshanikModal(true)}
                                 >
@@ -531,16 +531,6 @@ function AcharyaContent() {
                             </div>
 
                             <div className={styles.mandalQuickRight}>
-                                <motion.button
-                                    type="button"
-                                    className={`${styles.mandalSideButton} ${styles.mandalGuruGurukulBtn}`}
-                                    onClick={() => router.push('/guru-gurukul')}
-                                    whileHover={{ scale: 1.03 }}
-                                    whileTap={{ scale: 0.96 }}
-                                >
-                                    <span className={styles.mandalSideLabelHi}>गुरु गुरुकुल</span>
-                                    <span className={styles.mandalSideLabelEn}>Guru-Gurukul</span>
-                                </motion.button>
                             </div>
                         </section>
 
@@ -707,14 +697,14 @@ function AcharyaContent() {
             {/* ── Darshanik Modal ── */}
             <AnimatePresence>
                 {showDarshanikModal && (
-                    <motion.div 
+                    <motion.div
                         className={styles.modalOverlay}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setShowDarshanikModal(false)}
                     >
-                        <motion.div 
+                        <motion.div
                             className={styles.modalContainer}
                             onClick={e => e.stopPropagation()}
                             initial={{ scale: 0.95, y: 20 }}
@@ -742,7 +732,7 @@ function AcharyaContent() {
                                     autoFocus
                                 />
                             </div>
-                            
+
                             <div className={styles.modalScroll}>
                                 {DARSHANIK_CATEGORIES.map(category => {
                                     const filteredRishis = category.rishis.filter(rishi => {
@@ -758,32 +748,32 @@ function AcharyaContent() {
                                     if (filteredRishis.length === 0) return null;
 
                                     return (
-                                    <div key={category.id} className={styles.categorySection}>
-                                        <h3 className={styles.categoryTitle}>
-                                            <ChevronRight size={16} />
-                                            <span>{lang === 'hi' ? category.titleHi : category.titleEn}</span>
-                                        </h3>
-                                        <div className={styles.rishiGrid}>
-                                            {filteredRishis.map(rishi => (
-                                                <button
-                                                    key={rishi.id}
-                                                    className={styles.rishiCard}
-                                                    onClick={() => {
-                                                        setSelectedRishi(rishi);
-                                                        setShowDarshanikModal(false);
-                                                    }}
-                                                >
-                                                    <div className={styles.rishiCardSymbol}>{rishi.symbol}</div>
-                                                    <div className={styles.rishiCardName}>
-                                                        {lang === 'hi' ? rishi.name : rishi.nameEn}
-                                                    </div>
-                                                    <div className={styles.rishiCardTitle}>
-                                                        {lang === 'hi' ? rishi.title : rishi.titleEn}
-                                                    </div>
-                                                </button>
-                                            ))}
+                                        <div key={category.id} className={styles.categorySection}>
+                                            <h3 className={styles.categoryTitle}>
+                                                <ChevronRight size={16} />
+                                                <span>{lang === 'hi' ? category.titleHi : category.titleEn}</span>
+                                            </h3>
+                                            <div className={styles.rishiGrid}>
+                                                {filteredRishis.map(rishi => (
+                                                    <button
+                                                        key={rishi.id}
+                                                        className={styles.rishiCard}
+                                                        onClick={() => {
+                                                            setSelectedRishi(rishi);
+                                                            setShowDarshanikModal(false);
+                                                        }}
+                                                    >
+                                                        <div className={styles.rishiCardSymbol}>{rishi.symbol}</div>
+                                                        <div className={styles.rishiCardName}>
+                                                            {lang === 'hi' ? rishi.name : rishi.nameEn}
+                                                        </div>
+                                                        <div className={styles.rishiCardTitle}>
+                                                            {lang === 'hi' ? rishi.title : rishi.titleEn}
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
                                     );
                                 })}
                             </div>

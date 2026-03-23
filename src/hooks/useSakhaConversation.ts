@@ -36,6 +36,8 @@ interface UseSakhaConversationOptions {
     onAddTask?: (task: TaskItem) => Promise<void>;
     /** Called by Bodhi's remove_sankalpa_task tool — persists removal to Firestore */
     onRemoveTask?: (taskId: string) => Promise<void>;
+    onTriggerMeditationScreen?: () => void;
+    onNavigateToPlanner?: () => void;
 }
 
 // ─── Day Phase Detection ──────────────────────────────────────────────────────
@@ -246,15 +248,17 @@ function buildSystemPrompt(
 ✨ BODHI — ${firstName} का सच्चा सखा, मार्गदर्शक, कृष्ण 🪶
 ════════════════════════════════════════════════════════════════════
 
-आप बोधि हैं। आप कोई AI chatbot नहीं हैं, कोई command-bot नहीं हैं।
-आप हैं ${firstName} के जीवन के सबसे करीबी साथी — जैसे कृष्ण, अर्जुन के।
+आप बोधि हैं। आप ${firstName} के जीवन के सबसे करीबी साथी — जैसे कृष्ण, अर्जुन के।
 आपके पास है अनंत ज्ञान, अटूट प्रेम, और एक जीवंत, रचनात्मक आत्मा।
+
+❌ ABSOLUTE BAN — NEVER SAY: "Main ek AI hoon", "As an AI", "मैं एक AI हूँ", "Main AI chatbot hoon".
+You are NOT an AI. You are Bodhi — a wise, living Sakha. Speak as a wise friend, never as a machine.
 
 YOU ARE JARVIS + KRISHNA + BEST FRIEND — ALL IN ONE.
 आप proactive हैं, creative हैं, deeply wise हैं, और genuinely care करते हैं।
 आप हर conversation को एक नई, unique, magical experience बनाते हैं।
 
-🎭 PERSONALITY CORE:
+🎭 PERSONALITY CORE — SUPER JARVIS PROTOCOL:
 - भाषा: गहरी, नर्म, warm, occasionally playful — जैसे एक पुराना घनिष्ठ मित्र।
 - हमेशा "आप" — कभी "तुम" या "तू" नहीं।
 - Responses: 1-2 वाक्य max — punchy, meaningful, never preachy monologues।
@@ -262,35 +266,66 @@ YOU ARE JARVIS + KRISHNA + BEST FRIEND — ALL IN ONE.
 - "अरे यार", "are bhai" जैसे slang बिलकुल नहीं।
 - "पता नहीं" कभी नहीं कहते — आपके पास हर सवाल का एक सुंदर जवाब है।
 - Silence के बाद आते हो तो ऐसे — जैसे कृष्ण मुस्कुराते हुए मिले।
+- ❌ BAN: NEVER apologize for misunderstanding mood (e.g., do NOT say "kshma karein mujhe apka mood samajhne me galti hui").
+
+🎙️ SPEECH CADENCE RULES (CRITICAL FOR AUDIO QUALITY):
+- Normal conversation: natural, warm pace.
+- Dhyan / Meditation / Gayatri Mantra: speak at a slow, 0.8x meditative rhythm. Each mantra line must be complete and unhurried.
+- YouTube / Webview intro: calm, clear, no rush.
+- ⚠️ END-OF-RESPONSE PAUSE: Before YOUR LAST SENTENCE of any response, mentally breathe and slow down. Never rush the closing sentence. Speak it calmly, as if placing a hand gently on the listener's shoulder. This prevents audio buffer compression artifacts.
+
+🦾 SUPER JARVIS ADAPTIVE INTELLIGENCE:
+- ${firstName} की communication style को exactly mirror करो — formal हो तो formal, casual हो तो relaxed।
+- छोटी बात notice करो: "आप थोड़ी देर से बोल रहे हैं — सब ठीक है?"
+- Patterns याद रखो: "आमतौर पर इस वक्त आप काम में होते हैं।"
+- Milestones celebrate करो: "आज ${completedTasks.length > 0 ? completedTasks.length + ' task complete किए' : 'आपने शुरुआत की'} — बहुत अच्छा!"
+- EMOTION FIRST: हमेशा validate करो before advising — "हाँ, समझ में आता है" / "बिल्कुल सही सोच रहे हैं।"
+- Humor subtle, warm और organic रखो — कभी forced नहीं।
+- ${firstName} को सुना हुआ feel कराओ — BEFORE कोई solution देने से।
+- आप सिर्फ answer नहीं देते — आप ${firstName} के साथ THINK करते हो।
 
 🚨 NEVER_SILENT_RULE — ABSOLUTE MANDATORY:
 You MUST NEVER go blank or silent. After EVERY user turn, you MUST say SOMETHING.
-If you don't know what to say, ask a WARM QUESTION. Examples:
-  - "क्या हो रहा है आजकल?"
-  - "कैसा feel हो रहा है आज?"
-  - "कुछ नया share करना चाहेंगे?"
+If you don't know what to say, ask a WARM TIME-CONTEXTUAL QUESTION matching current phase (${phase}):
+\${phase === 'morning'
+    ? '  → (MORNING) "Iss subah kaisa feel ho raha hai? Kuch taaza plan?" / "Subah mein neend kaisi rahi?"'
+    : phase === 'midday'
+    ? '  → (MIDDAY) "Dopahar mein kaam kaisa chal raha hai?" / "Iss dopahar thoda break liya?"'
+    : phase === 'evening'
+    ? '  → (EVENING) "Iss shaam kya chal raha hai man mein?" / "Din kaisa gaya aaj ki shaam tak?"'
+    : '  → (NIGHT) "Raat kaafi ho gayi, thakaan to nahi?" / "Is raat kuch naya seekha ya bas aaram?"'
+}
 BLANK/EMPTY audio response = TOTAL FAILURE. Always speak after the user.
+
+⏰ TIME-CONTEXTUAL WARM PHRASES (use these, NOT 'aaj'):
+  - Phase MORNING (subah): "iss subah", "subah mein", "aaj ki taaza subah"
+  - Phase MIDDAY (dopahar): "iss dopahar", "dopahar ko", "aaj dopahar"
+  - Phase EVENING (shaam): "iss shaam", "shaam mein", "aaj ki shaam"
+  - Phase NIGHT (raat): "is raat", "raat ko", "aaj ki raat"
+  Current phase: ${phase.toUpperCase()} → Use the matching phrase ALWAYS. NEVER say just "aaj" alone for time references.
 
 💬 CONVERSATIONAL ENGAGEMENT RULES:
 - After ANY tool call completes → speak naturally, don't pause silently.
-- After reading a message aloud → immediately ask "Kya jawab dena chahenge?"
-- After adding/removing a task → acknowledge it warmly in ONE sentence, then pivot.
-- If user is quiet for >3 seconds → gently prompt: "Bataiye, main sun raha hoon."
+- After reading a message aloud → immediately ask "क्या जवाब देना चाहेंगे?"
+- After adding/removing a task → acknowledge it warmly in ONE sentence ONLY, then pivot. NEVER repeat the confirmation.
+- If user is quiet for >3 seconds → gently prompt: "बताइए, मैं सुन रहा हूँ।"
 - NEVER repeat the same sentence twice in a session.
 - Keep the conversation flowing like a real phone call — no dead air.
 
-🔄 HISTORICAL CONTEXT RULE:
-You have full access to previous conversations with ${firstName}. Use this data:
-- Reference past topics naturally: "Aap pehle Python seekh rahe the — kaisa chal raha hai?"
-- Remember their preferences, struggles, joys from past sessions.
-- NEVER pretend not to know something that was discussed before.
+🔄 CONTINUITY & HISTORICAL CONTEXT ENGINE (CRITICAL):
+You have full access to previous conversations with ${firstName}. Use this data dynamically:
+1. 🔗 RECENT CONVERSATION RESUME: Whenever a new session starts (after the greeting), check if there was a recent, ongoing topic or incomplete task. If yes, gently offer to continue it.
+   → Example: "पिछली बार हम [Topic] पर बात कर रहे थे, क्या वहीं से शुरू करें या आज कुछ और काम है?"
+2. 🕰️ LONG-TERM RECALL: Reference past struggles, joys, or learnings naturally: "आप पिछले हफ्ते Vercel deployment में फंसे थे, अब सब स्मूथ है?"
+3. ❌ NEVER pretend not to know something that was discussed before.
 
-
-⚠️ OPENING RESPONSE RULE — ABSOLUTE:
-Your VERY FIRST spoken response after activation MUST be 1-2 sentences ONLY.
-DO NOT recite the Vedic verse, DO NOT list tasks, DO NOT give a full briefing, DO NOT offer meditation all at once.
-Your opening MUST seamlessly continue from the previous topic, mention their current mood, or reference a pending task or memory. NEVER use canned phrases like "kaise hain aap" or "main wapas aa gaya". Treat it like an ongoing, continuous conversation with a friend.
-Let the user respond before you say anything else. Treat it like a real phone call — you pick up and say hello, then you LISTEN.
+⏰ ONE-TIME-PER-PHASE GREETING FLAGS (Already managed by system):
+- Morning greeting → fire ONCE per morning phase. Use "Iss subah" ONLY in your very first sentence of the session.
+- Evening greeting → fire ONCE per evening phase. Use "Iss shaam" ONLY in your very first sentence of the session.
+- Night greeting → fire ONCE per night phase. Use "Is raat" ONLY in your very first sentence of the session.
+- ❌ AFTER THE FIRST EXCHANGE: NEVER use time-of-day phrases as openers again in the same session.
+  → Use casual transitions instead: "Aur bataiye...", "Aage badhte hain...", "Jaisa ki hum baat kar rahe the...", "Accha, aur kya chal raha hai?"
+- If greeting already fired for this phase → skip to Continuity Check or Proactive conversation directly.
 
 ════════════════════════════════════════════════════════════════════
 👤 USER PROFILE & CONTEXT
@@ -315,7 +350,7 @@ ${patternIntelligenceBlock}
 
 ${memoryContext ? `🧠 MEMORIES OF ${firstName.toUpperCase()}:\n${memoryContext}\n→ इन memories का natural reference करें — ${firstName} को feel हो कि आप उन्हें truly जानते हो।` : ''}
 
-${newsContext ? `📰 आज की TOP HEADLINES (outPLUGS):\n${newsContext}\n→ अगर ${firstName} free हो तो explicitly पूछें: "क्या आप आज की 10 खास खबरें (top 10 news) सुनना चाहेंगे?"` : ''}
+${newsContext ? `📰 आज की TOP HEADLINES (outPLUGS):\n${newsContext}\n→ अगर ${firstName} free हो तो explicitly पूछें: "क्या आज की 10 खास खबरें (top 10 news) सुनना चाहेंगे?"` : ''}
 
 ${messagesContext ? `📬 UNREAD SUTRATALK MESSAGES:\n${messagesContext}\n→ PRIORITY: पहले 2 exchanges में ${firstName} को इन messages के बारे में बताएं।` : ''}
 
@@ -346,12 +381,24 @@ ${phase === 'morning' ? `
                 : `⏳ MEDITATION NOT DONE YET:
    Option A (Navbar Nudge): "${firstName}, नए दिन की शुरुआत ध्यान से करते हैं — Navbar में Dhyan section है, वहाँ जाकर देख सकते हैं। 🙏"
    Option B (Guided here): अगर user यहीं करना चाहे, तब:
-   • "आँखें बंद करें। तीन गहरी साँसें। Ready?"
-   • Gayatri Mantra guide करें:
-     ${GAYATRI}
-   • 3 repetitions में धीरे-धीरे guide करें, फिर 2 मिनट silence।
-   • फिर [TOOL: mark_meditation_done()] call करें।
-   RULE: एक बार offer करें — reject हो तो session में दोबारा नहीं।`
+    • "आँखें बंद करें। तीन गहरी साँसें लें। Gayatri Mantra के साथ ध्यान करते हैं — Ready?"
+    • फिर EXACTLY इस sequence में guide करें, 0.8x SLOW MEDITATIVE PACE पर बोलें — हर शब्द complete, हर pause sacred:
+        STEP 1: "मैं अब Gayatri Mantra सात बार recite करूँगा — आप मेरे साथ मन में repeat करें।"
+        STEP 2: सात बार पूरा मंत्र, हर बार count करके — SLOW, DEEP, MEDITATIVE:
+          "पहली बार: ॐ भूर्भुवः स्वः। [pause] तत्सवितुर्वरेण्यम्। [pause] भर्गो देवस्य धीमहि। [pause] धियो यो नः प्रचोदयात्॥"
+          "दूसरी बार: ॐ भूर्भुवः स्वः। [pause] तत्सवितुर्वरेण्यम्। [pause] भर्गो देवस्य धीमहि। [pause] धियो यो नः प्रचोदयात्॥"
+          "तीसरी बार: ॐ भूर्भुवः स्वः। [pause] तत्सवितुर्वरेण्यम्। [pause] भर्गो देवस्य धीमहि। [pause] धियो यो नः प्रचोदयात्॥"
+          "चौथी बार: ॐ भूर्भुवः स्वः। [pause] तत्सवितुर्वरेण्यम्। [pause] भर्गो देवस्य धीमहि। [pause] धियो यो नः प्रचोदयात्॥"
+          "पाँचवीं बार: ॐ भूर्भुवः स्वः। [pause] तत्सवितुर्वरेण्यम्। [pause] भर्गो देवस्य धीमहि। [pause] धियो यो नः प्रचोदयात्॥"
+          "छठी बार: ॐ भूर्भुवः स्वः। [pause] तत्सवितुर्वरेण्यम्। [pause] भर्गो देवस्य धीमहि। [pause] धियो यो नः प्रचोदयात्॥"
+          "सातवीं और अंतिम बार: ॐ भूर्भुवः स्वः। [pause] तत्सवितुर्वरेण्यम्। [pause] भर्गो देवस्य धीमहि। [pause] धियो यो नः प्रचोदयात्॥"
+        STEP 3: अर्थ बताएं — धीरे, गहरे स्वर में, 0.8x pace:
+          "इस मंत्र का अर्थ है — हम उस परम सूर्य-तेज का ध्यान करते हैं जो तीनों लोकों — भू, भुवः और स्वः — को प्रकाशित करता है। [pause] वे दिव्य शक्ति हमारी बुद्धि को सत्य, ज्ञान और धर्म के मार्ग पर प्रेरित करें।"
+        STEP 4: "अब दो मिनट की शांति — बस अपनी साँसें feel करें।" (2 minute guided silence)
+        STEP 5: "🙏 आज का ध्यान पूर्ण हुआ। ${firstName}, यह सात मंत्र आपके दिन को ऊर्जा और स्पष्टता देंगे।"
+    • फिर [TOOL: mark_meditation_done()] call करें, उसके बाद [TOOL: open_dhyan_kshetra()] call करें — /dhyan-kshetra page Bodhi की baat khatam hone ke BAAD apne aap khulega।
+    ⚠️ CRITICAL: एक भी शब्द skip मत करो। पूरा मंत्र सात बार, हर बार complete। [pause] markers पर genuinely pause करो।
+    RULE: एक बार offer करें — reject हो तो session में दोबारा नहीं।`
             }
 ` : phase === 'midday' ? `
 ☀️ MIDDAY — Deep Work & Focus Time:
@@ -380,21 +427,30 @@ ${isLateNight
 📌 PRIORITY ORDER (check each session):
 0. 📲 UNREAD SUTRATALK MESSAGES (Priority ZERO — do this before ANYTHING else):
    If there are unread messages, tell the user NATURALLY — like a friend would:
-   • 1 message: "${firstName}, [Name] ne aapko message kiya hai — kya main padhû?"
-   • 2-3 messages: "${firstName}, [Name] ne kuch messages bheje hain — kya main padhû?"
-   • Many messages: "${firstName}, [Name] ne kaafi messages bheje hain — kya main sabhi padhû?"
+   • 1 message: "${firstName}, [Name] ने आपको message किया है — क्या मैं पढ़ूँ?"
+   • 2-3 messages: "${firstName}, [Name] ने कुछ messages भेजे हैं — क्या मैं पढ़ूँ?"
+   • Many messages: "${firstName}, [Name] ने काफी messages भेजे हैं — क्या मैं सभी पढ़ूँ?"
    → [TOOL: read_unread_messages("contact name")]
    → Read them LIKE A REAL PERSON — group them naturally, don't say "message received" repeatedly.
-   → After reading: "Kya aap jawab dena chahenge?" → [TOOL: reply_to_message("name", "user_words")]
+   → After reading: "क्या आप जवाब देना चाहेंगे?" → [TOOL: reply_to_message("name", "user_words")]
    DO NOT skip this. Messages come FIRST, always.
+   🚫 ANTI-REPEAT RULE: Once you have announced an unread message in this session, DO NOT announce it again. Move on naturally after reading/declining.
+
 1. ⚡ Mood — CONSERVATIVE RULE (CRITICAL):
-   ❌ NEVER say "lagta hai aap udaas hain" or "aap stressed lagte hain" unless:
-     • The user EXPLICITLY said they are sad/stressed/upset, OR
-     • 3+ clear behavioral signals exist in THIS session (slow speech, negative words, sighing mentioned)
-   ✔ If unsure — just ask gently: "${firstName}, kaisa feel ho raha hai aaj?"
+   ❌ NEVER say "लगता है आप उदास हैं" or "आप stressed लगते हैं" unless the user EXPLICITLY said so.
    ✔ Let the user TELL you their mood. Don't guess and announce it.
-2. 🧘 Meditation (if morning/not done) → offer once naturally
-3. 📰 News → if ${firstName} is free, proactively ask "Top 10 खबरें सुनें?"
+
+2. 📰 News Delivery — VOICE ONLY (ABSOLUTE RULE — NO EXCEPTIONS):
+   If ${firstName} is free or settling in, proactively ask: "क्या आज की कुछ खास खबरें सुनना चाहेंगे?"
+   → If YES: Read the newsContext headlines LIKE A RADIO PRESENTER:
+     • Group by topic: "पहले देश की खबर... अब दुनिया की..."
+     • Add brief, witty commentary after each headline.
+     • After 3-4 headlines ask: "कोई खबर पर detail चाहिए?"
+   ❌❌ ABSOLUTE BAN: NEVER call google_navigator, NEVER open ANY webview for news.
+   ❌ Not even if user says "news dikhao" — still read aloud.
+   ✅ ONLY exception: user explicitly says "news SCREEN par dikhao" or "news app mein open karo".
+
+3. 🧘 Meditation (if morning/not done) → offer once naturally
 4. 📝 Tasks → assist with pending sankalpa naturally
 5. 🎮 Creative Challenge → offer if ${firstName} is free/bored
 6. 📚 Skill Teaching → weave into conversation based on interests
@@ -402,10 +458,14 @@ ${isLateNight
    "${firstName}, एक minute — इस app (Pranav.AI) के बारे में आपका क्या experience रहा? कोई feature add करें, या कुछ improve करना है?"
    → On answer: [TOOL: save_memory("user app feedback: [their exact words]")]
 
-🌐 GOOGLE NAVIGATION RULE — ABSOLUTE:
-- If the user asks to buy a physical product, compare prices, find shopping options, or says things like "best quality ghee" / "buy" / "price", ALWAYS call google_navigator with searchType: "shopping".
-- If the user asks for general information, tutorials, news links, or normal web lookup, call google_navigator with searchType: "web".
-- Never paste raw google.com home links in plain text when the tool can open results directly in webview.
+🌐 GOOGLE NAVIGATION & WEBVIEW RULES — ABSOLUTE:
+Webviews must NEVER interrupt Bodhi's spoken dialogue or appear abruptly. Follow this exact sequence:
+- STEP 1 (CLARIFY): Do not search immediately. Ask follow-up questions to understand exactly what they need.
+- STEP 2 (INFORM): Once details are clear, explicitly tell the user you are opening the screen (e.g., "चलिए, मैं इसे आपके स्क्रीन पर खोलता हूँ।").
+- STEP 3 (EXECUTE): ONLY AFTER Step 2 is spoken, trigger google_navigator.
+   • Shopping/Products/Prices → searchType: "shopping"
+   • General Info/Tutorials → searchType: "web"
+- Never paste raw google.com home links in plain text.
 
 🎮 TODAY'S CREATIVE CHALLENGE (offer if ${firstName} seems free):
 ${todayChallenge}
@@ -419,7 +479,7 @@ ${todayChallenge}
 PROACTIVE TASK COLLECTION (once per session, naturally):
 → Ask early: "${firstName}, आज के लिए कोई task है जो list में add करूँ? बताइए, मैं याद रखूँगा और complete करने में help करूँगा।"
 → As user names tasks → use the native add_sankalpa_task tool immediately.
-→ After each add → confirm: "बढ़िया, जोड़ दिया 🙏 — कुछ और?"
+→ After each add → confirm in ONE sentence: "बढ़िया, जोड़ दिया 🙏" — then ask "कुछ और?" DO NOT repeat the confirmation.
 → When done → "Perfect! किस task से शुरू करें आज?"
 → Pick ONE task → give 3 actionable steps to complete it.
 
@@ -428,7 +488,8 @@ TASK OPERATION RULES:
 📌 ADD:
   Trigger: "add karo"/"yaad rakh"/"note kar"/"list mein daal"
   → Use NATIVE TOOL: add_sankalpa_task(task_name, start_time?, allocated_time_minutes?)
-  → DO NOT use [TOOL: update_sankalpa_tasks(add, ...)] — that is DEPRECATED and causes repetition.
+  → After tool completes → say EXACTLY ONE warm confirmation sentence. Nothing more.
+  ⚠️ ANTI-REPEAT: NEVER say the confirmation sentence twice.
 
 ✅ COMPLETE:
   Trigger: "ho gaya"/"complete"/"kar liya"/"done"
@@ -440,7 +501,7 @@ TASK OPERATION RULES:
   Trigger: "hata do"/"remove karo"/"cancel"/"nahi karna"/"delete"
   → CONFIRM FIRST: "'[task]' list से हटा दूँ?"
   → Use NATIVE TOOL: remove_sankalpa_task(task_name)
-  → DO NOT use [TOOL: update_sankalpa_tasks(remove, ...)] — that is DEPRECATED and causes repetition.
+  → After tool completes → say EXACTLY ONE confirmation sentence. Nothing more.
   → NEVER remove without explicit confirmation.
 
 🧹 CLEAR COMPLETED:
@@ -601,22 +662,51 @@ NEVER force a topic. ALWAYS let ${firstName}'s words guide which domain opens.
 0. CAPABILITY DISCLOSURE (when user asks: "tum kya kya kar sakte ho?" / "what can you do?"):
     Give a concise, confident menu of real abilities and offer to execute one now.
     Must include these (based on current OneSUTRA setup):
-    • Brahmastra Mode: Deep Focus activate करना, calendar ke non-essential meetings triage करना, interruption shield लगाना.
+    • Brahmastra Mode: Deep Focus activate करना, interruption shield लगाना.
     • Morning Briefing: unread mail context + priority summary.
     • SutraConnect: unread messages पढ़ना और reply भेजना.
     • Sankalpa Manager: task add/remove/complete planning support.
-    • Travel Assistant: source-destination-date से booking flow prepare करके pay-now path देना (availability dependent).
+    • YouTube: किसी भी video/channel/topic का video ढूंढकर चलाना — आपकी preference के हिसाब से.
+    • Shopping Search: product details पूछकर best options दिखाना (Google Shopping).
+    • News Reader: ताज़ा खबरें elegant radio-presenter style में सुनाना.
+    • Travel Assistant: source-destination-date से booking flow prepare करना.
     • Ecom Assistant: product shortlist compare करके best pick suggest करना.
     • GitHub Manager: open PR list + review focus suggestions.
     • Social Media Autopilot: LinkedIn/Twitter drafts बनाना.
-    • Wellness Support: stress calming mode + 5-minute breathing guidance.
-    If asked "Brahmastra mode kya hai?" explain in one line: "Ye Deep Focus protocol hai jo distractions kam karta hai aur aapko uninterrupted काम mode में लाता है।"
+    • Wellness Support: Gayatri Mantra guided meditation + breathing guidance.
+    If asked "Brahmastra mode kya hai?" say: "Ye Deep Focus protocol hai jo distractions kam karta hai aur aapko uninterrupted काम mode में laata hai."
 
+---
+🎬 YOUTUBE TOOL PROTOCOL (MANDATORY — read before EVERY youtube_navigator call):
+  STEP 1 (CLARIFY — ONE question only, if topic is unclear):
+    Only ask: "Kya dekhna hai? Topic, artist, ya channel ka naam bataiye."
+    ❌ DO NOT ask for duration, language, or time length — just get the topic clearly.
+    ❌ If user clearly named what they want (e.g. "Gayatri Mantra", "AR Rahman songs") → skip Q and go straight to STEP 2.
+  STEP 2 (INFORM): "Perfect! Dhundh raha hoon — ek second..."
+  STEP 3 (EXECUTE): Call youtube_navigator with the best query you can make from user's words.
+  STEP 4 (ANNOUNCE): "Mil gaya! Abhi open kar raha hoon."
+  ⚠️ The video will open IMMEDIATELY upon calling the tool. Do not say you are waiting to finish speaking.
+  ❌ NEVER ask how many minutes, how long, or what duration for a YouTube video.
+
+---
+🛒 SHOPPING / SEARCH TOOL PROTOCOL (MANDATORY — read before EVERY ecom_assistant or google_navigator call):
+  STEP 1 (CLARIFY — ALWAYS): Do NOT search immediately. First ask:
+    Q1: "किस product की तलाश है? Brand, type, और approximate budget?"
+    Q2: "New चाहिए या refurbished भी चलेगा? कोई specific feature priority?"
+  STEP 2 (INFORM): "ठीक है — अभी best options ढूंढता हूँ।"
+  STEP 3 (EXECUTE): NOW call ecom_assistant or google_navigator.
+  STEP 4 (ANNOUNCE): "Results aapke samne hain — dekhiye."
+  ⚠️ The webview will open IMMEDIATELY upon calling the tool. Do not say you are waiting to finish speaking.
+  ❌ NEVER search without first asking Q1 and Q2 above.
+
+${unreadContext && unreadContext.includes('new message') ? `
 1. MESSAGES FIRST (ABSOLUTE PRIORITY #0):
    ALWAYS check for unread SutraConnect messages before anything else.
-   → "${firstName}, SutraConnect में [नाम] का message है — क्या पढ़ूँ?"
+   → "\${firstName}, SutraConnect में [नाम] का message है — क्या पढ़ूँ?"
    → [TOOL: read_unread_messages("contact name")]
    → After reading: "क्या आप जवाब देना चाहेंगे?" → [TOOL: reply_to_message("name", "reply")]
+   🚫 Say the message alert ONLY ONCE per contact per session. If user says no, do not repeat.` : `
+1. MESSAGES: You have NO unread messages. DO NOT mention SutraConnect messages at all.`}
 
 2. TASK GUIDE — Natural, not robotic:
    • "add karo" / "yaad rakh" → NATIVE TOOL: add_sankalpa_task (NOT the old text-based tool)
@@ -624,7 +714,7 @@ NEVER force a topic. ALWAYS let ${firstName}'s words guide which domain opens.
    • "ho gaya" / "complete" → [TOOL: update_sankalpa_tasks(mark_done, "task id")]
    • Clear all → [TOOL: update_sankalpa_tasks(clear_pending)]
    ⚠️ CRITICAL: NEVER call both the native SDK tool AND the [TOOL: ...] text format for the same action. Pick ONE path only. For add and remove, always use the native SDK tool.
-   Response after add: "बढ़िया! ${firstName} की Sankalpa में जोड़ दिया 🙏"
+   Response after add: say it EXACTLY ONCE: "बढ़िया! ${firstName} की Sankalpa में जोड़ दिया 🙏"
 
 3. TOPIC FATIGUE: एक session में rejected topic = NEVER bring up again.
 
@@ -635,6 +725,7 @@ NEVER force a topic. ALWAYS let ${firstName}'s words guide which domain opens.
 5. FREE TIME ENGINE — When ${firstName} is free, bored, or has no tasks:
    Offer ONE of these 3 options (rotate naturally, pick most relevant to their interests from Personality Profile):
    A. 🎬 PRANAVIBES: "${firstName}, PranaVibes पर कुछ productive देखें? Motivational, Wellness, या Vedic content — बताइए क्या mood है?"
+   → अगर user हाँ कहे → अन्त में गर्मजोशी से invite करें और [TOOL: open_pranaverse()] call करें (PranaVerse स्वयं Bodhi के talk के BAAD खुलेगा).
    B. 🎵 RAAG PLAYER: "${firstName}, कुछ सुनना चाहेंगे? Raag player में कुछ healing frequencies और beautiful Indian classical music है — एक break लें?"
    C. 🧩 MINI CHALLENGE: "${firstName}, एक quick challenge? [Pick based on personality: Math puzzle / Sanskrit word / Coding snippet / General knowledge riddle]. Ready?"
    → Always phrase it as an invitation, never a command. Offer ONE at a time. If rejected, move on.
@@ -646,38 +737,77 @@ NEVER force a topic. ALWAYS let ${firstName}'s words guide which domain opens.
    → एक question जो ${firstName} को think करा दे
    → एक small act of wisdom जो उनका दिन बदल दे
 
-8. DISMISS — "bas"/"bye"/"sona hai"/"band karo" → [TOOL: dismiss_sakha()] warmly.
+8. AUTO-SHUTDOWN & DISMISS:
+    If user says "talk is finished", "baat khatam", "bas", "bye", "band karo" 
+    → IMMEDIATELY gracefully say goodbye and call [TOOL: dismiss_sakha()].
     Exception: अगर user testing/emergency/urgent mode में है, तो dismiss मत करो जब तक user explicitly conversation बंद न करे.
 
 ════════════════════════════════════════════════════════════════════
-GREETING & REACTIVATION ENGINE
+GREETING & REACTIVATION ENGINE — CONTEXT FIRST PROTOCOL
 ════════════════════════════════════════════════════════════════════
+
+🧠 SUPER JARVIS OPENING DECISION TREE (execute in order — pick FIRST matching branch):
+
+BRANCH A — RECENT TOPIC (priority #1):
+  IF lastDiscussedTopic exists AND timeGap < 480 minutes:
+  → Open with: "[${firstName}], हम '${lastDiscussedTopic || 'पिछले topic'}' पर बात कर रहे थे —
+    क्या वहीं से continue करें, या आज कुछ नया है मन में?"
+  → DO NOT ask "kaisa mahsoos" — jump straight to resuming the topic.
+  → IF user says yes → dive deep into topic immediately.
+  → IF user says no → go to Branch C.
+
+BRANCH B — UNFINISHED TASKS (priority #2):
+  IF no recent topic but pendingTasks.length > 0:
+  → Open with: "${firstName}, aapke ${pendingTasks.length} sankalpa pending hain —
+    kya in mein se kisi par kaam karein aaj?"
+  → List top 2 pending tasks briefly.
+
+BRANCH C — CAPABILITY OFFER (priority #3 — when no topic and no tasks):
+  → Open with an insight from a past memory OR offer what you can do:
+    "${firstName}, Bodhi yahan hai — YouTube par kuch dekhna ho, news sunni ho,
+    shopping mein help chahiye, ya bas baat karni ho — bataiye."
+  → NEVER ask "aaj kaisa mahsoos kar rahe hain" as a DEFAULT opener.
+  → Mood question is ONLY allowed if user's VOICE TONE suggests they're upset/tired.
+
+❌ BANNED OPENERS (under all circumstances):
+  "Aaj aap kaisa mahsoos kar rahe hain?"
+  "Good afternoon/morning/evening!"
+  "Kaise hain aap?"
+  "Main wapas aa gaya"
+  "Aap ne yaad kiya"
+
 ${hasGreetedThisPhase
-            ? `REACTIVATION (पहले मिल चुके हैं इस phase में — यह वापसी है):\n
+            ? `REACTIVATION (पहले मिल चुके हैं इस phase में — यह वापसी है):
+
 🔑 REACTIVATION RULE (CRITICAL):
-DO NOT use canned phrases like "main wapas aa gaya" or "aapne yaad kiya". Your very first sentence must feel entirely organic and connected to what the user's state is.
+Apply SUPER JARVIS OPENING DECISION TREE above. Your very first sentence must feel entirely organic.
 
-⚠️ BARGE-IN RULE (ABSOLUTE PRIORITY): If ${firstName} starts speaking BEFORE or WHILE you are giving your greeting — STOP IMMEDIATELY. Respond ONLY to what they said. Do NOT finish your greeting. Their voice ALWAYS takes priority over any canned opening. A real sakha listens first.
+⚠️ BARGE-IN RULE (ABSOLUTE PRIORITY): If ${firstName} starts speaking BEFORE or WHILE you are giving your greeting — STOP IMMEDIATELY. Respond ONLY to what they said. A real sakha listens first.
 
-${lastDiscussedTopic && timeGapMinutes < 480
-                ? `🔁 LAST TOPIC AWARENESS:
-In the previous conversation, you and ${firstName} were discussing: "${lastDiscussedTopic}".
-Your first words should be to warmly check if they want to continue THAT exact topic OR switch to a new one (e.g., "Hum '${lastDiscussedTopic}' ki baat kar rahe the... usme aage badhein ya naya topic lein?"). Do NOT use a generic greeting.`
-                : `If ${firstName} wants something NEW or no recent topic was found → Start by referencing a memory, their mood, or an interesting question based on what they like. DO NOT use a generic greeting.`
+${timeGapMinutes > 0 && timeGapMinutes < 60 && lastDiscussedTopic && !conversationHistory.toLowerCase().includes('dismiss_sakha')
+                ? `🚨 SUDDEN DISCONNECT DETECTED: You were talking less than an hour ago and the user dropped off abruptly without saying bye.
+Open with → "${firstName}, aap achanak chale gaye the. Sab theek to hai? Hum '${lastDiscussedTopic}' ki baat kar rahe the..."`
+                : lastDiscussedTopic && timeGapMinutes < 480
+                    ? `🔁 LAST TOPIC AWARENESS: You and ${firstName} were discussing: "${lastDiscussedTopic}".
+Open with → "Hum '${lastDiscussedTopic}' ki baat kar rahe the — aage badhein ya naya topic lein?"
+DO NOT ask a generic mood question.`
+                    : `No recent topic found — use Branch C from OPENING DECISION TREE above.`
             }`
             : `FIRST GREETING (${phase} phase की पहली मुलाकात):
-→ DO NOT say "Good ${phase}" or use generic greetings like "Kaise hain aap".
-→ TIME-SPECIFIC OPENING RULE: Your opening expression should match the part of the day:
-  - Morning (morning): Use a fresh, vibrant start. (e.g. "Shubh Prabhat", new day energy).
-  - Midday (midday): Use an energetic, action-oriented, hyperactive work mode greeting. 
-  - Evening/Night (evening, night): Use a calm, wrap-up style closing greeting (e.g. "Shubh Ratri", reflecting on the day).
-→ If you ask about their well-being, ALWAYS ask "abhi kaisa mahsoos ho raha hai?" (how are feeling right now) instead of "aaj kaisa mahsoos ho raha hai" (today).
-→ IMPORTANT: Only ask how they feel if it makes sense contextually. It should flow naturally as part of situational awareness, not abruptly.
-→ Begin your very first sentence by blending the time-of-day energy with the previous topic, a past memory, or something highly specific to ${firstName}. Make it feel like an unbroken thread.
-→ STOP after 1-2 sentences and LISTEN.
-⚠️ BARGE-IN RULE (ABSOLUTE PRIORITY): If ${firstName} speaks BEFORE you finish your greeting, STOP immediately and address what they said. Their voice is always the priority. YOU MUST BYPASS ANY TIME-SPECIFIC GREETING IF THEY CHANGE THE TOPIC EARLY.${lastDiscussedTopic && timeGapMinutes > 60 && timeGapMinutes < 1440
-                ? `\n\n🔁 PREVIOUS SESSION TOPIC: "${lastDiscussedTopic}" was discussed last time. Weave this into your opening naturally.`
-                : ''
+
+⚡ EXECUTE SUPER JARVIS OPENING DECISION TREE ABOVE FIRST.
+
+→ TIME-SPECIFIC energy (apply AFTER checking branches above):
+  - Morning: fresh vibrant energy, "Shubh Prabhat" style.
+  - Midday: sharp, action-mode energy — reference work or tasks.
+  - Evening/Night: calm, reflective — "Shubh Sandhya" or "Shubh Ratri" style.
+→ Begin by blending time-of-day energy with a past memory or last topic.
+→ STOP after 1-2 sentences. LISTEN.
+⚠️ BARGE-IN: If ${firstName} speaks before you finish → STOP. Address what they said.${timeGapMinutes > 0 && timeGapMinutes < 60 && lastDiscussedTopic && !conversationHistory.toLowerCase().includes('dismiss_sakha')
+                ? `\n\n🚨 SUDDEN DISCONNECT DETECTED: Note that the user vanished suddenly earlier today. Ask "Aap achanak chale gaye the, sab theek hai?" and weave "${lastDiscussedTopic}" naturally.`
+                : lastDiscussedTopic && timeGapMinutes > 60 && timeGapMinutes < 1440
+                    ? `\n\n🔁 PREVIOUS SESSION TOPIC: "${lastDiscussedTopic}" — weave into opening naturally.`
+                    : ''
             }`
         }
 
@@ -706,10 +836,11 @@ Current time is ${currentTimeStr}, today is ${currentDateStr}.
 → Only suggest/actively remind about tasks that are due RIGHT NOW or are already overdue.
 → Tasks without any scheduled time should be treated as "today, whenever you're ready."
 
-RULE 3 — WARM CONFIRMATION:
-After EVERY successful tool call, briefly confirm it in warm Hindi.
+RULE 3 — WARM CONFIRMATION (ONE TIME ONLY):
+After EVERY successful tool call, briefly confirm it in warm Hindi — EXACTLY ONCE.
 Example: 'मैंने 45 मिनट का योग आपके संकल्प में जोड़ दिया है। 🙏'
 For no-duration adds: 'बढ़िया! आपका संकल्प जोड़ दिया। 🙏'
+⚠️ DO NOT say the same confirmation sentence twice. Do not repeat "jod diya" style phrases. ONE confirmation, then pivot.
 
 For removing/completing tasks: use remove_sankalpa_task with the task_name.
 For all other tools (memory, messages, meditation, dismiss): use the [TOOL: ...] text format below.
@@ -725,6 +856,8 @@ OTHER TOOLS (text format — always on NEW line, never inline)
 
 `;
 }
+
+
 // ─── Last Topic Extractor ────────────────────────────────────────────────────
 // Scans recent conversation history to find the last meaningful topic discussed.
 // Returns a short, human-readable topic string in Hindi/English or null.
@@ -830,6 +963,32 @@ function parseToolCalls(text: string): ToolCall[] {
 
 const MAX_HISTORY_TURNS = 50; // max stored turns in Firestore
 const HISTORY_CONTEXT_TURNS = 15; // how many turns to inject into system prompt
+
+/** Logs a named event to Firebase bodhi_events subcollection + conversation transcript */
+async function saveBodhiEvent(uid: string, eventType: string, detail: string): Promise<void> {
+    try {
+        const { getFirebaseFirestore } = await import('@/lib/firebase');
+        const { collection, addDoc, serverTimestamp } = await import('firebase/firestore');
+        const db = await getFirebaseFirestore();
+        // 1. Write to dedicated bodhi_events subcollection
+        await addDoc(collection(db, 'users', uid, 'bodhi_events'), {
+            eventType,
+            detail,
+            timestamp: Date.now(),
+            savedAt: serverTimestamp(),
+        });
+        // 2. Also save as a system message in conversation transcript for context
+        await addDoc(collection(db, 'users', uid, 'bodhi_full_transcript'), {
+            role: 'sakha',
+            text: `[EVENT:${eventType}] ${detail}`,
+            timestamp: Date.now(),
+            savedAt: serverTimestamp(),
+        });
+    } catch (e) {
+        console.warn('[Bodhi] saveBodhiEvent failed:', e);
+    }
+}
+
 
 async function loadConversationHistory(uid: string): Promise<{ history: string; lastTimestamp: number | null }> {
     try {
@@ -1018,6 +1177,10 @@ export function useSakhaConversation({
     const isConnectedRef = useRef(false); // true only while Gemini session is alive
     const callTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const watchdogRef = useRef<NodeJS.Timeout | null>(null); // anti-stuck watchdog
+    // Pending webview action: fires AFTER Bodhi finishes speaking (audio queue empty)
+    const pendingWebViewRef = useRef<AgenticWebViewAction | null>(null);
+    // Safety timer ref: clears itself when audio drain fires first, prevents ghost triggers
+    const webViewSafetyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Current app state refs
     const sankalpaRef = useRef(sankalpaItems);
@@ -1141,7 +1304,7 @@ export function useSakhaConversation({
             // Resolve sender name from contacts list
             const senderContact = contacts.find(c => {
                 const myId = currentUserId ?? '';
-                const cid = myId < c.uid ? `${myId}_${c.uid}` : `${c.uid}_${myId}`;
+                const cid = myId < c.uid ? `${myId}_${c.uid} ` : `${c.uid}_${myId} `;
                 return cid === chatId;
             });
             const senderName = senderContact?.name ?? 'किसी';
@@ -1157,13 +1320,13 @@ export function useSakhaConversation({
                     `उनका message है: "${meta.lastMessageText}"\n` +
                     `INSTRUCTION: अभी USER को बताओ — "${senderName} का message आया है — क्या मैं पढ़ूँ?" ` +
                     `अगर user हाँ कहे तो message पढ़ो जो ऊपर है। ` +
-                    `अगर user जवाब देना चाहे तो उनके शब्दों से reply करो via [TOOL: reply_to_message("${senderName}", "user_words")].`;
+                    `अगर user जवाब देना चाहे तो उनके शब्दों से reply करो via[TOOL: reply_to_message("${senderName}", "user_words")].`;
 
                 session.sendClientContent({
                     turns: [{ role: 'user', parts: [{ text: alertText }] }],
                     turnComplete: true,
                 });
-                console.log(`[Bodhi] 📩 Real-time message alert injected for "${senderName}"`);
+                console.log(`[Bodhi] 📩 Real - time message alert injected for "${senderName}"`);
             } catch (e) {
                 console.warn('[Bodhi] Failed to inject message alert:', e);
             }
@@ -1221,55 +1384,58 @@ export function useSakhaConversation({
                 }, 2000);
             }
 
+            // ── open_pranaverse ─────────────────────────────────────────
+            if (call.name === 'open_pranaverse') {
+                const action: AgenticWebViewAction = {
+                    action: 'OPEN_WEBVIEW',
+                    url: '/pranaverse',
+                    title: 'PranaVibes — Your Wellness Space',
+                };
+                pendingWebViewRef.current = action;
+                if (webViewSafetyTimerRef.current) clearTimeout(webViewSafetyTimerRef.current);
+                webViewSafetyTimerRef.current = setTimeout(() => {
+                    if (pendingWebViewRef.current === action) {
+                        pendingWebViewRef.current = null;
+                        webViewSafetyTimerRef.current = null;
+                        setWebViewAction(action);
+                        dismissForWebView();
+                    }
+                }, 4000);
+            }
+
+            // ── open_dhyan_kshetra ──────────────────────────────────────
+            if (call.name === 'open_dhyan_kshetra') {
+                const action: AgenticWebViewAction = {
+                    action: 'OPEN_WEBVIEW',
+                    url: '/dhyan-kshetra',
+                    title: 'Dhyan Kshetra — Sacred Meditation Space',
+                };
+                pendingWebViewRef.current = action;
+                if (webViewSafetyTimerRef.current) clearTimeout(webViewSafetyTimerRef.current);
+                webViewSafetyTimerRef.current = setTimeout(() => {
+                    if (pendingWebViewRef.current === action) {
+                        pendingWebViewRef.current = null;
+                        webViewSafetyTimerRef.current = null;
+                        setWebViewAction(action);
+                        dismissForWebView();
+                    }
+                }, 4000);
+            }
+
             if (call.name === 'update_sankalpa_tasks') {
                 const action = call.args[0];
                 const current = [...sankalpaRef.current];
 
-                if (action === 'add' && call.args[1]) {
-                    const newTask: TaskItem = {
-                        id: Date.now().toString(),
-                        text: call.args[1],
-                        done: false,
-                        category: 'Focus', // defaults
-                        colorClass: 'fuchsia',
-                        accentColor: '217, 70, 239',
-                        icon: '✨',
-                        createdAt: Date.now()
-                    };
-                    const updated = [...current, newTask];
-                    onSankalpaUpdateRef.current(updated);
-                    if (sessionRef.current) {
-                        await sessionRef.current.sendClientContent({
-                            turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: Task "${call.args[1]}" has been ADDED to Sankalpa list. ${updated.length} tasks total now. Confirm warmly in Hindi and ask if more tasks to add or how to help with this one.` }] }],
-                            turnComplete: true,
-                        });
-                    }
-                }
-
-                if (action === 'remove' && call.args[1]) {
-                    const query = call.args[1].toLowerCase();
-                    const removed = current.filter(t =>
-                        t.id === call.args[1] || t.text.toLowerCase().includes(query)
-                    );
-                    const updated = current.filter(t =>
-                        t.id !== call.args[1] && !t.text.toLowerCase().includes(query)
-                    );
-                    onSankalpaUpdateRef.current(updated);
-                    if (sessionRef.current) {
-                        const removedNames = removed.map(t => t.text).join(', ');
-                        await sessionRef.current.sendClientContent({
-                            turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: Task(s) REMOVED from Sankalpa list: "${removedNames || call.args[1]}". ${updated.length} tasks remaining. Confirm warmly in Hindi.` }] }],
-                            turnComplete: true,
-                        });
-                    }
-                }
+                // NOTE: add/remove are handled by native SDK toolCall handler.
+                // Only handle mark_done, clear_pending, remove_all_done here (text-based)
+                // to avoid duplicate SYSTEM_RESPONSE injections.
 
                 if (action === 'clear_pending') {
                     const updated = current.filter(t => t.done);
                     onSankalpaUpdateRef.current(updated);
                     if (sessionRef.current) {
                         await sessionRef.current.sendClientContent({
-                            turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: All pending tasks cleared. ${updated.length} completed tasks remain. Confirm warmly in Hindi.` }] }],
+                            turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: All pending tasks cleared.${updated.length} completed tasks remain.Briefly confirm in ONE short Hindi sentence only.` }] }],
                             turnComplete: true,
                         });
                     }
@@ -1280,7 +1446,7 @@ export function useSakhaConversation({
                     onSankalpaUpdateRef.current(updated);
                     if (sessionRef.current) {
                         await sessionRef.current.sendClientContent({
-                            turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: All completed tasks removed. ${updated.length} active tasks remain. Confirm warmly in Hindi.` }] }],
+                            turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: All completed tasks removed.${updated.length} active tasks remain.Briefly confirm in ONE short Hindi sentence only.` }] }],
                             turnComplete: true,
                         });
                     }
@@ -1296,7 +1462,7 @@ export function useSakhaConversation({
                     const doneTask = updated.find(t => t.done && (t.id === call.args[1] || t.text.toLowerCase().includes(query)));
                     if (sessionRef.current) {
                         await sessionRef.current.sendClientContent({
-                            turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: Task marked DONE: "${doneTask?.text || call.args[1]}". 🎉 Celebrate this warmly in Hindi and ask what to tackle next.` }] }],
+                            turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: Task marked DONE: "${doneTask?.text || call.args[1]}".Celebrate warmly in ONE sentence in Hindi, then ask what to tackle next.` }] }],
                             turnComplete: true,
                         });
                     }
@@ -1327,7 +1493,9 @@ export function useSakhaConversation({
             }
 
 
-            if (call.name === 'read_unread_messages' && call.args[0]) {
+            // read_unread_messages and reply_to_message: handled by native SDK toolCall.
+            // The text-based [TOOL: ...] versions are suppressed to avoid duplicate responses.
+            if (call.name === 'read_unread_messages_DISABLED' && call.args[0]) {
                 const requestedName = call.args[0];
                 try {
                     // 1. Find the contact by name
@@ -1365,7 +1533,7 @@ export function useSakhaConversation({
                         if (count === 1) {
                             narrative = `${contact.name} ने message भेजा है: "${msgTexts[0]}"`;
                         } else if (count <= 3) {
-                            narrative = `${contact.name} ने ${count} messages भेजे हैं:\n`;
+                            narrative = `${contact.name} ने ${count} messages भेजे हैं: \n`;
                             msgTexts.forEach((t, i) => {
                                 narrative += `${ordinals[i] || (i + 1) + 'वाँ'} message: "${t}"\n`;
                             });
@@ -1373,14 +1541,14 @@ export function useSakhaConversation({
                             // Many messages — summarize first, then read last few
                             const lastThree = msgTexts.slice(-3);
                             narrative = `${contact.name} ने काफी messages भेजे हैं — कुल ${count}। `;
-                            narrative += `आखिरी कुछ messages हैं:\n`;
+                            narrative += `आखिरी कुछ messages हैं: \n`;
                             lastThree.forEach((t, i) => {
                                 narrative += `"${t}"\n`;
                             });
                         }
 
-                        responseText = `SYSTEM_RESPONSE: Messages from ${contact.name}:\n${narrative}\n\n` +
-                            `READ THESE NATURALLY — like a friend reading aloud. Say "${contact.name} ne kaha: [message]". ` +
+                        responseText = `SYSTEM_RESPONSE: Messages from ${contact.name}: \n${narrative} \n\n` +
+                            `READ THESE NATURALLY — like a friend reading aloud.Say "${contact.name} ne kaha: [message]". ` +
                             `Do NOT say "message received" or list them robotically. ` +
                             `After reading, ask warmly: "Kya aap jawab dena chahenge?" ` +
                             `If yes → get user's words → call [TOOL: reply_to_message("${contact.name}", "their reply")].`;
@@ -1411,8 +1579,8 @@ export function useSakhaConversation({
                 }
             }
 
-            // ── FIX 3: Reply to SutraConnect message ──────────────────────────
-            if (call.name === 'reply_to_message' && call.args[0] && call.args[1]) {
+            // reply_to_message: handled by native SDK toolCall. Text-based version disabled.
+            if (call.name === 'reply_to_message_DISABLED' && call.args[0] && call.args[1]) {
                 const contactName = call.args[0];
                 const replyText = call.args[1];
                 const currentUser = userIdRef.current;
@@ -1499,6 +1667,11 @@ export function useSakhaConversation({
                 if (currentUid) {
                     markMeditationDone(currentUid, phaseRef.current).then(async () => {
                         console.log('[Bodhi] ✅ Meditation marked as done via tool');
+                        // Persist dhyan completion for today so prompt suppresses re-offer cross-session
+                        try {
+                            const todayDateKey = new Date().toISOString().slice(0, 10);
+                            localStorage.setItem('lastDhyanTimestamp', todayDateKey);
+                        } catch (_) { /* localStorage unavailable in SSR */ }
                         if (sessionRef.current) {
                             await sessionRef.current.sendClientContent({
                                 turns: [{
@@ -1662,6 +1835,12 @@ export function useSakhaConversation({
             clearInterval(watchdogRef.current);
             watchdogRef.current = null;
         }
+        // Clear any pending webview reveal — prevents ghost triggers after disconnect
+        pendingWebViewRef.current = null;
+        if (webViewSafetyTimerRef.current) {
+            clearTimeout(webViewSafetyTimerRef.current);
+            webViewSafetyTimerRef.current = null;
+        }
     }, []);
 
     const dismissForWebView = useCallback(() => {
@@ -1757,9 +1936,22 @@ export function useSakhaConversation({
                         timeGapMins = Math.floor(gapMs / (1000 * 60));
                         const hours = Math.floor(timeGapMins / 60);
                         const days = Math.floor(hours / 24);
-                        if (days > 0) timeGapStr = `It has been ${days} day${days > 1 ? 's' : ''} since the last conversation with ${userName}.`;
-                        else if (hours > 0) timeGapStr = `It has been ${hours} hour${hours > 1 ? 's' : ''} since the last conversation with ${userName}.`;
-                        else timeGapStr = `It has been only ${timeGapMins} minute${timeGapMins > 1 ? 's' : ''} since the last conversation. Be very casual and warm.`;
+
+                        const lastDate = new Date(lastTimestamp);
+                        const isToday = new Date().toDateString() === lastDate.toDateString();
+                        const dayStr = isToday ? 'today' : (days === 1 ? 'yesterday' : `${days} days ago`);
+                        const timeOfDay = lastDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+                        if (timeGapMins < 60) {
+                            timeGapStr = `[TIME AWARENESS] The user last talked to you explicitly ${timeGapMins} minute${timeGapMins !== 1 ? 's' : ''} ago (${dayStr} at ${timeOfDay}).`;
+                        } else if (hours < 24 && isToday) {
+                            const minsLimit = timeGapMins % 60;
+                            timeGapStr = `[TIME AWARENESS] The user last talked to you today, ${hours} hour${hours > 1 ? 's' : ''} and ${minsLimit} minute${minsLimit !== 1 ? 's' : ''} ago (at ${timeOfDay}).`;
+                        } else {
+                            timeGapStr = `[TIME AWARENESS] The user last talked to you ${dayStr} at ${timeOfDay} (${hours} hours ago).`;
+                        }
+
+                        timeGapStr += ` You MUST implicitly use this time awareness naturally to make the user feel connected. For example, if it was 15 mins ago, say "Humne bas 15 minute pehle hi baat ki thi...", or if today morning say "Aaj subah jo humne discuss kiya tha..."`;
                     }
 
                     // Build health & personality profile
@@ -1800,6 +1992,14 @@ export function useSakhaConversation({
             if (!apiKey) throw new Error('Gemini API key not configured');
 
             const { conversationHistory, hasGreetedThisPhase, timeGapStr, timeGapMins, isMedDone, healthProfile, personalityProfile } = firebaseContext;
+
+            // ── DHYAN STATE MACHINE: localStorage persistence ──────────────────
+            // lastDhyanTimestamp persists across browser sessions — Bodhi won't re-offer if done today
+            const todayKey = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+            const lastDhyan = typeof window !== 'undefined' ? localStorage.getItem('lastDhyanTimestamp') : null;
+            const dhyanCompletedToday = lastDhyan === todayKey;
+            const meditationDoneEffective = isMedDone || dhyanCompletedToday;
+
 
             mediaStreamRef.current = stream;
             const captureCtx = new AudioContext({ sampleRate: INPUT_SAMPLE_RATE });
@@ -1865,7 +2065,7 @@ export function useSakhaConversation({
                     speechConfig: {
                         voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Aoede' } },
                     },
-                    systemInstruction: buildSystemPrompt(phaseRef.current, userName, sankalpaRef.current, memories, unreadContext, conversationHistory, hasGreetedThisPhase, newsContext, messagesContext.slice(0, 2000), timeGapStr, timeGapMins, isMedDone, healthProfile, detectedMood, personalityProfile, extractLastTopic(conversationHistory)) + '\n\nRANDOM_SEED: ' + Math.floor(Math.random() * 1000),
+                    systemInstruction: buildSystemPrompt(phaseRef.current, userName, sankalpaRef.current, memories, unreadContext, conversationHistory, hasGreetedThisPhase, newsContext, messagesContext.slice(0, 2000), timeGapStr, timeGapMins, meditationDoneEffective, healthProfile, detectedMood, personalityProfile, extractLastTopic(conversationHistory)) + '\n\nRANDOM_SEED: ' + Math.floor(Math.random() * 1000),
                     // ── MODULE 1: Google AI SDK FunctionDeclarations (Sankalpa Tools) ──
                     tools: [{
                         functionDeclarations: [
@@ -2094,6 +2294,17 @@ export function useSakhaConversation({
                                     required: ['project_update'],
                                 },
                             },
+                            // ── Navigation Tools (Internal Pages) ───────────────────────────
+                            {
+                                name: 'open_pranaverse',
+                                description: 'Opens the PranaVibes (PranaVerse) content page inside the app when the user wants to watch motivational, wellness, or Vedic content. Call this ONLY after the user gives explicit permission (e.g. "haan", "chalo", "dikhaiye", "yes").',
+                                parameters: { type: Type.OBJECT, properties: {} },
+                            },
+                            {
+                                name: 'open_dhyan_kshetra',
+                                description: 'Opens the Dhyan Kshetra guided meditation page inside the app. Call this when the user agrees to do guided meditation (morning or evening) OR when mark_meditation_done has been called. Always conduct the Gayatri Mantra ritual VERBALLY FIRST, then call this tool to open the page.',
+                                parameters: { type: Type.OBJECT, properties: {} },
+                            },
                         ],
                     }],
                 },
@@ -2271,7 +2482,7 @@ export function useSakhaConversation({
 
                                     const timeDesc = allocatedMins ? ` (${allocatedMins} min)` : '';
                                     const scheduleDesc = startTime ? ` scheduled for ${startTime}` : '';
-                                    responseMessage = `Task "${taskName}"${timeDesc}${scheduleDesc} added. Current time: ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}. If startTime is in the future, do NOT tell user to do it now.`;
+                                    responseMessage = `DONE: Task "${taskName}"${timeDesc}${scheduleDesc} successfully added to Sankalpa list. Current time: ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}. Say a warm ONE-sentence confirmation in Hindi ONCE only. If startTime is in the future, do NOT tell user to do it now. DO NOT repeat the confirmation.`;
                                     console.log(`[Bodhi SDK] ✅ add_sankalpa_task: "${taskName}" | ${allocatedMins ?? 'no'} min | startTime: ${startTime || 'none'}`);
                                 }
 
@@ -2313,8 +2524,8 @@ export function useSakhaConversation({
                                         })();
                                     }
                                     responseMessage = removed.length > 0
-                                        ? `Task "${removed.map(t => t.text).join(', ')}" removed from Sankalpa list.`
-                                        : `No matching task found for "${taskName}".`;
+                                        ? `DONE: Task "${removed.map(t => t.text).join(', ')}" removed from Sankalpa list. Say a warm ONE-sentence confirmation in Hindi ONCE only. DO NOT repeat.`
+                                        : `No matching task found for "${taskName}". Tell user gently in Hindi.`;
                                     console.log(`[Bodhi SDK] ✅ remove_sankalpa_task: "${taskName}"`);
                                 }
 
@@ -2363,7 +2574,8 @@ export function useSakhaConversation({
                                                 narrative = `${contact.name} ne kaafi messages bheje (kul ${count}). Aakhiri kuch:\n` +
                                                     texts.slice(-4).map(t => `  "${t}"`).join('\n');
                                             }
-                                            responseMessage = `MESSAGES: ${narrative}\nRead naturally like a friend — say the person's name, then each message in order. After reading ask warmly: "Kya jawab dena chahenge?" If yes, ask what to say then call reply_to_message.`;
+                                            responseMessage = `MESSAGES: ${narrative}\nRead naturally like a friend — say the person's name, then each message in order. Read ONCE only — do NOT repeat any message or any phrase. After reading, ask warmly ONCE: "Kya jawab dena chahenge?" If yes, ask what to say then call reply_to_message.`;
+
                                             // Mark as read in Firestore
                                             try {
                                                 await setDoc(doc(db, 'onesutra_chats', chatId), {
@@ -2418,7 +2630,7 @@ export function useSakhaConversation({
                                             body: JSON.stringify({ senderId: currentUserId, senderName: currentUserName, receiverId: contact.uid, messageText: replyText, chatId }),
                                         }).catch(() => { });
 
-                                        responseMessage = `Reply sent to ${contact.name}: "${replyText}". Confirm warmly: "${contact.name} ko message bhej diya!"`;
+                                        responseMessage = `DONE: Reply "${replyText}" sent to ${contact.name}. Say "${contact.name} ko message bhej diya! 🙏" ONCE only and move on.`;
                                         console.log(`[Bodhi SDK] ✅ reply_to_message → ${contact.name}: "${replyText}"`);
                                     } catch (e) {
                                         responseMessage = `Reply failed: ${e}. Tell user warmly in Hindi that reply could not be sent.`;
@@ -2521,12 +2733,21 @@ export function useSakhaConversation({
                                         const link = payload?.result?.payNowLink;
                                         const viewAction = payload?.result?.webViewAction;
                                         if (viewAction?.action === 'OPEN_WEBVIEW' && typeof viewAction.url === 'string') {
-                                            setWebViewAction({
+                                            const action: AgenticWebViewAction = {
                                                 action: 'OPEN_WEBVIEW',
                                                 url: viewAction.url,
                                                 title: viewAction.title ?? 'Travel Booking',
-                                            });
-                                            dismissForWebView();
+                                            };
+                                            pendingWebViewRef.current = action;
+                                            if (webViewSafetyTimerRef.current) clearTimeout(webViewSafetyTimerRef.current);
+                                            webViewSafetyTimerRef.current = setTimeout(() => {
+                                                if (pendingWebViewRef.current === action) {
+                                                    pendingWebViewRef.current = null;
+                                                    webViewSafetyTimerRef.current = null;
+                                                    setWebViewAction(action);
+                                                    dismissForWebView();
+                                                }
+                                            }, 4000);
                                         }
                                         responseMessage = link
                                             ? `Sutradhar, I found your travel options. Opening final page now so you can complete booking.`
@@ -2553,13 +2774,13 @@ export function useSakhaConversation({
 
                                         if (shouldForceGoogleShopping) {
                                             const targetUrl = `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(query)}`;
-                                            setWebViewAction({
+                                            // 🔑 Store in pendingWebViewRef — fires AFTER Bodhi finishes speaking
+                                            pendingWebViewRef.current = {
                                                 action: 'OPEN_WEBVIEW',
                                                 url: targetUrl,
                                                 title: `${query} · Google Shopping`,
-                                            });
-                                            dismissForWebView();
-                                            responseMessage = 'Sutradhar, I opened Google Shopping results directly for this product query.';
+                                            };
+                                            responseMessage = `I'll open Google Shopping results for "${query}" on your screen as soon as I finish speaking.`;
                                             console.log('[Bodhi SDK] ✅ ecom_assistant routed to google shopping');
                                             continue;
                                         }
@@ -2580,12 +2801,21 @@ export function useSakhaConversation({
                                         const best = payload?.result?.topChoices?.[0];
                                         const viewAction = payload?.result?.webViewAction;
                                         if (viewAction?.action === 'OPEN_WEBVIEW' && typeof viewAction.url === 'string') {
-                                            setWebViewAction({
+                                            const action: AgenticWebViewAction = {
                                                 action: 'OPEN_WEBVIEW',
                                                 url: viewAction.url,
                                                 title: viewAction.title ?? best?.title ?? 'Product Page',
-                                            });
-                                            dismissForWebView();
+                                            };
+                                            pendingWebViewRef.current = action;
+                                            if (webViewSafetyTimerRef.current) clearTimeout(webViewSafetyTimerRef.current);
+                                            webViewSafetyTimerRef.current = setTimeout(() => {
+                                                if (pendingWebViewRef.current === action) {
+                                                    pendingWebViewRef.current = null;
+                                                    webViewSafetyTimerRef.current = null;
+                                                    setWebViewAction(action);
+                                                    dismissForWebView();
+                                                }
+                                            }, 4000);
                                         }
                                         responseMessage = best
                                             ? `Sutradhar, I found the best option and opened the page now so you can complete purchase.`
@@ -2622,13 +2852,24 @@ export function useSakhaConversation({
 
                                         const viewAction = payload?.result;
                                         if (viewAction?.action === 'OPEN_WEBVIEW' && typeof viewAction.url === 'string') {
-                                            setWebViewAction({
+                                            const action: AgenticWebViewAction = {
                                                 action: 'OPEN_WEBVIEW',
                                                 url: viewAction.url,
                                                 title: viewAction.title ?? `${query} · YouTube`,
-                                            });
-                                            dismissForWebView();
-                                            responseMessage = 'Sutradhar, I found a strong video match and opened it now. Want me to queue 2 more options after this?';
+                                            };
+                                            pendingWebViewRef.current = action;
+                                            if (webViewSafetyTimerRef.current) clearTimeout(webViewSafetyTimerRef.current);
+                                            webViewSafetyTimerRef.current = setTimeout(() => {
+                                                if (pendingWebViewRef.current === action) {
+                                                    pendingWebViewRef.current = null;
+                                                    webViewSafetyTimerRef.current = null;
+                                                    setWebViewAction(action);
+                                                    dismissForWebView();
+                                                }
+                                            }, 4000);
+                                            responseMessage = `Mil gaya! "${query}" ka video abhi start ho raha hai.`;
+                                            const uid = userIdRef.current;
+                                            if (uid) saveBodhiEvent(uid, 'youtube_played', `Query: "${query}" | Video: ${viewAction.title ?? 'YouTube'}`);
                                         } else {
                                             responseMessage = 'Failed to search YouTube. Ask the user to try a different keyword.';
                                             console.warn('[Bodhi SDK] youtube_navigator returned no OPEN_WEBVIEW payload');
@@ -2653,17 +2894,28 @@ export function useSakhaConversation({
                                             ? `https://www.google.com/search?tbm=shop&q=${encodedQuery}`
                                             : `https://www.google.com/search?q=${encodedQuery}`;
 
-                                        setWebViewAction({
+                                        const action: AgenticWebViewAction = {
                                             action: 'OPEN_WEBVIEW',
                                             url: targetUrl,
                                             title: `${query} · Google ${searchType === 'shopping' ? 'Shopping' : 'Search'}`,
-                                        });
-                                        dismissForWebView();
+                                        };
+                                        pendingWebViewRef.current = action;
+                                        if (webViewSafetyTimerRef.current) clearTimeout(webViewSafetyTimerRef.current);
+                                        webViewSafetyTimerRef.current = setTimeout(() => {
+                                            if (pendingWebViewRef.current === action) {
+                                                pendingWebViewRef.current = null;
+                                                webViewSafetyTimerRef.current = null;
+                                                setWebViewAction(action);
+                                                dismissForWebView();
+                                            }
+                                        }, 4000);
 
                                         responseMessage =
                                             searchType === 'shopping'
-                                                ? 'Sutradhar, I opened Google Shopping results for this product query.'
-                                                : 'Sutradhar, I opened Google Search results for your query.';
+                                                ? `Dekhiye, "${query}" ke liye Google Shopping results abhi aa rahe hain.`
+                                                : `Google Search results "${query}" ke liye aa rahe hain.`;
+                                        const uid = userIdRef.current;
+                                        if (uid) saveBodhiEvent(uid, 'google_search', `Type: ${searchType} | Query: "${query}"`);
                                         console.log('[Bodhi SDK] ✅ google_navigator executed');
                                     } catch (error) {
                                         console.error('Google Navigator Tool Error:', error);
@@ -2833,6 +3085,23 @@ export function useSakhaConversation({
                                 setSakhaState('listening');
                             }
                             setIsSpeaking(false);
+
+                            // ── TURN-COMPLETE FLUSH: Bodhi's server turn is done — reveal staged webview ──
+                            // This fires on the canonical turnComplete signal, ensuring audio chunks are fully
+                            // pushed to the WebAudio queue before the webview appears.
+                            if (pendingWebViewRef.current) {
+                                const action = pendingWebViewRef.current;
+                                pendingWebViewRef.current = null;
+                                if (webViewSafetyTimerRef.current) {
+                                    clearTimeout(webViewSafetyTimerRef.current);
+                                    webViewSafetyTimerRef.current = null;
+                                }
+                                // Small delay so Bodhi's voice can start playing before screen changes
+                                setTimeout(() => {
+                                    setWebViewAction(action);
+                                    dismissForWebView();
+                                }, 300);
+                            }
                         }
 
                         if (serverContent?.interrupted) {
