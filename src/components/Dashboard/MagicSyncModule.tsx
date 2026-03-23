@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Clock, Check, X, ChevronRight, Brain, Calendar, ChevronLeft } from 'lucide-react';
+import { Sparkles, Clock, Check, X, ChevronRight, Brain, Calendar, ChevronLeft, LayoutGrid } from 'lucide-react';
 import { getFirebaseAuth } from '@/lib/firebase';
 import { getFirebaseFirestore } from '@/lib/firebase';
 
@@ -281,6 +282,51 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                             </div>
                         </div>
                     )}
+
+                    {/* ✨ Advanced Planner Golden Button */}
+                    <Link href="/vedic-planner" style={{ textDecoration: 'none' }}>
+                        <motion.div
+                            whileHover={{ scale: 1.08, boxShadow: '0 0 22px rgba(251,191,36,0.55), 0 0 40px rgba(251,191,36,0.20)' }}
+                            whileTap={{ scale: 0.94 }}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.30rem',
+                                padding: '0.35rem 0.75rem',
+                                borderRadius: 999,
+                                background: 'linear-gradient(135deg, rgba(251,191,36,0.22) 0%, rgba(234,179,8,0.12) 50%, rgba(217,119,6,0.18) 100%)',
+                                border: '1px solid rgba(251,191,36,0.50)',
+                                boxShadow: '0 0 10px rgba(251,191,36,0.20), inset 0 1px 0 rgba(255,255,255,0.10)',
+                                cursor: 'pointer',
+                                position: 'relative',
+                                overflow: 'hidden',
+                            }}
+                        >
+                            {/* Shimmer */}
+                            <motion.div
+                                animate={{ x: ['-100%', '200%'] }}
+                                transition={{ duration: 2.5, repeat: Infinity, ease: 'linear', repeatDelay: 1.5 }}
+                                style={{
+                                    position: 'absolute', inset: 0,
+                                    background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.18) 50%, transparent 100%)',
+                                    pointerEvents: 'none',
+                                }}
+                            />
+                            <LayoutGrid size={10} style={{ color: 'rgba(251,191,36,0.90)', flexShrink: 0 }} />
+                            <span style={{
+                                fontSize: '0.52rem',
+                                fontWeight: 800,
+                                letterSpacing: '0.14em',
+                                textTransform: 'uppercase',
+                                color: 'rgba(251,191,36,0.95)',
+                                fontFamily: 'monospace',
+                                whiteSpace: 'nowrap',
+                            }}>
+                                Planner
+                            </span>
+                        </motion.div>
+                    </Link>
+
                     <button onClick={() => setShowCalendar(s => !s)} style={{ background: showCalendar ? 'rgba(251,191,36,0.12)' : 'rgba(255,255,255,0.06)', border: showCalendar ? '1px solid rgba(251,191,36,0.30)' : '1px solid rgba(255,255,255,0.10)', borderRadius: 10, padding: '0.30rem 0.55rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                         <Calendar size={11} style={{ color: showCalendar ? 'rgba(251,191,36,0.85)' : 'rgba(255,255,255,0.40)' }} />
                         <span style={{ fontSize: '0.50rem', fontFamily: 'monospace', letterSpacing: '0.12em', textTransform: 'uppercase', color: showCalendar ? 'rgba(251,191,36,0.85)' : 'rgba(255,255,255,0.35)' }}>Cal</span>

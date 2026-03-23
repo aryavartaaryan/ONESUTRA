@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './DailySankalp.module.css';
 
@@ -45,6 +46,35 @@ export default function DailySankalp() {
                         <span className={styles.sub}>Your sacred intentions for today</span>
                     </div>
                 </div>
+
+                {/* Advanced Task Manager Button */}
+                <Link href="/vedic-planner" style={{ textDecoration: 'none' }}>
+                    <motion.div
+                        whileHover={{ scale: 1.06, boxShadow: '0 0 18px rgba(251,191,36,0.6)' }}
+                        whileTap={{ scale: 0.95 }}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            padding: '5px 12px',
+                            borderRadius: '20px',
+                            background: 'linear-gradient(135deg, rgba(251,191,36,0.18), rgba(234,179,8,0.10))',
+                            border: '1px solid rgba(251,191,36,0.45)',
+                            color: '#fbbf24',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            letterSpacing: '0.06em',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                            backdropFilter: 'blur(8px)',
+                        }}
+                    >
+                        <span style={{ fontSize: '0.85rem' }}>🗂️</span>
+                        Advanced Planner
+                        <span style={{ fontSize: '0.7rem', opacity: 0.75 }}>↗</span>
+                    </motion.div>
+                </Link>
+
                 <div className={styles.progress}>
                     <span className={styles.progressText}>{done}/{items.length}</span>
                     <div className={styles.progressTrack}>
