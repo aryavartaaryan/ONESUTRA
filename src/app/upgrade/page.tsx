@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Script from 'next/script';
+import { useSession } from 'next-auth/react';
 
 export default function UpgradeProPage() {
+    const { data: session } = useSession();
     const [loading, setLoading] = useState(false);
 
     const handleUpgrade = async () => {
@@ -28,11 +30,13 @@ export default function UpgradeProPage() {
                 order_id: order.id,
                 handler: async function (response: any) {
                     localStorage.setItem('has_oneshutra_pro', 'true');
+                    const userEmail = session?.user?.email || '';
+                    const userName = session?.user?.name || 'Pro Member';
                     try {
                         await fetch("/api/pro", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ email: "pro@oneshutra.in", name: "Pro Member" })
+                            body: JSON.stringify({ email: userEmail, name: userName })
                         });
                     } catch (e) { console.error(e) }
 
@@ -40,8 +44,8 @@ export default function UpgradeProPage() {
                     window.location.href = "/";
                 },
                 prefill: {
-                    name: "Pro Member",
-                    email: "pro@oneshutra.in",
+                    name: session?.user?.name || 'Pro Member',
+                    email: session?.user?.email || '',
                     contact: "9999999999"
                 },
                 theme: {

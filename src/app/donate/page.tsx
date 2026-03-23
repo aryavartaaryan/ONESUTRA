@@ -5,8 +5,10 @@ import Link from 'next/link';
 import Script from 'next/script';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useSession } from 'next-auth/react';
 
 export default function DonatePage() {
+    const { data: session } = useSession();
     const [amount, setAmount] = useState<number>(100);
     const [customAmount, setCustomAmount] = useState<string>('');
     const [message, setMessage] = useState<string>('');
@@ -48,10 +50,12 @@ export default function DonatePage() {
                 description: "Donation to Conscious Ecosystem",
                 order_id: order.id,
                 handler: async function (response: any) {
+                    const donorName = session?.user?.name || 'Anonymous';
+                    const donorEmail = session?.user?.email || '';
                     await fetch("/api/donations", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ amount, message, user: "Generous Contributor" }) // ideally fetch session email
+                        body: JSON.stringify({ amount, message, user: donorName, email: donorEmail })
                     });
                     toast.success(`💖 Thank you for your generous donation!`);
                     setTimeout(() => window.location.href = "/", 2000);

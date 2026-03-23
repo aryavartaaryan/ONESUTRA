@@ -4,7 +4,7 @@ import { approveMockSellerApp } from "@/lib/mockStore";
 export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await props.params;
-    approveMockSellerApp(id, "admin@example.com");
+    approveMockSellerApp(id, "admin");
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error approving seller:", error);

@@ -6,7 +6,7 @@ import BuyProductButton from "@/components/product/BuyProductButton";
 import SwadeshiAuthButtons from "@/components/product/SwadeshiAuthButtons";
 import { getMockProducts, getMockSellerApps } from "@/lib/mockStore";
 
-const CATEGORIES = ["All", "Ayurvedic", "Khadi", "Organic Food", "Swadeshi Handicrafts", "Herbal Cosmetics", "Pooja Essentials", "Handlooms"];
+const CATEGORIES = ["All", "AI Agents", "Ayurvedic", "Khadi", "Organic Food", "Swadeshi Handicrafts", "Herbal Cosmetics", "Pooja Essentials", "Handlooms"];
 
 export default async function CustomerProductListPage(props: {
   searchParams: Promise<{ category?: string, search?: string }>;

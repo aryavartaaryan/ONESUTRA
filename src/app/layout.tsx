@@ -26,6 +26,7 @@ import ZoomManager from "@/components/ZoomManager";
 import GlobalAutoPilot from "@/components/GlobalAutoPilot";
 import GlobalFCM from '@/components/GlobalFCM';
 import ToastProvider from '@/components/ToastProvider';
+import NextauthSessionProvider from '@/components/NextauthSessionProvider';
 
 export default function RootLayout({
   children,
@@ -36,16 +37,18 @@ export default function RootLayout({
     <html lang="en">
       <body suppressHydrationWarning>
         <ZoomManager />
-        <OutplugsProvider>
-          <LanguageProvider>
-            <ToastProvider />
-            <GlobalAutoPilot />
-            <ConditionalVahanaBar />
-            <main>
-              {children}
-            </main>
-          </LanguageProvider>
-        </OutplugsProvider>
+        <NextauthSessionProvider>
+          <OutplugsProvider>
+            <LanguageProvider>
+              <ToastProvider />
+              <GlobalAutoPilot />
+              <ConditionalVahanaBar />
+              <main>
+                {children}
+              </main>
+            </LanguageProvider>
+          </OutplugsProvider>
+        </NextauthSessionProvider>
       </body>
     </html>
   );
