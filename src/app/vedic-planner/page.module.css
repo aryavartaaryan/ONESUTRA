@@ -1,0 +1,625 @@
+/* ─── Vedic Planner Screen — Serene, Premium, Ayurvedic ─── */
+
+/* Container */
+.container {
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+    font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+    color: #fff;
+}
+
+/* Serene Background Layer */
+.bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: background-image 3s ease;
+}
+
+.bgOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(165deg,
+            rgba(5, 8, 30, 0.72) 0%,
+            rgba(10, 20, 50, 0.60) 40%,
+            rgba(15, 35, 30, 0.65) 100%);
+}
+
+/* Content Layer */
+.content {
+    position: relative;
+    z-index: 10;
+    padding: 0 1rem 8rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Header */
+.header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2.5rem 1rem 1.5rem;
+    text-align: center;
+}
+
+.headerIcon {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+    filter: drop-shadow(0 0 16px rgba(253, 224, 71, 0.45));
+    animation: gentlePulse 4s ease-in-out infinite;
+}
+
+@keyframes gentlePulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.06);
+        opacity: 0.85;
+    }
+}
+
+.title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    background: linear-gradient(135deg, #fde047 0%, #f9a8d4 50%, #67e8f9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+}
+
+.subtitle {
+    font-size: 0.8rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+    margin: 0.35rem 0 0;
+}
+
+/* Date + Phase Pill */
+.datePill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 999px;
+    padding: 0.35rem 1rem;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.80);
+    margin-top: 1rem;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.doshaLabel {
+    display: inline-block;
+    padding: 0.12rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+}
+
+.doshaLabelPitta {
+    background: rgba(251, 146, 60, 0.25);
+    color: #fb923c;
+    border: 1px solid rgba(251, 146, 60, 0.3);
+}
+
+.doshaLabelKapha {
+    background: rgba(74, 222, 128, 0.20);
+    color: #4ade80;
+    border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.doshaLabelVata {
+    background: rgba(167, 139, 250, 0.20);
+    color: #a78bfa;
+    border: 1px solid rgba(167, 139, 250, 0.3);
+}
+
+.doshaLabelRest {
+    background: rgba(148, 163, 184, 0.20);
+    color: #94a3b8;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+/* Current Phase Banner */
+.phaseBanner {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    padding: 1rem 1.25rem;
+    margin: 0 0 1.5rem;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.phaseBannerTitle {
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0 0 0.4rem;
+}
+
+.phaseBannerText {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* View Toggle */
+.viewToggle {
+    display: flex;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 0.3rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.viewBtn {
+    flex: 1;
+    padding: 0.45rem 0.75rem;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+}
+
+.viewBtnActive {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Dosha Columns (Kanban) */
+.kanbanGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 640px) {
+    .kanbanGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.doshaColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.doshaColumnHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.25rem;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.pittaHeader {
+    background: rgba(251, 146, 60, 0.18);
+    border: 1px solid rgba(251, 146, 60, 0.25);
+    color: #fdba74;
+}
+
+.kaphaHeader {
+    background: rgba(74, 222, 128, 0.15);
+    border: 1px solid rgba(74, 222, 128, 0.22);
+    color: #86efac;
+}
+
+.vataHeader {
+    background: rgba(167, 139, 250, 0.18);
+    border: 1px solid rgba(167, 139, 250, 0.25);
+    color: #c4b5fd;
+}
+
+.doshaSubtext {
+    font-size: 0.62rem;
+    font-weight: 400;
+    opacity: 0.7;
+    white-space: nowrap;
+}
+
+/* Task Card */
+.taskCard {
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 0.85rem;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    position: relative;
+    overflow: hidden;
+}
+
+.taskCard::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.taskCard:hover {
+    background: rgba(255, 255, 255, 0.11);
+    border-color: rgba(255, 255, 255, 0.22);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.taskCardDone {
+    opacity: 0.5;
+}
+
+.taskCardDone .taskText {
+    text-decoration: line-through;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Meditation card special glow */
+.taskCardMeditation {
+    border-color: rgba(253, 224, 71, 0.3);
+    background: rgba(253, 224, 71, 0.07);
+}
+
+.taskCardMeditation:hover {
+    border-color: rgba(253, 224, 71, 0.5);
+    box-shadow: 0 8px 32px rgba(253, 224, 71, 0.2);
+}
+
+.taskCardTop {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+}
+
+.taskIcon {
+    font-size: 1.1rem;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 0.05rem;
+}
+
+.taskText {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.88);
+    line-height: 1.4;
+    flex: 1;
+}
+
+.taskMeta {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-top: 0.3rem;
+}
+
+.taskTime {
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.45);
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.taskDuration {
+    font-size: 0.65rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    border-radius: 6px;
+    padding: 0.1rem 0.4rem;
+}
+
+.taskDoshaBadge {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 6px;
+    padding: 0.12rem 0.4rem;
+}
+
+/* Check button */
+.taskCheckBtn {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.18s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    padding: 0;
+}
+
+.taskCheckBtnDone {
+    background: rgba(74, 222, 128, 0.5);
+    border-color: rgba(74, 222, 128, 0.8);
+}
+
+/* Integration Break card */
+.breakCard {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px dashed rgba(255, 255, 255, 0.18);
+    border-radius: 10px;
+    padding: 0.55rem 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+/* Empty column state */
+.emptyColumn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.35);
+    line-height: 1.5;
+}
+
+/* Timeline View */
+.timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.timelineSlot {
+    display: flex;
+    align-items: stretch;
+    gap: 0.75rem;
+    min-height: 52px;
+}
+
+.timelineHour {
+    width: 42px;
+    flex-shrink: 0;
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.40);
+    text-align: right;
+    padding-top: 0.7rem;
+    line-height: 1;
+}
+
+.timelineLine {
+    width: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+    position: relative;
+}
+
+.timelineDot {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.timelineCurrentDot {
+    background: #fde047;
+    box-shadow: 0 0 8px rgba(253, 224, 71, 0.6);
+}
+
+.timelineContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.4rem 0;
+}
+
+.timelineBlockEmpty {
+    height: 36px;
+    border-left: 2px solid rgba(255, 255, 255, 0.05);
+    padding-left: 0.6rem;
+    display: flex;
+    align-items: center;
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.2);
+}
+
+/* Add Task Button */
+.addTaskBtn {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 12px;
+    border: 1.5px dashed rgba(255, 255, 255, 0.2);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.addTaskBtn:hover {
+    border-color: rgba(255, 255, 255, 0.35);
+    color: rgba(255, 255, 255, 0.75);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+/* Back Navigation */
+.backBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 999px;
+    padding: 0.45rem 1rem;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 0;
+    text-decoration: none;
+}
+
+.backBtn:hover {
+    background: rgba(255, 255, 255, 0.13);
+    color: #fff;
+}
+
+.headerNav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.25rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(5, 8, 30, 0.45);
+}
+
+/* Floating Bodhi Orb area */
+.orbArea {
+    position: fixed;
+    bottom: 90px;
+    right: 22px;
+    z-index: 1000;
+}
+
+/* Progress Summary Bar */
+.progressBar {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.progressTitle {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin: 0 0 0.35rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.progressFlex {
+    flex: 1;
+}
+
+.progressTrack {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.progressFill {
+    height: 4px;
+    background: linear-gradient(90deg, #fde047, #a78bfa);
+    border-radius: 999px;
+    transition: width 0.6s ease;
+}
+
+.progressStats {
+    display: flex;
+    gap: 1.25rem;
+}
+
+.progressStat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+}
+
+.progressStatNumber {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+}
+
+.progressStatLabel {
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.45);
+    letter-spacing: 0.06em;
+}
+
+/* Wisdom Banner */
+.wisdomBanner {
+    text-align: center;
+    padding: 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    margin-top: 1.5rem;
+}
+
+.wisdomText {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.45);
+    font-style: italic;
+    line-height: 1.6;
+}

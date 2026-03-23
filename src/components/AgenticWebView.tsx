@@ -12,13 +12,8 @@ interface AgenticWebViewProps {
     onClose: () => void;
 }
 
-const BLOCKED_IFRAME_DOMAINS = [
-    'google.com',
-    'amazon.com',
-    'amazon.in',
-    'flipkart.com',
-    'linkedin.com',
-    'github.com',
+const BLOCKED_IFRAME_DOMAINS: string[] = [
+    // Domains removed to allow in-app WebView rendering for online products
 ];
 
 function isUrlIframeBlocked(rawUrl: string): { blocked: boolean; domain: string } {

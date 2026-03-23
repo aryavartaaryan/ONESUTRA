@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Plug, Flower2, Aperture, MessageCircle } from 'lucide-react';
-import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 
 type GlowTheme = 'gold' | 'blue' | 'green' | 'violet';
 
@@ -39,7 +38,7 @@ const glowStyles = {
 function NavLink({ href, icon, label, badge, className, theme = 'gold' }: { href: string; icon: React.ReactNode; label: string; badge?: number; className?: string; theme?: GlowTheme }) {
     const [hovered, setHovered] = useState(false);
     const activeStyles = glowStyles[theme];
-    
+
     return (
         <Link
             href={href}
@@ -108,32 +107,6 @@ interface StickyTopNavProps {
 }
 
 export default function StickyTopNav({ totalUnread = 0 }: StickyTopNavProps) {
-    const { user } = useOneSutraAuth();
-    const [isPro, setIsPro] = useState(false);
-    const [isMounted, setIsMounted] = useState(false);
-    
-    React.useEffect(() => {
-        setIsMounted(true);
-        // Default to localStorage for immediate UI showing
-        const localPro = localStorage.getItem('has_oneshutra_pro') === 'true';
-        setIsPro(localPro);
-
-        // Verifying with API if user is logged in
-        if (user?.email) {
-            fetch(`/api/pro?email=${encodeURIComponent(user.email)}`)
-                .then(res => res.json())
-                .then(data => {
-                    setIsPro(data.isPro);
-                    if (data.isPro) {
-                        localStorage.setItem('has_oneshutra_pro', 'true');
-                    } else {
-                        localStorage.removeItem('has_oneshutra_pro');
-                    }
-                })
-                .catch(err => console.error("Error checking Pro status", err));
-        }
-    }, [user?.email]);
-
     return (
         <header className="mobile-header" style={{
             position: 'fixed',
@@ -232,31 +205,16 @@ export default function StickyTopNav({ totalUnread = 0 }: StickyTopNavProps) {
                     backgroundClip: 'text',
                     color: 'transparent',
                     filter: 'drop-shadow(0px 8px 12px rgba(0,0,0,0.8)) drop-shadow(0px 4px 20px rgba(245, 158, 11, 0.5)) drop-shadow(0px 2px 4px rgba(255, 214, 130, 0.6))',
-                    marginLeft: '2px',
+                    marginLeft: '6px',
                     zIndex: 1,
-                }}>neSUTRA</span>
-                
-                {isMounted && isPro ? (
-                    <span title="OneSHUTRA Pro Active" style={{ 
-                        marginLeft: '4px', padding: '2px 4px', fontSize: '1rem', 
-                        filter: 'drop-shadow(0 0 8px rgba(245, 158, 11, 0.8))', zIndex: 2
-                    }}>🔥</span>
-                ) : (
-                    <Link href="/upgrade" style={{ 
-                        marginLeft: '5px', padding: '1px 6px', fontSize: '0.65rem', fontWeight: 700, 
-                        background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.05) 100%)',
-                        color: '#fcd34d', borderRadius: '6px', textDecoration: 'none', letterSpacing: '0.04em',
-                        border: '1px solid rgba(245, 158, 11, 0.4)',
-                        boxShadow: '0 2px 10px rgba(245, 158, 11, 0.2)', zIndex: 2,
-                        textTransform: 'uppercase', display: 'flex', alignItems: 'center'
-                    }}>Pro</Link>
-                )}
+                }}>OneSUTRA</span>
             </div>
 
             {/* Nav links */}
             <div className="mobile-nav-container" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', position: 'relative', zIndex: 1, flexWrap: 'nowrap' }}>
                 <NavLink href="/profile" theme="gold" icon={<User size={14} strokeWidth={1.8} />} label="Profile" />
                 <NavLink href="/outplugs" theme="blue" icon={<Plug size={14} strokeWidth={1.8} />} label="outPLUGS" />
+                <NavLink href="/dhyan-kshetra" theme="green" icon={<Flower2 size={14} strokeWidth={1.8} />} label="Meditate" />
                 <NavLink href="/onesutra" theme="gold" icon={<MessageCircle size={14} strokeWidth={1.8} />} label="Messages" badge={totalUnread} className="desktop-only-link" />
                 <NavLink href="/project-leela" theme="violet" icon={<Aperture size={14} strokeWidth={1.8} />} label="Leela" />
             </div>

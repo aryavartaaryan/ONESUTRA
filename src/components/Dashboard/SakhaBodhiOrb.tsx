@@ -184,179 +184,179 @@ export default function SakhaBodhiOrb({
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.45 }}
                     >
-                    {/* ── HIDDEN SVG — Goo filter definition ────────────────────── */}
-                    <svg
-                        style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}
-                        aria-hidden
-                    >
-                        <defs>
-                            <filter id="sakha-goo" x="-30%" y="-30%" width="160%" height="160%">
-                                <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur" />
-                                <feColorMatrix
-                                    in="blur"
-                                    mode="matrix"
-                                    values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -8"
-                                    result="goo"
-                                />
-                                <feBlend in="SourceGraphic" in2="goo" />
-                            </filter>
-                        </defs>
-                    </svg>
-
-                    {/* ── Phase badge ────────────────────────────────────────────── */}
-                    <motion.div
-                        className={styles.phaseBadge}
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.35, duration: 0.5 }}
-                    >
-                        {phaseInfo.emoji} {phaseInfo.label}
-                    </motion.div>
-
-                    {/* ── Aura stage ────────────────────────────────────────────── */}
-                    <motion.div
-                        className={styles.auraStage}
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0, opacity: 0 }}
-                        transition={{ type: 'spring', stiffness: 180, damping: 22, duration: 0.7 }}
-                    >
-                        {/* ── Cymatic soundwave rings (speaking state) ──────────── */}
-                        {sakhaState === 'speaking' && (
-                            <>
-                                <div className={styles.soundRing} />
-                                <div className={styles.soundRing} />
-                                <div className={styles.soundRing} />
-                                <div className={styles.soundRing} />
-                            </>
-                        )}
-
-                        {/* ── Liquid "Goo" blob container ───────────────────────── */}
-                        <motion.div
-                            className={styles.gooContainer}
-                            animate={
-                                blobAnimKey === 'idle'
-                                    ? { y: [0, -10, -10, 0], transition: breathTransition }
-                                    : { y: 0 }
-                            }
+                        {/* ── HIDDEN SVG — Goo filter definition ────────────────────── */}
+                        <svg
+                            style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}
+                            aria-hidden
                         >
-                            {/* Core blob — indigo base */}
-                            <motion.div
-                                className={`${styles.blob} ${styles.blobCore}`}
-                                animate={mainBlobVariants[blobAnimKey]}
-                            />
+                            <defs>
+                                <filter id="sakha-goo" x="-30%" y="-30%" width="160%" height="160%">
+                                    <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur" />
+                                    <feColorMatrix
+                                        in="blur"
+                                        mode="matrix"
+                                        values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -8"
+                                        result="goo"
+                                    />
+                                    <feBlend in="SourceGraphic" in2="goo" />
+                                </filter>
+                            </defs>
+                        </svg>
 
-                            {/* Satellite blob A — champagne gold tint, orbits top-left */}
-                            <motion.div
-                                className={`${styles.blob} ${styles.blobA}`}
-                                animate={{
-                                    x: [0, 14, -8, 14, 0],
-                                    y: [0, -10, 6, -6, 0],
-                                    scale:
-                                        sakhaState === 'speaking'
-                                            ? [1, 1.3, 0.85, 1.2, 1]
-                                            : sakhaState === 'listening'
-                                                ? [1, 1 + micVolume * 0.5, 1]
-                                                : [1, 1.08, 1],
-                                }}
-                                transition={{
-                                    duration: sakhaState === 'speaking' ? 1.8 : 9,
-                                    repeat: Infinity,
-                                    ease: 'easeInOut',
-                                }}
-                            />
-
-                            {/* Satellite blob B — lavender tint, orbits bottom-right */}
-                            <motion.div
-                                className={`${styles.blob} ${styles.blobB}`}
-                                animate={{
-                                    x: [0, -12, 10, -10, 0],
-                                    y: [0, 10, -8, 8, 0],
-                                    scale:
-                                        sakhaState === 'speaking'
-                                            ? [1, 0.75, 1.25, 0.9, 1]
-                                            : [1, 1.06, 1],
-                                }}
-                                transition={{
-                                    duration: sakhaState === 'speaking' ? 2.1 : 11,
-                                    repeat: Infinity,
-                                    ease: 'easeInOut',
-                                    delay: 0.5,
-                                }}
-                            />
-
-                            {/* Satellite blob C — pearl tint, top-right */}
-                            <motion.div
-                                className={`${styles.blob} ${styles.blobC}`}
-                                animate={{
-                                    x: [0, 8, -12, 6, 0],
-                                    y: [0, -8, 4, -10, 0],
-                                    scale: sakhaState === 'speaking' ? [1, 1.2, 0.8, 1] : [1, 1.04, 1],
-                                }}
-                                transition={{
-                                    duration: sakhaState === 'speaking' ? 1.5 : 13,
-                                    repeat: Infinity,
-                                    ease: 'easeInOut',
-                                    delay: 1.2,
-                                }}
-                            />
-
-                            {/* Satellite blob D — soft lavender, bottom-left */}
-                            <motion.div
-                                className={`${styles.blob} ${styles.blobD}`}
-                                animate={{
-                                    x: [0, -10, 8, -6, 0],
-                                    y: [0, 12, -6, 10, 0],
-                                    scale: sakhaState === 'speaking' ? [1, 1.15, 0.85, 1] : [1, 1.05, 1],
-                                }}
-                                transition={{
-                                    duration: sakhaState === 'speaking' ? 2.4 : 10,
-                                    repeat: Infinity,
-                                    ease: 'easeInOut',
-                                    delay: 1.8,
-                                }}
-                            />
+                        {/* ── Phase badge ────────────────────────────────────────────── */}
+                        <motion.div
+                            className={styles.phaseBadge}
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.35, duration: 0.5 }}
+                        >
+                            {phaseInfo.emoji} {phaseInfo.label}
                         </motion.div>
 
-                        {/* ── Bindu + 4-point star overlay (above the goo filter) ── */}
-                        <div className={styles.bindusWrap}>
+                        {/* ── Aura stage ────────────────────────────────────────────── */}
+                        <motion.div
+                            className={styles.auraStage}
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0, opacity: 0 }}
+                            transition={{ type: 'spring', stiffness: 180, damping: 22, duration: 0.7 }}
+                        >
+                            {/* ── Cymatic soundwave rings (speaking state) ──────────── */}
+                            {sakhaState === 'speaking' && (
+                                <>
+                                    <div className={styles.soundRing} />
+                                    <div className={styles.soundRing} />
+                                    <div className={styles.soundRing} />
+                                    <div className={styles.soundRing} />
+                                </>
+                            )}
+
+                            {/* ── Liquid "Goo" blob container ───────────────────────── */}
                             <motion.div
-                                animate={{
-                                    rotate: sakhaState === 'thinking' ? 360 : [0, 5, -5, 0],
-                                }}
-                                transition={
-                                    sakhaState === 'thinking'
-                                        ? { duration: 6, repeat: Infinity, ease: 'linear' }
-                                        : { duration: 12, repeat: Infinity, ease: 'easeInOut' }
+                                className={styles.gooContainer}
+                                animate={
+                                    blobAnimKey === 'idle'
+                                        ? { y: [0, -10, -10, 0], transition: breathTransition }
+                                        : { y: 0 }
                                 }
-                                style={{ position: 'relative', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
-                                <ClarityStar />
+                                {/* Core blob — indigo base */}
+                                <motion.div
+                                    className={`${styles.blob} ${styles.blobCore}`}
+                                    animate={mainBlobVariants[blobAnimKey]}
+                                />
+
+                                {/* Satellite blob A — champagne gold tint, orbits top-left */}
+                                <motion.div
+                                    className={`${styles.blob} ${styles.blobA}`}
+                                    animate={{
+                                        x: [0, 14, -8, 14, 0],
+                                        y: [0, -10, 6, -6, 0],
+                                        scale:
+                                            sakhaState === 'speaking'
+                                                ? [1, 1.3, 0.85, 1.2, 1]
+                                                : sakhaState === 'listening'
+                                                    ? [1, 1 + micVolume * 0.5, 1]
+                                                    : [1, 1.08, 1],
+                                    }}
+                                    transition={{
+                                        duration: sakhaState === 'speaking' ? 1.8 : 9,
+                                        repeat: Infinity,
+                                        ease: 'easeInOut',
+                                    }}
+                                />
+
+                                {/* Satellite blob B — lavender tint, orbits bottom-right */}
+                                <motion.div
+                                    className={`${styles.blob} ${styles.blobB}`}
+                                    animate={{
+                                        x: [0, -12, 10, -10, 0],
+                                        y: [0, 10, -8, 8, 0],
+                                        scale:
+                                            sakhaState === 'speaking'
+                                                ? [1, 0.75, 1.25, 0.9, 1]
+                                                : [1, 1.06, 1],
+                                    }}
+                                    transition={{
+                                        duration: sakhaState === 'speaking' ? 2.1 : 11,
+                                        repeat: Infinity,
+                                        ease: 'easeInOut',
+                                        delay: 0.5,
+                                    }}
+                                />
+
+                                {/* Satellite blob C — pearl tint, top-right */}
+                                <motion.div
+                                    className={`${styles.blob} ${styles.blobC}`}
+                                    animate={{
+                                        x: [0, 8, -12, 6, 0],
+                                        y: [0, -8, 4, -10, 0],
+                                        scale: sakhaState === 'speaking' ? [1, 1.2, 0.8, 1] : [1, 1.04, 1],
+                                    }}
+                                    transition={{
+                                        duration: sakhaState === 'speaking' ? 1.5 : 13,
+                                        repeat: Infinity,
+                                        ease: 'easeInOut',
+                                        delay: 1.2,
+                                    }}
+                                />
+
+                                {/* Satellite blob D — soft lavender, bottom-left */}
+                                <motion.div
+                                    className={`${styles.blob} ${styles.blobD}`}
+                                    animate={{
+                                        x: [0, -10, 8, -6, 0],
+                                        y: [0, 12, -6, 10, 0],
+                                        scale: sakhaState === 'speaking' ? [1, 1.15, 0.85, 1] : [1, 1.05, 1],
+                                    }}
+                                    transition={{
+                                        duration: sakhaState === 'speaking' ? 2.4 : 10,
+                                        repeat: Infinity,
+                                        ease: 'easeInOut',
+                                        delay: 1.8,
+                                    }}
+                                />
                             </motion.div>
-                            <div className={styles.bindu} />
-                        </div>
-                    </motion.div>
 
-                    {/* ── Glass pill state indicator ────────────────────────────── */}
-                    <AnimatePresence mode="wait">
-                        {stateLabel && (
-                            <motion.div
-                                key={stateLabel}
-                                className={styles.glassIndicator}
-                                initial={{ opacity: 0, y: 8, scale: 0.92 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: -8, scale: 0.92 }}
-                                transition={{ duration: 0.28 }}
-                            >
-                                {showLiveDot && <span className={styles.liveDot} />}
-                                {stateLabel}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                            {/* ── Bindu + 4-point star overlay (above the goo filter) ── */}
+                            <div className={styles.bindusWrap}>
+                                <motion.div
+                                    animate={{
+                                        rotate: sakhaState === 'thinking' ? 360 : [0, 5, -5, 0],
+                                    }}
+                                    transition={
+                                        sakhaState === 'thinking'
+                                            ? { duration: 6, repeat: Infinity, ease: 'linear' }
+                                            : { duration: 12, repeat: Infinity, ease: 'easeInOut' }
+                                    }
+                                    style={{ position: 'relative', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                >
+                                    <ClarityStar />
+                                </motion.div>
+                                <div className={styles.bindu} />
+                            </div>
+                        </motion.div>
 
-                    {/* Subtitles intentional hidden from UI */}
+                        {/* ── Glass pill state indicator ────────────────────────────── */}
+                        <AnimatePresence mode="wait">
+                            {stateLabel && (
+                                <motion.div
+                                    key={stateLabel}
+                                    className={styles.glassIndicator}
+                                    initial={{ opacity: 0, y: 8, scale: 0.92 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -8, scale: 0.92 }}
+                                    transition={{ duration: 0.28 }}
+                                >
+                                    {showLiveDot && <span className={styles.liveDot} />}
+                                    {stateLabel}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
-                    {/* ── Dismiss button ────────────────────────────────────────── */}
+                        {/* Subtitles intentional hidden from UI */}
+
+                        {/* ── Dismiss button ────────────────────────────────────────── */}
                         <button
                             className={styles.dismissBtn}
                             onClick={handleDismiss}
@@ -367,12 +367,25 @@ export default function SakhaBodhiOrb({
                 )}
             </AnimatePresence>
 
-            <AgenticWebView
-                isOpen={isWebViewOpen}
-                url={webViewAction?.url ?? ''}
-                title={webViewAction?.title}
-                onClose={handleWebViewClose}
-            />
+            <AnimatePresence>
+                {isWebViewOpen && (
+                    <motion.div
+                        key="webview-reveal"
+                        initial={{ opacity: 0, y: 24, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 16, scale: 0.97 }}
+                        transition={{ duration: 0.32, ease: [0.25, 0.46, 0.45, 0.94] }}
+                        style={{ position: 'fixed', inset: 0, zIndex: 9999 }}
+                    >
+                        <AgenticWebView
+                            isOpen={isWebViewOpen}
+                            url={webViewAction?.url ?? ''}
+                            title={webViewAction?.title}
+                            onClose={handleWebViewClose}
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </>
     );
 }
