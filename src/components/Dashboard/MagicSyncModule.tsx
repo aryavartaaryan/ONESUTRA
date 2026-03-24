@@ -487,7 +487,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                                 background: 'linear-gradient(120deg, #ffffff 0%, #fde68a 45%, #c4b5fd 100%)',
                                 WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
                             }}>
-                                Sync Your Day & Life
+                                Manage your life, Challenges, Tasks and Issues.....
                             </h3>
                             <p style={{ margin: '0.18rem 0 0', fontSize: '0.60rem', color: 'rgba(255,255,255,0.38)', lineHeight: 1.45, fontStyle: 'italic' }}>
                                 Bodhi AI will advise, categorise & schedule everything
@@ -773,10 +773,10 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                                 background: 'rgba(255,255,255,0.07)',
                                 backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
                                 border: `1.5px solid ${bodhiState === 'speaking' ? 'rgba(251,191,36,0.38)' :
-                                        bodhiState === 'thinking' ? 'rgba(129,140,248,0.35)' :
-                                            isListening ? 'rgba(248,113,113,0.45)' :
-                                                isTyping ? 'rgba(251,146,60,0.42)' :
-                                                    'rgba(255,255,255,0.10)'
+                                    bodhiState === 'thinking' ? 'rgba(129,140,248,0.35)' :
+                                        isListening ? 'rgba(248,113,113,0.45)' :
+                                            isTyping ? 'rgba(251,146,60,0.42)' :
+                                                'rgba(255,255,255,0.10)'
                                     }`,
                                 borderRadius: 999,
                                 padding: '0.70rem 3.2rem 0.70rem 1.2rem',
