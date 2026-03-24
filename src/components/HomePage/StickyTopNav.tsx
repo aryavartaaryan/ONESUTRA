@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2, VolumeX, X, Play, Pause, Music, Gamepad2 } from 'lucide-react';
+import { Volume2, VolumeX, X, Play, Pause, Music, Gamepad2, Users, Flower2 } from 'lucide-react';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 function videoUrl(filename: string) {
@@ -13,6 +13,21 @@ function videoUrl(filename: string) {
 
 // ── Story data ────────────────────────────────────────────────────────────────
 const STORIES = [
+    {
+        id: 'pranavibes-portal',
+        type: 'awareness' as const,
+        label: 'Prana',
+        sublabel: 'Vibes',
+        preview: '🌊',
+        ring: 'conic-gradient(from 0deg, #14b8a6, #0ea5e9, #6366f1, #14b8a6)',
+        color: '#14b8a6',
+        headline: 'PranaVibes Feed',
+        description: 'Your conscious social feed — inspirational reels, mantras & wisdom curated for spiritual growth and mental clarity.',
+        cta: 'Enter PranaVerse →',
+        destination: '/pranaverse',
+        bgGradient: 'linear-gradient(160deg, #00151a 0%, #00303b 45%, #000812 100%)',
+        accentColor: '#14b8a6',
+    },
     {
         id: 'sunset',
         type: 'video' as const,
@@ -610,12 +625,17 @@ export default function StickyTopNav() {
 
                         {/* Interactive Icons */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: 12 }}>
-                            <Link href="/pranavibes" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+                            <Link href="/acharya-samvad" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
                                 <motion.div whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}>
-                                    <Music size={18} style={{ color: 'rgba(255,255,255,0.7)' }} />
+                                    <Users size={18} style={{ color: 'rgba(255,255,255,0.7)' }} />
                                 </motion.div>
                             </Link>
-                            <Link href="/games" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+                            <Link href="/vedic-sangrah" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+                                <motion.div whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}>
+                                    <Flower2 size={18} style={{ color: 'rgba(255,255,255,0.7)' }} />
+                                </motion.div>
+                            </Link>
+                            <Link href="/vedic-games" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
                                 <motion.div whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}>
                                     <Gamepad2 size={19} style={{ color: 'rgba(255,255,255,0.7)' }} />
                                 </motion.div>
