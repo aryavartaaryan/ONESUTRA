@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2, VolumeX, X, Play, Pause } from 'lucide-react';
+import { Volume2, VolumeX, X, Play, Pause, Music, Gamepad2 } from 'lucide-react';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 function videoUrl(filename: string) {
@@ -597,14 +597,30 @@ export default function StickyTopNav() {
                         </div>
                     </div>
 
-                    {/* Right: story colour dots */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                        {[STORIES[0].color, STORIES[2].color, STORIES[4].color, STORIES[6].color].map((c, i) => (
-                            <div key={i} style={{
-                                width: 5, height: 5, borderRadius: '50%',
-                                background: c, opacity: 0.45,
-                            }} />
-                        ))}
+                    {/* Right: story colour dots + PranaVibes & Games icons */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                            {[STORIES[0].color, STORIES[2].color, STORIES[4].color, STORIES[6].color].map((c, i) => (
+                                <div key={i} style={{
+                                    width: 5, height: 5, borderRadius: '50%',
+                                    background: c, opacity: 0.45,
+                                }} />
+                            ))}
+                        </div>
+
+                        {/* Interactive Icons */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: 12 }}>
+                            <Link href="/pranavibes" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+                                <motion.div whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}>
+                                    <Music size={18} style={{ color: 'rgba(255,255,255,0.7)' }} />
+                                </motion.div>
+                            </Link>
+                            <Link href="/games" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+                                <motion.div whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}>
+                                    <Gamepad2 size={19} style={{ color: 'rgba(255,255,255,0.7)' }} />
+                                </motion.div>
+                            </Link>
+                        </div>
                     </div>
                 </div>
 
