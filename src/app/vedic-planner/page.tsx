@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import SakhaBodhiOrb from '@/components/Dashboard/SakhaBodhiOrb';
 import { useDailyTasks, type TaskItem } from '@/hooks/useDailyTasks';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
+import { useBrahmastraState } from '@/hooks/useBrahmastraState';
+import BrahmastraFocusCard from '@/components/Dashboard/BrahmastraFocusCard';
 import styles from './page.module.css';
 
 // ─── Background pools (serene nature, circadian) ─────────────────────────────
@@ -29,46 +31,46 @@ const BG_POOLS: Record<string, string[]> = {
     ],
 };
 
-// ─── Dosha Time Logic ─────────────────────────────────────────────────────────
+// ─── Guna Time Logic (Satva, Rajas, Tamas) ───────────────────────────────────
 
-type DoshaType = 'pitta' | 'kapha' | 'vata' | 'rest';
+type GunaType = 'rajas' | 'tamas' | 'satva' | 'rest';
 
-function getCurrentDosha(hour: number): DoshaType {
-    if (hour >= 6 && hour < 14) return 'pitta';
-    if (hour >= 14 && hour < 18) return 'kapha';
-    if (hour >= 18 && hour < 22) return 'vata';
-    return 'rest';
+function getCurrentGuna(hour: number): GunaType {
+    if (hour >= 6 && hour < 14) return 'rajas';   // 6 AM – 2 PM: Activity/Work
+    if (hour >= 14 && hour < 18) return 'tamas';  // 2 PM – 6 PM: Inertia/Light tasks
+    if (hour >= 18 && hour < 22) return 'satva';  // 6 PM – 10 PM: Harmony/Spiritual
+    return 'rest';                                // 10 PM – 6 AM: Deep rest
 }
 
-function getTaskDosha(task: TaskItem): DoshaType {
+function getTaskGuna(task: TaskItem): GunaType {
     const text = task.text.toLowerCase();
-    // Meditation tasks always go to Vata/evening
+    // Meditation tasks always go to Satva/evening
     if (text.includes('meditation') || text.includes('centering') || text.includes('peace integration') ||
         text.includes('dhyan') || text.includes('morning mindful') || text.includes('evening peace')) {
-        return 'vata';
+        return 'satva';
     }
     const cat = (task.category || '').toLowerCase();
-    if (cat === 'health' || cat === 'fitness' || cat === 'wellness') return 'pitta';
-    if (cat === 'learning' || cat === 'creative' || cat === 'journal') return 'vata';
-    if (cat === 'admin' || cat === 'errands' || cat === 'social') return 'kapha';
+    if (cat === 'health' || cat === 'fitness' || cat === 'wellness') return 'rajas';
+    if (cat === 'learning' || cat === 'creative' || cat === 'journal') return 'satva';
+    if (cat === 'admin' || cat === 'errands' || cat === 'social') return 'tamas';
 
     // By start time
     if (task.startTime) {
         const t = task.startTime.toLowerCase();
-        if (t.includes('6') || t.includes('7') || t.includes('8') || t.includes('9') || t.includes('10') || t.includes('11') || t.includes('12') || t.includes('13')) return 'pitta';
-        if (t.includes('14') || t.includes('15') || t.includes('16') || t.includes('17') || t.includes('2 pm') || t.includes('3 pm') || t.includes('4 pm') || t.includes('5 pm')) return 'kapha';
-        if (t.includes('18') || t.includes('19') || t.includes('20') || t.includes('21') || t.includes('6 pm') || t.includes('7 pm') || t.includes('8 pm')) return 'vata';
+        if (t.includes('6') || t.includes('7') || t.includes('8') || t.includes('9') || t.includes('10') || t.includes('11') || t.includes('12') || t.includes('13')) return 'rajas';
+        if (t.includes('14') || t.includes('15') || t.includes('16') || t.includes('17') || t.includes('2 pm') || t.includes('3 pm') || t.includes('4 pm') || t.includes('5 pm')) return 'tamas';
+        if (t.includes('18') || t.includes('19') || t.includes('20') || t.includes('21') || t.includes('6 pm') || t.includes('7 pm') || t.includes('8 pm')) return 'satva';
     }
     // Default by category
-    if (cat === 'focus' || cat === 'work' || cat === 'study') return 'pitta';
-    return 'pitta'; // Most tasks default to Pitta (deep work)
+    if (cat === 'focus' || cat === 'work' || cat === 'study') return 'rajas';
+    return 'rajas'; // Most tasks default to Rajas (work/action)
 }
 
-const DOSHA_META = {
-    pitta: { emoji: '🔥', label: 'Pitta Time', sublabel: '6 AM – 2 PM · Deep Focus', headerClass: 'pittaHeader', badgeClass: 'doshaLabelPitta', color: '#fb923c' },
-    kapha: { emoji: '🌿', label: 'Kapha Time', sublabel: '2 PM – 6 PM · Admin & Light', headerClass: 'kaphaHeader', badgeClass: 'doshaLabelKapha', color: '#4ade80' },
-    vata: { emoji: '🌬️', label: 'Vata Time', sublabel: '6 PM – 10 PM · Creative & Reflect', headerClass: 'vataHeader', badgeClass: 'doshaLabelVata', color: '#a78bfa' },
-    rest: { emoji: '🌙', label: 'Rest Time', sublabel: '10 PM – 6 AM · Nisha Kaal', headerClass: 'vataHeader', badgeClass: 'doshaLabelRest', color: '#94a3b8' },
+const GUNA_META = {
+    rajas: { emoji: '⚡', label: 'Rajas Period', sublabel: '6 AM – 2 PM · Activity & Work', headerClass: 'rajasHeader', badgeClass: 'gunaLabelRajas', color: '#fb923c' },
+    tamas: { emoji: '🌑', label: 'Tamas Period', sublabel: '2 PM – 6 PM · Light Tasks', headerClass: 'tamasHeader', badgeClass: 'gunaLabelTamas', color: '#4ade80' },
+    satva: { emoji: '☀️', label: 'Satva Period', sublabel: '6 PM – 10 PM · Harmony & Spirit', headerClass: 'satvaHeader', badgeClass: 'gunaLabelSatva', color: '#a78bfa' },
+    rest: { emoji: '🌙', label: 'Rest Period', sublabel: '10 PM – 6 AM · Deep Rest', headerClass: 'restHeader', badgeClass: 'gunaLabelRest', color: '#94a3b8' },
 };
 
 // Meditation detection
@@ -93,8 +95,8 @@ function TaskCard({
     onRemove: (id: string) => void;
     onMeditationTap: () => void;
 }) {
-    const dosha = getTaskDosha(task);
-    const meta = DOSHA_META[dosha];
+    const guna = getTaskGuna(task);
+    const meta = GUNA_META[guna];
     const isMed = isMeditationTask(task);
 
     const handleClick = () => {
@@ -144,7 +146,7 @@ function TaskCard({
                     <span className={styles.taskDuration}>{task.allocatedMinutes}m</span>
                 )}
                 <span
-                    className={`${styles.taskDoshaBadge} ${styles[meta.badgeClass]}`}
+                    className={`${styles.taskGunaBadge} ${styles[meta.badgeClass]}`}
                     style={{ color: meta.color, background: `${meta.color}18`, border: `1px solid ${meta.color}30` }}
                 >
                     {meta.emoji} {meta.label.split(' ')[0]}
@@ -188,8 +190,8 @@ function TimelineSlot({
     onMeditationTap: () => void;
 }) {
     const label = hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`;
-    const dosha = getCurrentDosha(hour);
-    const meta = DOSHA_META[dosha];
+    const guna = getCurrentGuna(hour);
+    const meta = GUNA_META[guna];
 
     return (
         <div className={styles.timelineSlot}>
@@ -228,6 +230,7 @@ export default function VedicPlannerPage() {
     const [isAudioUnlocked, setIsAudioUnlocked] = useState(false);
 
     const { tasks, addTask, toggleTaskDone, removeTask } = useDailyTasks();
+    const brahmastraState = useBrahmastraState();
 
     // Background selection
     const getBgPeriod = (h: number) => {
@@ -242,8 +245,8 @@ export default function VedicPlannerPage() {
     const bgSlot = Math.floor(Date.now() / (30 * 60_000));
     const bgUrl = bgPool[bgSlot % bgPool.length];
 
-    const currentDosha = getCurrentDosha(currentHour);
-    const doshaMeta = DOSHA_META[currentDosha];
+    const currentGuna = getCurrentGuna(currentHour);
+    const gunaMeta = GUNA_META[currentGuna];
 
     // Mount
     useEffect(() => {
@@ -327,10 +330,15 @@ export default function VedicPlannerPage() {
         setIsSakhaActive(false);
     }, []);
 
-    // Categorise tasks by Dosha
-    const pittaTasks = useMemo(() => tasks.filter(t => getTaskDosha(t) === 'pitta'), [tasks]);
-    const kaphaTasks = useMemo(() => tasks.filter(t => getTaskDosha(t) === 'kapha'), [tasks]);
-    const vataTasks = useMemo(() => tasks.filter(t => getTaskDosha(t) === 'vata' || getTaskDosha(t) === 'rest'), [tasks]);
+    // Categorise tasks by Guna
+    const rajasTasks = useMemo(() => tasks.filter(t => getTaskGuna(t) === 'rajas' && t.category !== 'Challenge' && t.category !== 'Issue' && t.category !== 'Idea'), [tasks]);
+    const tamasTasks = useMemo(() => tasks.filter(t => getTaskGuna(t) === 'tamas' && t.category !== 'Challenge' && t.category !== 'Issue' && t.category !== 'Idea'), [tasks]);
+    const satvaTasks = useMemo(() => tasks.filter(t => (getTaskGuna(t) === 'satva' || getTaskGuna(t) === 'rest') && t.category !== 'Challenge' && t.category !== 'Issue' && t.category !== 'Idea'), [tasks]);
+
+    // Challenges, Issues, Ideas — shown in dedicated sections
+    const challengeTasks = useMemo(() => tasks.filter(t => t.category === 'Challenge' && !t.done), [tasks]);
+    const issueTasks = useMemo(() => tasks.filter(t => t.category === 'Issue' && !t.done), [tasks]);
+    const ideaTasks = useMemo(() => tasks.filter(t => t.category === 'Idea' && !t.done), [tasks]);
 
     // Timeline: group tasks by start hour
     const tasksByHour = useMemo(() => {
@@ -377,8 +385,8 @@ export default function VedicPlannerPage() {
                     VEDIC PLANNER
                 </span>
                 <div className={styles.datePill} style={{ margin: 0 }}>
-                    <span className={`${styles.doshaLabel} ${styles[doshaMeta.badgeClass]}`} style={{ color: doshaMeta.color, background: `${doshaMeta.color}18`, border: `1px solid ${doshaMeta.color}30` }}>
-                        {doshaMeta.emoji}
+                    <span className={`${styles.gunaLabel} ${styles[gunaMeta.badgeClass]}`} style={{ color: gunaMeta.color, background: `${gunaMeta.color}18`, border: `1px solid ${gunaMeta.color}30` }}>
+                        {gunaMeta.emoji}
                     </span>
                     <span>{isMounted ? dateStr : ''}</span>
                 </div>
@@ -389,22 +397,50 @@ export default function VedicPlannerPage() {
                 {/* Header */}
                 <div className={styles.header}>
                     <div className={styles.headerIcon}>🪷</div>
-                    <h1 className={styles.title}>Vedic Planner</h1>
-                    <p className={styles.subtitle}>योजना · Yojana — Sacred Planning</p>
+                    <h1 className={styles.title}>Advance Task Planner</h1>
+                    <p className={styles.subtitle}>योजना · Yojana — Logical Schedule Planning</p>
                 </div>
 
                 {/* Current Phase Banner */}
                 <div className={styles.phaseBanner}>
-                    <p className={styles.phaseBannerTitle}>Current Dosha Window</p>
+                    <p className={styles.phaseBannerTitle}>Current Guna Window</p>
                     <p className={styles.phaseBannerText}>
-                        {doshaMeta.emoji} <strong>{doshaMeta.label}</strong> · {doshaMeta.sublabel.split('·')[1]?.trim()} — {
-                            currentDosha === 'pitta' ? 'Ideal for deep focus: coding, writing, strategic work.' :
-                                currentDosha === 'kapha' ? 'Best for admin, errands, emails & light tasks.' :
-                                    currentDosha === 'vata' ? 'Perfect for creative work, reflection & meditation.' :
+                        {gunaMeta.emoji} <strong>{gunaMeta.label}</strong> · {gunaMeta.sublabel.split('·')[1]?.trim()} — {
+                            currentGuna === 'rajas' ? 'Ideal for work & action: coding, meetings, strategic tasks.' :
+                                currentGuna === 'tamas' ? 'Best for admin, errands, emails & light tasks.' :
+                                    currentGuna === 'satva' ? 'Perfect for spiritual work, reflection & meditation.' :
                                         'Rest and restore. Minimal screens, early sleep.'
                         }
                     </p>
                 </div>
+
+                {/* Advanced Protocol Section */}
+                <motion.div
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                    style={{
+                        marginBottom: '1.5rem',
+                        ...(brahmastraState.active ? {
+                            background: 'linear-gradient(180deg,rgba(255,80,10,0.06) 0%,transparent 40%)',
+                            borderRadius: '1.4rem',
+                            border: '1px solid rgba(255,100,30,0.15)',
+                            padding: '0.5rem 0 0.5rem',
+                            boxShadow: '0 0 40px rgba(255,80,10,0.08)',
+                        } : {}),
+                    }}
+                >
+                    <BrahmastraFocusCard
+                        active={brahmastraState.active}
+                        focusWindowMinutes={brahmastraState.focusWindowMinutes}
+                        impactedMeetings={brahmastraState.impactedMeetings}
+                        subtitle={
+                            brahmastraState.reason
+                                ? `Current mantra: ${brahmastraState.reason}`
+                                : 'Silence the noise. Guard the inner fire.'
+                        }
+                    />
+                </motion.div>
 
                 {/* Progress */}
                 {isMounted && total > 0 && (
@@ -460,17 +496,17 @@ export default function VedicPlannerPage() {
                             exit={{ opacity: 0, y: -12 }}
                             transition={{ duration: 0.3 }}
                         >
-                            {/* Pitta Column */}
-                            <div className={styles.doshaColumn}>
-                                <div className={`${styles.doshaColumnHeader} ${styles.pittaHeader}`}>
-                                    🔥
+                            {/* Rajas Column */}
+                            <div className={styles.gunaColumn}>
+                                <div className={`${styles.gunaColumnHeader} ${styles.rajasHeader}`}>
+                                    ⚡
                                     <div>
-                                        <div>Pitta</div>
-                                        <div className={styles.doshaSubtext}>6AM–2PM · Deep Focus</div>
+                                        <div>Rajas</div>
+                                        <div className={styles.gunaSubtext}>6AM–2PM · Activity</div>
                                     </div>
                                 </div>
                                 <AnimatePresence>
-                                    {isMounted && pittaTasks.map((task, i) => (
+                                    {isMounted && rajasTasks.map((task, i) => (
                                         <React.Fragment key={task.id}>
                                             {i > 0 && i % 3 === 0 && (
                                                 <BreakCard label="5 min Integration Break" />
@@ -479,54 +515,54 @@ export default function VedicPlannerPage() {
                                         </React.Fragment>
                                     ))}
                                 </AnimatePresence>
-                                {isMounted && pittaTasks.length === 0 && (
+                                {isMounted && rajasTasks.length === 0 && (
                                     <div className={styles.emptyColumn}>
-                                        🔥 Add deep focus tasks here<br />
-                                        <span style={{ fontSize: '0.68rem', opacity: 0.6 }}>coding, writing, study</span>
+                                        ⚡ Add work tasks here<br />
+                                        <span style={{ fontSize: '0.68rem', opacity: 0.6 }}>coding, meetings, action</span>
                                     </div>
                                 )}
                             </div>
 
-                            {/* Kapha Column */}
-                            <div className={styles.doshaColumn}>
-                                <div className={`${styles.doshaColumnHeader} ${styles.kaphaHeader}`}>
-                                    🌿
+                            {/* Tamas Column */}
+                            <div className={styles.gunaColumn}>
+                                <div className={`${styles.gunaColumnHeader} ${styles.tamasHeader}`}>
+                                    🌑
                                     <div>
-                                        <div>Kapha</div>
-                                        <div className={styles.doshaSubtext}>2PM–6PM · Admin</div>
+                                        <div>Tamas</div>
+                                        <div className={styles.gunaSubtext}>2PM–6PM · Light</div>
                                     </div>
                                 </div>
                                 <AnimatePresence>
-                                    {isMounted && kaphaTasks.map(task => (
+                                    {isMounted && tamasTasks.map(task => (
                                         <TaskCard key={task.id} task={task} onToggle={toggleTaskDone} onRemove={removeTask} onMeditationTap={handleMeditationTap} />
                                     ))}
                                 </AnimatePresence>
-                                {isMounted && kaphaTasks.length === 0 && (
+                                {isMounted && tamasTasks.length === 0 && (
                                     <div className={styles.emptyColumn}>
-                                        🌿 Light tasks for afternoon<br />
-                                        <span style={{ fontSize: '0.68rem', opacity: 0.6 }}>emails, errands, meetings</span>
+                                        🌑 Light tasks for afternoon<br />
+                                        <span style={{ fontSize: '0.68rem', opacity: 0.6 }}>emails, errands, admin</span>
                                     </div>
                                 )}
                             </div>
 
-                            {/* Vata Column */}
-                            <div className={styles.doshaColumn}>
-                                <div className={`${styles.doshaColumnHeader} ${styles.vataHeader}`}>
-                                    🌬️
+                            {/* Satva Column */}
+                            <div className={styles.gunaColumn}>
+                                <div className={`${styles.gunaColumnHeader} ${styles.satvaHeader}`}>
+                                    ☀️
                                     <div>
-                                        <div>Vata</div>
-                                        <div className={styles.doshaSubtext}>6PM–10PM · Reflect</div>
+                                        <div>Satva</div>
+                                        <div className={styles.gunaSubtext}>6PM–10PM · Spirit</div>
                                     </div>
                                 </div>
                                 <AnimatePresence>
-                                    {isMounted && vataTasks.map(task => (
+                                    {isMounted && satvaTasks.map(task => (
                                         <TaskCard key={task.id} task={task} onToggle={toggleTaskDone} onRemove={removeTask} onMeditationTap={handleMeditationTap} />
                                     ))}
                                 </AnimatePresence>
-                                {isMounted && vataTasks.length === 0 && (
+                                {isMounted && satvaTasks.length === 0 && (
                                     <div className={styles.emptyColumn}>
-                                        🌬️ Evening flow here<br />
-                                        <span style={{ fontSize: '0.68rem', opacity: 0.6 }}>meditation, creative work</span>
+                                        ☀️ Evening flow here<br />
+                                        <span style={{ fontSize: '0.68rem', opacity: 0.6 }}>meditation, spiritual work</span>
                                     </div>
                                 )}
                             </div>
@@ -557,6 +593,120 @@ export default function VedicPlannerPage() {
                         </motion.div>
                     )}
                 </AnimatePresence>
+
+                {/* ── Challenges Section ── */}
+                {isMounted && challengeTasks.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        style={{
+                            marginBottom: '1.2rem',
+                            background: 'linear-gradient(135deg,rgba(251,146,60,0.10),rgba(217,70,6,0.07))',
+                            border: '1px solid rgba(251,146,60,0.22)',
+                            borderRadius: 18,
+                            padding: '0.9rem 1rem',
+                        }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.65rem' }}>
+                            <span style={{ fontSize: '1rem' }}>⚡</span>
+                            <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#fb923c' }}>Active Challenges</span>
+                            <span style={{ fontSize: '0.58rem', background: 'rgba(251,146,60,0.18)', color: '#fdba74', border: '1px solid rgba(251,146,60,0.30)', borderRadius: 999, padding: '0.08rem 0.45rem', fontWeight: 700 }}>{challengeTasks.length}</span>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                            {challengeTasks.map(task => (
+                                <div key={task.id} style={{
+                                    display: 'flex', alignItems: 'flex-start', gap: '0.6rem',
+                                    background: 'rgba(251,146,60,0.08)', border: '1px solid rgba(251,146,60,0.18)',
+                                    borderRadius: 12, padding: '0.55rem 0.75rem',
+                                }}>
+                                    <span style={{ fontSize: '0.85rem', flexShrink: 0 }}>{task.icon || '⚡'}</span>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <p style={{ margin: 0, fontSize: '0.76rem', color: 'rgba(255,255,255,0.88)', lineHeight: 1.4 }}>{task.text}</p>
+                                        {task.aiAdvice && <p style={{ margin: '0.2rem 0 0', fontSize: '0.60rem', color: 'rgba(251,146,60,0.70)', fontStyle: 'italic', lineHeight: 1.4 }}>{task.aiAdvice}</p>}
+                                    </div>
+                                    <button onClick={() => toggleTaskDone(task.id)} style={{ flexShrink: 0, background: 'rgba(251,146,60,0.14)', border: '1px solid rgba(251,146,60,0.28)', borderRadius: 8, padding: '0.22rem 0.5rem', cursor: 'pointer', color: '#fdba74', fontSize: '0.52rem', fontWeight: 700, fontFamily: 'inherit', letterSpacing: '0.08em' }}>DONE</button>
+                                </div>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* ── Issues Section ── */}
+                {isMounted && issueTasks.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.08 }}
+                        style={{
+                            marginBottom: '1.2rem',
+                            background: 'linear-gradient(135deg,rgba(248,113,113,0.10),rgba(220,38,38,0.06))',
+                            border: '1px solid rgba(248,113,113,0.22)',
+                            borderRadius: 18,
+                            padding: '0.9rem 1rem',
+                        }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.65rem' }}>
+                            <span style={{ fontSize: '1rem' }}>🔥</span>
+                            <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#f87171' }}>Open Issues</span>
+                            <span style={{ fontSize: '0.58rem', background: 'rgba(248,113,113,0.18)', color: '#fca5a5', border: '1px solid rgba(248,113,113,0.30)', borderRadius: 999, padding: '0.08rem 0.45rem', fontWeight: 700 }}>{issueTasks.length}</span>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                            {issueTasks.map(task => (
+                                <div key={task.id} style={{
+                                    display: 'flex', alignItems: 'flex-start', gap: '0.6rem',
+                                    background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.18)',
+                                    borderRadius: 12, padding: '0.55rem 0.75rem',
+                                }}>
+                                    <span style={{ fontSize: '0.85rem', flexShrink: 0 }}>{task.icon || '🔥'}</span>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <p style={{ margin: 0, fontSize: '0.76rem', color: 'rgba(255,255,255,0.88)', lineHeight: 1.4 }}>{task.text}</p>
+                                        {task.aiAdvice && <p style={{ margin: '0.2rem 0 0', fontSize: '0.60rem', color: 'rgba(248,113,113,0.70)', fontStyle: 'italic', lineHeight: 1.4 }}>{task.aiAdvice}</p>}
+                                    </div>
+                                    <button onClick={() => toggleTaskDone(task.id)} style={{ flexShrink: 0, background: 'rgba(248,113,113,0.14)', border: '1px solid rgba(248,113,113,0.28)', borderRadius: 8, padding: '0.22rem 0.5rem', cursor: 'pointer', color: '#fca5a5', fontSize: '0.52rem', fontWeight: 700, fontFamily: 'inherit', letterSpacing: '0.08em' }}>RESOLVED</button>
+                                </div>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* ── Ideas Section ── */}
+                {isMounted && ideaTasks.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.14 }}
+                        style={{
+                            marginBottom: '1.2rem',
+                            background: 'linear-gradient(135deg,rgba(251,191,36,0.10),rgba(180,130,0,0.06))',
+                            border: '1px solid rgba(251,191,36,0.20)',
+                            borderRadius: 18,
+                            padding: '0.9rem 1rem',
+                        }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.65rem' }}>
+                            <span style={{ fontSize: '1rem' }}>💡</span>
+                            <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#fbbf24' }}>Ideas Captured</span>
+                            <span style={{ fontSize: '0.58rem', background: 'rgba(251,191,36,0.18)', color: '#fde68a', border: '1px solid rgba(251,191,36,0.28)', borderRadius: 999, padding: '0.08rem 0.45rem', fontWeight: 700 }}>{ideaTasks.length}</span>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                            {ideaTasks.map(task => (
+                                <div key={task.id} style={{
+                                    display: 'flex', alignItems: 'flex-start', gap: '0.6rem',
+                                    background: 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.16)',
+                                    borderRadius: 12, padding: '0.55rem 0.75rem',
+                                }}>
+                                    <span style={{ fontSize: '0.85rem', flexShrink: 0 }}>{task.icon || '💡'}</span>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <p style={{ margin: 0, fontSize: '0.76rem', color: 'rgba(255,255,255,0.88)', lineHeight: 1.4 }}>{task.text}</p>
+                                        {task.aiAdvice && <p style={{ margin: '0.2rem 0 0', fontSize: '0.60rem', color: 'rgba(251,191,36,0.65)', fontStyle: 'italic', lineHeight: 1.4 }}>{task.aiAdvice}</p>}
+                                    </div>
+                                    <button onClick={() => toggleTaskDone(task.id)} style={{ flexShrink: 0, background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.26)', borderRadius: 8, padding: '0.22rem 0.5rem', cursor: 'pointer', color: '#fde68a', fontSize: '0.52rem', fontWeight: 700, fontFamily: 'inherit', letterSpacing: '0.08em' }}>DONE</button>
+                                </div>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
 
                 {/* Wisdom Footer */}
                 <div className={styles.wisdomBanner}>

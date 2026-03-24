@@ -84,35 +84,44 @@ export default function CinematicIntentionReel({
             <div style={{
                 position: 'absolute', top: '5rem',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.35rem',
-                zIndex: 10, opacity: 0.75,
+                zIndex: 10,
             }}>
                 <motion.span
                     initial={{ opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3, duration: 0.7 }}
                     style={{
-                        fontSize: '0.6rem', fontWeight: 700,
-                        letterSpacing: '0.28em', textTransform: 'uppercase',
-                        color: 'rgba(255,212,128,0.85)',
+                        fontSize: '0.55rem', fontWeight: 700,
+                        letterSpacing: '0.32em', textTransform: 'uppercase',
+                        color: 'rgba(255,212,128,0.92)',
                     }}
                 >
-                    Current Alignment
+                    🎯&nbsp; Today&apos;s Prime Focus
                 </motion.span>
-                <motion.span
+                <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5, duration: 0.6 }}
                     suppressHydrationWarning
                     style={{
-                        fontSize: '0.62rem', color: 'rgba(255,255,255,0.38)',
-                        fontVariantNumeric: 'tabular-nums', letterSpacing: '0.1em',
+                        display: 'flex', alignItems: 'center', gap: '0.5rem',
                     }}
                 >
-                    {!isComplete
-                        ? `${completedCount} / ${localItems.length} intentions aligned`
-                        : '✓ Complete'
-                    }
-                </motion.span>
+                    {/* Progress dots */}
+                    {localItems.map((s, i) => (
+                        <div key={s.id} style={{
+                            width: s.done ? 18 : 6, height: 6, borderRadius: 3,
+                            background: s.done ? 'rgba(255,212,128,0.7)' : 'rgba(255,255,255,0.22)',
+                            transition: 'all 0.4s ease',
+                        }} />
+                    ))}
+                    <span style={{
+                        fontSize: '0.55rem', color: 'rgba(255,255,255,0.35)',
+                        fontVariantNumeric: 'tabular-nums', letterSpacing: '0.08em', marginLeft: '0.2rem',
+                    }}>
+                        {!isComplete ? `${completedCount}/${localItems.length}` : '✓'}
+                    </span>
+                </motion.div>
             </div>
 
             {/* ── CINEMATIC TEXT ENGINE ──────────────────────── */}
@@ -158,19 +167,81 @@ export default function CinematicIntentionReel({
                                 {currentTask.text}
                             </motion.h1>
 
+                            {/* Golden underline accent */}
+                            <motion.div
+                                animate={{ scaleX: [0.4, 1, 0.4], opacity: [0.4, 0.9, 0.4] }}
+                                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                                style={{
+                                    width: '60%', height: 1,
+                                    background: 'linear-gradient(90deg, transparent, rgba(255,212,128,0.7), transparent)',
+                                    borderRadius: 1,
+                                }}
+                            />
+
                             {/* Tap hint — only in fullscreen */}
                             {isFullScreen && (
                                 <motion.span
-                                    animate={{ opacity: [0.4, 0.8, 0.4] }}
+                                    animate={{ opacity: [0.35, 0.75, 0.35] }}
                                     transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
                                     style={{
-                                        fontSize: '0.65rem', color: 'rgba(255,255,255,0.42)',
+                                        fontSize: '0.6rem', color: 'rgba(255,255,255,0.40)',
                                         letterSpacing: '0.18em', textTransform: 'uppercase',
                                         fontWeight: 500,
                                     }}
                                 >
                                     Tap to complete this intention
                                 </motion.span>
+                            )}
+
+                            {/* Remaining tasks mini-list */}
+                            {isFullScreen && pending.length > 1 && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.6, duration: 0.7 }}
+                                    style={{
+                                        display: 'flex', flexDirection: 'column', alignItems: 'center',
+                                        gap: '0.3rem', marginTop: '0.4rem',
+                                        padding: '0.55rem 1.1rem',
+                                        background: 'rgba(255,255,255,0.05)',
+                                        backdropFilter: 'blur(12px)',
+                                        WebkitBackdropFilter: 'blur(12px)',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: 12,
+                                        maxWidth: 320,
+                                        width: '100%',
+                                    }}
+                                >
+                                    {pending.slice(1, 4).map((s, i) => (
+                                        <div key={s.id} style={{
+                                            display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                            width: '100%',
+                                        }}>
+                                            <div style={{
+                                                width: 4, height: 4, borderRadius: '50%', flexShrink: 0,
+                                                background: `rgba(255,212,128,${0.45 - i * 0.12})`,
+                                            }} />
+                                            <span style={{
+                                                fontSize: '0.65rem',
+                                                color: `rgba(255,255,255,${0.38 - i * 0.08})`,
+                                                fontFamily: "'Outfit', sans-serif",
+                                                overflow: 'hidden', textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap', flex: 1,
+                                                letterSpacing: '0.01em',
+                                            }}>
+                                                {s.text}
+                                            </span>
+                                        </div>
+                                    ))}
+                                    {pending.length > 4 && (
+                                        <span style={{
+                                            fontSize: '0.52rem', color: 'rgba(255,255,255,0.25)',
+                                            letterSpacing: '0.1em',
+                                        }}>
+                                            +{pending.length - 4} more
+                                        </span>
+                                    )}
+                                </motion.div>
                             )}
                         </motion.div>
                     ) : isComplete ? (
@@ -227,24 +298,24 @@ export default function CinematicIntentionReel({
             <motion.div
                 style={{
                     position: 'absolute', bottom: '5.5rem',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem',
-                    zIndex: 10, opacity: 0.62,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.45rem',
+                    zIndex: 10,
                 }}
                 animate={{ y: [0, -7, 0] }}
                 transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
             >
                 <motion.span
-                    animate={{ opacity: [0.5, 0.9, 0.5] }}
+                    animate={{ opacity: [0.5, 0.95, 0.5] }}
                     transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
-                    style={{ color: 'rgba(255,255,255,0.85)', fontSize: '1.1rem' }}
+                    style={{ color: 'rgba(255,255,255,0.85)', fontSize: '1.05rem' }}
                 >
                     ↑
                 </motion.span>
                 <span style={{
-                    fontSize: '0.6rem', letterSpacing: '0.22em', textTransform: 'uppercase',
-                    color: 'rgba(255,255,255,0.55)', fontWeight: 600,
+                    fontSize: '0.52rem', letterSpacing: '0.28em', textTransform: 'uppercase',
+                    color: 'rgba(255,255,255,0.50)', fontWeight: 700,
                 }}>
-                    Swipe up to raise your vibration
+                    Focus · Execute · Transcend
                 </span>
             </motion.div>
 

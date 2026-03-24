@@ -20,7 +20,7 @@ import EphemeralGreeting from '@/components/HomePage/EphemeralGreeting';
 import StickyTopNav from '@/components/HomePage/StickyTopNav';
 import StickyFeedbackButton from '@/components/StickyFeedbackButton';
 import MagicSyncModule from '@/components/Dashboard/MagicSyncModule';
-import DailyInsightsCarousel from '@/components/Dashboard/DailyInsightsCarousel';
+
 import BrahmastraFocusCard from '@/components/Dashboard/BrahmastraFocusCard';
 import UpgradeDonateCard from '@/components/Dashboard/UpgradeDonateCard';
 import { useTimeOfDay } from '@/hooks/useTimeOfDay';
@@ -243,19 +243,29 @@ export default function Home() {
       {/* 3-second cinematic entrance overlay — shown only once per user per day */}
       <EphemeralGreeting displayName={displayName} userId={userId} />
 
-      {/* Fixed full-page circadian nature background */}
-      <div style={{
-        position: 'fixed', inset: 0, zIndex: -10,
-        backgroundImage: `url(${globalBg})`,
-        backgroundSize: 'cover', backgroundPosition: 'center',
-        transition: 'background-image 2s ease',
-      }} aria-hidden />
-      {/* Dark overlay */}
+      {/* Fixed full-page circadian nature background — Pranaverse-style time-based */}
+      <div
+        key={globalBg}
+        style={{
+          position: 'fixed', inset: 0, zIndex: -10,
+          backgroundImage: `url(${globalBg})`,
+          backgroundSize: 'cover', backgroundPosition: 'center top',
+          animation: 'bgFadeIn 1.8s ease forwards',
+        }}
+        aria-hidden
+      />
+      {/* Cinematic dark vignette overlay */}
       <div style={{
         position: 'fixed', inset: 0, zIndex: -9,
-        background: 'linear-gradient(180deg, rgba(0,0,0,0.40) 0%, rgba(0,0,0,0.60) 100%)',
+        background: 'linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.20) 35%, rgba(0,0,0,0.50) 100%)',
         pointerEvents: 'none',
       }} aria-hidden />
+      <style>{`
+        @keyframes bgFadeIn {
+          from { opacity: 0; transform: scale(1.04); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
 
       <main className={dashStyles.dashboardPage} style={{ position: 'relative', zIndex: 2, background: 'transparent' }}>
 
@@ -289,16 +299,22 @@ export default function Home() {
         {/* ══ FIXED TOP NAV ══ */}
         <StickyTopNav />
 
-        {/* ══ DAILY INSIGHTS CAROUSEL ══ */}
-        <div style={{ marginTop: '1.25rem' }}>
-          <DailyInsightsCarousel />
-        </div>
-
+        {/* ══ Advanced Protocol + SAMKALP — Merged when active ══ */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          style={{ marginTop: '1rem' }}
+          style={{
+            marginTop: '0.65rem',
+            position: 'relative',
+            ...(brahmastraState.active ? {
+              background: 'linear-gradient(180deg,rgba(255,80,10,0.06) 0%,transparent 40%)',
+              borderRadius: '1.4rem',
+              border: '1px solid rgba(255,100,30,0.15)',
+              padding: '0.5rem 0 0.5rem',
+              boxShadow: '0 0 40px rgba(255,80,10,0.08)',
+            } : {}),
+          }}
         >
           <BrahmastraFocusCard
             active={brahmastraState.active}
@@ -310,25 +326,17 @@ export default function Home() {
                 : 'Silence the noise. Guard the inner fire.'
             }
           />
-        </motion.div>
 
-        {/* ══ TIME-BASED LAYOUT ENGINE ══
-            Morning & Evening (meditation hours): LeelaCard elevated above Sync Engine
-            Noon & Night (work/rest hours):       Sync Engine above LeelaCard
-        */}
-        <motion.div
-          key="sync"
-          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          style={{ marginTop: '1.25rem' }}
-        >
-          <MagicSyncModule
-            items={sankalpaItems}
-            onToggle={toggleTaskDone}
-            onRemove={removeTask}
-            onAdd={addTask}
-            onUpdate={updateTask}
-          />
+          {/* Samkalp always visible, visually fused to Protocol when active */}
+          <div style={{ marginTop: brahmastraState.active ? '0.35rem' : '0.8rem' }}>
+            <MagicSyncModule
+              items={sankalpaItems}
+              onToggle={toggleTaskDone}
+              onRemove={removeTask}
+              onAdd={addTask}
+              onUpdate={updateTask}
+            />
+          </div>
         </motion.div>
 
 
@@ -359,7 +367,7 @@ export default function Home() {
 
           {/* RIGHT SIDEBAR */}
           <aside className={dashStyles.sidebarRight}>
-             <UpgradeDonateCard />
+            <UpgradeDonateCard />
           </aside>
         </div>
 

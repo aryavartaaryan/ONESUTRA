@@ -176,7 +176,7 @@ const UNSPLASH_ACCESS_KEY = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY ?? '';
  * variant = 'nature' (default) — lush nature/ocean for JustVibe
  * variant = 'vedic'  — sacred temples/Himalaya/Ganga for home page Mission card
  */
-export function useCircadianBackground(variant: 'nature' | 'vedic' = 'nature'): CircadianBackground {
+export function useCircadianBackground(variant: 'nature' | 'vedic' = 'nature', id: string = ''): CircadianBackground {
     // NOTE: phase is derived from wall-clock time — this runs on server too,
     // but it is deterministic (same hour = same phase) so no mismatch here.
     const hour = new Date().getHours() + new Date().getMinutes() / 60;
@@ -189,7 +189,7 @@ export function useCircadianBackground(variant: 'nature' | 'vedic' = 'nature'): 
                     'india himalaya night stars milky way traditional lamp'
     );
 
-    const cacheKey = `${CACHE_KEY_PREFIX}${variant}_${phase.name}`;
+    const cacheKey = `${CACHE_KEY_PREFIX}${variant}_${phase.name}` + (id ? `_${id}` : '');
 
     // ⚠️  Do NOT call Math.random() in useState initializer — it runs on the
     // server during SSR and returns a different value on the client, causing

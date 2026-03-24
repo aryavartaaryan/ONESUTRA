@@ -108,6 +108,71 @@ function getDailyInsight() {
     return INSIGHTS[(d.getDate() * 3 + d.getMonth()) % INSIGHTS.length];
 }
 
+// ── Panchanga calendar lookup tables ─────────────────────────────────────────
+const VARA_P     = ['Ravivāra', 'Somavāra', 'Maṅgalavāra', 'Budhavāra', 'Guruvāra', 'Śukravāra', 'Śanivāra'];
+const PAKSHA_P   = ['Śukla Pakṣa', 'Kṛṣṇa Pakṣa'];
+const TITHI_P    = ['Pratipada', 'Dvitīyā', 'Tṛtīyā', 'Caturthī', 'Pañcamī', 'Ṣaṣṭhī', 'Saptamī', 'Aṣṭamī', 'Navamī', 'Daśamī', 'Ekādaśī', 'Dvādaśī', 'Trayodaśī', 'Caturdaśī', 'Pūrṇimā'];
+const MAAS_P     = ['Chaitra', 'Vaiśākha', 'Jyeṣṭha', 'Āṣāḍha', 'Śrāvaṇa', 'Bhādrapada', 'Āśvina', 'Kārtika', 'Mārgaśīrṣa', 'Pauṣa', 'Māgha', 'Phālguṇa'];
+const RITU_P     = ['Vasanta', 'Grīṣma', 'Varṣā', 'Śarad', 'Hemanta', 'Śiśira'];
+const NAKSHATRA_P = ['Aśvinī', 'Bharaṇī', 'Kṛttikā', 'Rohiṇī', 'Mṛgaśīrṣa', 'Ārdrā', 'Punarvasu', 'Puṣya', 'Āśleṣā', 'Maghā', 'P.Phālg', 'U.Phālg', 'Hasta', 'Citrā', 'Svātī', 'Viśākhā', 'Anurādhā', 'Jyeṣṭhā', 'Mūla', 'P.Āṣāḍhā', 'U.Āṣāḍhā', 'Śravaṇa', 'Dhaniṣṭhā', 'Śatabhiṣā', 'P.Bhādra', 'U.Bhādra', 'Revatī'];
+const YOGA_P     = ['Viṣkambha', 'Prīti', 'Āyuṣmān', 'Saubhāgya', 'Śobhana', 'Atigaṇḍa', 'Sukarman', 'Dhṛti', 'Śūla', 'Gaṇḍa', 'Vṛddhi', 'Dhruva', 'Vyāghāta', 'Harṣaṇa', 'Vajra', 'Siddhi', 'Vyatīpāta', 'Varīyān', 'Parigha', 'Śiva', 'Siddha', 'Sādhya', 'Śubha', 'Śukla', 'Brahman', 'Indra', 'Vaidhṛti'];
+const KARANA_P   = ['Kiṃstughna', 'Bava', 'Bālava', 'Kaulava', 'Taitila', 'Gara', 'Vaṇija', 'Viṣṭi', 'Śakuni', 'Catuṣpāda', 'Nāga'];
+
+function getFullPanchang(date: Date) {
+    const NM_REF = new Date('2000-01-06T18:14:00Z').getTime();
+    const LUN    = 29.53058867 * 86400000;
+    const J2000  = new Date('2000-01-01T12:00:00Z').getTime();
+
+    const age  = ((date.getTime() - NM_REF) % LUN + LUN) % LUN;
+    const tRaw = (age / LUN) * 30;
+    const tIdx = Math.floor(tRaw) % 15;
+    const pksh = Math.floor(tRaw) >= 15 ? 1 : 0;
+
+    const kRaw = Math.floor(tRaw * 2);
+    const kIdx = kRaw === 0 ? 0 : kRaw >= 57 ? Math.min(kRaw - 50, 10) : ((kRaw - 1) % 7) + 1;
+
+    const luns  = Math.floor((date.getTime() - NM_REF) / LUN);
+    const maasI = ((luns % 12) + 9 + 12) % 12;
+    const rituI = Math.floor(maasI / 2) % 6;
+
+    const yr = date.getFullYear(), mo = date.getMonth() + 1;
+    const vs = yr + (mo >= 4 ? 57 : 56);
+
+    const d2k  = (date.getTime() - J2000) / 86400000;
+    const mLon = ((218.316 + 13.176396 * d2k) % 360 + 360) % 360;
+    const sLon = ((280.46  + 0.9856474 * d2k) % 360 + 360) % 360;
+    const nkI  = Math.min(Math.floor(mLon / (360 / 27)), 26);
+    const pada = Math.min(Math.floor((mLon % (360 / 27)) / ((360 / 27) / 4)) + 1, 4);
+    const ygI  = Math.min(Math.floor(((sLon + mLon) % 360) / (360 / 27)), 26);
+
+    const doy  = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000);
+    const decl = -23.45 * Math.cos((2 * Math.PI / 365) * (doy + 10));
+    const cosHA = -Math.tan(28.6 * Math.PI / 180) * Math.tan(decl * Math.PI / 180);
+    const hDayH = Math.acos(Math.max(-1, Math.min(1, cosHA))) * (180 / Math.PI) / 15;
+    const noon  = 12 + (82.5 - 77.2) / 15;
+    const riseH = noon - hDayH, setH = noon + hDayH;
+
+    const fH = (h: number) => {
+        const hh = Math.floor(h), mm = Math.round((h - hh) * 60) % 60;
+        return `${String(hh % 12 || 12).padStart(2, '0')}:${String(mm).padStart(2, '0')} ${hh >= 12 ? 'PM' : 'AM'}`;
+    };
+
+    const RAHU  = [4, 2, 7, 5, 6, 3, 8];
+    const seg   = RAHU[date.getDay()] - 1;
+    const sLen  = (setH - riseH) / 8;
+    const rS    = riseH + seg * sLen;
+
+    return {
+        tithi: TITHI_P[tIdx], paksha: PAKSHA_P[pksh], vara: VARA_P[date.getDay()],
+        maas: MAAS_P[maasI], ritu: RITU_P[rituI], samvat: vs,
+        nakshatra: NAKSHATRA_P[nkI], pada,
+        yoga: YOGA_P[ygI], karana: KARANA_P[kIdx],
+        sunrise: fH(riseH), sunset: fH(setH),
+        rahuKaal: `${fH(rS)}–${fH(rS + sLen)}`,
+        abhijit:  `${fH(noon - 0.2)}–${fH(noon + 0.2)}`,
+    };
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // MODULE 2: safePlay — wraps every play() call in a try/catch Promise handler.
 // If the browser blocks autoplay, logs a friendly warning and can show a UI hint.
@@ -236,6 +301,136 @@ function SankalpaSlide({ items, onToggle, onRemove, onAdd, isFullScreen, onExpan
 }
 
 
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PANCHANGA REEL — Today's Complete Vedic Cosmic Blueprint
+// ══════════════════════════════════════════════════════════════════════════════
+function PanchangaReel() {
+    const { phase, imageUrl, loaded } = useCircadianBackground('vedic', 'panchanga');
+    const isDay = phase.name === 'day';
+    const [pg, setPg] = useState(() => getFullPanchang(new Date()));
+    useEffect(() => {
+        const id = setInterval(() => setPg(getFullPanchang(new Date())), 30000);
+        return () => clearInterval(id);
+    }, []);
+
+    const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+    const gridCells = [
+        { label: 'Māsa',     value: pg.maas,                   icon: '🌙' },
+        { label: 'Saṃvat',   value: `VS ${pg.samvat}`,         icon: '📿' },
+        { label: 'Ritu',      value: pg.ritu,                   icon: '🌿' },
+        { label: 'Nakṣatra', value: `${pg.nakshatra} · ${pg.pada}`, icon: '⭐' },
+        { label: 'Yoga',     value: pg.yoga,                   icon: '☯' },
+        { label: 'Karaṇa',   value: pg.karana,                 icon: '⚡' },
+    ];
+
+    return (
+        <div className={styles.reelSlide} style={{ '--reel-accent': phase.accentHex } as React.CSSProperties}>
+            <div className={styles.circadianBg} />
+            <motion.div
+                className={styles.circadianBg}
+                style={{ backgroundImage: `url(${imageUrl})` }}
+                animate={{ opacity: loaded ? 1 : 0 }}
+                initial={{ opacity: 0 }}
+                transition={{ duration: 1.5, ease: 'easeInOut' }}
+            />
+            <div
+                className={styles.circadianOverlay}
+                style={{ background: isDay ? 'rgba(5,15,35,0.50)' : 'rgba(0,2,12,0.68)' }}
+            />
+
+            <motion.div
+                className={styles.panchangContent}
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.9, ease: 'easeOut' }}
+            >
+                {/* Header */}
+                <div className={styles.panchangHeader}>
+                    <span className={styles.panchangHeaderBadge} style={{ color: phase.accentHex }}>
+                        ✦ &nbsp;Today&apos;s Panchanga
+                    </span>
+                    <span className={styles.panchangDateStr} suppressHydrationWarning>{today}</span>
+                </div>
+
+                {/* Hero — Tithi · Pakṣa · Vāra */}
+                <div className={styles.panchangHero}>
+                    <div className={styles.panchangHeroMain}>
+                        <span className={styles.panchangHeroLabel} style={{ color: phase.accentHex }}>Tithi</span>
+                        <span className={styles.panchangHeroValue} suppressHydrationWarning>{pg.tithi}</span>
+                    </div>
+                    <div className={styles.panchangHeroDivider} />
+                    <div className={styles.panchangHeroMain}>
+                        <span className={styles.panchangHeroLabel} style={{ color: phase.accentHex }}>Pakṣa</span>
+                        <span className={styles.panchangHeroValue} suppressHydrationWarning>{pg.paksha}</span>
+                    </div>
+                    <div className={styles.panchangHeroDivider} />
+                    <div className={styles.panchangHeroMain}>
+                        <span className={styles.panchangHeroLabel} style={{ color: phase.accentHex }}>Vāra</span>
+                        <span className={styles.panchangHeroValue} suppressHydrationWarning>{pg.vara}</span>
+                    </div>
+                </div>
+
+                {/* 6-cell grid */}
+                <div className={styles.panchangGrid}>
+                    {gridCells.map(c => (
+                        <div key={c.label} className={styles.panchangCell}>
+                            <span className={styles.panchangCellIcon}>{c.icon}</span>
+                            <span className={styles.panchangCellLabel} style={{ color: `${phase.accentHex}CC` }}>{c.label}</span>
+                            <span className={styles.panchangCellValue} suppressHydrationWarning>{c.value}</span>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Celestial timings */}
+                <div className={styles.panchangTimings}>
+                    <div className={styles.panchangTimingRow}>
+                        <div className={styles.panchangTiming}>
+                            <span className={styles.panchangTimingIcon}>🌅</span>
+                            <span className={styles.panchangTimingLabel}>Sūryodaya</span>
+                            <span className={styles.panchangTimingVal} suppressHydrationWarning>{pg.sunrise}</span>
+                        </div>
+                        <div className={styles.panchangTiming}>
+                            <span className={styles.panchangTimingIcon}>🌇</span>
+                            <span className={styles.panchangTimingLabel}>Sūryāsta</span>
+                            <span className={styles.panchangTimingVal} suppressHydrationWarning>{pg.sunset}</span>
+                        </div>
+                    </div>
+                    <div className={styles.panchangTimingDivider} />
+                    <div className={styles.panchangTimingRow}>
+                        <div className={styles.panchangTiming}>
+                            <span className={styles.panchangTimingIcon}>⚠️</span>
+                            <span className={styles.panchangTimingLabel}>Rāhu Kāla</span>
+                            <span className={styles.panchangTimingVal} suppressHydrationWarning>{pg.rahuKaal}</span>
+                        </div>
+                        <div className={styles.panchangTiming}>
+                            <span className={styles.panchangTimingIcon}>✨</span>
+                            <span className={styles.panchangTimingLabel}>Abhijit</span>
+                            <span className={styles.panchangTimingVal} suppressHydrationWarning>{pg.abhijit}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Cosmic fingerprint */}
+                <div className={styles.panchangCosmicBadge}>
+                    <span className={styles.panchangCosmicBadgeText} suppressHydrationWarning style={{ color: `${phase.accentHex}99` }}>
+                        {pg.maas} · VS {pg.samvat} &nbsp;·&nbsp; Cosmic Fingerprint of This Day
+                    </span>
+                </div>
+
+                {/* Swipe hint */}
+                <motion.div
+                    className={styles.panchangSwipeHint}
+                    animate={{ y: [0, -5, 0] }}
+                    transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                    <span style={{ color: `${phase.accentHex}99` }}>↑ Swipe up for Today&apos;s Mission</span>
+                </motion.div>
+            </motion.div>
+        </div>
+    );
+}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MODULE 3 + 4 + 5: ReelSlide
@@ -508,6 +703,7 @@ export default function ReelPlayer({ greeting: _g, displayName: _d, panchangData
     }, [showToast]);
 
     const feed = useRef([
+        { id: 'panchanga-0', type: 'panchanga' as const },
         { id: 'sankalpa-0', type: 'sankalpa' as const },
         ...TRACKS.map(t => ({ ...t, type: 'mantra' as const })),
     ]);
@@ -691,7 +887,9 @@ export default function ReelPlayer({ greeting: _g, displayName: _d, panchangData
                                 className={styles.reelSlideWrapper}
                                 ref={el => { slideRefs.current[i] = el; }}
                             >
-                                {item.type === 'sankalpa' ? (
+                                {item.type === 'panchanga' ? (
+                                    <PanchangaReel />
+                                ) : item.type === 'sankalpa' ? (
                                     <CinematicIntentionReel
                                         items={sankalpaItems}
                                         onToggle={onSankalpaToggle}

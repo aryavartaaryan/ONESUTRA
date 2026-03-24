@@ -76,7 +76,7 @@
     min-height: 100vh;
     background: #F9F6F0;
     padding: 0 0 7rem;
-    padding-top: 62px; /* offset for fixed StickyTopNav header */
+    padding-top: 160px; /* offset for 2-row StickyTopNav: brand bar + stories row */
     position: relative;
     overflow-x: hidden;
     font-family: 'Inter', sans-serif;

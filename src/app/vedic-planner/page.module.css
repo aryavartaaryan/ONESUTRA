@@ -1,4 +1,4 @@
-/* ─── Vedic Planner Screen — Serene, Premium, Ayurvedic ─── */
+/* ─── Advance Task Planner Screen — Serene, Premium, Ayurvedic ─── */
 
 /* Container */
 .container {
@@ -105,7 +105,7 @@
     -webkit-backdrop-filter: blur(12px);
 }
 
-.doshaLabel {
+.gunaLabel {
     display: inline-block;
     padding: 0.12rem 0.5rem;
     border-radius: 999px;
@@ -114,25 +114,25 @@
     letter-spacing: 0.08em;
 }
 
-.doshaLabelPitta {
+.gunaLabelRajas {
     background: rgba(251, 146, 60, 0.25);
     color: #fb923c;
     border: 1px solid rgba(251, 146, 60, 0.3);
 }
 
-.doshaLabelKapha {
+.gunaLabelTamas {
     background: rgba(74, 222, 128, 0.20);
     color: #4ade80;
     border: 1px solid rgba(74, 222, 128, 0.3);
 }
 
-.doshaLabelVata {
+.gunaLabelSatva {
     background: rgba(167, 139, 250, 0.20);
     color: #a78bfa;
     border: 1px solid rgba(167, 139, 250, 0.3);
 }
 
-.doshaLabelRest {
+.gunaLabelRest {
     background: rgba(148, 163, 184, 0.20);
     color: #94a3b8;
     border: 1px solid rgba(148, 163, 184, 0.3);
@@ -198,7 +198,7 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Dosha Columns (Kanban) */
+/* Guna Columns (Kanban) */
 .kanbanGrid {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -212,13 +212,13 @@
     }
 }
 
-.doshaColumn {
+.gunaColumn {
     display: flex;
     flex-direction: column;
     gap: 0.65rem;
 }
 
-.doshaColumnHeader {
+.gunaColumnHeader {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -235,25 +235,25 @@
     -webkit-backdrop-filter: blur(12px);
 }
 
-.pittaHeader {
+.rajasHeader {
     background: rgba(251, 146, 60, 0.18);
     border: 1px solid rgba(251, 146, 60, 0.25);
     color: #fdba74;
 }
 
-.kaphaHeader {
+.tamasHeader {
     background: rgba(74, 222, 128, 0.15);
     border: 1px solid rgba(74, 222, 128, 0.22);
     color: #86efac;
 }
 
-.vataHeader {
+.satvaHeader {
     background: rgba(167, 139, 250, 0.18);
     border: 1px solid rgba(167, 139, 250, 0.25);
     color: #c4b5fd;
 }
 
-.doshaSubtext {
+.gunaSubtext {
     font-size: 0.62rem;
     font-weight: 400;
     opacity: 0.7;
@@ -355,7 +355,7 @@
     padding: 0.1rem 0.4rem;
 }
 
-.taskDoshaBadge {
+.taskGunaBadge {
     font-size: 0.6rem;
     font-weight: 600;
     letter-spacing: 0.06em;

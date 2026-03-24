@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
 
   // ── Turbopack: Alias Node-only modules to empty stubs ──────────────────
   // The 'telegram' (GramJS) package internally requires Node.js modules
-  // (fs, net, tls) that don't exist in the browser.
+  // (fs, net, tls, crypto, stream, util, os, path) that don't exist in the browser.
   // Use conditional { browser } aliases so server-side Node.js modules
   // remain intact (Firebase, @google/genai, etc. still work on the server).
   turbopack: {
@@ -33,6 +33,19 @@ const nextConfig: NextConfig = {
       fs: { browser: './src/lib/empty-module.js' },
       net: { browser: './src/lib/empty-module.js' },
       tls: { browser: './src/lib/empty-module.js' },
+      crypto: { browser: './src/lib/empty-module.js' },
+      stream: { browser: './src/lib/empty-module.js' },
+      util: { browser: './src/lib/empty-module.js' },
+      os: { browser: './src/lib/empty-module.js' },
+      path: { browser: './src/lib/empty-module.js' },
+      url: { browser: './src/lib/empty-module.js' },
+      querystring: { browser: './src/lib/empty-module.js' },
+      zlib: { browser: './src/lib/empty-module.js' },
+      http: { browser: './src/lib/empty-module.js' },
+      https: { browser: './src/lib/empty-module.js' },
+      // Completely exclude telegram package from client bundle
+      'telegram': { browser: './src/lib/empty-module.js' },
+      'tdweb': { browser: './src/lib/empty-module.js' },
     },
   },
 
@@ -45,7 +58,26 @@ const nextConfig: NextConfig = {
         fs: false,
         net: false,
         tls: false,
+        crypto: false,
+        stream: false,
+        util: false,
+        os: false,
+        path: false,
+        url: false,
+        querystring: false,
+        zlib: false,
+        http: false,
+        https: false,
       };
+      
+      // Exclude telegram packages from client bundle completely
+      config.externals = config.externals || [];
+      config.externals.push({
+        'telegram': 'commonjs telegram',
+        'tdweb': 'commonjs tdweb',
+        'telegram/sessions/StringSession': 'commonjs telegram/sessions/StringSession',
+        'telegram/Password': 'commonjs telegram/Password',
+      });
     }
     return config;
   },

@@ -115,7 +115,7 @@ export default function JobsSkillsPage() {
                     </motion.div>
                     <div>
                         <h1 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, fontFamily: "'Playfair Display', serif", color: 'rgba(255,255,255,0.97)', textShadow: '0 0 14px rgba(147,197,253,0.35)' }}>
-                            {lang === 'hi' ? 'नौकरी और कौशल' : 'Jobs & Skills'}
+                            {lang === 'hi' ? 'नौकरी और कौशल और स्टार्टअप' : 'Jobs & Skills & Startups'}
                         </h1>
                         <p style={{ margin: 0, fontSize: '0.5rem', color: 'rgba(147,197,253,0.92)', letterSpacing: '0.22em', textTransform: 'uppercase', fontFamily: 'monospace', textShadow: '0 0 10px rgba(96,165,250,0.45)' }}>
                             {lang === 'hi' ? 'कर्म क्षेत्र' : 'Karma Kshetra'}
@@ -162,7 +162,7 @@ export default function JobsSkillsPage() {
                             {tab === 'jobs' ? <Briefcase size={16} /> : <BookOpen size={16} />}
                             {tab === 'jobs'
                                 ? (lang === 'hi' ? 'नौकरियां' : 'Jobs')
-                                : (lang === 'hi' ? 'कौशल' : 'Skills')}
+                                : (lang === 'hi' ? 'कौशल और स्टार्टअप' : 'Skills & Startups')}
                         </motion.button>
                     ))}
                 </div>

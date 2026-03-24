@@ -523,7 +523,7 @@ CURRENT STATUS: ${pendingTasks.length} tasks pending, ${completedTasks.length} d
 ${pendingTasks.length === 0 ? '→ List खाली है — ask: "आज कुछ plan करें साथ में?"' : '→ Naturally suggest picking one task to start.'}
 
 ════════════════════════════════════════════════════════════════════
-🎓 OneSutra Integrated Advanced Skills Academy — Powered by Bodhi
+🎓 OneSutra Integrated Advanced Skills & Startups Academy — Powered by Bodhi
 ════════════════════════════════════════════════════════════════════
 
 13 SUBJECTS Bodhi teaches:

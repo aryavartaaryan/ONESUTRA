@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, MessageCircle, Globe, Briefcase, Mic } from 'lucide-react';
+import { Home, MessageCircle, Briefcase, Mic, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -11,119 +11,145 @@ export default function VahanaBar() {
     const { lang } = useLanguage();
     const pathname = usePathname();
 
-    // 5 bottom items: Sutra | Jobs | Home | Acharya | PranaVIBEs
     const NAV = [
         {
             id: 'onesutra', href: '/onesutra', Icon: MessageCircle,
-            label: lang === 'hi' ? 'सूत्र' : 'SUTRAConnect',
-            isOm: true,
+            label: lang === 'hi' ? 'सूत्र' : 'Connect',
         },
         {
             id: 'jobs', href: '/jobs-skills', Icon: Briefcase,
-            label: lang === 'hi' ? 'नौकरी & कौशल' : 'Jobs & Skills',
+            label: lang === 'hi' ? 'कौशल' : 'Skills',
         },
         {
             id: 'home', href: '/', Icon: Home,
-            label: lang === 'hi' ? 'गृह' : 'Home',
+            label: lang === 'hi' ? 'होम' : 'Home',
         },
         {
             id: 'acharya', href: '/acharya-samvad', Icon: Mic,
             label: lang === 'hi' ? 'आचार्य' : 'Acharya',
-            color: '#A68AFA',
         },
         {
-            id: 'pranaverse', href: '/pranaverse', Icon: Globe,
-            label: lang === 'hi' ? 'ReZo' : 'PranaVIBEs',
-            accent: true,
+            id: 'profile', href: '/profile', Icon: User,
+            label: lang === 'hi' ? 'प्रोफाइल' : 'Profile',
         },
     ] as const;
 
     return (
-        <nav style={{
-            position: 'fixed', bottom: 14, left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 9000,
-            width: 'min(96vw, 440px)',   // wider to fit 5 items
-            padding: '0.45rem 0.75rem',
-            borderRadius: '2rem',
-            background: 'rgba(6,4,18,0.80)',
-            backdropFilter: 'blur(28px)',
-            WebkitBackdropFilter: 'blur(28px)',
-            border: '1px solid rgba(255,255,255,0.09)',
-            boxShadow: '0 8px 40px rgba(0,0,0,0.60), inset 0 1px 0 rgba(255,255,255,0.07)',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-around',
-        }}>
-            {NAV.map(({ id, href, Icon, label, ...rest }) => {
-                const isActive = (id === 'home' && pathname === '/') ||
-                    (id !== 'home' && pathname.startsWith(href));
-                const isHome = id === 'home';
-                const isHomeActive = isHome && isActive;
-                const isAccent = 'accent' in rest && rest.accent;
-                return (
-                    <Link key={id} href={href} style={{ textDecoration: 'none', flex: 1 }}>
-                        <motion.div
-                            whileTap={{ scale: 0.86 }}
-                            transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-                            style={{
-                                display: 'flex', flexDirection: 'column',
-                                alignItems: 'center', justifyContent: 'center',
-                                gap: 3, paddingBlock: isHomeActive ? '0.2rem' : '0.45rem',
-                                borderRadius: isHomeActive ? '50%' : '1.25rem', position: 'relative',
-                                transform: isHomeActive ? 'translateY(-12px)' : 'none',
-                                width: isHomeActive ? '60px' : '100%',
-                                height: isHomeActive ? '60px' : 'auto',
-                                margin: '0 auto',
-                            }}
-                        >
-                            {isActive && (
-                                <div
-                                    style={{
-                                        position: 'absolute',
-                                        top: 0, right: 0, bottom: 0, left: 0,
-                                        borderRadius: isHomeActive ? '50%' : '1.25rem',
-                                        background: isHomeActive ? 'transparent' : 'rgba(255,255,255,0.08)',
-                                        boxShadow: isHomeActive ? 'none' : 'inset 0 1px 0 rgba(255,255,255,0.12)',
-                                        animation: isHomeActive ? 'home-glow-pulse 2.5s infinite ease-in-out' : 'none',
-                                        zIndex: 0
-                                    }}
-                                />
-                            )}
-                            {isAccent && (
-                                <motion.div
-                                    animate={{ boxShadow: ['0 0 0 0 rgba(251,146,60,0)', '0 0 0 5px rgba(251,146,60,0.22)', '0 0 0 0 rgba(251,146,60,0)'] }}
-                                    transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-                                    style={{ position: 'absolute', width: 36, height: 36, borderRadius: '50%', border: '1.5px solid rgba(251,146,60,0.50)' }}
-                                />
-                            )}
-                            <Icon
-                                size={isHomeActive ? 22 : 19} strokeWidth={isActive ? 2.1 : 1.6}
+        <>
+            <style>{`
+                @keyframes vahana-home-pulse {
+                    0%, 100% { box-shadow: 0 0 0 0 rgba(251,191,36,0), 0 0 16px rgba(251,191,36,0.35); }
+                    50%       { box-shadow: 0 0 0 6px rgba(251,191,36,0.08), 0 0 28px rgba(251,191,36,0.55); }
+                }
+            `}</style>
+            <nav style={{
+                position: 'fixed',
+                bottom: 10,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 9000,
+                width: 'min(96vw, 480px)',
+                padding: '0.55rem 0.8rem',
+                borderRadius: 20,
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%)',
+                backdropFilter: 'blur(28px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+                border: '1px solid rgba(255,255,255,0.11)',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.12)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-around',
+            }}>
+                {/* Ambient gradient overlay */}
+                <div aria-hidden style={{
+                    position: 'absolute', inset: 0, borderRadius: 'inherit',
+                    background: 'radial-gradient(100% 80% at 50% 100%, rgba(251,191,36,0.06), transparent 60%)',
+                    pointerEvents: 'none',
+                }} />
+
+                {NAV.map(({ id, href, Icon, label }) => {
+                    const isActive = (id === 'home' && pathname === '/') ||
+                        (id !== 'home' && pathname.startsWith(href));
+                    const isHome = id === 'home';
+                    const isHomeActive = isHome && isActive;
+
+                    return (
+                        <Link key={id} href={href} style={{ textDecoration: 'none', flex: 1 }}>
+                            <motion.div
+                                whileTap={{ scale: 0.82 }}
+                                transition={{ type: 'spring', stiffness: 420, damping: 24 }}
                                 style={{
-                                    color: isActive ? 'rgba(255,255,255,0.95)'
-                                        : isAccent ? 'rgba(251,146,60,0.85)'
-                                            : 'rgba(255,255,255,0.40)',
-                                    filter: isHomeActive
-                                        ? 'drop-shadow(0 0 5px rgba(251,191,36,0.6)) drop-shadow(0 0 10px rgba(56,189,248,0.4))'
-                                        : 'none',
-                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                    position: 'relative', zIndex: 1,
-                                    marginTop: isHomeActive ? '3px' : '0'
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: 3,
+                                    padding: '0.3rem 0.1rem',
+                                    position: 'relative',
                                 }}
-                            />
-                            <span style={{
-                                fontSize: isHomeActive ? 10.5 : 9.5, 
-                                fontWeight: isActive ? 600 : 400,
-                                fontFamily: 'system-ui, sans-serif',
-                                letterSpacing: isAccent ? '0.04em' : '0.01em',
-                                color: isActive ? 'rgba(255,255,255,0.95)'
-                                    : isAccent ? 'rgba(251,146,60,0.78)'
-                                        : 'rgba(255,255,255,0.34)',
-                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                position: 'relative', zIndex: 1,
-                            }}>{label}</span>
-                        </motion.div>
-                    </Link>
-                );
-            })}
-        </nav>
+                            >
+                                {/* Home button — floated circle */}
+                                {isHomeActive ? (
+                                    <div style={{
+                                        width: 48, height: 48,
+                                        borderRadius: '50%',
+                                        background: 'linear-gradient(145deg, #0f172a, #1e293b)',
+                                        border: '1.8px solid rgba(251,191,36,0.75)',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        animation: 'vahana-home-pulse 2.5s ease-in-out infinite',
+                                        marginTop: '-18px',
+                                        position: 'relative', zIndex: 2,
+                                    }}>
+                                        <Icon size={20} strokeWidth={2}
+                                            style={{ color: '#fbbf24', filter: 'drop-shadow(0 0 6px rgba(251,191,36,0.7))' }} />
+                                    </div>
+                                ) : (
+                                    <div style={{
+                                        width: 34, height: 34,
+                                        borderRadius: '50%',
+                                        background: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
+                                        border: isActive ? '1px solid rgba(255,255,255,0.18)' : '1px solid transparent',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        transition: 'all 0.25s ease',
+                                    }}>
+                                        <Icon
+                                            size={17} strokeWidth={isActive ? 2.1 : 1.6}
+                                            style={{
+                                                color: isActive ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.38)',
+                                                transition: 'all 0.25s ease',
+                                            }}
+                                        />
+                                    </div>
+                                )}
+
+                                {/* Active indicator dot for non-home */}
+                                {isActive && !isHome && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        bottom: 1,
+                                        width: 3, height: 3,
+                                        borderRadius: '50%',
+                                        background: 'rgba(255,255,255,0.7)',
+                                    }} />
+                                )}
+
+                                <span style={{
+                                    fontSize: isHomeActive ? 9.5 : 9,
+                                    fontWeight: isActive ? 600 : 400,
+                                    fontFamily: "'Inter', system-ui, sans-serif",
+                                    letterSpacing: '0.06em',
+                                    textTransform: 'uppercase',
+                                    color: isActive
+                                        ? (isHomeActive ? 'rgba(251,191,36,0.9)' : 'rgba(255,255,255,0.88)')
+                                        : 'rgba(255,255,255,0.30)',
+                                    transition: 'all 0.25s ease',
+                                    marginTop: isHomeActive ? 2 : 0,
+                                }}>{label}</span>
+                            </motion.div>
+                        </Link>
+                    );
+                })}
+            </nav>
+        </>
     );
 }

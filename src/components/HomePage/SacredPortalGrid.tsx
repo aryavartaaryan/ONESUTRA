@@ -58,132 +58,183 @@ function RaagModal({ onClose }: { onClose: () => void }) {
 // Each maps to a crop region from the generated geode image sheets
 // Image source + CSS background-position for sprite cropping
 type OrbItem = {
-    id: string; title: string; href?: string; isModal?: boolean;
-    // Visual: which sprite sheet + approximate CSS for the icon
+    id: string; title: string; subtitle?: string; description?: string; href?: string; isModal?: boolean;
     color: string; glow: string; icon: string; shape: string;
 };
 
 const ORBIT_ITEMS: OrbItem[] = [
-    // 0  → 12 o'clock: GURU & AYURVEDA (purple, Om)
-    { id: 'ayurhealth', title: 'GURU & AYURVEDA', href: '/acharya-samvad', color: '#a855f7', glow: '#9333ea', icon: 'ॐ', shape: '42% 58% 55% 45%/52% 45% 55% 48%' },
-    // 1  → ~1 o'clock: DHYAN (blue, meditator)
-    { id: 'dhyan', title: 'DHYAN', href: '/dhyan-kshetra', color: '#3b82f6', glow: '#2563eb', icon: '🧘', shape: '60% 40% 42% 58%/45% 58% 42% 55%' },
-    // 2  → ~2 o'clock: VEDIC RASOI (green, wheat)
-    { id: 'vedic-rasoi', title: 'VEDIC RASOI', href: '/vedic-rasoi', color: '#22c55e', glow: '#16a34a', icon: '🌾', shape: '50% 50% 58% 42%/42% 52% 48% 58%' },
-    // 3  → ~3 o'clock: OUTPLUGS (purple star)
-    { id: 'outplugs', title: 'OUTPLUGS', href: '/outplugs', color: '#d946ef', glow: '#a21caf', icon: '⭐', shape: '38% 62% 50% 50%/55% 42% 58% 45%' },
-    // 4  → ~4 o'clock: PRANARAAGS (blue, waveform)
-    { id: 'prana-raag', title: 'PRANARAAGS', href: '/project-leela', color: '#38bdf8', glow: '#0284c7', icon: '🎵', shape: '55% 45% 40% 60%/48% 55% 45% 52%' },
-    // 5  → ~5 o'clock: SWADESHI PRODUCTS (orange, bag)
-    { id: 'swadesi', title: 'SWADESHI PRODUCTS', href: '/swadesi-product', color: '#f97316', glow: '#ea580c', icon: '🛍️', shape: '45% 55% 60% 40%/52% 48% 55% 45%' },
-    // 6  → ~6 o'clock: VEDIC GAMES (pink, dice)
-    { id: 'vedic-games', title: 'VEDIC GAMES', href: '/vedic-games', color: '#ec4899', glow: '#be185d', icon: '🎲', shape: '58% 42% 45% 55%/45% 58% 42% 55%' },
-    // 7  → ~7 o'clock: SUTRACONNECT (amethyst, lotus)
-    { id: 'sutraconnect', title: 'SUTRACONNECT', href: '/onesutra', color: '#8b5cf6', glow: '#7c3aed', icon: '🪷', shape: '40% 60% 55% 45%/55% 45% 60% 40%' },
-    // 8  → ~8-9 o'clock: PRANAVIBES (teal, wave)
-    { id: 'pranaverse', title: 'PRANAVIBES', href: '/pranaverse', color: '#14b8a6', glow: '#0d9488', icon: '🌊', shape: '62% 38% 45% 55%/45% 60% 38% 62%' },
-    // 9  → ~10 o'clock: VEDIC SANGRAH (indigo, temples/jyotirlinga)
-    { id: 'vedic-sangrah', title: 'VEDIC SANGRAH', href: '/vedic-sangrah', color: '#6366f1', glow: '#4f46e5', icon: '🛕', shape: '48% 52% 55% 45%/50% 45% 55% 50%' },
+    { id: 'ayurhealth',   title: 'ACHARYA',    subtitle: 'Awaken Guidance',    description: 'AI-powered Vedic wisdom guru — personalized spiritual guidance & ancient knowledge at your fingertips.', href: '/acharya-samvad',  color: '#a855f7', glow: '#9333ea', icon: '🌿', shape: '' },
+    { id: 'dhyan',        title: 'MEDITATE',   subtitle: 'Sacred Mantras',    description: 'Immerse in curated sacred mantras & guided meditations — find inner stillness with healing frequencies.', href: '/dhyan-kshetra',   color: '#3b82f6', glow: '#2563eb', icon: '🧘', shape: '' },
+    { id: 'outplugs',     title: 'INSHORTS',   subtitle: 'Mindful News',      description: 'Distraction-free mindful news — stay informed without the noise, curated through a conscious lens.', href: '/outplugs',        color: '#d946ef', glow: '#a21caf', icon: '📰', shape: '' },
+    { id: 'prana-raag',   title: 'RAAG MUSIC', subtitle: 'Resonances',        description: 'Ancient Indian classical ragas matched to the time of day — healing frequencies for every moment.', href: '/project-leela',   color: '#38bdf8', glow: '#0284c7', icon: '🎵', shape: '' },
+    { id: 'swadesi',      title: 'SWADESHI',   subtitle: 'Sacred Commerce',   description: 'Discover authentic Indian artisan products — sacred commerce that honors tradition & empowers craftsmen.', href: '/swadesi-product', color: '#f97316', glow: '#ea580c', icon: '🛍️', shape: '' },
+    { id: 'vedic-games',  title: 'GAMES',      subtitle: 'Mindful Play',      description: 'Vedic-inspired mindful games — sharpen your mind while connecting with ancient Indian wisdom.', href: '/vedic-games',     color: '#ec4899', glow: '#be185d', icon: '🎲', shape: '' },
+    { id: 'sutraconnect', title: 'MESSAGES',   subtitle: 'Conscious Connect', description: 'Meaningful conversations in a mindful, distraction-free space — conscious social connection.', href: '/onesutra',        color: '#8b5cf6', glow: '#7c3aed', icon: '�', shape: '' },
+    { id: 'pranaverse',   title: 'PRANAVIBES', subtitle: 'Conscious Feed',    description: 'Your conscious social feed — inspirational reels, mantras & wisdom curated for spiritual growth.', href: '/pranaverse',      color: '#14b8a6', glow: '#0d9488', icon: '🌊', shape: '' },
+    { id: 'vedic-sangrah',title: 'RITUALS',    subtitle: 'Sacred Practices',  description: 'Daily sacred practices & rituals — step-by-step guidance for pujas, havans & spiritual ceremonies.', href: '/vedic-sangrah',   color: '#6366f1', glow: '#4f46e5', icon: '🛕', shape: '' },
 ];
 
-// Unique gradient for each geode — mimics photorealistic mineral texture
-const GEODE_STYLES: Record<string, { bg: string; innerBg: string; rimColor: string }> = {
-    'ayurhealth': { bg: 'radial-gradient(circle at 32% 28%, #d8b4fe, #9333ea 40%, #4c1d95 70%, #1e0836 100%)', innerBg: 'radial-gradient(circle at 40% 35%, rgba(255,255,255,0.22) 0%, transparent 55%)', rimColor: '#e9d5ff' },
-    'dhyan': { bg: 'radial-gradient(circle at 32% 28%, #93c5fd, #2563eb 40%, #1e3a8a 70%, #020617 100%)', innerBg: 'radial-gradient(circle at 40% 35%, rgba(255,255,255,0.20) 0%, transparent 55%)', rimColor: '#bfdbfe' },
-    'vedic-rasoi': { bg: 'radial-gradient(circle at 32% 28%, #86efac, #16a34a 40%, #14532d 70%, #052e16 100%)', innerBg: 'radial-gradient(circle at 40% 35%, rgba(255,255,255,0.20) 0%, transparent 55%)', rimColor: '#bbf7d0' },
-    'outplugs': { bg: 'radial-gradient(circle at 32% 28%, #f0abfc, #a21caf 40%, #701a75 70%, #1a0020 100%)', innerBg: 'radial-gradient(circle at 40% 35%, rgba(255,255,255,0.20) 0%, transparent 55%)', rimColor: '#f5d0fe' },
-    'prana-raag': { bg: 'radial-gradient(circle at 32% 28%, #7dd3fc, #0284c7 40%, #075985 70%, #082f49 100%)', innerBg: 'radial-gradient(circle at 40% 35%, rgba(255,255,255,0.20) 0%, transparent 55%)', rimColor: '#bae6fd' },
-    'swadesi': { bg: 'radial-gradient(circle at 32% 28%, #fdba74, #ea580c 40%, #9a3412 70%, #431407 100%)', innerBg: 'radial-gradient(circle at 40% 35%, rgba(255,255,255,0.20) 0%, transparent 55%)', rimColor: '#fed7aa' },
-    'vedic-games': { bg: 'radial-gradient(circle at 32% 28%, #f9a8d4, #be185d 40%, #831843 70%, #500724 100%)', innerBg: 'radial-gradient(circle at 40% 35%, rgba(255,255,255,0.20) 0%, transparent 55%)', rimColor: '#fecdd3' },
-    'sutraconnect': { bg: 'radial-gradient(circle at 32% 28%, #ddd6fe, #8b5cf6 40%, #5b21b6 70%, #2e1065 100%)', innerBg: 'radial-gradient(circle at 40% 35%, rgba(255,255,255,0.20) 0%, transparent 55%)', rimColor: '#ede9fe' },
-    'pranaverse': { bg: 'radial-gradient(circle at 32% 28%, #ccfbf1, #14b8a6 40%, #0f766e 70%, #042f2e 100%)', innerBg: 'radial-gradient(circle at 40% 35%, rgba(255,255,255,0.22) 0%, transparent 55%)', rimColor: '#bdeafe' },
-    'vedic-sangrah': { bg: 'radial-gradient(circle at 32% 28%, #e0e7ff, #6366f1 40%, #3730a3 70%, #1e1b4b 100%)', innerBg: 'radial-gradient(circle at 40% 35%, rgba(255,255,255,0.22) 0%, transparent 55%)', rimColor: '#c7d2fe' },
-};
 
-// ── Photorealistic Geode Orb component ────────────────────────────────────────
-function GeodeOrb({ item, sz }: { item: OrbItem; sz: number }) {
-    const gs = GEODE_STYLES[item.id] || GEODE_STYLES['ayurhealth'];
-    const isOutplugs = item.id === 'outplugs';
+// ── Deterministic trapped air micro-bubbles per orb (SSR-safe) ───────────────
+const MICRO_BUBBLES: { x: number; y: number; r: number }[][] = [
+    [{ x: 24, y: 62, r: 3.2 }, { x: 68, y: 70, r: 2.4 }, { x: 45, y: 78, r: 1.8 }, { x: 72, y: 55, r: 1.5 }],
+    [{ x: 30, y: 58, r: 2.8 }, { x: 62, y: 68, r: 2.2 }, { x: 52, y: 76, r: 3.0 }, { x: 22, y: 72, r: 1.6 }],
+    [{ x: 35, y: 64, r: 2.5 }, { x: 58, y: 72, r: 3.2 }, { x: 74, y: 60, r: 1.8 }, { x: 28, y: 75, r: 2.0 }],
+    [{ x: 42, y: 60, r: 3.0 }, { x: 26, y: 70, r: 2.0 }, { x: 62, y: 75, r: 2.6 }, { x: 70, y: 58, r: 1.4 }],
+    [{ x: 20, y: 66, r: 2.6 }, { x: 55, y: 72, r: 3.4 }, { x: 72, y: 64, r: 2.0 }, { x: 38, y: 78, r: 1.8 }],
+    [{ x: 32, y: 60, r: 3.0 }, { x: 60, y: 70, r: 2.2 }, { x: 48, y: 76, r: 2.8 }, { x: 75, y: 56, r: 1.6 }],
+    [{ x: 26, y: 68, r: 2.4 }, { x: 62, y: 62, r: 3.2 }, { x: 44, y: 74, r: 2.0 }, { x: 70, y: 72, r: 1.8 }],
+    [{ x: 38, y: 62, r: 2.8 }, { x: 22, y: 74, r: 2.2 }, { x: 66, y: 66, r: 3.0 }, { x: 54, y: 78, r: 1.5 }],
+    [{ x: 28, y: 64, r: 3.4 }, { x: 56, y: 70, r: 2.0 }, { x: 70, y: 58, r: 2.6 }, { x: 40, y: 76, r: 1.8 }],
+];
+
+// ── Jelly Water-Bubble Sacred Portal ────────────────────────────────────────
+function GeodeOrb({ item, sz, idx }: { item: OrbItem; sz: number; idx: number }) {
+    const d = sz * 1.24;
+    const bubbles = MICRO_BUBBLES[idx % MICRO_BUBBLES.length];
+    const subWords = (item.subtitle || '').split(' ');
+    const mid = Math.ceil(subWords.length / 2);
+    const line1 = subWords.slice(0, mid).join(' ');
+    const line2 = subWords.slice(mid).join(' ');
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: sz * 0.12 }}>
-            {/* Outer glow ring */}
+        <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            gap: sz * 0.09,
+        }}>
+            {/* ════ THE JELLY BUBBLE ════ */}
             <div style={{
-                width: sz, height: sz,
-                borderRadius: isOutplugs ? '25% 75% 50% 50% / 50% 50% 70% 30%' : item.shape,
-                padding: 2.5,
-                background: `conic-gradient(from 0deg, ${gs.rimColor}, rgba(255,255,255,0.90), ${item.color}, rgba(255,215,0,0.80), ${gs.rimColor})`,
-                boxShadow: [
-                    `0 0 ${sz * 0.30}px ${item.glow}cc`,
-                    `0 0 ${sz * 0.65}px ${item.glow}44`,
-                    `0 ${sz * 0.08}px ${sz * 0.20}px rgba(0,0,0,0.55)`,
-                ].join(','),
-                flexShrink: 0,
+                width: d, height: d,
+                borderRadius: '50%',
                 position: 'relative',
+                background: `radial-gradient(circle at 36% 26%, rgba(255,255,255,0.30) 0%, ${item.color}22 26%, ${item.color}2a 52%, ${item.color}1a 76%, ${item.color}0c 100%)`,
+                backdropFilter: 'blur(20px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                border: '1.2px solid rgba(255,255,255,0.24)',
+                boxShadow: [
+                    `0 0 ${d * 0.38}px ${item.glow}22`,
+                    `0 ${d * 0.10}px ${d * 0.28}px rgba(0,0,0,0.32)`,
+                    `inset 0 ${d * 0.07}px ${d * 0.18}px rgba(255,255,255,0.24)`,
+                    `inset 0 -${d * 0.04}px ${d * 0.14}px ${item.color}18`,
+                ].join(','),
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 3,
+                overflow: 'hidden',
+                flexShrink: 0,
             }}>
-                {/* Inner sphere body */}
+                {/* ── Primary specular crescent (top-left) ── */}
                 <div style={{
-                    width: '100%', height: '100%',
-                    borderRadius: isOutplugs ? '25% 75% 50% 50% / 50% 50% 70% 30%' : item.shape,
-                    background: gs.bg,
-                    position: 'relative', overflow: 'hidden',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: [
-                        `inset 0 ${sz * 0.06}px ${sz * 0.16}px rgba(255,255,255,0.28)`,  // top inner light
-                        `inset 0 -${sz * 0.06}px ${sz * 0.14}px rgba(0,0,0,0.50)`,       // bottom inner shadow
-                        `inset ${sz * 0.03}px 0 ${sz * 0.12}px rgba(255,255,255,0.12)`,  // left edge highlight
-                    ].join(','),
-                }}>
-                    {/* Crystal facet overlay */}
-                    <div style={{
-                        position: 'absolute', inset: 0,
-                        borderRadius: 'inherit',
-                        background: `conic-gradient(from 30deg, transparent 0%, ${item.color}30 15%, transparent 20%, ${item.color}20 38%, transparent 44%, ${item.color}28 60%, transparent 66%, ${item.color}18 80%, transparent 86%, ${item.color}25 95%, transparent 100%)`,
+                    position: 'absolute',
+                    top: '6%', left: '10%',
+                    width: '52%', height: '35%',
+                    background: 'radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0.22) 40%, transparent 100%)',
+                    borderRadius: '50%',
+                    transform: 'rotate(-25deg)',
+                    filter: 'blur(2.5px)',
+                    pointerEvents: 'none',
+                }} />
+
+                {/* ── Tiny bright specular dot ── */}
+                <div style={{
+                    position: 'absolute',
+                    top: '14%', right: '22%',
+                    width: '12%', height: '10%',
+                    background: 'radial-gradient(circle, rgba(255,255,255,0.78) 0%, transparent 100%)',
+                    borderRadius: '50%',
+                    filter: 'blur(0.8px)',
+                    pointerEvents: 'none',
+                }} />
+
+                {/* ── Rim light at bottom ── */}
+                <div style={{
+                    position: 'absolute',
+                    bottom: '5%', left: '20%', right: '20%',
+                    height: '7%',
+                    background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.18), transparent)',
+                    borderRadius: '50%',
+                    filter: 'blur(1.5px)',
+                    pointerEvents: 'none',
+                }} />
+
+                {/* ── Jelly color aurora — richer tint ── */}
+                <div style={{
+                    position: 'absolute', bottom: 0, left: '5%', right: '5%',
+                    height: '55%',
+                    background: `radial-gradient(ellipse at center bottom, ${item.color}28 0%, ${item.color}12 40%, transparent 75%)`,
+                    filter: 'blur(8px)',
+                    pointerEvents: 'none',
+                }} />
+
+                {/* ── Trapped air micro-bubbles ── */}
+                {bubbles.map((b, j) => (
+                    <div key={j} style={{
+                        position: 'absolute',
+                        left: `${b.x}%`, top: `${b.y}%`,
+                        width: b.r * 2, height: b.r * 2,
+                        borderRadius: '50%',
+                        background: 'radial-gradient(circle at 35% 30%, rgba(255,255,255,0.58) 0%, rgba(255,255,255,0.12) 50%, transparent 100%)',
+                        border: '0.5px solid rgba(255,255,255,0.32)',
+                        boxShadow: `inset 0 0.5px 1px rgba(255,255,255,0.38), 0 0 ${b.r}px rgba(255,255,255,0.08)`,
+                        pointerEvents: 'none',
                     }} />
-                    {/* Specular highlight blob */}
+                ))}
+
+                {/* ── Icon ── */}
+                <span style={{
+                    fontSize: sz * 0.44,
+                    position: 'relative', zIndex: 2,
+                    filter: `drop-shadow(0 2px 6px rgba(0,0,0,0.35)) drop-shadow(0 0 ${sz * 0.10}px ${item.color}55)`,
+                    lineHeight: 1,
+                }}>{item.icon}</span>
+
+                {/* ── Subtitle inside — two lines, bigger, readable ── */}
+                {item.subtitle && (
                     <div style={{
-                        position: 'absolute', top: '6%', left: '14%',
-                        width: '42%', height: '26%',
-                        background: 'radial-gradient(ellipse, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 100%)',
-                        borderRadius: '50%', transform: 'rotate(-22deg)', filter: 'blur(3px)',
-                    }} />
-                    {/* Secondary specular */}
-                    <div style={{
-                        position: 'absolute', top: '12%', left: '58%',
-                        width: '20%', height: '14%',
-                        background: 'radial-gradient(ellipse, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0) 100%)',
-                        borderRadius: '50%', filter: 'blur(2px)',
-                    }} />
-                    {/* Bottom shadow */}
-                    <div style={{
-                        position: 'absolute', bottom: 0, left: 0, right: 0, height: '30%',
-                        background: 'linear-gradient(to top, rgba(0,0,0,0.45), transparent)',
-                        borderRadius: 'inherit',
-                    }} />
-                    {/* Icon */}
-                    <span style={{
-                        fontSize: sz * 0.42, position: 'relative', zIndex: 2,
-                        filter: `drop-shadow(0 0 ${sz * 0.08}px ${item.color}) drop-shadow(0 2px 4px rgba(0,0,0,0.7))`,
-                        lineHeight: 1, textShadow: `0 0 12px ${item.color}`,
-                    }}>{item.icon}</span>
-                </div>
+                        display: 'flex', flexDirection: 'column', alignItems: 'center',
+                        gap: 1, position: 'relative', zIndex: 2, padding: '0 4px',
+                    }}>
+                        <span style={{
+                            fontSize: Math.max(6.8, sz * 0.118),
+                            fontWeight: 600,
+                            fontFamily: "'Outfit', sans-serif",
+                            color: 'rgba(255,255,255,0.65)',
+                            textAlign: 'center',
+                            lineHeight: 1.18,
+                            letterSpacing: '0.02em',
+                            textShadow: '0 1px 4px rgba(0,0,0,0.6)',
+                        }}>{line1}</span>
+                        {line2 && (
+                            <span style={{
+                                fontSize: Math.max(6.8, sz * 0.118),
+                                fontWeight: 600,
+                                fontFamily: "'Outfit', sans-serif",
+                                color: 'rgba(255,255,255,0.55)',
+                                textAlign: 'center',
+                                lineHeight: 1.18,
+                                letterSpacing: '0.02em',
+                                textShadow: '0 1px 4px rgba(0,0,0,0.6)',
+                            }}>{line2}</span>
+                        )}
+                    </div>
+                )}
             </div>
 
-            {/* Gold calligraphy label in pill */}
-            <div style={{
-                fontSize: Math.max(7, sz * 0.148), fontWeight: 800,
-                fontFamily: "'Georgia', serif",
-                color: '#ffd060',
-                letterSpacing: '0.06em', textTransform: 'uppercase', textAlign: 'center',
-                textShadow: '0 0 12px rgba(251,191,36,0.95), 0 0 24px rgba(251,191,36,0.50), 0 2px 4px rgba(0,0,0,0.9)',
-                background: 'rgba(0,0,0,0.62)',
-                backdropFilter: 'blur(8px)',
-                padding: `2px ${Math.max(5, sz * 0.12)}px`,
-                borderRadius: 20,
-                border: '1px solid rgba(251,191,36,0.40)',
+            {/* ════ TITLE — outside below the bubble ════ */}
+            <span style={{
+                fontSize: Math.max(8, sz * 0.16),
+                fontWeight: 700,
+                fontFamily: "'Outfit', sans-serif",
+                color: item.color,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                textAlign: 'center',
+                textShadow: `0 0 14px ${item.color}55, 0 1px 4px rgba(0,0,0,0.8)`,
+                lineHeight: 1.15,
                 whiteSpace: 'nowrap',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
-            }}>{item.title}</div>
+            }}>{item.title}</span>
         </div>
     );
 }
@@ -232,9 +283,113 @@ function Tendrils({ S, rot }: { S: number; rot: number }) {
     );
 }
 
+// ── Feature Detail Overlay (expands on bubble touch) ────────────────────────
+function FeatureDetail({ item, onClose, onNavigate }: { item: OrbItem; onClose: () => void; onNavigate: () => void }) {
+    return (
+        <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={onClose}
+            style={{
+                position: 'fixed', inset: 0, zIndex: 9998,
+                background: 'rgba(2,1,10,0.88)',
+                backdropFilter: 'blur(24px)',
+                WebkitBackdropFilter: 'blur(24px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '1rem',
+            }}
+        >
+            <motion.div
+                onClick={e => e.stopPropagation()}
+                initial={{ scale: 0.7, opacity: 0, y: 30 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.7, opacity: 0, y: 30 }}
+                transition={{ type: 'spring', stiffness: 280, damping: 22 }}
+                style={{
+                    width: '88%', maxWidth: 340,
+                    background: `linear-gradient(160deg, ${item.color}15, rgba(255,255,255,0.05), ${item.color}0a)`,
+                    backdropFilter: 'blur(32px) saturate(180%)',
+                    WebkitBackdropFilter: 'blur(32px) saturate(180%)',
+                    border: `1px solid ${item.color}30`,
+                    borderRadius: 28,
+                    padding: '2rem 1.5rem',
+                    display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', gap: '0.85rem',
+                    position: 'relative',
+                    boxShadow: `0 24px 80px rgba(0,0,0,0.5), 0 0 60px ${item.glow}18`,
+                }}
+            >
+                <button onClick={onClose} style={{
+                    position: 'absolute', top: 14, right: 14,
+                    background: 'rgba(255,255,255,0.08)',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    borderRadius: '50%', width: 30, height: 30,
+                    color: 'rgba(255,255,255,0.6)', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '0.85rem',
+                }}>✕</button>
+
+                <motion.span
+                    animate={{ scale: [1, 1.08, 1] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                    style={{ fontSize: '3rem', filter: `drop-shadow(0 0 20px ${item.color}66)` }}
+                >{item.icon}</motion.span>
+
+                <h3 style={{
+                    margin: 0, fontSize: '1.25rem', fontWeight: 700,
+                    fontFamily: "'Outfit', sans-serif",
+                    color: item.color,
+                    letterSpacing: '0.08em', textTransform: 'uppercase',
+                    textShadow: `0 0 16px ${item.color}44`,
+                    textAlign: 'center',
+                }}>{item.title}</h3>
+
+                <p style={{
+                    margin: 0, fontSize: '0.85rem', fontWeight: 500,
+                    color: 'rgba(255,255,255,0.50)',
+                    fontFamily: "'Outfit', sans-serif",
+                    letterSpacing: '0.04em', textAlign: 'center',
+                }}>{item.subtitle}</p>
+
+                <div style={{
+                    width: '60%', height: 1,
+                    background: `linear-gradient(90deg, transparent, ${item.color}33, transparent)`,
+                }} />
+
+                <p style={{
+                    margin: 0, fontSize: '0.82rem', fontWeight: 400,
+                    color: 'rgba(255,255,255,0.68)',
+                    fontFamily: "'Outfit', sans-serif",
+                    lineHeight: 1.6, textAlign: 'center',
+                    padding: '0 0.5rem',
+                }}>{item.description}</p>
+
+                <motion.button
+                    onClick={onNavigate}
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
+                    style={{
+                        marginTop: '0.3rem',
+                        background: `linear-gradient(135deg, ${item.color}, ${item.glow})`,
+                        border: 'none', borderRadius: 16,
+                        padding: '0.7rem 1.8rem',
+                        color: '#fff', fontWeight: 700, fontSize: '0.85rem',
+                        fontFamily: "'Outfit', sans-serif",
+                        letterSpacing: '0.06em', textTransform: 'uppercase',
+                        cursor: 'pointer',
+                        boxShadow: `0 4px 20px ${item.glow}44`,
+                    }}
+                >
+                    Explore →
+                </motion.button>
+            </motion.div>
+        </motion.div>
+    );
+}
+
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function SacredPortalGrid() {
     const [raagOpen, setRaagOpen] = useState(false);
+    const [expandedItem, setExpandedItem] = useState<OrbItem | null>(null);
     const [orbitSize, setOrbitSize] = useState(480);
     const [rotation, setRotation] = useState(0);
 
@@ -319,7 +474,7 @@ export default function SacredPortalGrid() {
 
     const N = ORBIT_ITEMS.length;       // 9
     const orbitR = orbitSize * 0.43;
-    const orbSize = Math.max(50, orbitSize * 0.138);
+    const orbSize = Math.max(56, orbitSize * 0.16);
     // Platform image fills the inner orbit area completely
     const platformSize = orbitSize * 0.82;
 
@@ -412,9 +567,9 @@ export default function SacredPortalGrid() {
                         <div key={item.id} style={{ position: 'absolute', left: cx, top: cy, transform: 'translate(-50%, -50%)', zIndex: 20 }}>
                             <motion.div whileHover={{ scale: 1.18, filter: `drop-shadow(0 0 ${orbSize * 0.2}px ${item.color})` }} whileTap={{ scale: 0.90 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }}>
                                 {item.isModal
-                                    ? <div onClick={() => setRaagOpen(true)} style={{ cursor: 'pointer' }}><GeodeOrb item={item} sz={orbSize} /></div>
-                                    : <div onClick={() => { if (!hasMoved.current && item.href) router.push(item.href); }} style={{ cursor: 'pointer' }}>
-                                        <GeodeOrb item={item} sz={orbSize} />
+                                    ? <div onClick={() => setRaagOpen(true)} style={{ cursor: 'pointer' }}><GeodeOrb item={item} sz={orbSize} idx={i} /></div>
+                                    : <div onClick={() => { if (!hasMoved.current) setExpandedItem(item); }} style={{ cursor: 'pointer' }}>
+                                        <GeodeOrb item={item} sz={orbSize} idx={i} />
                                     </div>
                                 }
                             </motion.div>
@@ -425,6 +580,16 @@ export default function SacredPortalGrid() {
 
             <AnimatePresence>
                 {raagOpen && <RaagModal onClose={() => setRaagOpen(false)} />}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {expandedItem && (
+                    <FeatureDetail
+                        item={expandedItem}
+                        onClose={() => setExpandedItem(null)}
+                        onNavigate={() => { if (expandedItem.href) router.push(expandedItem.href); setExpandedItem(null); }}
+                    />
+                )}
             </AnimatePresence>
         </div>
     );

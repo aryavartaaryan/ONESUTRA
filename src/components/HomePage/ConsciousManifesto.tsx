@@ -90,12 +90,11 @@ export default function ConsciousManifesto() {
                         letterSpacing: '0.015em',
                     }}
                 >
-                    While the modern web is designed to fragment your attention,{' '}
-                    <strong style={{ color: 'rgba(255,255,255,0.78)', fontWeight: 500 }}>ReZo</strong>{' '}
-                    is engineered to unify your mind. We absorb the friction of your daily tasks
-                    and align your routine with your natural rhythms.{' '}
+                    While modern addictive social media algorithms are designed to fracture your focus and erode your attention span,{' '}
+                    <strong style={{ color: 'rgba(255,255,255,0.78)', fontWeight: 500 }}>OneSUTRA</strong>{' '}
+                    is engineered through years of research & development to unify your consciousness and reclaim your cognitive sovereignty. We absorb the friction of your daily existence — your work, your health, your social life, your career or business, your skills & education, your children's learning, your digital presence across Twitter, LinkedIn, and beyond — and align every dimension with your natural rhythms.{' '}
                     <em style={{ color: 'rgba(253,186,116,0.70)', fontStyle: 'normal' }}>
-                        Surrender the digital chaos. Step into your flow.
+                        Surrender the algorithmic manipulation. Step into your unified flow.
                     </em>
                 </motion.p>
             </motion.div>
