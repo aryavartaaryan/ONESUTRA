@@ -1,0 +1,13 @@
+src/components/Dashboard/TaskManagerDashboard.tsx(444,33): error TS2322: Type 'RefObject<HTMLDivElement | null>' is not assignable to type 'RefObject<HTMLDivElement>'.
+  Type 'HTMLDivElement | null' is not assignable to type 'HTMLDivElement'.
+    Type 'null' is not assignable to type 'HTMLDivElement'.
+src/components/HomePage/MantraStories.tsx(291,73): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Object literal may only specify known properties, and 'size' does not exist in type 'Partial<unknown> & Attributes'.
+src/components/HomePage/MantraStories.tsx(465,25): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Object literal may only specify known properties, and 'size' does not exist in type 'Partial<unknown> & Attributes'.
+src/components/HomePage/MantraStories.tsx(547,23): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Object literal may only specify known properties, and 'size' does not exist in type 'Partial<unknown> & Attributes'.
+src/components/HomePage/StickyTopNav.tsx(753,66): error TS2339: Property 'label' does not exist on type 'never'.

@@ -74,9 +74,10 @@
 /* ── Page canvas ── */
 .dashboardPage {
     min-height: 100vh;
-    background: #F9F6F0;
+    background: linear-gradient(180deg, #FDFBF7 0%, #F9F6F0 50%, #F5F1EA 100%);
     padding: 0 0 7rem;
-    padding-top: 160px; /* offset for 2-row StickyTopNav: brand bar + stories row */
+    padding-top: 230px;
+    /* Increased offset for 2-row StickyTopNav: brand bar + stories row */
     position: relative;
     overflow-x: hidden;
     font-family: 'Inter', sans-serif;
@@ -93,7 +94,7 @@
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='100' cy='100' r='95' stroke='%23c97b3a' stroke-width='0.6'/%3E%3Ccircle cx='100' cy='100' r='66' stroke='%23c97b3a' stroke-width='0.5'/%3E%3Ccircle cx='100' cy='35' r='66' stroke='%23c97b3a' stroke-width='0.4'/%3E%3Ccircle cx='100' cy='165' r='66' stroke='%23c97b3a' stroke-width='0.4'/%3E%3Ccircle cx='44' cy='67' r='66' stroke='%23c97b3a' stroke-width='0.4'/%3E%3Ccircle cx='156' cy='67' r='66' stroke='%23c97b3a' stroke-width='0.4'/%3E%3Ccircle cx='44' cy='133' r='66' stroke='%23c97b3a' stroke-width='0.4'/%3E%3Ccircle cx='156' cy='133' r='66' stroke='%23c97b3a' stroke-width='0.4'/%3E%3C/svg%3E");
     background-size: contain;
     background-repeat: no-repeat;
-    opacity: 0.035;
+    opacity: 0.025;
     pointer-events: none;
     z-index: 0;
     animation: sacredSpin 140s linear infinite;

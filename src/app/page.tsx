@@ -327,7 +327,6 @@ export default function Home() {
             }
           />
 
-          {/* Samkalp always visible, visually fused to Protocol when active */}
           <div style={{ marginTop: brahmastraState.active ? '0.35rem' : '0.8rem' }}>
             <MagicSyncModule
               items={sankalpaItems}

@@ -1,0 +1,17 @@
+src/components/Dashboard/MagicSyncModule.tsx(1078,63): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/Dashboard/MagicSyncModule.tsx(1080,21): error TS1005: '}' expected.
+src/components/Dashboard/MagicSyncModule.tsx(1080,96): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/Dashboard/MagicSyncModule.tsx(1081,21): error TS1005: '}' expected.
+src/components/Dashboard/MagicSyncModule.tsx(1081,106): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/Dashboard/MagicSyncModule.tsx(1082,21): error TS1005: '}' expected.
+src/components/Dashboard/MagicSyncModule.tsx(1082,96): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/Dashboard/MagicSyncModule.tsx(1083,21): error TS1005: '}' expected.
+src/components/Dashboard/MagicSyncModule.tsx(1083,99): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/Dashboard/MagicSyncModule.tsx(1084,35): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/Dashboard/MagicSyncModule.tsx(1230,21): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/Dashboard/MagicSyncModule.tsx(1230,25): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/Dashboard/MagicSyncModule.tsx(1231,15): error TS17002: Expected corresponding JSX closing tag for 'motion.div'.
+src/components/Dashboard/MagicSyncModule.tsx(1233,11): error TS17002: Expected corresponding JSX closing tag for 'div'.
+src/components/Dashboard/MagicSyncModule.tsx(1236,5): error TS1005: ')' expected.
+src/components/Dashboard/MagicSyncModule.tsx(1458,9): error TS1128: Declaration or statement expected.
+src/components/Dashboard/MagicSyncModule.tsx(1459,5): error TS1109: Expression expected.

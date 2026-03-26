@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, MessageCircle, Briefcase, Mic, User } from 'lucide-react';
+import { Home, MessageCircle, Briefcase, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -25,10 +25,6 @@ export default function VahanaBar() {
             label: lang === 'hi' ? 'होम' : 'Home',
         },
         {
-            id: 'acharya', href: '/acharya-samvad', Icon: Mic,
-            label: lang === 'hi' ? 'आचार्य' : 'Acharya',
-        },
-        {
             id: 'profile', href: '/profile', Icon: User,
             label: lang === 'hi' ? 'प्रोफाइल' : 'Profile',
         },
@@ -44,27 +40,23 @@ export default function VahanaBar() {
             `}</style>
             <nav style={{
                 position: 'fixed',
-                bottom: 10,
-                left: '50%',
-                transform: 'translateX(-50%)',
+                bottom: 12, left: 12, right: 12,
                 zIndex: 9000,
-                width: 'min(96vw, 480px)',
-                padding: '0.55rem 0.8rem',
-                borderRadius: 20,
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%)',
-                backdropFilter: 'blur(28px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(28px) saturate(180%)',
-                border: '1px solid rgba(255,255,255,0.11)',
-                boxShadow: '0 4px 24px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.12)',
+                padding: '0.55rem 0.8rem calc(0.55rem + env(safe-area-inset-bottom))',
+                background: 'rgba(20, 20, 30, 0.40)',
+                backdropFilter: 'blur(20px) saturate(140%)',
+                WebkitBackdropFilter: 'blur(20px) saturate(140%)',
+                border: '1px solid rgba(251, 191, 36, 0.25)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-around',
+                borderRadius: 24,
             }}>
-                {/* Ambient gradient overlay */}
+                {/* Golden ambient glow */}
                 <div aria-hidden style={{
-                    position: 'absolute', inset: 0, borderRadius: 'inherit',
-                    background: 'radial-gradient(100% 80% at 50% 100%, rgba(251,191,36,0.06), transparent 60%)',
-                    pointerEvents: 'none',
+                    position: 'absolute', inset: 0, pointerEvents: 'none', borderRadius: 24,
+                    background: 'radial-gradient(ellipse at 50% 100%, rgba(251, 191, 36, 0.10) 0%, transparent 60%)',
                 }} />
 
                 {NAV.map(({ id, href, Icon, label }) => {

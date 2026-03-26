@@ -149,6 +149,7 @@ function keywordCategorize(text: string) {
     if (t.match(/draw|design|music|art|guitar|paint|sketch|create/)) return mapCategoryToStyle('Creative', '🎨');
     if (t.match(/read|book|study|learn|journal|gratitude|reflect/)) return mapCategoryToStyle('Creative', '📖');
     return mapCategoryToStyle('Spiritual', '✨');
+
 }
 
 function mapCategoryToStyle(category: string, icon: string) {
@@ -284,7 +285,363 @@ function SchedulePrompt({ pill, onSchedule, onSkip }: { pill: TaskItem; onSchedu
     );
 }
 
+// ── DraggableBubble component ──────────────────────────────────────────────
+interface DraggableBubbleProps {
+    bubbleKey: string;
+    label: string;
+    emoji: string;
+    count: number;
+    left: string;
+    top: string;
+    size: number;
+    floatAnim: string;
+    color: string;    // background tint rgba
+    glare: string;    // glare rgba
+    isPlanner?: boolean;
+    index: number;
+    dropZoneRef: React.RefObject<HTMLDivElement>;
+    onDrop: (label: string, isPlanner: boolean) => void;
+    onCategoryClick?: (key: string) => void;
+    isActive: boolean;
+}
+
+function DraggableBubble({
+    bubbleKey, label, emoji, count, left, top, size, floatAnim,
+    color, glare, isPlanner = false, index, dropZoneRef, onDrop, onCategoryClick, isActive,
+}: DraggableBubbleProps) {
+    const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const [isOverDrop, setIsOverDrop] = useState(false);
+    const dragRef = useRef<{ startX: number; startY: number; startLeft: number; startTop: number } | null>(null);
+    const elemRef = useRef<HTMLDivElement>(null);
+
+    const checkOverDropZone = useCallback((clientX: number, clientY: number) => {
+        if (!dropZoneRef.current) return false;
+        const dz = dropZoneRef.current.getBoundingClientRect();
+        return clientX >= dz.left && clientX <= dz.right && clientY >= dz.top && clientY <= dz.bottom;
+    }, [dropZoneRef]);
+
+    const handlePointerDown = useCallback((e: React.PointerEvent) => {
+        if (!elemRef.current) return;
+        e.preventDefault();
+        elemRef.current.setPointerCapture(e.pointerId);
+        const rect = elemRef.current.getBoundingClientRect();
+        setIsDragging(true);
+        dragRef.current = {
+            startX: e.clientX,
+            startY: e.clientY,
+            startLeft: rect.left + rect.width / 2,
+            startTop: rect.top + rect.height / 2,
+        };
+        setPos({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+    }, []);
+
+    const handlePointerMove = useCallback((e: React.PointerEvent) => {
+        if (!isDragging || !dragRef.current) return;
+        const dx = e.clientX - dragRef.current.startX;
+        const dy = e.clientY - dragRef.current.startY;
+        setPos({ x: dragRef.current.startLeft + dx, y: dragRef.current.startTop + dy });
+        setIsOverDrop(checkOverDropZone(e.clientX, e.clientY));
+    }, [isDragging, checkOverDropZone]);
+
+    const handlePointerUp = useCallback((e: React.PointerEvent) => {
+        if (!isDragging) return;
+        setIsDragging(false);
+        setIsOverDrop(false);
+        const overDrop = checkOverDropZone(e.clientX, e.clientY);
+        // Animate back to original position
+        setPos(null);
+        dragRef.current = null;
+        if (overDrop) {
+            onDrop(label, isPlanner);
+        } else {
+            // Small click = category expand
+            const moved = dragRef.current ? Math.abs((e.clientX - (dragRef.current as any).startX)) + Math.abs((e.clientY - (dragRef.current as any).startY)) : 0;
+            if (moved < 8 && onCategoryClick && !isPlanner) {
+                onCategoryClick(bubbleKey);
+            }
+        }
+    }, [isDragging, checkOverDropZone, onDrop, label, isPlanner, onCategoryClick, bubbleKey]);
+
+    const handleClick = useCallback(() => {
+        if (!isDragging && onCategoryClick && !isPlanner) {
+            onCategoryClick(bubbleKey);
+        }
+    }, [isDragging, onCategoryClick, isPlanner, bubbleKey]);
+
+    const lines = label.split('\n');
+
+    const bubbleStyle: React.CSSProperties = pos
+        ? {
+            position: 'fixed',
+            left: pos.x,
+            top: pos.y,
+            transform: 'translate(-50%, -50%)',
+            zIndex: 9999,
+            width: size,
+            height: size,
+            cursor: 'grabbing',
+        }
+        : {
+            position: 'absolute',
+            left,
+            top,
+            transform: 'translate(-50%, -50%)',
+            animation: `${floatAnim} ${3.5 + index * 0.7}s ease-in-out infinite`,
+            zIndex: isActive ? 10 : 2,
+            width: size,
+            height: size,
+            cursor: 'grab',
+        };
+
+    const borderColor = isOverDrop ? 'rgba(251,191,36,0.9)' : 'rgba(255,255,255,0.28)';
+    const bgBase = isActive
+        ? `radial-gradient(150% 150% at 30% 20%, rgba(255,255,255,0.42) 0%, ${color.replace('0.35', '0.22')} 40%, rgba(0,0,0,0.40) 100%)`
+        : `radial-gradient(150% 150% at 30% 20%, rgba(255,255,255,0.30) 0%, ${color} 45%, rgba(0,0,0,0.30) 100%)`;
+
+    return (
+        <div
+            ref={elemRef}
+            className="drag-bubble"
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onClick={handleClick}
+            style={{
+                ...bubbleStyle,
+                borderRadius: '50%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: bgBase,
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                border: `1.5px solid ${borderColor}`,
+                boxShadow: isOverDrop
+                    ? `inset 0 0 20px rgba(255,255,255,0.5), 0 0 0 4px rgba(251,191,36,0.4), 0 10px 35px rgba(251,191,36,0.35)`
+                    : isActive
+                        ? `inset 0 0 20px rgba(255,255,255,0.35), inset 5px 5px 20px rgba(255,255,255,0.25), inset -5px -5px 20px rgba(0,0,0,0.35), 0 8px 30px rgba(0,0,0,0.4)`
+                        : `inset 0 0 14px rgba(255,255,255,0.25), inset 4px 4px 16px rgba(255,255,255,0.20), inset -4px -4px 16px rgba(0,0,0,0.20), 0 6px 20px rgba(0,0,0,0.30)`,
+                transition: isDragging ? 'none' : 'box-shadow 0.3s ease, border-color 0.3s ease',
+                userSelect: 'none',
+                touchAction: 'none',
+            }}
+        >
+            {/* Top specular glare */}
+            <div style={{
+                position: 'absolute', top: '8%', left: '14%',
+                width: '46%', height: '32%',
+                background: `linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0) 100%)`,
+                borderRadius: '50%',
+                transform: 'rotate(-22deg)',
+                pointerEvents: 'none',
+            }} />
+            {/* Bottom inner glow */}
+            <div style={{
+                position: 'absolute', bottom: '10%', right: '12%',
+                width: '35%', height: '22%',
+                background: `radial-gradient(ellipse, ${glare} 0%, transparent 70%)`,
+                borderRadius: '50%',
+                pointerEvents: 'none',
+                opacity: 0.5,
+            }} />
+
+            {/* Emoji */}
+            <span style={{ fontSize: size > 70 ? '1.3rem' : '1.05rem', lineHeight: 1, zIndex: 2, pointerEvents: 'none', marginBottom: 2 }}>{emoji}</span>
+
+            {/* Label lines */}
+            {lines.map((line, li) => (
+                <span key={li} style={{
+                    fontSize: size > 72 ? '0.42rem' : '0.37rem',
+                    fontWeight: 800,
+                    color: '#fff',
+                    letterSpacing: '0.07em',
+                    textTransform: 'uppercase',
+                    textShadow: '0 1px 4px rgba(0,0,0,0.7)',
+                    zIndex: 2,
+                    lineHeight: 1.25,
+                    textAlign: 'center',
+                    pointerEvents: 'none',
+                }}>{line}</span>
+            ))}
+
+            {/* Count badge */}
+            {!isPlanner && count > 0 && (
+                <div style={{
+                    position: 'absolute', top: 2, right: 2,
+                    background: 'rgba(251,191,36,0.95)',
+                    borderRadius: '50%',
+                    width: 16, height: 16,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '0.45rem', fontWeight: 800, color: '#000',
+                    zIndex: 3, boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
+                    pointerEvents: 'none',
+                }}>{count}</div>
+            )}
+
+            {/* Planner star indicator */}
+            {isPlanner && (
+                <span style={{
+                    position: 'absolute', bottom: 6, fontSize: '0.5rem',
+                    color: 'rgba(167,139,250,0.9)', zIndex: 3, pointerEvents: 'none',
+                }}>✦ vedic</span>
+            )}
+        </div>
+    );
+}
+
+// ── Sound effect helper ────────────────────────────────────────────────────
+function playDropSound() {
+    if (typeof window === 'undefined') return;
+    try {
+        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        // Gentle wind-chime drop: two short tones
+        const freqs = [880, 1046];
+        freqs.forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08);
+            gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.08);
+            gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + i * 0.08 + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 0.38);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(ctx.currentTime + i * 0.08);
+            osc.stop(ctx.currentTime + i * 0.08 + 0.40);
+        });
+        setTimeout(() => ctx.close(), 900);
+    } catch { /* silently ignore */ }
+}
+
 // ── Main Component ─────────────────────────────────────────────────────────
+// ── Inline Draggable Bubble Subcomponent ──
+const InlineBubble = ({ b, index, dropZoneRef, dropHighlight, setDropHighlight, inputValue, setInputValue, inputRef, setPendingMessage, handleCategoryClick, router }: any) => {
+    const isPlanner = !!b.isPlanner;
+    const [burstKey, setBurstKey] = useState<number>(0);
+    const [isBursting, setIsBursting] = useState(false);
+    const bRef = useRef<HTMLDivElement>(null);
+    const startRef = useRef<{ cx: number; cy: number; bx: number; by: number } | null>(null);
+    const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
+
+    const checkOver = (cx: number, cy: number) => {
+        if (!dropZoneRef.current) return false;
+        const r = dropZoneRef.current.getBoundingClientRect();
+        return cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom;
+    };
+
+    const onPtrDown = (e: React.PointerEvent) => {
+        if (!bRef.current) return;
+        e.preventDefault();
+        bRef.current.setPointerCapture(e.pointerId);
+        const r = bRef.current.getBoundingClientRect();
+        startRef.current = { cx: e.clientX, cy: e.clientY, bx: r.left + r.width / 2, by: r.top + r.height / 2 };
+        setIsDragging(true);
+        setDragPos({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+    };
+
+    const onPtrMove = (e: React.PointerEvent) => {
+        if (!isDragging || !startRef.current) return;
+        const dx = e.clientX - startRef.current.cx;
+        const dy = e.clientY - startRef.current.cy;
+        setDragPos({ x: startRef.current.bx + dx, y: startRef.current.by + dy });
+        setDropHighlight(checkOver(e.clientX, e.clientY));
+    };
+
+    const onPtrUp = (e: React.PointerEvent) => {
+        if (!isDragging || !startRef.current) return;
+        const over = checkOver(e.clientX, e.clientY);
+        const totalMove = Math.abs(e.clientX - startRef.current.cx) + Math.abs(e.clientY - startRef.current.cy);
+        setIsDragging(false);
+        setDragPos(null);
+        startRef.current = null;
+        setDropHighlight(false);
+
+        if (over) {
+            setIsBursting(true);
+            setBurstKey(k => k + 1);
+            setTimeout(() => setIsBursting(false), 600);
+
+            if (isPlanner) {
+                router.push('/vedic-planner');
+                return;
+            }
+            try {
+                const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                [880, 1046.5].forEach((freq, fi) => {
+                    const osc = ctx.createOscillator(); const g = ctx.createGain();
+                    osc.type = 'sine'; osc.frequency.value = freq;
+                    g.gain.setValueAtTime(0, ctx.currentTime + fi * 0.09);
+                    g.gain.linearRampToValueAtTime(0.18, ctx.currentTime + fi * 0.09 + 0.025);
+                    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + fi * 0.09 + 0.38);
+                    osc.connect(g); g.connect(ctx.destination);
+                    osc.start(ctx.currentTime + fi * 0.09); osc.stop(ctx.currentTime + fi * 0.09 + 0.40);
+                });
+                setTimeout(() => ctx.close(), 1000);
+            } catch { /* silent */ }
+
+            const msg = `${b.label}: `;
+            setInputValue(msg);
+            setDropHighlight(true);
+            setTimeout(() => setDropHighlight(false), 900);
+            setTimeout(() => {
+                inputRef.current?.focus();
+                setPendingMessage(msg);
+                router.push('/bodhi-chat');
+            }, 650);
+        } else if (totalMove < 10 && !isPlanner) {
+            handleCategoryClick(b.key);
+        } else if (totalMove < 10 && isPlanner) {
+            router.push('/vedic-planner');
+        }
+    };
+
+    const isOverDrop = dropHighlight && !!dragPos;
+
+    const bubbleEl = (
+        <div ref={bRef} className="ms-drag-bubble" onPointerDown={onPtrDown} onPointerMove={onPtrMove} onPointerUp={onPtrUp}
+            style={{
+                width: b.size, height: b.size, marginBottom: -b.arcY, borderRadius: '50%', position: 'relative', flexShrink: 0,
+                animationName: dragPos ? 'none' : b.anim, animationDuration: `${b.dur + index * 0.4}s`, animationDelay: `${index * 0.55}s`,
+                animationTimingFunction: 'ease-in-out', animationIterationCount: 'infinite',
+                opacity: isBursting ? 0 : 1, transform: isBursting ? 'scale(2.2)' : undefined, transition: isBursting ? 'opacity 0.4s ease, transform 0.4s ease' : 'opacity 0.2s',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                background: isOverDrop ? `radial-gradient(circle at 30% 25%, rgba(255,255,255,0.60) 0%, rgba(251,191,36,0.45) 50%, rgba(251,191,36,0.15) 100%)` : `radial-gradient(circle at 30% 25%, rgba(255,255,255,0.38) 0%, ${b.bg} 52%, rgba(0,0,0,0.25) 100%)`,
+                backdropFilter: 'blur(14px) saturate(180%)', WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+                border: isOverDrop ? '2px solid rgba(251,191,36,0.95)' : '1.5px solid rgba(255,255,255,0.28)',
+                boxShadow: isOverDrop ? `inset 0 0 22px rgba(255,255,255,0.55), 0 0 0 5px rgba(251,191,36,0.30), 0 10px 36px rgba(251,191,36,0.40)` : `inset 0 0 15px rgba(255,255,255,0.22), inset 4px 4px 14px rgba(255,255,255,0.16), inset -4px -4px 14px rgba(0,0,0,0.18), 0 7px 24px rgba(0,0,0,0.32)`,
+                userSelect: 'none', touchAction: 'none',
+            }}
+        >
+            <div style={{ position: 'absolute', top: '7%', left: '13%', width: '48%', height: '30%', background: 'linear-gradient(155deg, rgba(255,255,255,0.80) 0%, rgba(255,255,255,0) 100%)', borderRadius: '50%', transform: 'rotate(-22deg)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', bottom: '10%', right: '10%', width: '36%', height: '22%', background: `radial-gradient(ellipse, ${b.glare} 0%, transparent 70%)`, borderRadius: '50%', pointerEvents: 'none', opacity: 0.55 }} />
+            <span style={{ fontSize: b.size > 68 ? '1.4rem' : '1.1rem', lineHeight: 1, pointerEvents: 'none', zIndex: 2, marginBottom: 2 }}>{b.emoji}</span>
+            <span style={{ fontSize: b.size > 68 ? '0.39rem' : '0.34rem', fontWeight: 900, color: '#fff', letterSpacing: '0.07em', textTransform: 'uppercase', textShadow: `0 1px 5px rgba(0,0,0,0.75)`, zIndex: 2, lineHeight: 1.2, textAlign: 'center', pointerEvents: 'none' }}>
+                {b.label}
+                {isPlanner && <><br /><span style={{ opacity: 0.75, fontStyle: 'italic', fontWeight: 600 }}>PLANNER</span></>}
+            </span>
+            {!isPlanner && b.count > 0 && <div style={{ position: 'absolute', top: 1, right: 1, width: 15, height: 15, borderRadius: '50%', background: `linear-gradient(135deg, ${b.color} 0%, ${b.color}bb 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.40rem', fontWeight: 900, color: '#000', zIndex: 3, boxShadow: `0 2px 6px ${b.color}80`, border: '1px solid rgba(255,255,255,0.4)', pointerEvents: 'none' }}>{b.count}</div>}
+            {isPlanner && <span style={{ position: 'absolute', bottom: 6, fontSize: '0.32rem', color: 'rgba(196,181,253,0.95)', fontStyle: 'italic', letterSpacing: '0.05em', zIndex: 3, pointerEvents: 'none' }}>✦ vedic</span>}
+            {isBursting && <div key={burstKey} style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2.5px solid rgba(251,191,36,0.8)', animation: 'msBurstRing 0.55s ease-out forwards', pointerEvents: 'none' }} />}
+        </div>
+    );
+
+    return (
+        <React.Fragment>
+            {bubbleEl}
+            {dragPos && isDragging && (
+                <div style={{ position: 'fixed', left: dragPos.x, top: dragPos.y, transform: 'translate(-50%, -50%)', width: b.size, height: b.size, borderRadius: '50%', zIndex: 9999, background: isOverDrop ? `radial-gradient(circle at 30% 25%, rgba(255,255,255,0.60) 0%, rgba(251,191,36,0.45) 50%, rgba(251,191,36,0.15) 100%)` : `radial-gradient(circle at 30% 25%, rgba(255,255,255,0.38) 0%, ${b.bg} 52%, rgba(0,0,0,0.25) 100%)`, backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', border: isOverDrop ? '2px solid rgba(251,191,36,0.95)' : '1.5px solid rgba(255,255,255,0.28)', boxShadow: isOverDrop ? `0 0 0 5px rgba(251,191,36,0.25), 0 10px 36px rgba(251,191,36,0.45)` : `0 12px 40px rgba(0,0,0,0.45)`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'grabbing', pointerEvents: 'none' }}>
+                    <div style={{ position: 'absolute', top: '7%', left: '13%', width: '48%', height: '30%', background: 'linear-gradient(155deg, rgba(255,255,255,0.80) 0%, rgba(255,255,255,0) 100%)', borderRadius: '50%', transform: 'rotate(-22deg)' }} />
+                    <span style={{ fontSize: b.size > 68 ? '1.4rem' : '1.1rem', lineHeight: 1, zIndex: 2 }}>{b.emoji}</span>
+                    <span style={{ fontSize: '0.36rem', fontWeight: 900, color: '#fff', letterSpacing: '0.07em', textTransform: 'uppercase', textShadow: '0 1px 5px rgba(0,0,0,0.75)', zIndex: 2 }}>{b.label}</span>
+                </div>
+            )}
+        </React.Fragment>
+    );
+};
+
 export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAdd, onUpdate }: MagicSyncModuleProps) {
     const [inputValue, setInputValue] = useState('');
     const [isTyping, setIsTyping] = useState(false);
@@ -294,8 +651,10 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
     const [aiAdvice, setAiAdvice] = useState<Record<string, string>>({});
     const [isGeneratingAdvice, setIsGeneratingAdvice] = useState<string | null>(null);
     const [filterDate, setFilterDate] = useState<string | null>(null);
-    const [hoveredBubble, setHoveredBubble] = useState<number | null>(null);
+    const [dropHighlight, setDropHighlight] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
+    const dropZoneRef = useRef<HTMLDivElement>(null);
+    const moduleRef = useRef<HTMLDivElement>(null);
 
     // ── Bodhi Conversation State ──────────────────────────────────────────────
     const [bodhiState, setBodhiState] = useState<BodhiChatState>('idle');
@@ -444,8 +803,27 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
         { key: 'Issue', emoji: '🔥', label: 'Issues', color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.30)' },
     ].map(c => ({ ...c, count: tasks.filter(t => !t.done && t.category === c.key).length }));
 
+    // ── Bubble drag-to-input logic ─────────────────────────────────────────
+    const handleBubbleDrop = useCallback((label: string, isPlanner: boolean) => {
+        if (isPlanner) {
+            router.push('/vedic-planner');
+            return;
+        }
+        playDropSound();
+        setDropHighlight(true);
+        const displayText = `${label}: `;
+        setInputValue(displayText);
+        inputRef.current?.focus();
+        setTimeout(() => setDropHighlight(false), 1200);
+        // Set pending message and navigate to bodhi chat after brief delay
+        setTimeout(() => {
+            setPendingMessage(displayText);
+            router.push('/bodhi-chat');
+        }, 700);
+    }, [router, setPendingMessage]);
+
     return (
-        <div style={{
+        <div ref={moduleRef} style={{
             width: '100%',
             display: 'flex', flexDirection: 'column', gap: '0.55rem',
             position: 'relative',
@@ -465,15 +843,14 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                     WebkitBackdropFilter: 'blur(2px) saturate(110%)',
                     border: '1px solid rgba(255, 255, 255, 0.12)',
                     boxShadow: '0 4px 24px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
-                    overflow: 'hidden',
+                    overflow: 'visible',
                 }}
             >
-                {/* Subtle shimmer — no dark ambient glow */}
+                {/* Subtle shimmer */}
                 <div style={{
-                    position: 'absolute', inset: 0, pointerEvents: 'none',
+                    position: 'absolute', inset: 0, pointerEvents: 'none', borderRadius: 28, overflow: 'hidden',
                     background: 'radial-gradient(ellipse at 30% 0%, rgba(251, 191, 36, 0.06) 0%, transparent 50%)',
                 }} />
-
 
                 {/* ── SMART MANAGER HEADER ── */}
                 <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.9rem' }}>
@@ -486,7 +863,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                             textTransform: 'uppercase',
                         }}>
                             <span style={{ marginRight: 6 }}>✦</span>
-                            Add your tasks, Challenges & ideas
+                            Add your tasks, Challenges &amp; ideas
                         </h2>
                         <p style={{
                             margin: '0.4rem 0 0', fontSize: 'clamp(0.64rem, 2.7vw, 0.76rem)',
@@ -499,120 +876,204 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                             Calm your mind · Your AI Sakha <span style={{ color: '#fbbf24', fontWeight: 500 }}>Bodhi</span> will advise and schedule it
                         </p>
                     </div>
+                    {/* CAL Button */}
+                    <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        whileHover={{ scale: 1.05 }}
+                        onClick={() => setShowCalendar(!showCalendar)}
+                        style={{
+                            background: 'rgba(255, 255, 255, 0.08)',
+                            backdropFilter: 'blur(12px)',
+                            border: '1px solid rgba(255, 255, 255, 0.20)',
+                            borderRadius: 12,
+                            padding: '0.5rem 0.9rem',
+                            display: 'flex', alignItems: 'center', gap: 6,
+                            cursor: 'pointer',
+                            color: 'rgba(255, 255, 255, 0.70)',
+                            fontSize: '0.65rem',
+                            fontWeight: 500,
+                            fontFamily: "'Inter', system-ui, sans-serif",
+                            letterSpacing: '0.08em',
+                            flexShrink: 0,
+                        }}
+                    >
+                        <Calendar size={14} />
+                        CAL
+                    </motion.button>
+                </div>
 
-                    {/* ── RIGHT ACTION COLUMN ── */}
-                    {/* ── SMART PLANNER ACTION BUTTON ── */}
-                    <Link href="/vedic-planner" style={{ textDecoration: 'none', flexShrink: 0 }}>
-                        <motion.div
-                            whileHover={{ scale: 1.05, y: -2, transition: { duration: 0.2 } }}
-                            whileTap={{ scale: 0.95 }}
+
+                {/* ── BUBBLE ARENA + DROP BAR ── */}
+                <style>{`
+                    @keyframes msFloat0{0%,100%{transform:translateY(0px) rotate(0deg)}35%{transform:translateY(-8px) rotate(1.2deg)}70%{transform:translateY(-3px) rotate(-0.6deg)}}
+                    @keyframes msFloat1{0%,100%{transform:translateY(0px) rotate(0deg)}42%{transform:translateY(-10px) rotate(-1.5deg)}72%{transform:translateY(-2px) rotate(0.8deg)}}
+                    @keyframes msFloat2{0%,100%{transform:translateY(0px) rotate(0deg)}28%{transform:translateY(-6px) rotate(2deg)}74%{transform:translateY(-9px) rotate(-1deg)}}
+                    @keyframes msFloat3{0%,100%{transform:translateY(0px) rotate(0deg)}55%{transform:translateY(-7px) rotate(-1.8deg)}82%{transform:translateY(-3px) rotate(1deg)}}
+                    @keyframes msFloat4{0%,100%{transform:translateY(0px) rotate(0deg)}32%{transform:translateY(-5px) rotate(1.3deg)}65%{transform:translateY(-11px) rotate(-0.7deg)}}
+                    @keyframes msBurstRing{0%{transform:scale(1);opacity:0.9}100%{transform:scale(3.5);opacity:0}}
+                    @keyframes msBarPulse{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,0.5),inset 0 1px 0 rgba(255,255,255,0.2)}50%{box-shadow:0 0 0 8px rgba(251,191,36,0.08),inset 0 1px 0 rgba(255,255,255,0.2)}}
+                    .ms-drag-bubble{touch-action:none;cursor:grab;}
+                    .ms-drag-bubble:active{cursor:grabbing!important;}
+                `}</style>
+
+                {/* Drag hint */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.9, duration: 0.5 }}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: '0.3rem', position: 'relative', zIndex: 3 }}
+                >
+                    <motion.span animate={{ x: [0, 5, 0] }} transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }} style={{ fontSize: '0.8rem' }}>👇</motion.span>
+                    <span style={{ fontSize: '0.56rem', color: 'rgba(255,255,255,0.50)', fontStyle: 'italic', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.05em' }}>
+                        Drag any bubble into the bar — Sakha Bodhi will help
+                    </span>
+                    <motion.span animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }} style={{ fontSize: '0.8rem' }}>✨</motion.span>
+                </motion.div>
+
+                {/* ── Arc orbit container ── */}
+                <div
+                    style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingBottom: '0.5rem' }}
+                    onPointerMove={useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+                        if (!dropZoneRef.current) return;
+                        const r = dropZoneRef.current.getBoundingClientRect();
+                        const over = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+                        setDropHighlight(over);
+                    }, [])}
+                    onPointerLeave={useCallback(() => setDropHighlight(false), [])}
+                >
+                    {/* Floating bubbles row — 5 bubbles in a gentle arc */}
+                    <div style={{
+                        display: 'flex', justifyContent: 'center', alignItems: 'flex-end',
+                        gap: '0.55rem', marginBottom: '0.85rem',
+                        position: 'relative', zIndex: 4,
+                        flexWrap: 'nowrap',
+                    }}>
+                        {[
+                            { key: 'Task', label: 'TASKS', emoji: '✅', count: categoryStats.find(c => c.key === 'Task')?.count ?? 0, color: '#4ade80', bg: 'rgba(74,222,128,0.32)', glare: 'rgba(74,222,128,0.65)', anim: 'msFloat0', dur: 3.8, size: 64, arcY: -6 },
+                            { key: 'Challenge', label: 'CHALLENGE', emoji: '⚡', count: categoryStats.find(c => c.key === 'Challenge')?.count ?? 0, color: '#fb923c', bg: 'rgba(251,146,60,0.32)', glare: 'rgba(251,146,60,0.65)', anim: 'msFloat1', dur: 4.3, size: 58, arcY: 10 },
+                            { key: 'Idea', label: 'IDEA', emoji: '💡', count: categoryStats.find(c => c.key === 'Idea')?.count ?? 0, color: '#fbbf24', bg: 'rgba(251,191,36,0.32)', glare: 'rgba(251,191,36,0.70)', anim: 'msFloat2', dur: 3.5, size: 74, arcY: -14 },
+                            { key: 'Issue', label: 'ISSUE', emoji: '🔥', count: categoryStats.find(c => c.key === 'Issue')?.count ?? 0, color: '#f87171', bg: 'rgba(248,113,113,0.32)', glare: 'rgba(248,113,113,0.65)', anim: 'msFloat3', dur: 4.7, size: 56, arcY: 8 },
+                            { key: 'Planner', label: 'SMART', emoji: '🗓️', count: 0, color: '#a78bfa', bg: 'rgba(167,139,250,0.32)', glare: 'rgba(167,139,250,0.70)', anim: 'msFloat4', dur: 4.0, size: 62, arcY: -4, isPlanner: true },
+                        ].map((b, i) => (
+                            <InlineBubble 
+                                key={b.key} b={b} index={i} 
+                                dropZoneRef={dropZoneRef} dropHighlight={dropHighlight} setDropHighlight={setDropHighlight} 
+                                inputValue={inputValue} setInputValue={setInputValue} inputRef={inputRef} 
+                                setPendingMessage={setPendingMessage} handleCategoryClick={handleCategoryClick} router={router} 
+                            />
+                        ))}
+                    </div>
+
+                    {/* ── Centered narrow drop zone input bar ── */}
+                    <motion.div
+                        ref={dropZoneRef}
+                        animate={dropHighlight
+                            ? { borderColor: 'rgba(251,191,36,0.80)', boxShadow: '0 0 0 4px rgba(251,191,36,0.18), 0 6px 28px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.25)', background: 'rgba(251,191,36,0.06)' }
+                            : { borderColor: 'rgba(255,255,255,0.17)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), 0 6px 24px rgba(0,0,0,0.38)', background: 'rgba(255,255,255,0.05)' }
+                        }
+                        transition={{ duration: 0.22 }}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: '0.4rem',
+                            padding: '0.45rem 0.55rem',
+                            borderRadius: 999,
+                            width: '86%',
+                            maxWidth: 340,
+                            backdropFilter: 'blur(32px) saturate(220%)',
+                            WebkitBackdropFilter: 'blur(32px) saturate(220%)',
+                            border: '1.5px solid rgba(255,255,255,0.17)',
+                            position: 'relative', zIndex: 3,
+                            animation: dropHighlight ? 'msBarPulse 1s ease-in-out infinite' : 'none',
+                        }}
+                    >
+                        {/* Icon */}
+                        <motion.span
+                            animate={dropHighlight ? { scale: [1, 1.5, 1], rotate: [0, 20, -20, 0] } : { scale: 1, rotate: 0 }}
+                            transition={{ duration: 0.45 }}
+                            style={{ fontSize: '0.95rem', flexShrink: 0, lineHeight: 1 }}
+                        >
+                            {dropHighlight ? '✨' : '🎯'}
+                        </motion.span>
+
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            value={inputValue}
+                            onChange={e => setInputValue(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+                            placeholder="Drop bubble or type task..."
                             style={{
-                                display: 'flex', alignItems: 'center', gap: '8px',
-                                padding: '0.45rem 0.8rem',
-                                borderRadius: 14,
-                                position: 'relative', overflow: 'hidden',
+                                flex: 1, minWidth: 0,
+                                background: 'transparent',
+                                border: 'none', outline: 'none',
+                                color: dropHighlight ? '#fbbf24' : 'rgba(255,255,255,0.92)',
+                                fontSize: '0.80rem', fontWeight: 400,
+                                fontFamily: "'Inter', system-ui, sans-serif",
+                                padding: '0.22rem 0.3rem',
+                                transition: 'color 0.25s ease',
+                            }}
+                        />
+
+                        {/* BODHI btn */}
+                        <motion.button
+                            whileTap={{ scale: 0.94 }}
+                            whileHover={{ scale: 1.06 }}
+                            onClick={() => router.push('/bodhi-chat')}
+                            style={{
+                                background: 'rgba(251,191,36,0.12)',
+                                backdropFilter: 'blur(8px)',
+                                border: '1px solid rgba(251,191,36,0.28)',
+                                borderRadius: 999,
+                                padding: '0.32rem 0.65rem',
+                                display: 'flex', alignItems: 'center', gap: 4,
                                 cursor: 'pointer',
-                                background: 'radial-gradient(ellipse at top left, rgba(251,191,36,0.2) 0%, rgba(10,15,30,0.6) 100%)',
-                                backdropFilter: 'blur(16px) saturate(140%)',
-                                WebkitBackdropFilter: 'blur(16px) saturate(140%)',
-                                border: '1px solid rgba(251,191,36,0.35)',
-                                boxShadow: '0 4px 16px rgba(0,0,0,0.2), inset 0 1px 1px rgba(255,255,255,0.15)',
+                                color: '#fbbf24',
+                                fontSize: '0.58rem',
+                                fontWeight: 700,
+                                fontFamily: "'Inter', system-ui, sans-serif",
+                                letterSpacing: '0.08em',
+                                flexShrink: 0,
+                                transition: 'all 0.2s ease',
                             }}
                         >
-                            <Calendar size={18} strokeWidth={2.5} style={{ color: '#fbbf24', filter: 'drop-shadow(0 0 6px #fbbf24)' }} />
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.1 }}>
-                                <span style={{
-                                    fontSize: '0.50rem', fontWeight: 700,
-                                    letterSpacing: '0.14em', textTransform: 'uppercase',
-                                    color: 'rgba(255,255,255,0.7)',
-                                    fontFamily: "'Inter', system-ui, sans-serif",
-                                }}>Smart</span>
-                                <span style={{
-                                    fontSize: '0.65rem', fontWeight: 800,
-                                    letterSpacing: '0.12em', textTransform: 'uppercase',
-                                    color: '#fbbf24',
-                                    fontFamily: "'Inter', system-ui, sans-serif",
-                                }}>Planner</span>
-                            </div>
-                        </motion.div>
-                    </Link>
+                            <Sparkles size={10} />
+                            BODHI
+                        </motion.button>
+
+                        {/* Send btn */}
+                        <AnimatePresence>
+                            {inputValue.trim() && (
+                                <motion.button
+                                    key="send"
+                                    initial={{ scale: 0, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{ scale: 0, opacity: 0 }}
+                                    transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={handleSubmit}
+                                    style={{
+                                        background: 'linear-gradient(135deg, rgba(251,191,36,0.95) 0%, rgba(245,158,11,0.95) 100%)',
+                                        border: 'none', borderRadius: 999,
+                                        padding: '0.55rem',
+                                        cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        color: '#000',
+                                        boxShadow: '0 4px 16px rgba(251,191,36,0.48)',
+                                        flexShrink: 0,
+                                    }}
+                                >
+                                    <Send size={14} />
+                                </motion.button>
+                            )}
+                        </AnimatePresence>
+                    </motion.div>
+
+                    {/* Footer hint */}
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.45rem' }}>
+                        <span style={{ fontSize: '0.52rem', color: 'rgba(255,255,255,0.33)', fontStyle: 'italic', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.04em' }}>
+                            Drag bubble → bar · or type · Enter to send to Bodhi
+                        </span>
+                    </div>
                 </div>
-
-                {/* ── 2x2 GLASSY PILL GRID ── */}
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: '0.8rem',
-                    marginBottom: '1.5rem',
-                    zIndex: 2,
-                    position: 'relative'
-                }}>
-                    {[
-                        { key: 'Task', label: 'TASKS', count: categoryStats.find(c => c.key === 'Task')?.count ?? 0, icon: '✦', color: '#4ade80' },
-                        { key: 'Challenge', label: 'CHALLENGES', count: categoryStats.find(c => c.key === 'Challenge')?.count ?? 0, icon: '⚡', color: '#fb923c' },
-                        { key: 'Idea', label: 'IDEAS', count: categoryStats.find(c => c.key === 'Idea')?.count ?? 0, icon: '♦', color: '#fbbf24' },
-                        { key: 'Issue', label: 'ISSUES', count: categoryStats.find(c => c.key === 'Issue')?.count ?? 0, icon: '🔺', color: '#f87171' },
-                    ].map((b, i) => {
-                        const isActive = expandedCategory === b.key;
-                        return (
-                            <motion.button
-                                key={b.key}
-                                onClick={() => handleCategoryClick(b.key)}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.5, delay: i * 0.1, ease: 'easeOut' }}
-                                whileHover={{ scale: 1.04, backgroundColor: 'rgba(255,255,255,0.08)' }}
-                                whileTap={{ scale: 0.95 }}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    padding: '0.45rem 0.65rem',
-                                    borderRadius: '999px',
-                                    background: isActive ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.03)',
-                                    border: isActive ? `1.5px solid ${b.color}50` : '1px solid rgba(255,255,255,0.15)',
-                                    backdropFilter: 'blur(16px)',
-                                    WebkitBackdropFilter: 'blur(16px)',
-                                    cursor: 'pointer',
-                                    outline: 'none',
-                                    boxShadow: isActive ? `0 0 15px ${b.color}20, inset 0 2px 5px rgba(255,255,255,0.1)` : 'inset 0 1px 1px rgba(255,255,255,0.1)',
-                                }}
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <span style={{ color: b.color, fontSize: '0.55rem', filter: `drop-shadow(0 0 5px ${b.color}40)` }}>{b.icon}</span>
-                                    <span style={{
-                                        color: '#ffffff',
-                                        fontSize: '0.42rem',
-                                        fontWeight: 700,
-                                        letterSpacing: '0.12em',
-                                        fontFamily: "'Inter', system-ui, sans-serif"
-                                    }}>
-                                        {b.label}
-                                    </span>
-                                </div>
-                                <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    minWidth: '15px',
-                                    height: '15px',
-                                    borderRadius: '50%',
-                                    background: b.count > 0 ? b.color : 'rgba(255,255,255,0.1)',
-                                    color: b.count > 0 ? '#000000' : 'rgba(255,255,255,0.6)',
-                                    fontSize: '0.42rem',
-                                    fontWeight: 800,
-                                    padding: '0 3px',
-                                    boxShadow: b.count > 0 ? `0 0 8px ${b.color}60` : 'inset 0 1px 2px rgba(0,0,0,0.2)'
-                                }}>
-                                    {b.count}
-                                </div>
-                            </motion.button>
-                        );
-                    })}
-                </div>
-
-
-
 
                 <AnimatePresence>
                     {expandedCategory && (() => {
@@ -625,471 +1086,377 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                         ].find(c => c.key === expandedCategory);
 
                         return (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    style={{
+                        overflow: 'hidden',
+                        marginBottom: '0.85rem',
+                    }}
+                >
+                    <div style={{
+                        background: 'rgba(20, 20, 35, 0.40)',
+                        backdropFilter: 'blur(20px) saturate(160%)',
+                        borderRadius: 20,
+                        border: `1px solid ${categoryConfig?.color || '#fbbf24'}40`,
+                        padding: '1rem',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
+                    }}>
+                        {/* Header */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <Brain size={18} style={{ color: categoryConfig?.color || '#fbbf24' }} />
+                                <span style={{
+                                    fontSize: '0.75rem', fontWeight: 700,
+                                    color: categoryConfig?.color || '#fbbf24',
+                                    letterSpacing: '0.08em', textTransform: 'uppercase',
+                                    fontFamily: "'Inter', system-ui, sans-serif",
+                                }}>{categoryConfig?.label}</span>
+                                <span style={{
+                                    fontSize: '0.65rem', color: 'rgba(255, 255, 255, 0.50)',
+                                    fontFamily: "'Inter', system-ui, sans-serif",
+                                }}>({categoryItems.length})</span>
+                            </div>
+                            <button
+                                onClick={() => setExpandedCategory(null)}
                                 style={{
-                                    overflow: 'hidden',
-                                    marginBottom: '0.85rem',
+                                    background: 'none', border: 'none', cursor: 'pointer',
+                                    color: 'rgba(255, 255, 255, 0.50)', padding: 4,
                                 }}
                             >
-                                <div style={{
-                                    background: 'rgba(20, 20, 35, 0.40)',
-                                    backdropFilter: 'blur(20px) saturate(160%)',
-                                    borderRadius: 20,
-                                    border: `1px solid ${categoryConfig?.color || '#fbbf24'}40`,
-                                    padding: '1rem',
-                                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
-                                }}>
-                                    {/* Header */}
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                            <Brain size={18} style={{ color: categoryConfig?.color || '#fbbf24' }} />
-                                            <span style={{
-                                                fontSize: '0.75rem', fontWeight: 700,
-                                                color: categoryConfig?.color || '#fbbf24',
-                                                letterSpacing: '0.08em', textTransform: 'uppercase',
-                                                fontFamily: "'Inter', system-ui, sans-serif",
-                                            }}>{categoryConfig?.label}</span>
-                                            <span style={{
-                                                fontSize: '0.65rem', color: 'rgba(255, 255, 255, 0.50)',
-                                                fontFamily: "'Inter', system-ui, sans-serif",
-                                            }}>({categoryItems.length})</span>
-                                        </div>
+                                <X size={16} />
+                            </button>
+                        </div>
+
+                        {/* AI Advice Section */}
+                        <div style={{
+                            background: 'rgba(251, 191, 36, 0.10)',
+                            borderRadius: 12,
+                            padding: '0.75rem',
+                            marginBottom: '0.75rem',
+                            border: '1px solid rgba(251, 191, 36, 0.25)',
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                                <Sparkles size={14} style={{ color: '#fbbf24' }} />
+                                <span style={{
+                                    fontSize: '0.6rem', fontWeight: 700, color: '#fbbf24',
+                                    letterSpacing: '0.1em', textTransform: 'uppercase',
+                                    fontFamily: "'Inter', system-ui, sans-serif",
+                                }}>AI Sakha Bodhi Advice</span>
+                            </div>
+
+                            {isGeneratingAdvice === expandedCategory ? (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <div style={{ display: 'flex', gap: 3 }}>
+                                        {[0, 0.15, 0.3].map(d => (
+                                            <motion.div key={d}
+                                                animate={{ y: [0, -4, 0] }}
+                                                transition={{ duration: 0.6, repeat: Infinity, delay: d }}
+                                                style={{ width: 5, height: 5, borderRadius: '50%', background: '#fbbf24' }}
+                                            />
+                                        ))}
+                                    </div>
+                                    <span style={{
+                                        fontSize: '0.7rem', color: 'rgba(255, 255, 255, 0.70)',
+                                        fontStyle: 'italic',
+                                    }}>Bodhi is generating wisdom...</span>
+                                </div>
+                            ) : (
+                                <p style={{
+                                    margin: 0, fontSize: '0.72rem', lineHeight: 1.5,
+                                    color: 'rgba(255, 255, 255, 0.90)',
+                                    fontStyle: 'italic',
+                                }}>{aiAdvice[expandedCategory] || "Click to receive personalized guidance from your AI Sakha."}</p>
+                            )}
+                        </div>
+
+                        {/* Items List */}
+                        {categoryItems.length > 0 ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                {categoryItems.map((item, idx) => (
+                                    <motion.div
+                                        key={item.id}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: idx * 0.05 }}
+                                        style={{
+                                            display: 'flex', alignItems: 'center', gap: '0.6rem',
+                                            padding: '0.6rem 0.75rem',
+                                            background: 'rgba(255, 255, 255, 0.06)',
+                                            borderRadius: 12,
+                                            border: '1px solid rgba(255, 255, 255, 0.10)',
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '1rem' }}>{item.icon || '✨'}</span>
+                                        <span style={{
+                                            flex: 1, fontSize: '0.75rem',
+                                            color: 'rgba(255, 255, 255, 0.90)',
+                                            lineHeight: 1.4,
+                                        }}>{item.text}</span>
                                         <button
-                                            onClick={() => setExpandedCategory(null)}
+                                            onClick={() => handleComplete(item)}
                                             style={{
-                                                background: 'none', border: 'none', cursor: 'pointer',
-                                                color: 'rgba(255, 255, 255, 0.50)', padding: 4,
+                                                background: categoryConfig?.bg || 'rgba(251, 191, 36, 0.15)',
+                                                border: `1px solid ${categoryConfig?.color || '#fbbf24'}40`,
+                                                borderRadius: 999,
+                                                padding: '0.35rem 0.7rem',
+                                                cursor: 'pointer',
+                                                color: categoryConfig?.color || '#fbbf24',
+                                                fontSize: '0.55rem',
+                                                fontWeight: 700,
+                                                letterSpacing: '0.06em',
+                                                textTransform: 'uppercase',
+                                                display: 'flex', alignItems: 'center', gap: 4,
                                             }}
                                         >
-                                            <X size={16} />
+                                            <Check size={10} />
+                                            Done
                                         </button>
-                                    </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div style={{
+                                textAlign: 'center', padding: '1.5rem',
+                                color: 'rgba(255, 255, 255, 0.50)',
+                            }}>
+                                <span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem' }}>✨</span>
+                                <span style={{ fontSize: '0.7rem' }}>No {categoryConfig?.label.toLowerCase()} yet. Add one below!</span>
+                            </div>
+                        )}
+                    </div>
+                </motion.div>
+                );
+                    })()}
+            </AnimatePresence>
 
-                                    {/* AI Advice Section */}
-                                    <div style={{
-                                        background: 'rgba(251, 191, 36, 0.10)',
-                                        borderRadius: 12,
-                                        padding: '0.75rem',
-                                        marginBottom: '0.75rem',
-                                        border: '1px solid rgba(251, 191, 36, 0.25)',
-                                    }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                                            <Sparkles size={14} style={{ color: '#fbbf24' }} />
-                                            <span style={{
-                                                fontSize: '0.6rem', fontWeight: 700, color: '#fbbf24',
-                                                letterSpacing: '0.1em', textTransform: 'uppercase',
-                                                fontFamily: "'Inter', system-ui, sans-serif",
-                                            }}>AI Sakha Bodhi Advice</span>
+        </motion.div>
+
+
+    {/* ── Calendar (toggleable) ── */ }
+    <AnimatePresence>
+        {
+            showCalendar && (
+                <motion.div key="calendar" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }} style={{ overflow: 'hidden' }}>
+                    <MiniCalendar tasks={tasks} onDateSelect={d => { setFilterDate(prev => prev === d ? null : d); }} />
+                    {filterDate && <p style={{ margin: '0.3rem 0 0', fontSize: '0.54rem', color: 'rgba(251,191,36,0.55)', fontFamily: 'monospace', letterSpacing: '0.10em', textAlign: 'center' }}>Showing: {filterDate} · tap again to clear</p>}
+                </motion.div>
+            )
+        }
+    </AnimatePresence >
+
+    {/* ── Schedule Prompt ── */ }
+    <AnimatePresence>
+        {
+            schedulingId && (() => {
+                const task = tasks.find(t => t.id === schedulingId);
+                return task ? (
+                    <SchedulePrompt key={`sched-${schedulingId}`} pill={task}
+                        onSchedule={(date, time) => handleSchedule(schedulingId, date, time)}
+                        onSkip={() => setSchedulingId(null)} />
+                ) : null;
+            })()
+        }
+    </AnimatePresence >
+
+    {/* ── Chat History ── */ }
+    <AnimatePresence>
+        {
+            chatHistory.length > 0 && (
+                <motion.div
+                    key="chat"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    style={{
+                        overflow: 'hidden',
+                        background: 'rgba(20, 20, 30, 0.45)',
+                        backdropFilter: 'blur(24px) saturate(180%)',
+                        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+                        borderRadius: 18,
+                        border: '1px solid rgba(251, 191, 36, 0.20)',
+                        boxShadow: '0 4px 24px rgba(0, 0, 0, 0.3)',
+                    }}
+                >
+                    <div style={{
+                        display: 'flex', flexDirection: 'column', gap: '0.45rem',
+                        padding: '0.75rem',
+                        maxHeight: 220, overflowY: 'auto',
+                        scrollbarWidth: 'none',
+                    }}>
+                        {chatHistory.map(msg => (
+                            <motion.div key={msg.id}
+                                initial={{ opacity: 0, y: 8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.30 }}
+                                style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}
+                            >
+                                <div style={{
+                                    maxWidth: '82%',
+                                    padding: '0.42rem 0.80rem',
+                                    borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                                    background: msg.role === 'user'
+                                        ? 'rgba(251, 191, 36, 0.20)'
+                                        : 'rgba(255, 255, 255, 0.12)',
+                                    border: msg.role === 'user'
+                                        ? '1px solid rgba(251, 191, 36, 0.35)'
+                                        : '1px solid rgba(255, 255, 255, 0.20)',
+                                    boxShadow: msg.role === 'bodhi' ? '0 2px 8px rgba(0, 0, 0, 0.2)' : 'none',
+                                }}>
+                                    {msg.role === 'bodhi' && (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.14rem' }}>
+                                            <motion.div animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 1.8, repeat: Infinity }}>
+                                                <Sparkles size={8} style={{ color: '#fbbf24' }} />
+                                            </motion.div>
+                                            <span style={{ fontSize: '0.46rem', fontWeight: 700, letterSpacing: '0.18em', color: '#fbbf24', textTransform: 'uppercase', fontFamily: 'monospace' }}>Sakha Bodhi</span>
                                         </div>
-
-                                        {isGeneratingAdvice === expandedCategory ? (
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                <div style={{ display: 'flex', gap: 3 }}>
-                                                    {[0, 0.15, 0.3].map(d => (
-                                                        <motion.div key={d}
-                                                            animate={{ y: [0, -4, 0] }}
-                                                            transition={{ duration: 0.6, repeat: Infinity, delay: d }}
-                                                            style={{ width: 5, height: 5, borderRadius: '50%', background: '#fbbf24' }}
-                                                        />
-                                                    ))}
-                                                </div>
-                                                <span style={{
-                                                    fontSize: '0.7rem', color: 'rgba(255, 255, 255, 0.70)',
-                                                    fontStyle: 'italic',
-                                                }}>Bodhi is generating wisdom...</span>
-                                            </div>
-                                        ) : (
-                                            <p style={{
-                                                margin: 0, fontSize: '0.72rem', lineHeight: 1.5,
-                                                color: 'rgba(255, 255, 255, 0.90)',
-                                                fontStyle: 'italic',
-                                            }}>{aiAdvice[expandedCategory] || "Click to receive personalized guidance from your AI Sakha."}</p>
-                                        )}
-                                    </div>
-
-                                    {/* Items List */}
-                                    {categoryItems.length > 0 ? (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                            {categoryItems.map((item, idx) => (
-                                                <motion.div
-                                                    key={item.id}
-                                                    initial={{ opacity: 0, x: -10 }}
-                                                    animate={{ opacity: 1, x: 0 }}
-                                                    transition={{ delay: idx * 0.05 }}
-                                                    style={{
-                                                        display: 'flex', alignItems: 'center', gap: '0.6rem',
-                                                        padding: '0.6rem 0.75rem',
-                                                        background: 'rgba(255, 255, 255, 0.06)',
-                                                        borderRadius: 12,
-                                                        border: '1px solid rgba(255, 255, 255, 0.10)',
-                                                    }}
-                                                >
-                                                    <span style={{ fontSize: '1rem' }}>{item.icon || '✨'}</span>
-                                                    <span style={{
-                                                        flex: 1, fontSize: '0.75rem',
-                                                        color: 'rgba(255, 255, 255, 0.90)',
-                                                        lineHeight: 1.4,
-                                                    }}>{item.text}</span>
-                                                    <button
-                                                        onClick={() => handleComplete(item)}
-                                                        style={{
-                                                            background: categoryConfig?.bg || 'rgba(251, 191, 36, 0.15)',
-                                                            border: `1px solid ${categoryConfig?.color || '#fbbf24'}40`,
-                                                            borderRadius: 999,
-                                                            padding: '0.35rem 0.7rem',
-                                                            cursor: 'pointer',
-                                                            color: categoryConfig?.color || '#fbbf24',
-                                                            fontSize: '0.55rem',
-                                                            fontWeight: 700,
-                                                            letterSpacing: '0.06em',
-                                                            textTransform: 'uppercase',
-                                                            display: 'flex', alignItems: 'center', gap: 4,
-                                                        }}
-                                                    >
-                                                        <Check size={10} />
-                                                        Done
-                                                    </button>
-                                                </motion.div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div style={{
-                                            textAlign: 'center', padding: '1.5rem',
-                                            color: 'rgba(255, 255, 255, 0.50)',
-                                        }}>
-                                            <span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem' }}>✨</span>
-                                            <span style={{ fontSize: '0.7rem' }}>No {categoryConfig?.label.toLowerCase()} yet. Add one below!</span>
+                                    )}
+                                    <p style={{ margin: 0, fontSize: '0.72rem', lineHeight: 1.5, color: 'rgba(255, 255, 255, 0.95)', fontStyle: msg.role === 'bodhi' ? 'italic' : 'normal' }}>{msg.text}</p>
+                                    {msg.saved && msg.itemType && (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', marginTop: '0.18rem' }}>
+                                            <Check size={8} style={{ color: '#4ade80' }} />
+                                            <span style={{ fontSize: '0.44rem', color: 'rgba(74, 222, 128, 0.90)', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'monospace' }}>Saved as {msg.itemType}</span>
                                         </div>
                                     )}
                                 </div>
                             </motion.div>
-                        );
-                    })()}
-                </AnimatePresence>
-
-                {/* ── Premium Input Bar ── */}
-                <div style={{
-                    display: 'flex', alignItems: 'center', gap: '0.5rem',
-                    padding: '0.5rem 0.6rem',
-                    borderRadius: 999,
-                    background: 'rgba(255, 255, 255, 0.10)',
-                    backdropFilter: 'blur(24px) saturate(200%)',
-                    WebkitBackdropFilter: 'blur(24px) saturate(200%)',
-                    border: '1.5px solid rgba(255, 255, 255, 0.20)',
-                    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 6px 24px rgba(0, 0, 0, 0.35)',
-                    position: 'relative', zIndex: 2,
-                }}>
-                    <input
-                        ref={inputRef} type="text" value={inputValue}
-                        onChange={e => setInputValue(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-                        placeholder="Type a task — Sakha Bodhi will advise and schedule it..."
-                        style={{
-                            flex: 1,
-                            background: 'transparent',
-                            border: 'none', outline: 'none',
-                            color: 'rgba(255, 255, 255, 0.95)',
-                            fontSize: '0.9rem', fontWeight: 400,
-                            fontFamily: "'Inter', system-ui, sans-serif",
-                            padding: '0.3rem 0.5rem',
-                        }}
-                    />
-
-                    {/* BODHI Button */}
-                    <motion.button
-                        whileTap={{ scale: 0.95 }}
-                        whileHover={{ scale: 1.05 }}
-                        onClick={() => router.push('/bodhi-chat')}
-                        style={{
-                            background: 'rgba(251, 191, 36, 0.15)',
-                            backdropFilter: 'blur(8px)',
-                            border: '1px solid rgba(251, 191, 36, 0.30)',
-                            borderRadius: 999,
-                            padding: '0.4rem 0.8rem',
-                            display: 'flex', alignItems: 'center', gap: 5,
-                            cursor: 'pointer',
-                            color: '#fbbf24',
-                            fontSize: '0.6rem',
-                            fontWeight: 600,
-                            fontFamily: "'Inter', system-ui, sans-serif",
-                            letterSpacing: '0.06em',
-                            flexShrink: 0,
-                        }}
-                    >
-                        <Sparkles size={12} />
-                        BODHI
-                    </motion.button>
-
-                    {inputValue.trim() ? (
-                        <motion.button
-                            onClick={handleSubmit}
-                            whileTap={{ scale: 0.9 }}
-                            whileHover={{ scale: 1.1 }}
-                            style={{
-                                background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.95) 0%, rgba(245, 158, 11, 0.95) 100%)',
-                                border: 'none',
-                                borderRadius: 999,
-                                padding: '0.65rem',
-                                cursor: 'pointer',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                color: '#000',
-                                boxShadow: '0 4px 18px rgba(251, 191, 36, 0.45)',
-                            }}
-                        >
-                            <Send size={18} />
-                        </motion.button>
-                    ) : null}
-                </div>
-
-                {/* Keyboard hint */}
-                <div style={{
-                    display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8,
-                    marginTop: '0.6rem',
-                }}>
-                    <span style={{
-                        fontSize: '0.6rem', color: 'rgba(255, 255, 255, 0.40)',
-                        fontFamily: "'Inter', system-ui, sans-serif",
-                        letterSpacing: '0.05em',
-                    }}>
-                        Press Enter to submit · Click bubbles to view with AI advice
-                    </span>
-                </div>
-            </motion.div >
-
-            {/* Animation keyframes for spinning rings */}
-            < style > {`
-                @keyframes ring-spin {
-                    from { transform: rotate(0deg); }
-                    to { transform: rotate(360deg); }
-                }
-            `}</style >
-
-            {/* ── Calendar (toggleable) ── */}
-            <AnimatePresence>
-                {
-                    showCalendar && (
-                        <motion.div key="calendar" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }} style={{ overflow: 'hidden' }}>
-                            <MiniCalendar tasks={tasks} onDateSelect={d => { setFilterDate(prev => prev === d ? null : d); }} />
-                            {filterDate && <p style={{ margin: '0.3rem 0 0', fontSize: '0.54rem', color: 'rgba(251,191,36,0.55)', fontFamily: 'monospace', letterSpacing: '0.10em', textAlign: 'center' }}>Showing: {filterDate} · tap again to clear</p>}
-                        </motion.div>
-                    )
-                }
-            </AnimatePresence >
-
-            {/* ── Schedule Prompt ── */}
-            <AnimatePresence>
-                {
-                    schedulingId && (() => {
-                        const task = tasks.find(t => t.id === schedulingId);
-                        return task ? (
-                            <SchedulePrompt key={`sched-${schedulingId}`} pill={task}
-                                onSchedule={(date, time) => handleSchedule(schedulingId, date, time)}
-                                onSkip={() => setSchedulingId(null)} />
-                        ) : null;
-                    })()
-                }
-            </AnimatePresence >
-
-            {/* ── Chat History ── */}
-            <AnimatePresence>
-                {
-                    chatHistory.length > 0 && (
-                        <motion.div
-                            key="chat"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            style={{
-                                overflow: 'hidden',
-                                background: 'rgba(20, 20, 30, 0.45)',
-                                backdropFilter: 'blur(24px) saturate(180%)',
-                                WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-                                borderRadius: 18,
-                                border: '1px solid rgba(251, 191, 36, 0.20)',
-                                boxShadow: '0 4px 24px rgba(0, 0, 0, 0.3)',
-                            }}
-                        >
-                            <div style={{
-                                display: 'flex', flexDirection: 'column', gap: '0.45rem',
-                                padding: '0.75rem',
-                                maxHeight: 220, overflowY: 'auto',
-                                scrollbarWidth: 'none',
-                            }}>
-                                {chatHistory.map(msg => (
-                                    <motion.div key={msg.id}
-                                        initial={{ opacity: 0, y: 8 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.30 }}
-                                        style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}
-                                    >
-                                        <div style={{
-                                            maxWidth: '82%',
-                                            padding: '0.42rem 0.80rem',
-                                            borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                                            background: msg.role === 'user'
-                                                ? 'rgba(251, 191, 36, 0.20)'
-                                                : 'rgba(255, 255, 255, 0.12)',
-                                            border: msg.role === 'user'
-                                                ? '1px solid rgba(251, 191, 36, 0.35)'
-                                                : '1px solid rgba(255, 255, 255, 0.20)',
-                                            boxShadow: msg.role === 'bodhi' ? '0 2px 8px rgba(0, 0, 0, 0.2)' : 'none',
-                                        }}>
-                                            {msg.role === 'bodhi' && (
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.14rem' }}>
-                                                    <motion.div animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 1.8, repeat: Infinity }}>
-                                                        <Sparkles size={8} style={{ color: '#fbbf24' }} />
-                                                    </motion.div>
-                                                    <span style={{ fontSize: '0.46rem', fontWeight: 700, letterSpacing: '0.18em', color: '#fbbf24', textTransform: 'uppercase', fontFamily: 'monospace' }}>Sakha Bodhi</span>
-                                                </div>
-                                            )}
-                                            <p style={{ margin: 0, fontSize: '0.72rem', lineHeight: 1.5, color: 'rgba(255, 255, 255, 0.95)', fontStyle: msg.role === 'bodhi' ? 'italic' : 'normal' }}>{msg.text}</p>
-                                            {msg.saved && msg.itemType && (
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', marginTop: '0.18rem' }}>
-                                                    <Check size={8} style={{ color: '#4ade80' }} />
-                                                    <span style={{ fontSize: '0.44rem', color: 'rgba(74, 222, 128, 0.90)', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'monospace' }}>Saved as {msg.itemType}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </motion.div>
-                                ))}
-                                {/* Bodhi thinking indicator */}
-                                {bodhiState === 'thinking' && (
-                                    <motion.div
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.25rem 0.65rem' }}
-                                    >
-                                        <div style={{ display: 'flex', gap: 3 }}>
-                                            {[0, 0.18, 0.36].map(d => (
-                                                <motion.div key={d}
-                                                    animate={{ y: [0, -4, 0] }}
-                                                    transition={{ duration: 0.7, repeat: Infinity, delay: d }}
-                                                    style={{ width: 5, height: 5, borderRadius: '50%', background: '#fbbf24' }}
-                                                />
-                                            ))}
-                                        </div>
-                                        <span style={{ fontSize: '0.50rem', color: '#fbbf24', fontStyle: 'italic' }}>Bodhi is thinking…</span>
-                                    </motion.div>
-                                )}
-                                <div ref={chatEndRef} />
-                            </div>
-                        </motion.div>
-                    )
-                }
-            </AnimatePresence >
-
-            {/* ── Speaking Banner ── */}
-            <AnimatePresence>
-                {
-                    bodhiState === 'speaking' && (
-                        <motion.div
-                            key="speaking-banner"
-                            initial={{ opacity: 0, y: 6 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -4 }}
-                            style={{
-                                display: 'flex', alignItems: 'center', gap: '0.6rem',
-                                padding: '0.55rem 0.9rem',
-                                background: 'rgba(20, 20, 30, 0.55)',
-                                backdropFilter: 'blur(20px) saturate(180%)',
-                                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                                border: '1px solid rgba(251, 191, 36, 0.30)',
-                                borderRadius: 14,
-                                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
-                                overflow: 'hidden',
-                                position: 'relative',
-                            }}
-                        >
-                            <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-                                {[0, 0.12, 0.24, 0.12, 0].map((d, i) => (
-                                    <motion.div key={i}
-                                        animate={{ scaleY: [0.4, 1.4, 0.4] }}
-                                        transition={{ duration: 0.9, repeat: Infinity, delay: d }}
-                                        style={{ width: 3, height: 14, borderRadius: 2, background: '#fbbf24', transformOrigin: 'center' }}
-                                    />
-                                ))}
-                            </div>
-                            <span style={{ fontSize: '0.58rem', color: '#fbbf24', fontStyle: 'italic', fontWeight: 500 }}>Bodhi is speaking… type your reply when done</span>
-                            <button
-                                onClick={() => { window.speechSynthesis?.cancel(); setBodhiState('idle'); }}
-                                style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255, 255, 255, 0.40)', lineHeight: 0, padding: 2, flexShrink: 0 }}
-                            ><X size={12} /></button>
-                        </motion.div>
-                    )
-                }
-            </AnimatePresence >
-
-            {/* ── Active Items Bubble Grid ── */}
-            {
-                activeTasks.length > 0 && (
-                    <div style={{ position: 'relative' }}>
-                        {activeTasks.length > 4 && (
-                            <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 28, background: 'linear-gradient(to bottom, transparent, rgba(20, 20, 30, 0.80))', pointerEvents: 'none', zIndex: 2, borderRadius: '0 0 18px 18px' }} />
+                        ))}
+                        {/* Bodhi thinking indicator */}
+                        {bodhiState === 'thinking' && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.25rem 0.65rem' }}
+                            >
+                                <div style={{ display: 'flex', gap: 3 }}>
+                                    {[0, 0.18, 0.36].map(d => (
+                                        <motion.div key={d}
+                                            animate={{ y: [0, -4, 0] }}
+                                            transition={{ duration: 0.7, repeat: Infinity, delay: d }}
+                                            style={{ width: 5, height: 5, borderRadius: '50%', background: '#fbbf24' }}
+                                        />
+                                    ))}
+                                </div>
+                                <span style={{ fontSize: '0.50rem', color: '#fbbf24', fontStyle: 'italic' }}>Bodhi is thinking…</span>
+                            </motion.div>
                         )}
-                        <div style={{
-                            display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)',
-                            gap: '0.45rem',
-                            maxHeight: activeTasks.length > 4 ? 250 : 'none',
-                            overflowY: activeTasks.length > 4 ? 'auto' : 'visible',
-                            scrollbarWidth: 'none', paddingBottom: activeTasks.length > 4 ? 24 : 0,
-                        }}>
-                            <AnimatePresence mode="popLayout">
-                                {activeTasks.map((task, idx) => {
-                                    const c = CM[task.colorClass] || CM.gold;
-                                    const CAT_META: Record<string, { color: string; emoji: string; doneLabel: string }> = {
-                                        Issue: { color: '#f87171', emoji: '🔥', doneLabel: 'Resolved' },
-                                        Wellness: { color: '#34d399', emoji: '🌿', doneLabel: 'Done' },
-                                        default: { color: c.text, emoji: task.icon || '✅', doneLabel: 'Done' },
-                                    };
-                                    const meta = CAT_META[task.category] ?? CAT_META.default;
-                                    const catColor = meta.color;
-                                    const catEmoji = task.icon || meta.emoji;
-                                    return (
-                                        <motion.div key={task.id} layout
-                                            initial={{ opacity: 0, scale: 0.72, y: 18, filter: 'blur(10px)' }}
-                                            animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
-                                            exit={{ opacity: 0, scale: 0.65, y: -12, filter: 'blur(8px)' }}
-                                            transition={{ type: 'spring', stiffness: 340, damping: 26, delay: idx * 0.04 }}
-                                            style={{
-                                                display: 'flex', flexDirection: 'column', gap: '0.25rem',
-                                                position: 'relative', overflow: 'hidden',
-                                                borderRadius: 16, padding: '0.62rem 0.70rem',
-                                                background: `linear-gradient(145deg, rgba(255, 255, 255, 0.12) 0%, ${c.bg} 100%)`,
-                                                backdropFilter: 'blur(16px)',
-                                                WebkitBackdropFilter: 'blur(16px)',
-                                                border: `1px solid ${c.border}`,
-                                                boxShadow: `0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.20)`,
-                                                minWidth: 0,
-                                            }}>
-                                            {/* Header row */}
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', position: 'relative', zIndex: 1 }}>
-                                                <span style={{ fontSize: '0.82rem' }}>{catEmoji}</span>
-                                                <span style={{ fontSize: '0.52rem', fontWeight: 700, letterSpacing: '0.10em', color: c.text, textTransform: 'uppercase', fontFamily: 'monospace' }}>{task.category}</span>
-                                                {task.scheduledTime && <span style={{ marginLeft: 'auto', fontSize: '0.44rem', color: c.text, opacity: 0.85, fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: 2 }}><Clock size={7} />{task.scheduledTime}</span>}
-                                            </div>
-                                            {/* Task text */}
-                                            <span style={{ fontSize: '0.74rem', fontWeight: 500, lineHeight: 1.4, color: 'rgba(255, 255, 255, 0.95)', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', width: '100%', position: 'relative', zIndex: 1, textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>{task.text}</span>
-                                            {/* Actions */}
-                                            <div style={{ display: 'flex', gap: '0.22rem', width: '100%', marginTop: 4, position: 'relative', zIndex: 1 }}>
-                                                <button onClick={() => handleComplete(task)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, background: c.bg, border: `1px solid ${c.border}`, borderRadius: 999, padding: '0.22rem 0', cursor: 'pointer', color: c.text, fontSize: '0.50rem', fontWeight: 600, fontFamily: 'inherit', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                                                    <Check size={8} /> {meta.doneLabel}
-                                                </button>
-                                                <button onClick={() => setSchedulingId(task.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255, 255, 255, 0.10)', border: `1px solid ${c.border}`, borderRadius: 999, padding: '0.22rem 0.42rem', cursor: 'pointer', color: c.text }}>
-                                                    <Clock size={8} />
-                                                </button>
-                                            </div>
-                                        </motion.div>
-                                    );
-                                })}
-                            </AnimatePresence>
-                        </div>
+                        <div ref={chatEndRef} />
                     </div>
-                )
-            }
+                </motion.div>
+            )
+        }
+    </AnimatePresence >
+
+    {/* ── Speaking Banner ── */ }
+    <AnimatePresence>
+        {
+            bodhiState === 'speaking' && (
+                <motion.div
+                    key="speaking-banner"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    style={{
+                        display: 'flex', alignItems: 'center', gap: '0.6rem',
+                        padding: '0.55rem 0.9rem',
+                        background: 'rgba(20, 20, 30, 0.55)',
+                        backdropFilter: 'blur(20px) saturate(180%)',
+                        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                        border: '1px solid rgba(251, 191, 36, 0.30)',
+                        borderRadius: 14,
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+                        overflow: 'hidden',
+                        position: 'relative',
+                    }}
+                >
+                    <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+                        {[0, 0.12, 0.24, 0.12, 0].map((d, i) => (
+                            <motion.div key={i}
+                                animate={{ scaleY: [0.4, 1.4, 0.4] }}
+                                transition={{ duration: 0.9, repeat: Infinity, delay: d }}
+                                style={{ width: 3, height: 14, borderRadius: 2, background: '#fbbf24', transformOrigin: 'center' }}
+                            />
+                        ))}
+                    </div>
+                    <span style={{ fontSize: '0.58rem', color: '#fbbf24', fontStyle: 'italic', fontWeight: 500 }}>Bodhi is speaking… type your reply when done</span>
+                    <button
+                        onClick={() => { window.speechSynthesis?.cancel(); setBodhiState('idle'); }}
+                        style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255, 255, 255, 0.40)', lineHeight: 0, padding: 2, flexShrink: 0 }}
+                    ><X size={12} /></button>
+                </motion.div>
+            )
+        }
+    </AnimatePresence >
+
+    {/* ── Active Items Bubble Grid ── */ }
+    {
+        activeTasks.length > 0 && (
+            <div style={{ position: 'relative' }}>
+                {activeTasks.length > 4 && (
+                    <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 28, background: 'linear-gradient(to bottom, transparent, rgba(20, 20, 30, 0.80))', pointerEvents: 'none', zIndex: 2, borderRadius: '0 0 18px 18px' }} />
+                )}
+                <div style={{
+                    display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: '0.45rem',
+                    maxHeight: activeTasks.length > 4 ? 250 : 'none',
+                    overflowY: activeTasks.length > 4 ? 'auto' : 'visible',
+                    scrollbarWidth: 'none', paddingBottom: activeTasks.length > 4 ? 24 : 0,
+                }}>
+                    <AnimatePresence mode="popLayout">
+                        {activeTasks.map((task, idx) => {
+                            const c = CM[task.colorClass] || CM.gold;
+                            const CAT_META: Record<string, { color: string; emoji: string; doneLabel: string }> = {
+                                Issue: { color: '#f87171', emoji: '🔥', doneLabel: 'Resolved' },
+                                Wellness: { color: '#34d399', emoji: '🌿', doneLabel: 'Done' },
+                                default: { color: c.text, emoji: task.icon || '✅', doneLabel: 'Done' },
+                            };
+                            const meta = CAT_META[task.category] ?? CAT_META.default;
+                            const catColor = meta.color;
+                            const catEmoji = task.icon || meta.emoji;
+                            return (
+                                <motion.div key={task.id} layout
+                                    initial={{ opacity: 0, scale: 0.72, y: 18, filter: 'blur(10px)' }}
+                                    animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
+                                    exit={{ opacity: 0, scale: 0.65, y: -12, filter: 'blur(8px)' }}
+                                    transition={{ type: 'spring', stiffness: 340, damping: 26, delay: idx * 0.04 }}
+                                    style={{
+                                        display: 'flex', flexDirection: 'column', gap: '0.25rem',
+                                        position: 'relative', overflow: 'hidden',
+                                        borderRadius: 16, padding: '0.62rem 0.70rem',
+                                        background: `linear-gradient(145deg, rgba(255, 255, 255, 0.12) 0%, ${c.bg} 100%)`,
+                                        backdropFilter: 'blur(16px)',
+                                        WebkitBackdropFilter: 'blur(16px)',
+                                        border: `1px solid ${c.border}`,
+                                        boxShadow: `0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.20)`,
+                                        minWidth: 0,
+                                    }}>
+                                    {/* Header row */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', position: 'relative', zIndex: 1 }}>
+                                        <span style={{ fontSize: '0.82rem' }}>{catEmoji}</span>
+                                        <span style={{ fontSize: '0.52rem', fontWeight: 700, letterSpacing: '0.10em', color: c.text, textTransform: 'uppercase', fontFamily: 'monospace' }}>{task.category}</span>
+                                        {task.scheduledTime && <span style={{ marginLeft: 'auto', fontSize: '0.44rem', color: c.text, opacity: 0.85, fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: 2 }}><Clock size={7} />{task.scheduledTime}</span>}
+                                    </div>
+                                    {/* Task text */}
+                                    <span style={{ fontSize: '0.74rem', fontWeight: 500, lineHeight: 1.4, color: 'rgba(255, 255, 255, 0.95)', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', width: '100%', position: 'relative', zIndex: 1, textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>{task.text}</span>
+                                    {/* Actions */}
+                                    <div style={{ display: 'flex', gap: '0.22rem', width: '100%', marginTop: 4, position: 'relative', zIndex: 1 }}>
+                                        <button onClick={() => handleComplete(task)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, background: c.bg, border: `1px solid ${c.border}`, borderRadius: 999, padding: '0.22rem 0', cursor: 'pointer', color: c.text, fontSize: '0.50rem', fontWeight: 600, fontFamily: 'inherit', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                                            <Check size={8} /> {meta.doneLabel}
+                                        </button>
+                                        <button onClick={() => setSchedulingId(task.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255, 255, 255, 0.10)', border: `1px solid ${c.border}`, borderRadius: 999, padding: '0.22rem 0.42rem', cursor: 'pointer', color: c.text }}>
+                                            <Clock size={8} />
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
+                    </AnimatePresence>
+                </div>
+            </div>
+        )
+    }
         </div >
     );
 }

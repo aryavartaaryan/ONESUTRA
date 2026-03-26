@@ -6,6 +6,7 @@ import { LogOut, ChevronLeft, Star, Zap, Heart, BarChart3, Edit2, Save, X, Loade
 import { useRouter } from 'next/navigation';
 import { useCircadianBackground } from '@/hooks/useCircadianBackground';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
+import { useLanguage } from '@/context/LanguageContext';
 import { getFirebaseFirestore } from '@/lib/firebase';
 import { doc, onSnapshot, updateDoc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { getMockSellerApps } from "@/lib/mockStore";
@@ -14,6 +15,8 @@ import styles from './page.module.css';
 // ════════════════════════════════════════════════════════
 //  TYPES & DEFAULTS
 // ════════════════════════════════════════════════════════
+type Language = 'hindi' | 'english';
+
 type Dosha = 'vata' | 'pitta' | 'kapha';
 type IntegrationTab = 'oauth' | 'vault';
 type VaultToolKey = 'amazon' | 'flipkart' | 'blinkit' | 'irctc' | 'yatra';
@@ -44,6 +47,7 @@ interface UserProfileData {
     prakriti: string; // e.g. "Vata-Pitta"
     dosha: Dosha;     // dominant dosha for visuals
     vibeConnections: number;
+    language: Language; // 'hindi' | 'english', default 'hindi'
     // We'll keep these structure for now, populate from real data if available or defaults
     stats: Array<{ label: string; value: string | number; unit: string; icon: any }>;
     badges: Array<{ id: string; label: string; emoji: string; earned: boolean }>;
@@ -56,6 +60,7 @@ const DEFAULT_PROFILE: UserProfileData = {
     prakriti: 'Vata-Pitta',
     dosha: 'vata',
     vibeConnections: 0,
+    language: 'hindi', // Default language is Hindi
     stats: [
         { label: 'Days Active', value: '1', unit: 'day', icon: Star },
         { label: 'Meditations', value: '0', unit: 'sessions', icon: Heart },
@@ -63,9 +68,9 @@ const DEFAULT_PROFILE: UserProfileData = {
         { label: 'Focus Hours', value: '0', unit: 'hrs', icon: BarChart3 },
     ],
     badges: [
-        { id: 'riser', label: 'Early Riser', emoji: '🌅', earned: false },
-        { id: 'sattvik', label: 'Sattvik', emoji: '🌿', earned: false },
-        { id: 'calm', label: 'Calm Mind', emoji: '🪷', earned: false },
+        { id: 'riser', label: 'Early Riser', emoji: '', earned: false },
+        { id: 'sattvik', label: 'Sattvik', emoji: '', earned: false },
+        { id: 'calm', label: 'Calm Mind', emoji: '', earned: false },
     ],
 };
 
@@ -234,6 +239,7 @@ function VibeAvatarBody({ dosha, size = 110 }: { dosha: Dosha; size?: number }) 
 // ════════════════════════════════════════════════════════
 export default function ProfilePage() {
     const { user, signOut } = useOneSutraAuth();
+    const { setLang } = useLanguage();
     const router = useRouter();
     const { imageUrl, loaded } = useCircadianBackground('vedic');
 
@@ -377,6 +383,8 @@ export default function ProfilePage() {
                 unsubscribe = onSnapshot(userDocRef, (docSnap) => {
                     if (docSnap.exists()) {
                         const data = docSnap.data();
+                        const language: Language = data.language === 'english' ? 'english' : 'hindi';
+                        setLang(language === 'english' ? 'en' : 'hi');
 
                         // Merge with defaults
                         setProfile(prev => ({
@@ -387,6 +395,7 @@ export default function ProfilePage() {
                             prakriti: data.prakriti || 'Vata-Pitta',
                             dosha: normalizeDosha(data.prakriti || 'Vata'),
                             vibeConnections: data.vibeConnections || 0,
+                            language,
                             // If stats exist in doc, use them, else defaults
                             stats: data.stats ? data.stats.map((s: any) => ({
                                 ...s,
@@ -408,13 +417,18 @@ export default function ProfilePage() {
                         const initialData = {
                             name: user.name || 'Traveller',
                             title: 'Sattvik Seeker',
-                            prakriti: 'Vata-Pitta'
+                            prakriti: 'Vata-Pitta',
+                            language: 'hindi' as Language,
                         };
                         setProfile(prev => ({
                             ...prev,
                             ...initialData
                         }));
-                        setEditForm(initialData);
+                        setEditForm({
+                            name: initialData.name,
+                            title: initialData.title,
+                            prakriti: initialData.prakriti,
+                        });
                     }
                     setIsLoading(false);
                 });
@@ -491,6 +505,7 @@ export default function ProfilePage() {
                 name: editForm.name,
                 title: editForm.title,
                 prakriti: editForm.prakriti,
+                language: profile.language,
                 updatedAt: new Date().toISOString()
             };
 
@@ -510,6 +525,33 @@ export default function ProfilePage() {
             alert("Failed to save changes. Please try again.");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleLanguageChange = async (language: Language) => {
+        if (!user) {
+            setProfile(prev => ({ ...prev, language }));
+            setLang(language === 'english' ? 'en' : 'hi');
+            return;
+        }
+
+        setProfile(prev => ({ ...prev, language }));
+
+        try {
+            const db = await getFirebaseFirestore();
+            const userRef = doc(db, 'onesutra_users', user.uid);
+            await setDoc(
+                userRef,
+                {
+                    language,
+                    updatedAt: new Date().toISOString(),
+                },
+                { merge: true }
+            );
+            setLang(language === 'english' ? 'en' : 'hi');
+        } catch (err) {
+            console.error('Failed to update language preference', err);
+            alert('Could not update language right now. Please try again.');
         }
     };
 
@@ -879,6 +921,67 @@ export default function ProfilePage() {
 
                         {/* Settings sections array */}
                         {[
+                            {
+                                id: 'language',
+                                icon: <span style={{ fontSize: 16 }}>🌐</span>,
+                                label: 'Language / भाषा',
+                                content: (
+                                    <>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                            <p style={{ margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
+                                                Select your preferred language for Sakha Bodhi and Acharya Pranav:
+                                            </p>
+                                            <div style={{ display: 'flex', gap: '12px' }}>
+                                                <button
+                                                    onClick={() => handleLanguageChange('hindi')}
+                                                    style={{
+                                                        flex: 1,
+                                                        padding: '12px 16px',
+                                                        borderRadius: 12,
+                                                        border: profile.language === 'hindi' ? '2px solid #fbbf24' : '1px solid rgba(255,255,255,0.2)',
+                                                        background: profile.language === 'hindi' ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.05)',
+                                                        color: profile.language === 'hindi' ? '#fbbf24' : 'rgba(255,255,255,0.8)',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        gap: 8,
+                                                        fontWeight: profile.language === 'hindi' ? 700 : 400,
+                                                    }}
+                                                >
+                                                    <span style={{ fontSize: 18 }}>🇮🇳</span>
+                                                    हिन्दी (Hindi)
+                                                    {profile.language === 'hindi' && <span style={{ marginLeft: 4 }}>✓</span>}
+                                                </button>
+                                                <button
+                                                    onClick={() => handleLanguageChange('english')}
+                                                    style={{
+                                                        flex: 1,
+                                                        padding: '12px 16px',
+                                                        borderRadius: 12,
+                                                        border: profile.language === 'english' ? '2px solid #fbbf24' : '1px solid rgba(255,255,255,0.2)',
+                                                        background: profile.language === 'english' ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.05)',
+                                                        color: profile.language === 'english' ? '#fbbf24' : 'rgba(255,255,255,0.8)',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        gap: 8,
+                                                        fontWeight: profile.language === 'english' ? 700 : 400,
+                                                    }}
+                                                >
+                                                    <span style={{ fontSize: 18 }}>🇬🇧</span>
+                                                    English
+                                                    {profile.language === 'english' && <span style={{ marginLeft: 4 }}>✓</span>}
+                                                </button>
+                                            </div>
+                                            <p style={{ margin: '8px 0 0', fontSize: '11px', color: 'rgba(251,191,36,0.7)', fontStyle: 'italic' }}>
+                                                Default: Hindi. This affects how Sakha Bodhi and Acharya Pranav speak to you.
+                                            </p>
+                                        </div>
+                                    </>
+                                )
+                            },
                             {
                                 id: 'about',
                                 icon: <Info size={16} strokeWidth={1.8} className={styles.accordionIcon} />,

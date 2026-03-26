@@ -1,0 +1,351 @@
+'use client';
+
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Send, CheckCircle2 } from 'lucide-react';
+import { useDailyTasks, type TaskItem } from '@/hooks/useDailyTasks';
+import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
+import { useBodhiChatStore } from '@/stores/bodhiChatStore';
+import { useBodhiChatVoice } from '@/hooks/useBodhiChatVoice';
+import { useLanguage } from '@/context/LanguageContext';
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+type IntentType = 'task' | 'idea' | 'challenge' | 'issue' | 'general';
+
+interface ChatMessage {
+    id: string;
+    role: 'user' | 'bodhi';
+    text: string;
+    intent?: IntentType;
+    savedItem?: { type: IntentType; text: string };
+    timestamp: number;
+}
+
+
+// ─── Chat bubble ──────────────────────────────────────────────────────────────
+const INTENT_META: Record<IntentType, { icon: string; color: string; label: string } | null> = {
+    task: { icon: '✅', color: '#fbbf24', label: 'Task saved' },
+    idea: { icon: '💡', color: '#2dd4bf', label: 'Idea saved' },
+    challenge: { icon: '⚡', color: '#fb923c', label: 'Challenge saved' },
+    issue: { icon: '🔥', color: '#f87171', label: 'Issue saved' },
+    general: null,
+};
+
+function ChatBubble({ msg, isLive = false }: { msg: ChatMessage; isLive?: boolean }) {
+    const isUser = msg.role === 'user';
+    const meta = msg.intent ? INTENT_META[msg.intent] : null;
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ type: 'spring', stiffness: 340, damping: 26 }}
+            style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start', marginBottom: '0.65rem', padding: '0 0.25rem' }}
+        >
+            {!isUser && (
+                <div style={{
+                    width: 28, height: 28, borderRadius: '50%', flexShrink: 0, marginRight: 8, marginTop: 2,
+                    background: 'radial-gradient(circle at 35% 30%, rgba(251,191,36,0.45) 0%, rgba(129,140,248,0.30) 60%, transparent 100%)',
+                    border: '1px solid rgba(255,255,255,0.20)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem',
+                }}>✦</div>
+            )}
+            <div style={{ maxWidth: '78%', display: 'flex', flexDirection: 'column', gap: '0.22rem', alignItems: isUser ? 'flex-end' : 'flex-start' }}>
+                {/* Intent tag */}
+                {!isUser && meta && (
+                    <span style={{ fontSize: '0.48rem', fontWeight: 700, color: meta.color, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', marginLeft: 2 }}>
+                        {meta.icon} {meta.label} detected
+                    </span>
+                )}
+                <div style={{
+                    background: isUser
+                        ? 'radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.14) 0%, rgba(251,191,36,0.09) 50%, transparent 100%)'
+                        : 'radial-gradient(ellipse at 25% 20%, rgba(255,255,255,0.11) 0%, rgba(129,140,248,0.07) 55%, transparent 100%)',
+                    backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+                    border: isUser ? '1px solid rgba(251,191,36,0.22)' : '1px solid rgba(255,255,255,0.12)',
+                    borderRadius: isUser ? '18px 4px 18px 18px' : '4px 18px 18px 18px',
+                    padding: '0.70rem 0.90rem',
+                    boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.18), 0 4px 18px rgba(0,0,0,0.18)',
+                    position: 'relative', overflow: 'hidden',
+                }}>
+                    <div aria-hidden style={{ position: 'absolute', top: '3%', left: '6%', width: '50%', height: '28%', background: 'radial-gradient(ellipse, rgba(255,255,255,0.28) 0%, transparent 80%)', borderRadius: '50%', transform: 'rotate(-18deg)', filter: 'blur(2px)', pointerEvents: 'none' }} />
+                    <p style={{ margin: 0, fontSize: '0.84rem', lineHeight: 1.6, color: isUser ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.88)', fontFamily: "'Outfit', sans-serif", fontWeight: 400, position: 'relative', zIndex: 1, whiteSpace: 'pre-wrap' }}>
+                        {msg.text}
+                        {isLive && <motion.span animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.9, repeat: Infinity }} style={{ color: 'rgba(251,191,36,0.85)', marginLeft: 3 }}>▋</motion.span>}
+                    </p>
+                </div>
+                {/* Saved badge */}
+                {msg.savedItem && (
+                    <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} style={{ display: 'flex', alignItems: 'center', gap: '0.22rem', marginLeft: 2 }}>
+                        <CheckCircle2 size={10} style={{ color: '#4ade80' }} />
+                        <span style={{ fontSize: '0.44rem', color: 'rgba(74,222,128,0.75)', letterSpacing: '0.10em', textTransform: 'uppercase', fontFamily: 'monospace' }}>
+                            Saved to Planner as {msg.savedItem.type}
+                        </span>
+                    </motion.div>
+                )}
+            </div>
+        </motion.div>
+    );
+}
+
+// ─── Bodhi Orb ────────────────────────────────────────────────────────────────
+function BodhiMiniOrb({ thinking, speaking }: { thinking: boolean; speaking: boolean }) {
+    const orbAnim = thinking
+        ? { scale: [1, 1.02, 0.98, 1], transition: { duration: 2.5, repeat: Infinity, ease: 'easeInOut' as const } }
+        : speaking
+            ? { scale: [1, 1.08, 0.95, 1.05, 1], transition: { duration: 1.6, repeat: Infinity, ease: 'easeInOut' as const } }
+            : { scale: [1, 1.04, 1], transition: { duration: 7, repeat: Infinity, ease: 'easeInOut' as const } };
+
+    return (
+        <div style={{ position: 'relative', width: 64, height: 64 }}>
+            {speaking && [0, 1, 2].map(i => (
+                <motion.div key={i}
+                    animate={{ scale: [1, 1.8 + i * 0.3], opacity: [0.35, 0] }}
+                    transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.42, ease: 'easeOut' }}
+                    style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '1.5px solid rgba(251,191,36,0.45)' }}
+                />
+            ))}
+            {thinking && [0, 1].map(i => (
+                <motion.div key={i}
+                    animate={{ scale: [1, 1.5 + i * 0.2], opacity: [0.25, 0] }}
+                    transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.55, ease: 'easeOut' }}
+                    style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '1px solid rgba(129,140,248,0.40)' }}
+                />
+            ))}
+            <motion.div animate={orbAnim} style={{
+                width: 64, height: 64, borderRadius: '50%', position: 'relative',
+                background: 'radial-gradient(circle at 36% 26%, rgba(255,255,255,0.32) 0%, rgba(251,191,36,0.18) 28%, rgba(129,140,248,0.14) 55%, rgba(99,102,241,0.10) 80%, transparent 100%)',
+                backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                border: '1.5px solid rgba(255,255,255,0.22)',
+                boxShadow: '0 0 26px rgba(251,191,36,0.18), 0 8px 24px rgba(0,0,0,0.30), inset 0 2px 0 rgba(255,255,255,0.28)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+            }}>
+                <div aria-hidden style={{ position: 'absolute', top: '7%', left: '10%', width: '52%', height: '34%', background: 'radial-gradient(ellipse, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0.18) 45%, transparent 100%)', borderRadius: '50%', transform: 'rotate(-25deg)', filter: 'blur(2.5px)' }} />
+                <div aria-hidden style={{ position: 'absolute', bottom: 0, left: '5%', right: '5%', height: '55%', background: 'radial-gradient(ellipse at center bottom, rgba(251,191,36,0.18) 0%, rgba(129,140,248,0.10) 45%, transparent 75%)', filter: 'blur(6px)' }} />
+                <span style={{ fontSize: '1.3rem', position: 'relative', zIndex: 2, filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.5))' }}>✦</span>
+            </motion.div>
+        </div>
+    );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+export default function BodhiChatPage() {
+    const router = useRouter();
+    const { user } = useOneSutraAuth();
+    const { lang } = useLanguage();
+    const { tasks, addTask } = useDailyTasks();
+    const { pendingMessage, clearPendingMessage } = useBodhiChatStore();
+
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [inputValue, setInputValue] = useState('');
+    const [isTypingFocus, setIsTypingFocus] = useState(false);
+    const [uid, setUid] = useState<string | null>(null);
+
+    const inputRef = useRef<HTMLInputElement>(null);
+    const chatEndRef = useRef<HTMLDivElement>(null);
+    const pendingSentRef = useRef(false);
+    const greetedRef = useRef(false);
+    const connectCalledRef = useRef(false);
+
+    const displayName = user?.name || 'Mitra';
+    const pendingCount = tasks.filter(t => !t.done && t.category !== 'Idea' && t.category !== 'Challenge').length;
+
+    // ── Bodhi Chat Voice (Gemini Live) ────────────────────────────────────────
+    const { chatState, isSpeaking, isConnected, connect, disconnect, sendMessage: bodhiSend } = useBodhiChatVoice({
+        userName: displayName,
+        preferredLanguage: lang,
+        pendingTasks: tasks.map(t => ({ id: t.id, text: t.text, done: t.done, category: t.category, startTime: t.startTime })),
+        userId: uid,
+        onAddTask: async (task) => { await addTask(task as unknown as TaskItem); },
+        onMessage: (text) => {
+            const bodhiMsg: ChatMessage = {
+                id: `b_${Date.now()}`,
+                role: 'bodhi',
+                text,
+                timestamp: Date.now(),
+            };
+            setMessages(prev => [...prev, bodhiMsg]);
+        },
+    });
+
+    const isThinking = chatState === 'thinking' || chatState === 'connecting';
+
+    // Get UID
+    useEffect(() => {
+        Promise.all([import('@/lib/firebase'), import('firebase/auth')]).then(
+            ([{ getFirebaseAuth }, { onAuthStateChanged }]) => {
+                getFirebaseAuth().then(auth => {
+                    onAuthStateChanged(auth, u => { if (u) setUid(u.uid); });
+                });
+            }
+        ).catch(() => { });
+    }, []);
+
+    // Connect to Gemini Live on mount (once)
+    useEffect(() => {
+        if (connectCalledRef.current) return;
+        connectCalledRef.current = true;
+        connect();
+    }, [connect]);
+
+    // Send pending message from homepage once connected
+    useEffect(() => {
+        if (!pendingMessage || pendingSentRef.current || chatState !== 'ready') return;
+        pendingSentRef.current = true;
+        const msg = pendingMessage;
+        clearPendingMessage();
+        setTimeout(() => sendMessage(msg), 600);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pendingMessage, chatState]);
+
+    // Auto-scroll
+    useEffect(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+    // Cleanup on unmount
+    useEffect(() => () => { disconnect(); }, [disconnect]);
+
+    // ── Core send ────────────────────────────────────────────────────────────
+    const sendMessage = useCallback((text: string) => {
+        if (!text.trim() || isThinking) return;
+        const userMsg: ChatMessage = { id: `u_${Date.now()}`, role: 'user', text: text.trim(), timestamp: Date.now() };
+        setMessages(prev => [...prev, userMsg]);
+        setInputValue('');
+        bodhiSend(text.trim());
+    }, [isThinking, bodhiSend]);
+
+    const handleSubmit = useCallback(() => {
+        const t = inputValue.trim();
+        if (!t || isThinking) return;
+        sendMessage(t);
+    }, [inputValue, isThinking, sendMessage]);
+
+    const stateLabel = chatState === 'connecting' ? '◎ Connecting…' : isThinking ? '◎ Thinking…' : isSpeaking ? '♪ Speaking' : isConnected ? '● Ready' : '○ Offline';
+    const stateColor = chatState === 'connecting' ? '#818cf8' : isThinking ? '#818cf8' : isSpeaking ? '#fbbf24' : isConnected ? '#4ade80' : 'rgba(255,255,255,0.35)';
+    const bottomNavClearance = 72;
+
+    return (
+        <>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 0, background: 'radial-gradient(ellipse at 20% 10%, rgba(251,191,36,0.06) 0%, transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(99,102,241,0.08) 0%, transparent 55%), linear-gradient(160deg, rgba(4,2,16,0.98) 0%, rgba(8,4,24,0.97) 40%, rgba(6,3,18,0.98) 100%)' }} />
+
+            <div style={{ position: 'fixed', inset: 0, zIndex: 1, display: 'flex', flexDirection: 'column', maxWidth: 700, margin: '0 auto' }}>
+
+                {/* Header */}
+                <motion.header initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}
+                    style={{ flexShrink: 0, display: 'flex', alignItems: 'center', padding: '52px 16px 10px', gap: '0.7rem', background: 'linear-gradient(180deg, rgba(4,2,16,0.95) 0%, rgba(6,3,18,0.65) 70%, transparent 100%)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', position: 'relative', zIndex: 10 }}>
+                    <motion.button whileTap={{ scale: 0.88 }} onClick={() => { disconnect(); router.push('/'); }}
+                        style={{ flexShrink: 0, width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.75)' }}>
+                        <ArrowLeft size={16} />
+                    </motion.button>
+                    <BodhiMiniOrb thinking={isThinking} speaking={isSpeaking} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ fontSize: '1.05rem', fontWeight: 800, fontFamily: "'Outfit', sans-serif", background: 'linear-gradient(120deg, #ffffff 0%, #fde68a 50%, #c4b5fd 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', display: 'block' }}>Sakha Bodhi</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginTop: '0.06rem' }}>
+                            <span style={{ fontSize: '0.50rem', color: stateColor, fontWeight: 700, letterSpacing: '0.08em', transition: 'color 0.3s' }}>{stateLabel}</span>
+                            <span style={{ fontSize: '0.45rem', color: 'rgba(255,255,255,0.28)' }}>Life Manager AI</span>
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        {pendingCount > 0 && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.22rem', background: 'rgba(251,191,36,0.10)', border: '1px solid rgba(251,191,36,0.22)', borderRadius: 999, padding: '0.22rem 0.5rem' }}>
+                                <CheckCircle2 size={10} style={{ color: '#fbbf24' }} />
+                                <span style={{ fontSize: '0.46rem', color: 'rgba(251,191,36,0.85)', fontWeight: 700, fontFamily: 'monospace' }}>{pendingCount} pending</span>
+                            </div>
+                        )}
+                        <motion.button whileTap={{ scale: 0.90 }} onClick={() => router.push('/vedic-planner')}
+                            style={{ fontSize: '0.46rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', background: 'rgba(129,140,248,0.10)', border: '1px solid rgba(129,140,248,0.24)', borderRadius: 999, padding: '0.28rem 0.60rem', color: 'rgba(129,140,248,0.85)', cursor: 'pointer', fontFamily: 'inherit' }}>
+                            Planner ↗
+                        </motion.button>
+                    </div>
+                </motion.header>
+
+                {/* Chat area */}
+                <div className="bodhi-chat-scroll" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0.5rem 0.75rem 0.65rem', scrollbarWidth: 'none' }}>
+                    <style>{`.bodhi-chat-scroll::-webkit-scrollbar{display:none}`}</style>
+
+                    {messages.length === 0 && (
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
+                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 240, gap: '0.8rem', textAlign: 'center', padding: '2rem' }}>
+                            <motion.div animate={{ scale: [1, 1.07, 1], opacity: [0.4, 0.9, 0.4] }} transition={{ duration: 3, repeat: Infinity }}>
+                                <BodhiMiniOrb thinking={false} speaking={false} />
+                            </motion.div>
+                            <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.32)', fontStyle: 'italic', fontFamily: "'Outfit', sans-serif", lineHeight: 1.6 }}>
+                                {chatState === 'connecting' ? 'Bodhi se jud raha hoon…' : chatState === 'error' ? 'Connection mein takleef — retry karein' : 'बोधि सुनने के लिए तैयार है…'}
+                            </p>
+                        </motion.div>
+                    )}
+
+                    <AnimatePresence initial={false}>
+                        {messages.map(msg => <ChatBubble key={msg.id} msg={msg} />)}
+                    </AnimatePresence>
+
+                    <AnimatePresence>
+                        {isThinking && (
+                            <motion.div key="thinking" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+                                style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '0.55rem', padding: '0 0.25rem' }}>
+                                <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, marginRight: 8, marginTop: 2, background: 'radial-gradient(circle at 35% 30%, rgba(251,191,36,0.35) 0%, rgba(129,140,248,0.25) 60%, transparent 100%)', border: '1px solid rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem' }}>✦</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(129,140,248,0.07)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(129,140,248,0.18)', borderRadius: '4px 18px 18px 18px', padding: '0.60rem 1rem' }}>
+                                    {[0, 0.18, 0.36].map((d, i) => (
+                                        <motion.div key={i} animate={{ y: [0, -5, 0] }} transition={{ duration: 0.7, repeat: Infinity, delay: d }} style={{ width: 6, height: 6, borderRadius: '50%', background: '#818cf8' }} />
+                                    ))}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    <div ref={chatEndRef} style={{ height: 8 }} />
+                </div>
+
+                {/* Input bar */}
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}
+                    style={{ flexShrink: 0, padding: `0.6rem 0.75rem calc(${bottomNavClearance}px + 0.75rem + env(safe-area-inset-bottom))`, background: 'linear-gradient(0deg, rgba(4,2,16,0.96) 0%, rgba(6,3,18,0.72) 70%, transparent 100%)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(28px) saturate(180%)', WebkitBackdropFilter: 'blur(28px) saturate(180%)', border: isTypingFocus ? '1px solid rgba(251,191,36,0.38)' : '1px solid rgba(255,255,255,0.12)', borderRadius: 999, padding: '0.38rem 0.38rem 0.38rem 1rem', boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.18), 0 4px 24px rgba(0,0,0,0.22)', transition: 'border-color 0.3s' }}>
+                        <input ref={inputRef} type="text" value={inputValue}
+                            onChange={e => setInputValue(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+                            onFocus={() => setIsTypingFocus(true)}
+                            onBlur={() => setIsTypingFocus(false)}
+                            disabled={isThinking}
+                            placeholder={
+                                chatState === 'connecting' ? 'Bodhi jud raha hai…' :
+                                    isThinking ? 'Bodhi soch raha hai…' :
+                                        isSpeaking ? 'Bodhi bol raha hai…' :
+                                            (lang === 'en' ? 'Task, idea, challenge, or anything…' : 'कार्य, विचार, चुनौती या कुछ भी लिखें…')
+                            }
+                            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'rgba(255,255,255,0.90)', fontSize: '0.88rem', fontWeight: 300, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.01em' }}
+                        />
+                        <motion.button whileTap={{ scale: 0.88 }} onClick={handleSubmit} disabled={!inputValue.trim() || isThinking}
+                            style={{ flexShrink: 0, width: 40, height: 40, borderRadius: '50%', background: inputValue.trim() && !isThinking ? 'linear-gradient(135deg, rgba(251,191,36,0.32), rgba(217,119,6,0.22))' : 'rgba(255,255,255,0.05)', border: inputValue.trim() && !isThinking ? '1px solid rgba(251,191,36,0.42)' : '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: inputValue.trim() && !isThinking ? 'pointer' : 'default', color: inputValue.trim() && !isThinking ? '#fbbf24' : 'rgba(255,255,255,0.20)', transition: 'all 0.25s' }}>
+                            <Send size={15} />
+                        </motion.button>
+                    </div>
+
+                    {/* Quick chips */}
+                    <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.45rem', overflowX: 'auto', paddingBottom: '0.1rem', scrollbarWidth: 'none' }}>
+                        <style>{`.chips-scroll::-webkit-scrollbar{display:none}`}</style>
+                        {[
+                            { label: 'Add Task', icon: '✅', prompt: 'I need to ' },
+                            { label: 'New Idea', icon: '💡', prompt: 'I have an idea: ' },
+                            { label: 'Challenge', icon: '⚡', prompt: "I'm facing: " },
+                            { label: 'Issue', icon: '🔥', prompt: "There's an issue: " },
+                            { label: 'Pending', icon: '📋', prompt: 'What are my pending tasks?' },
+                        ].map(chip => (
+                            <motion.button key={chip.label} whileTap={{ scale: 0.92 }}
+                                onClick={() => { setInputValue(chip.prompt); inputRef.current?.focus(); }}
+                                style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '0.22rem', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 999, padding: '0.25rem 0.65rem', cursor: 'pointer', fontFamily: "'Outfit', sans-serif" }}>
+                                <span style={{ fontSize: '0.58rem' }}>{chip.icon}</span>
+                                <span style={{ fontSize: '0.48rem', color: 'rgba(255,255,255,0.58)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{chip.label}</span>
+                            </motion.button>
+                        ))}
+                    </div>
+
+                    <p style={{ textAlign: 'center', margin: '0.32rem 0 0', fontSize: '0.43rem', color: 'rgba(255,255,255,0.18)', letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: "'Outfit', sans-serif" }}>
+                        ✦ Bodhi · Gemini Live Audio · Text + Voice ✦
+                    </p>
+                </motion.div>
+            </div>
+        </>
+    );
+}

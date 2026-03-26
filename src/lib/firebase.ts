@@ -38,7 +38,8 @@ if (typeof window !== 'undefined') {
             fullMsg.includes('Release target') ||
             fullMsg.includes("WebChannelConnection RPC 'Write' stream") ||
             fullMsg.includes("WebChannelConnection RPC 'Listen' stream") ||
-            fullMsg.includes('transport errored. Name: undefined Message: undefined')
+            fullMsg.includes('transport errored. Name: undefined Message: undefined') ||
+            fullMsg.includes('Detected an update time that is in the future')
         ) {
             return true;
         }

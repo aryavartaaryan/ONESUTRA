@@ -224,13 +224,13 @@ export default function VedicPlannerPage() {
     const userName = user?.name || 'Traveller';
     const [userId, setUserId] = useState<string | null>(null);
     const [isSakhaActive, setIsSakhaActive] = useState(false);
-    const [view, setView] = useState<'kanban' | 'timeline'>('kanban');
+    const [view, setView] = useState<'kanban' | 'timeline' | 'board'>('board');
     const [currentHour, setCurrentHour] = useState(new Date().getHours());
     const [isMounted, setIsMounted] = useState(false);
     const [isAudioUnlocked, setIsAudioUnlocked] = useState(false);
 
     const { tasks, addTask, toggleTaskDone, removeTask } = useDailyTasks();
-    const brahmastraState = useBrahmastraState();
+    const brahmastraState = useBrahmastraState(userId);
 
     // Background selection
     const getBgPeriod = (h: number) => {
@@ -381,9 +381,6 @@ export default function VedicPlannerPage() {
                 <button className={styles.backBtn} onClick={() => router.push('/')}>
                     ← Home
                 </button>
-                <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.14em' }}>
-                    VEDIC PLANNER
-                </span>
                 <div className={styles.datePill} style={{ margin: 0 }}>
                     <span className={`${styles.gunaLabel} ${styles[gunaMeta.badgeClass]}`} style={{ color: gunaMeta.color, background: `${gunaMeta.color}18`, border: `1px solid ${gunaMeta.color}30` }}>
                         {gunaMeta.emoji}
@@ -396,8 +393,7 @@ export default function VedicPlannerPage() {
             <div className={styles.content}>
                 {/* Header */}
                 <div className={styles.header}>
-                    <div className={styles.headerIcon}>🪷</div>
-                    <h1 className={styles.title}>Advance Task Planner</h1>
+                    <h1 className={styles.title}>Advance Personal Manager</h1>
                     <p className={styles.subtitle}>योजना · Yojana — Logical Schedule Planning</p>
                 </div>
 
@@ -472,6 +468,12 @@ export default function VedicPlannerPage() {
                 {/* View Toggle */}
                 <div className={styles.viewToggle}>
                     <button
+                        className={`${styles.viewBtn} ${view === 'board' ? styles.viewBtnActive : ''}`}
+                        onClick={() => setView('board')}
+                    >
+                        ✦ Board
+                    </button>
+                    <button
                         className={`${styles.viewBtn} ${view === 'kanban' ? styles.viewBtnActive : ''}`}
                         onClick={() => setView('kanban')}
                     >
@@ -485,8 +487,93 @@ export default function VedicPlannerPage() {
                     </button>
                 </div>
 
-                {/* Kanban View */}
+                {/* ── Board View (Tasks | Ideas | Challenges) ── */}
                 <AnimatePresence mode="wait">
+                    {view === 'board' && (() => {
+                        const boardTasks = tasks.filter(t => !t.done && t.category !== 'Challenge' && t.category !== 'Issue' && t.category !== 'Idea');
+                        const boardIdeas = tasks.filter(t => t.category === 'Idea' && !t.done);
+                        const boardChallenges = tasks.filter(t => (t.category === 'Challenge' || t.category === 'Issue') && !t.done);
+                        const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '';
+                        const boardCols = [
+                            { key: 'tasks', label: 'Tasks', icon: '✅', color: '#fbbf24', bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.22)', items: boardTasks },
+                            { key: 'ideas', label: 'Ideas', icon: '💡', color: '#2dd4bf', bg: 'rgba(45,212,191,0.08)', border: 'rgba(45,212,191,0.22)', items: boardIdeas },
+                            { key: 'challenges', label: 'Challenges', icon: '⚡', color: '#fb923c', bg: 'rgba(251,146,60,0.08)', border: 'rgba(251,146,60,0.22)', items: boardChallenges },
+                        ];
+                        return (
+                            <motion.div
+                                key="board"
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -12 }}
+                                transition={{ duration: 0.3 }}
+                                style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '1rem' }}
+                            >
+                                {boardCols.map(col => (
+                                    <div key={col.key} style={{ background: col.bg, border: `1px solid ${col.border}`, borderRadius: 16, padding: '0.75rem 0.65rem', minHeight: 180, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                        {/* Column header */}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.3rem' }}>
+                                            <span style={{ fontSize: '0.85rem' }}>{col.icon}</span>
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                <div style={{ fontSize: '0.60rem', fontWeight: 800, color: col.color, letterSpacing: '0.12em', textTransform: 'uppercase' }}>{col.label}</div>
+                                                <div style={{ fontSize: '0.48rem', color: 'rgba(255,255,255,0.38)', marginTop: 1 }}>{col.items.length} item{col.items.length !== 1 ? 's' : ''}</div>
+                                            </div>
+                                        </div>
+                                        {/* Items */}
+                                        {isMounted && col.items.length === 0 && (
+                                            <div style={{ fontSize: '0.60rem', color: 'rgba(255,255,255,0.25)', textAlign: 'center', paddingTop: '0.75rem', fontStyle: 'italic', lineHeight: 1.5 }}>No {col.label.toLowerCase()}\nsaved yet</div>
+                                        )}
+                                        {isMounted && col.items.map(task => (
+                                            <motion.div
+                                                key={task.id}
+                                                initial={{ opacity: 0, scale: 0.96 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid ${col.border}`, borderRadius: 10, padding: '0.55rem 0.60rem', position: 'relative' }}
+                                            >
+                                                <p style={{ margin: 0, fontSize: '0.68rem', color: 'rgba(255,255,255,0.86)', lineHeight: 1.4, fontFamily: "'Outfit', sans-serif", wordBreak: 'break-word' }}>
+                                                    {task.text.replace(/^[\s✅💡⚡🔥↳]+/, '')}
+                                                </p>
+                                                {/* Date + time pills */}
+                                                {(task.scheduledDate || task.startTime || task.scheduledTime) && (
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', marginTop: '0.35rem' }}>
+                                                        {task.scheduledDate && (
+                                                            <span style={{ fontSize: '0.46rem', fontWeight: 700, color: col.color, background: `${col.color}18`, border: `1px solid ${col.color}28`, borderRadius: 999, padding: '0.12rem 0.38rem', fontFamily: 'monospace' }}>
+                                                                📅 {fmtDate(task.scheduledDate)}
+                                                            </span>
+                                                        )}
+                                                        {(task.startTime || task.scheduledTime) && (
+                                                            <span style={{ fontSize: '0.46rem', fontWeight: 700, color: col.color, background: `${col.color}18`, border: `1px solid ${col.color}28`, borderRadius: 999, padding: '0.12rem 0.38rem', fontFamily: 'monospace' }}>
+                                                                🕐 {task.startTime || task.scheduledTime}
+                                                            </span>
+                                                        )}
+                                                        {task.allocatedMinutes && (
+                                                            <span style={{ fontSize: '0.46rem', fontWeight: 700, color: 'rgba(255,255,255,0.38)', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 999, padding: '0.12rem 0.38rem', fontFamily: 'monospace' }}>
+                                                                ⏱ {task.allocatedMinutes}m
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                {/* Bodhi advice snippet */}
+                                                {task.aiAdvice && (
+                                                    <p style={{ margin: '0.3rem 0 0', fontSize: '0.55rem', color: `${col.color}99`, fontStyle: 'italic', lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                                        {task.aiAdvice}
+                                                    </p>
+                                                )}
+                                                {/* Done button */}
+                                                <button
+                                                    onClick={() => toggleTaskDone(task.id)}
+                                                    style={{ position: 'absolute', top: '0.4rem', right: '0.4rem', background: 'rgba(255,255,255,0.07)', border: `1px solid ${col.border}`, borderRadius: 6, padding: '0.14rem 0.35rem', cursor: 'pointer', color: col.color, fontSize: '0.46rem', fontWeight: 700, fontFamily: 'inherit', letterSpacing: '0.06em' }}
+                                                >
+                                                    ✓
+                                                </button>
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                ))}
+                            </motion.div>
+                        );
+                    })()}
+
+                {/* Kanban View */}
                     {view === 'kanban' && (
                         <motion.div
                             key="kanban"

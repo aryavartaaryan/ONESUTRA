@@ -39,39 +39,51 @@ export default function BrahmastraFocusCard({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    borderRadius: 14,
-                    padding: '0.55rem 1rem',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
+                    background: 'rgba(0, 0, 0, 0.08)',
+                    backdropFilter: 'blur(2px) saturate(110%)',
+                    WebkitBackdropFilter: 'blur(2px) saturate(110%)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    boxShadow: '0 4px 24px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+                    borderRadius: 20,
+                    padding: '0.85rem 1.1rem',
                 }}>
                     {/* Left: label */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <motion.span
-                            animate={{ opacity: [0.6, 1, 0.6] }}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <motion.div
+                            animate={{ opacity: [0.7, 1, 0.7], scale: [1, 1.05, 1] }}
                             transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-                            style={{ fontSize: '0.80rem' }}
+                            style={{
+                                fontSize: '1rem',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                width: 32, height: 32,
+                                background: 'linear-gradient(135deg, rgba(255,119,34,0.15), rgba(255,80,10,0.05))',
+                                border: '1px solid rgba(255,119,34,0.3)',
+                                borderRadius: '50%',
+                                boxShadow: '0 0 12px rgba(255,119,34,0.15)',
+                            }}
                         >
                             ⚡
-                        </motion.span>
+                        </motion.div>
                         <div>
                             <span style={{
-                                fontSize: '0.52rem',
+                                display: 'block',
+                                fontSize: 'clamp(0.7rem, 2.5vw, 0.85rem)',
                                 fontWeight: 700,
-                                letterSpacing: '0.18em',
+                                letterSpacing: '0.14em',
                                 textTransform: 'uppercase',
-                                fontFamily: 'monospace',
-                                color: 'rgba(255,255,255,0.45)',
+                                fontFamily: "'Inter', system-ui, sans-serif",
+                                color: '#fbbf24',
+                                marginBottom: '2px',
                             }}>
                                 Advanced Protocol
                             </span>
                             <span style={{
                                 display: 'block',
-                                fontSize: '0.44rem',
-                                color: 'rgba(255,255,255,0.22)',
-                                fontFamily: 'monospace',
-                                letterSpacing: '0.08em',
+                                fontSize: 'clamp(0.55rem, 2vw, 0.65rem)',
+                                color: 'rgba(255,255,255,0.65)',
+                                fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
+                                fontStyle: 'italic',
+                                letterSpacing: '0.02em',
                             }}>
                                 Deep Focus · Interruption Shield
                             </span>
@@ -80,27 +92,26 @@ export default function BrahmastraFocusCard({
 
                     {/* Right: Activate button */}
                     <motion.button
-                        whileHover={{ scale: 1.06 }}
-                        whileTap={{ scale: 0.93 }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => setLocalActive(true)}
                         style={{
                             display: 'flex', alignItems: 'center', gap: '0.3rem',
-                            padding: '0.35rem 0.90rem',
-                            background: 'linear-gradient(135deg,rgba(255,119,34,0.22),rgba(255,80,10,0.12))',
-                            border: '1px solid rgba(255,119,34,0.45)',
-                            borderRadius: 999,
+                            padding: '0.45rem 1.1rem',
+                            background: 'rgba(255, 255, 255, 0.08)',
+                            backdropFilter: 'blur(12px)',
+                            border: '1px solid rgba(255, 255, 255, 0.20)',
+                            borderRadius: 12,
                             cursor: 'pointer',
-                            color: 'rgba(255,140,60,0.95)',
-                            fontSize: '0.52rem',
-                            fontWeight: 800,
-                            letterSpacing: '0.14em',
+                            color: 'rgba(255, 255, 255, 0.85)',
+                            fontSize: '0.65rem',
+                            fontWeight: 600,
+                            letterSpacing: '0.08em',
+                            fontFamily: "'Inter', system-ui, sans-serif",
                             textTransform: 'uppercase',
-                            fontFamily: 'monospace',
-                            boxShadow: '0 0 12px rgba(255,119,34,0.18)',
-                            transition: 'all 0.3s',
                         }}
                     >
-                        ⚡ Activate
+                        ⚡ ACTIVATE
                     </motion.button>
                 </div>
             </motion.div>

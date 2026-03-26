@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSakhaConversation, type DayPhase } from '@/hooks/useSakhaConversation';
+import { useLanguage } from '@/context/LanguageContext';
 import { type TaskItem } from '@/hooks/useDailyTasks';
 import AgenticWebView from '@/components/AgenticWebView';
 import styles from './SakhaBodhiOrb.module.css';
@@ -66,6 +67,7 @@ export default function SakhaBodhiOrb({
     onTriggerMeditationScreen,
     onNavigateToPlanner,
 }: SakhaBodhiOrbProps) {
+    const { lang } = useLanguage();
     const {
         sakhaState,
         phase,
@@ -76,6 +78,7 @@ export default function SakhaBodhiOrb({
         deactivate,
     } = useSakhaConversation({
         userName,
+        preferredLanguage: lang,
         sankalpaItems,
         onSankalpaUpdate,
         onDismiss,

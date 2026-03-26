@@ -63,15 +63,15 @@ type OrbItem = {
 };
 
 const ORBIT_ITEMS: OrbItem[] = [
-    { id: 'ayurhealth',   title: 'ACHARYA',    subtitle: 'Awaken Guidance',    description: 'AI-powered Vedic wisdom guru — personalized spiritual guidance & ancient knowledge at your fingertips.', href: '/acharya-samvad',  color: '#a855f7', glow: '#9333ea', icon: '🌿', shape: '' },
-    { id: 'dhyan',        title: 'MEDITATE',   subtitle: 'Sacred Mantras',    description: 'Immerse in curated sacred mantras & guided meditations — find inner stillness with healing frequencies.', href: '/dhyan-kshetra',   color: '#3b82f6', glow: '#2563eb', icon: '🧘', shape: '' },
-    { id: 'outplugs',     title: 'INSHORTS',   subtitle: 'Mindful News',      description: 'Distraction-free mindful news — stay informed without the noise, curated through a conscious lens.', href: '/outplugs',        color: '#d946ef', glow: '#a21caf', icon: '📰', shape: '' },
-    { id: 'prana-raag',   title: 'RAAG MUSIC', subtitle: 'Resonances',        description: 'Ancient Indian classical ragas matched to the time of day — healing frequencies for every moment.', href: '/project-leela',   color: '#38bdf8', glow: '#0284c7', icon: '🎵', shape: '' },
-    { id: 'swadesi',      title: 'SWADESHI',   subtitle: 'Sacred Commerce',   description: 'Discover authentic Indian artisan products — sacred commerce that honors tradition & empowers craftsmen.', href: '/swadesi-product', color: '#f97316', glow: '#ea580c', icon: '🛍️', shape: '' },
-    { id: 'vedic-games',  title: 'GAMES',      subtitle: 'Mindful Play',      description: 'Vedic-inspired mindful games — sharpen your mind while connecting with ancient Indian wisdom.', href: '/vedic-games',     color: '#ec4899', glow: '#be185d', icon: '🎲', shape: '' },
-    { id: 'sutraconnect', title: 'MESSAGES',   subtitle: 'Conscious Connect', description: 'Meaningful conversations in a mindful, distraction-free space — conscious social connection.', href: '/onesutra',        color: '#8b5cf6', glow: '#7c3aed', icon: '�', shape: '' },
-    { id: 'pranaverse',   title: 'PRANAVIBES', subtitle: 'Conscious Feed',    description: 'Your conscious social feed — inspirational reels, mantras & wisdom curated for spiritual growth.', href: '/pranaverse',      color: '#14b8a6', glow: '#0d9488', icon: '🌊', shape: '' },
-    { id: 'vedic-sangrah',title: 'RITUALS',    subtitle: 'Sacred Practices',  description: 'Daily sacred practices & rituals — step-by-step guidance for pujas, havans & spiritual ceremonies.', href: '/vedic-sangrah',   color: '#6366f1', glow: '#4f46e5', icon: '🛕', shape: '' },
+    { id: 'ayurhealth', title: 'ACHARYA', subtitle: 'Awaken Guidance', description: 'AI-powered Vedic wisdom guru — personalized spiritual guidance & ancient knowledge at your fingertips.', href: '/acharya-samvad', color: '#a855f7', glow: '#9333ea', icon: '🌿', shape: '' },
+    { id: 'dhyan', title: 'MEDITATE', subtitle: 'Sacred Mantras', description: 'Immerse in curated sacred mantras & guided meditations — find inner stillness with healing frequencies.', href: '/dhyan-kshetra', color: '#3b82f6', glow: '#2563eb', icon: '🧘', shape: '' },
+    { id: 'outplugs', title: 'INSHORTS', subtitle: 'Mindful News', description: 'Distraction-free mindful news — stay informed without the noise, curated through a conscious lens.', href: '/outplugs', color: '#d946ef', glow: '#a21caf', icon: '📰', shape: '' },
+    { id: 'prana-raag', title: 'RAAG MUSIC', subtitle: 'Resonances', description: 'Ancient Indian classical ragas matched to the time of day — healing frequencies for every moment.', href: '/project-leela', color: '#38bdf8', glow: '#0284c7', icon: '🎵', shape: '' },
+    { id: 'swadesi', title: 'SWADESHI', subtitle: 'Sacred Commerce', description: 'Discover authentic Indian artisan products — sacred commerce that honors tradition & empowers craftsmen.', href: '/swadesi-product', color: '#f97316', glow: '#ea580c', icon: '🛍️', shape: '' },
+    { id: 'vedic-games', title: 'GAMES', subtitle: 'Mindful Play', description: 'Vedic-inspired mindful games — sharpen your mind while connecting with ancient Indian wisdom.', href: '/vedic-games', color: '#ec4899', glow: '#be185d', icon: '🎲', shape: '' },
+    { id: 'sutraconnect', title: 'CONNECT', subtitle: 'Conscious Connect', description: 'Meaningful conversations in a mindful, distraction-free space — conscious social connection.', href: '/onesutra', color: '#8b5cf6', glow: '#7c3aed', icon: '💬', shape: '' },
+    { id: 'pranaverse', title: 'PRANAVIBES', subtitle: 'Conscious Feed', description: 'Your conscious social feed — inspirational reels, mantras & wisdom curated for spiritual growth.', href: '/pranaverse', color: '#14b8a6', glow: '#0d9488', icon: '🌊', shape: '' },
+    { id: 'vedic-sangrah', title: 'RITUALS', subtitle: 'Sacred Practices', description: 'Daily sacred practices & rituals — step-by-step guidance for pujas, havans & spiritual ceremonies.', href: '/vedic-sangrah', color: '#6366f1', glow: '#4f46e5', icon: '🛕', shape: '' },
 ];
 
 
@@ -197,7 +197,7 @@ function GeodeOrb({ item, sz, idx }: { item: OrbItem; sz: number; idx: number })
                         gap: 1, position: 'relative', zIndex: 2, padding: '0 4px',
                     }}>
                         <span style={{
-                            fontSize: Math.max(6.8, sz * 0.118),
+                            fontSize: Math.max(7.8, sz * 0.136),
                             fontWeight: 600,
                             fontFamily: "'Outfit', sans-serif",
                             color: 'rgba(255,255,255,0.65)',
@@ -208,7 +208,7 @@ function GeodeOrb({ item, sz, idx }: { item: OrbItem; sz: number; idx: number })
                         }}>{line1}</span>
                         {line2 && (
                             <span style={{
-                                fontSize: Math.max(6.8, sz * 0.118),
+                                fontSize: Math.max(7.8, sz * 0.136),
                                 fontWeight: 600,
                                 fontFamily: "'Outfit', sans-serif",
                                 color: 'rgba(255,255,255,0.55)',
@@ -401,9 +401,9 @@ export default function SacredPortalGrid() {
     const isHovered = useRef(false);
     const startAngle = useRef(0);
     const lastAngle = useRef(0);
-    const vel = useRef(0.08);
+    const vel = useRef(0.015);
     const animRef = useRef<number>(0);
-    const AUTO = 0.08;
+    const AUTO = 0.015;
 
     // Responsive sizing
     useEffect(() => {
@@ -479,7 +479,30 @@ export default function SacredPortalGrid() {
     const platformSize = orbitSize * 0.82;
 
     return (
-        <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: `${orbitSize * 0.04}px 0`, userSelect: 'none' }}>
+        <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: `${orbitSize * 0.04}px 0`, userSelect: 'none' }}>
+
+            {/* ── ORBIT SECTION ELEGANT TITLE ── */}
+            <div style={{ textAlign: 'center', marginBottom: orbitSize * 0.06, width: '100%', padding: '0 1rem', position: 'relative', zIndex: 10 }}>
+                <h2 style={{
+                    margin: 0, fontSize: 'clamp(0.85rem, 3.5vw, 1.15rem)',
+                    fontWeight: 700, letterSpacing: '0.15em',
+                    color: '#fbbf24', textTransform: 'uppercase',
+                    fontFamily: "'Inter', system-ui, sans-serif",
+                    textShadow: '0 2px 15px rgba(251,191,36,0.3)',
+                }}>
+                    <span style={{ marginRight: 6 }}>✦</span>
+                    Select any planet
+                </h2>
+                <p style={{
+                    margin: '0.4rem 0 0', fontSize: 'clamp(0.75rem, 3vw, 1.05rem)',
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
+                    fontStyle: 'italic', letterSpacing: '0.04em'
+                }}>
+                    and Enhance your life
+                </p>
+            </div>
+
             <div ref={containerRef}
                 style={{ position: 'relative', width: orbitSize, height: orbitSize, flexShrink: 0, touchAction: 'none', cursor: 'grab' }}
                 onPointerDown={onPD} onPointerMove={onPM} onPointerUp={onPU}

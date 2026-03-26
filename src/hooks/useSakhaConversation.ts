@@ -27,6 +27,7 @@ export interface AgenticWebViewAction {
 
 interface UseSakhaConversationOptions {
     userName?: string;
+    preferredLanguage?: 'hi' | 'en';
     sankalpaItems: TaskItem[];
     onSankalpaUpdate: (items: TaskItem[]) => void;
     onDismiss: () => void;
@@ -54,6 +55,7 @@ function getDayPhase(hour: number): DayPhase {
 function buildSystemPrompt(
     phase: DayPhase,
     userName: string,
+    preferredLanguage: 'hi' | 'en',
     sankalpaItems: TaskItem[],
     memories: string[],
     unreadContext: string,
@@ -141,7 +143,9 @@ function buildSystemPrompt(
 
     const firstName = userName ? userName.split(' ')[0] : 'सखा';
 
-    const currentHour = new Date().getHours();
+    const nowObj = new Date();
+    const currentHour = nowObj.getHours();
+    const currentMinute = nowObj.getMinutes();
     // Late night = 9 PM (21) to 2 AM (2)
     const isLateNight = currentHour >= 21 || currentHour < 2;
 
@@ -241,7 +245,7 @@ function buildSystemPrompt(
 
     const now = new Date();
     const currentDateStr = now.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    const currentTimeStr = now.toLocaleTimeString('hi-IN', { hour: '2-digit', minute: '2-digit' });
+    const currentTimeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
 
     return `
 ════════════════════════════════════════════════════════════════════
@@ -304,8 +308,27 @@ BLANK/EMPTY audio response = TOTAL FAILURE. Always speak after the user.
   - Phase NIGHT (raat): "is raat", "raat ko", "aaj ki raat"
   Current phase: ${phase.toUpperCase()} → Use the matching phrase ALWAYS. NEVER say just "aaj" alone for time references.
 
+🕐 TIME REALITY CHECK — CRITICAL:
+Current time is ${currentTimeStr} (${currentHour}:${currentMinute < 10 ? '0' + currentMinute : currentMinute} hours).
+- If current time is 10:00 PM or later (22:00+) → it is NIGHT, NOT evening. Evening ended at 10 PM.
+- If talking about events at 6 PM when it's 10:50 PM → that was 5 HOURS AGO, not upcoming.
+- NEVER say "evening peace integration at 6 PM" when it's 10:50 PM — that event was hours ago.
+- At 10:50 PM: Use "is raat" phrases only. 6 PM references are PAST, not future.
+- Reality check: Current hour = ${currentHour}. If ${currentHour} >= 22, this is NIGHT phase only.
+
 💬 CONVERSATIONAL ENGAGEMENT RULES:
-- After ANY tool call completes → speak naturally, don't pause silently.
+
+🔴 ABSOLUTE TURN-TAKING PROTOCOL (CRITICAL - NEVER VIOLATE):
+- Cycle MUST be: User speaks → Bodhi responds → User speaks → Bodhi responds
+- NEVER speak two lines/messages in succession. After Bodhi speaks ONE response, STOP and wait for user input.
+- NEVER speak multiple sentences as separate turns. Combine into ONE natural response.
+- After EVERY Bodhi response, the next voice MUST be the user's, never Bodhi's again.
+- If Bodhi has already spoken → BLOCK all further speech until user speaks again.
+- NEVER continue the conversation yourself with follow-up questions after your first response.
+- Example of WRONG behavior: Bodhi speaks → Bodhi asks another question immediately. 
+- Example of CORRECT behavior: Bodhi speaks ONE response → waits for user → user speaks → Bodhi responds.
+- After ANY tool call completes → speak EXACTLY ONCE → then STOP → wait for user.
+
 - After reading a message aloud → immediately ask "क्या जवाब देना चाहेंगे?"
 - After adding/removing a task → acknowledge it warmly in ONE sentence ONLY, then pivot. NEVER repeat the confirmation.
 - If user is quiet for >3 seconds → gently prompt: "बताइए, मैं सुन रहा हूँ।"
@@ -854,6 +877,15 @@ OTHER TOOLS (text format — always on NEW line, never inline)
 [TOOL: mark_meditation_done()]
 [TOOL: dismiss_sakha()]
 
+════════════════════════════════════════════════════════════════════
+LANGUAGE MODE (ABSOLUTE OVERRIDE)
+════════════════════════════════════════════════════════════════════
+${preferredLanguage === 'en'
+            ? `Speak ONLY in English. Do NOT output Hindi or Hinglish words.
+For every reply, keep tone warm and natural in English.`
+            : `Speak ONLY in Hindi (Devanagari script).
+Do NOT output English words, Hinglish, or romanized Hindi under any condition.`}
+
 `;
 }
 
@@ -1139,6 +1171,7 @@ const NOISE_GATE_THRESHOLD = 0.012;
 
 export function useSakhaConversation({
     userName = 'Friend',
+    preferredLanguage = 'hi',
     sankalpaItems,
     onSankalpaUpdate,
     onDismiss,
@@ -1192,6 +1225,7 @@ export function useSakhaConversation({
     const fullTranscriptBufferRef = useRef('');
     const sessionHistoryRef = useRef<SakhaMessage[]>([]); // tracks turns in THIS session
     const userNameRef = useRef(userName);
+    const preferredLanguageRef = useRef<'hi' | 'en'>(preferredLanguage);
     const userIdRef = useRef(userId);
     const lastSavedUserTurnRef = useRef<{ text: string; at: number }>({ text: '', at: 0 });
 
@@ -1215,6 +1249,7 @@ export function useSakhaConversation({
     useEffect(() => { onAddTaskRef.current = onAddTask; }, [onAddTask]);
     useEffect(() => { onRemoveTaskRef.current = onRemoveTask; }, [onRemoveTask]);
     useEffect(() => { userNameRef.current = userName; }, [userName]);
+    useEffect(() => { preferredLanguageRef.current = preferredLanguage; }, [preferredLanguage]);
     useEffect(() => { userIdRef.current = userId; }, [userId]);
     useEffect(() => { realContactsRef.current = realContacts; }, [realContacts]);
     useEffect(() => { chatMetaRef.current = chatMeta; }, [chatMeta]);
@@ -1344,6 +1379,9 @@ export function useSakhaConversation({
     }, []);
 
     // Load memories for current user only (and reset on user switch/logout).
+    // Reads from BOTH paths so legacy + new save_memory subcollection are merged:
+    //   Path A: users/{uid}.bodhi_memories (old text-based array on user doc)
+    //   Path B: users/{uid}/core_memory/* (new subcollection written by save_memory tool)
     useEffect(() => {
         let cancelled = false;
 
@@ -1355,16 +1393,28 @@ export function useSakhaConversation({
 
             try {
                 const { getFirebaseFirestore } = await import('@/lib/firebase');
-                const { doc, getDoc } = await import('firebase/firestore');
+                const { doc, getDoc, collection, query: fsQ, orderBy, limit: fsL, getDocs } = await import('firebase/firestore');
                 const db = await getFirebaseFirestore();
 
-                const snap = await getDoc(doc(db, 'users', userId));
+                // Path A — legacy bodhi_memories field
+                const userSnap = await getDoc(doc(db, 'users', userId));
+                const legacyRaw = userSnap.exists() ? userSnap.data()?.bodhi_memories : [];
+                const legacyFacts: string[] = Array.isArray(legacyRaw) ? legacyRaw : [];
+
+                // Path B — new core_memory subcollection
+                const memSnap = await getDocs(
+                    fsQ(collection(db, 'users', userId, 'core_memory'), orderBy('createdAt', 'desc'), fsL(30))
+                );
+                const subcolFacts: string[] = memSnap.docs.map(d => (d.data() as any).fact as string).filter(Boolean);
+
                 if (cancelled) return;
 
-                const raw = snap.exists() ? snap.data()?.bodhi_memories : [];
-                setMemories(Array.isArray(raw) ? raw : []);
+                // Merge, deduplicate, latest-first
+                const merged = Array.from(new Set([...subcolFacts, ...legacyFacts]));
+                setMemories(merged);
+                console.log(`[Bodhi Memory] Loaded ${merged.length} memories (${subcolFacts.length} new + ${legacyFacts.length} legacy) for user ${userId}`);
             } catch (err) {
-                console.warn('Could not load Bodhi memories from Firebase');
+                console.warn('Could not load Bodhi memories from Firebase', err);
                 if (!cancelled) setMemories([]);
             }
         })();
@@ -1373,6 +1423,7 @@ export function useSakhaConversation({
             cancelled = true;
         };
     }, [userId]);
+
 
     // ── Tool Execution ─────────────────────────────────────────────────────────
     const executeToolCalls = useCallback(async (toolCalls: ToolCall[]) => {
@@ -1424,6 +1475,7 @@ export function useSakhaConversation({
 
             if (call.name === 'update_sankalpa_tasks') {
                 const action = call.args[0];
+                const responseLang = preferredLanguageRef.current === 'en' ? 'English' : 'Hindi';
                 const current = [...sankalpaRef.current];
 
                 // NOTE: add/remove are handled by native SDK toolCall handler.
@@ -1435,7 +1487,7 @@ export function useSakhaConversation({
                     onSankalpaUpdateRef.current(updated);
                     if (sessionRef.current) {
                         await sessionRef.current.sendClientContent({
-                            turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: All pending tasks cleared.${updated.length} completed tasks remain.Briefly confirm in ONE short Hindi sentence only.` }] }],
+                            turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: All pending tasks cleared. ${updated.length} completed tasks remain. Briefly confirm in ONE short ${responseLang} sentence only.` }] }],
                             turnComplete: true,
                         });
                     }
@@ -1446,7 +1498,7 @@ export function useSakhaConversation({
                     onSankalpaUpdateRef.current(updated);
                     if (sessionRef.current) {
                         await sessionRef.current.sendClientContent({
-                            turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: All completed tasks removed.${updated.length} active tasks remain.Briefly confirm in ONE short Hindi sentence only.` }] }],
+                            turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: All completed tasks removed. ${updated.length} active tasks remain. Briefly confirm in ONE short ${responseLang} sentence only.` }] }],
                             turnComplete: true,
                         });
                     }
@@ -1462,7 +1514,7 @@ export function useSakhaConversation({
                     const doneTask = updated.find(t => t.done && (t.id === call.args[1] || t.text.toLowerCase().includes(query)));
                     if (sessionRef.current) {
                         await sessionRef.current.sendClientContent({
-                            turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: Task marked DONE: "${doneTask?.text || call.args[1]}".Celebrate warmly in ONE sentence in Hindi, then ask what to tackle next.` }] }],
+                            turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: Task marked DONE: "${doneTask?.text || call.args[1]}". Celebrate warmly in ONE sentence in ${responseLang}, then ask what to tackle next.` }] }],
                             turnComplete: true,
                         });
                     }
@@ -2065,7 +2117,7 @@ export function useSakhaConversation({
                     speechConfig: {
                         voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Aoede' } },
                     },
-                    systemInstruction: buildSystemPrompt(phaseRef.current, userName, sankalpaRef.current, memories, unreadContext, conversationHistory, hasGreetedThisPhase, newsContext, messagesContext.slice(0, 2000), timeGapStr, timeGapMins, meditationDoneEffective, healthProfile, detectedMood, personalityProfile, extractLastTopic(conversationHistory)) + '\n\nRANDOM_SEED: ' + Math.floor(Math.random() * 1000),
+                    systemInstruction: buildSystemPrompt(phaseRef.current, userName, preferredLanguageRef.current, sankalpaRef.current, memories, unreadContext, conversationHistory, hasGreetedThisPhase, newsContext, messagesContext.slice(0, 2000), timeGapStr, timeGapMins, meditationDoneEffective, healthProfile, detectedMood, personalityProfile, extractLastTopic(conversationHistory)) + '\n\nRANDOM_SEED: ' + Math.floor(Math.random() * 1000),
                     // ── MODULE 1: Google AI SDK FunctionDeclarations (Sankalpa Tools) ──
                     tools: [{
                         functionDeclarations: [
@@ -2304,6 +2356,39 @@ export function useSakhaConversation({
                                 name: 'open_dhyan_kshetra',
                                 description: 'Opens the Dhyan Kshetra guided meditation page inside the app. Call this when the user agrees to do guided meditation (morning or evening) OR when mark_meditation_done has been called. Always conduct the Gayatri Mantra ritual VERBALLY FIRST, then call this tool to open the page.',
                                 parameters: { type: Type.OBJECT, properties: {} },
+                            },
+                            // ── Memory Tools ─────────────────────────────────────────────
+                            {
+                                name: 'save_memory',
+                                description: 'Saves an important long-term fact about the user to Firebase memory. Use this AUTOMATICALLY when the user reveals: their name, family members, health conditions, goals, preferences, habits, relationships, life events, or anything important they want Bodhi to remember. Do NOT ask — just save silently.',
+                                parameters: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        fact: {
+                                            type: Type.STRING,
+                                            description: 'The fact to remember, e.g. "User wakes at 5 AM", "User is vegetarian", "User preparing for CAT exam", "User has a daughter named Priya".',
+                                        },
+                                        category: {
+                                            type: Type.STRING,
+                                            description: 'Category: health | goal | habit | preference | relationship | professional | life_event | general',
+                                        },
+                                    },
+                                    required: ['fact'],
+                                },
+                            },
+                            {
+                                name: 'retrieve_memories',
+                                description: 'Fetches stored long-term memories about the user from Firebase. Call this at the start of a new session or when you need context about the user\'s past preferences, goals, or life facts.',
+                                parameters: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        category: {
+                                            type: Type.STRING,
+                                            description: 'Optional: filter by category — health | goal | habit | preference | relationship | professional | life_event | general',
+                                        },
+                                    },
+                                    required: [],
+                                },
                             },
                         ],
                     }],
@@ -2990,6 +3075,73 @@ export function useSakhaConversation({
                                 }
 
 
+                                // ── save_memory (Bodhi Memory — Firebase Firestore) ────────────
+                                if (fcName === 'save_memory') {
+                                    const currentUserId = userIdRef.current;
+                                    const fact = String(fcArgs.fact ?? '').trim();
+                                    const category = String(fcArgs.category ?? 'general').trim();
+                                    try {
+                                        if (!currentUserId) throw new Error('User not logged in');
+                                        if (!fact) throw new Error('No fact provided');
+
+                                        const { getFirebaseFirestore } = await import('@/lib/firebase');
+                                        const { collection, addDoc, serverTimestamp } = await import('firebase/firestore');
+                                        const db = await getFirebaseFirestore();
+
+                                        await addDoc(collection(db, 'users', currentUserId, 'core_memory'), {
+                                            fact,
+                                            category,
+                                            createdAt: serverTimestamp(),
+                                        });
+
+                                        responseMessage = `Memory saved: "${fact}" (category: ${category}). DO NOT mention this to the user. Just continue the conversation naturally.`;
+                                        console.log(`[Bodhi Memory] ✅ Saved fact for ${currentUserId}: "${fact}"`);
+                                    } catch (e) {
+                                        responseMessage = `Memory save failed silently. Continue conversation normally. Error: ${e}`;
+                                        console.warn('[Bodhi Memory] save_memory failed:', e);
+                                    }
+                                }
+
+                                // ── retrieve_memories (Bodhi Memory — Firebase Firestore) ─────
+                                if (fcName === 'retrieve_memories') {
+                                    const currentUserId = userIdRef.current;
+                                    const category = fcArgs.category ? String(fcArgs.category).trim() : null;
+                                    try {
+                                        if (!currentUserId) throw new Error('User not logged in');
+
+                                        const { getFirebaseFirestore } = await import('@/lib/firebase');
+                                        const { collection, query: fsQuery, orderBy, where, limit: fsLimit, getDocs } = await import('firebase/firestore');
+                                        const db = await getFirebaseFirestore();
+
+                                        let q = fsQuery(
+                                            collection(db, 'users', currentUserId, 'core_memory'),
+                                            orderBy('createdAt', 'desc'),
+                                            fsLimit(20)
+                                        );
+                                        if (category) {
+                                            q = fsQuery(
+                                                collection(db, 'users', currentUserId, 'core_memory'),
+                                                where('category', '==', category),
+                                                orderBy('createdAt', 'desc'),
+                                                fsLimit(20)
+                                            );
+                                        }
+
+                                        const snap = await getDocs(q);
+                                        const facts = snap.docs.map(d => (d.data() as any).fact as string).filter(Boolean);
+
+                                        if (facts.length === 0) {
+                                            responseMessage = 'No stored memories found for this user yet. Greet them fresh and start building rapport.';
+                                        } else {
+                                            responseMessage = `Retrieved ${facts.length} memories about this user:\n${facts.map((f, i) => `${i + 1}. ${f}`).join('\n')}\n\nUse these naturally to make the user feel deeply known. Do NOT list them out loud — weave them into conversation.`;
+                                        }
+                                        console.log(`[Bodhi Memory] 📖 Retrieved ${facts.length} facts for ${currentUserId}`);
+                                    } catch (e) {
+                                        responseMessage = `Memory retrieval failed. Continue conversation without past context. Error: ${e}`;
+                                        console.warn('[Bodhi Memory] retrieve_memories failed:', e);
+                                    }
+                                }
+
                                 // 🔇 SILENCE-KILLER: Send toolResponse IMMEDIATELY back to Gemini
                                 // This is the "receipt" Gemini needs to resume audio generation.
                                 // Without this, the model hangs in infinite silence after a tool call.
@@ -3167,8 +3319,8 @@ export function useSakhaConversation({
                     ? ` HISTORY TOPIC: The last conversation was about "${lastDiscussedTopic}". Begin your very first sentence by continuing this topic directly without a generic greeting, UNLESS the user has already spoken about something else.`
                     : ` Check the user's past memories and mood and weave that into your first sentence.`;
                 const greetNote = hasGreetedThisPhase
-                    ? `You are REACTIVATING for ${userName}. Do not say hello, just jump seamlessly directly into a warm continuation of your last conversation. STOP and LISTEN after 1 sentence.${topicContinueNote}${unreadNote}`
-                    : `This is your FIRST greeting for ${userName} in the ${currentPhase} phase. Do not use generic greetings like "aap kaise hain", jump seamlessly directly into a warm continuation based on history or memories. STOP after 1-2 sentences and LISTEN.${topicContinueNote}${unreadNote}`;
+                    ? `You are REACTIVATING for ${userName}. Do not say hello, just jump seamlessly directly into a warm continuation of your last conversation. STOP and LISTEN after 1 sentence. CRITICAL: After this ONE greeting sentence, you MUST wait for the user to respond before speaking again. Do not continue with follow-up questions. STOP after 1 sentence.${topicContinueNote}${unreadNote}`
+                    : `This is your FIRST greeting for ${userName} in the ${currentPhase} phase. Do not use generic greetings like "aap kaise hain", jump seamlessly directly into a warm continuation based on history or memories. STOP after 1-2 sentences and LISTEN. CRITICAL: After this greeting, you MUST wait for the user to respond. Never speak twice in succession.${topicContinueNote}${unreadNote}`;
                 const openingText = `Activate. Phase=${currentPhase}. ${greetNote}`;
                 await session.sendClientContent({
                     turns: [{ role: 'user', parts: [{ text: openingText }] }],
@@ -3283,6 +3435,33 @@ export function useSakhaConversation({
         setWebViewAction(null);
     }, []);
 
+    // ── Send a typed text message into the live session ────────────────────────
+    const sendTextMessage = useCallback(async (text: string): Promise<boolean> => {
+        if (!sessionRef.current || !isConnectedRef.current) return false;
+        try {
+            const userTurn: SakhaMessage = { role: 'user', text, timestamp: Date.now() };
+            setHistory(prev => [...prev, userTurn]);
+            sessionHistoryRef.current.push(userTurn);
+            lastSavedUserTurnRef.current = { text, at: Date.now() };
+            const currentUid = userIdRef.current;
+            if (currentUid) {
+                saveConversationHistory(currentUid, [userTurn]).catch(() => { });
+            }
+            setSakhaState('thinking');
+            bodhiThinkingRef.current = true;
+            thinkingStartedRef.current = Date.now();
+            canListenRef.current = false;
+            await sessionRef.current.sendClientContent({
+                turns: [{ role: 'user', parts: [{ text }] }],
+                turnComplete: true,
+            });
+            return true;
+        } catch (e) {
+            console.warn('[Bodhi] sendTextMessage failed:', e);
+            return false;
+        }
+    }, []);
+
     // ── Also capture user's spoken input into session history ─────────────────
     // We hook into the history state changes to also track user turns.
     // Since Gemini Live API doesn't give us transcripts of user speech by default,
@@ -3299,6 +3478,7 @@ export function useSakhaConversation({
         closeWebView,
         activate,
         deactivate,
+        sendTextMessage,
         error
     };
 }
