@@ -1429,6 +1429,19 @@ export function useSakhaConversation({
     const executeToolCalls = useCallback(async (toolCalls: ToolCall[]) => {
         for (const call of toolCalls) {
             if (call.name === 'dismiss_sakha') {
+                // Fire-and-forget: process short-term memories into long-term insights
+                const uid = userIdRef.current;
+                if (uid) {
+                    fetch('/api/bodhi/summarize-memory', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: uid }),
+                    }).then(r => r.json()).then(d => {
+                        console.log('[Bodhi Memory] 🧠 Summarizer result:', d);
+                    }).catch(e => {
+                        console.warn('[Bodhi Memory] Summarizer call failed (non-critical):', e);
+                    });
+                }
                 setTimeout(() => {
                     deactivate();
                     onDismissRef.current();
