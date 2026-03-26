@@ -2,6 +2,8 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useBodhiChatStore } from '@/stores/bodhiChatStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Clock, Check, X, ChevronRight, Brain, Calendar, ChevronLeft, LayoutGrid, Mic, MicOff, Send } from 'lucide-react';
 import { getFirebaseAuth } from '@/lib/firebase';
@@ -161,12 +163,12 @@ function mapCategoryToStyle(category: string, icon: string) {
 }
 
 const CM: Record<string, { text: string; border: string; bg: string; glow: string }> = {
-    blue: { text: 'rgba(147,197,253,0.95)', border: 'rgba(96,165,250,0.30)', bg: 'rgba(30,64,175,0.15)', glow: 'rgba(96,165,250,0.18)' },
-    green: { text: 'rgba(110,231,183,0.95)', border: 'rgba(52,211,153,0.30)', bg: 'rgba(6,78,59,0.15)', glow: 'rgba(52,211,153,0.18)' },
-    teal: { text: 'rgba(94,234,212,0.95)', border: 'rgba(20,184,166,0.30)', bg: 'rgba(19,78,74,0.15)', glow: 'rgba(20,184,166,0.18)' },
-    purple: { text: 'rgba(216,180,254,0.95)', border: 'rgba(167,139,250,0.30)', bg: 'rgba(88,28,135,0.15)', glow: 'rgba(167,139,250,0.18)' },
-    gold: { text: 'rgba(252,211,77,0.95)', border: 'rgba(251,191,36,0.30)', bg: 'rgba(120,53,15,0.15)', glow: 'rgba(251,191,36,0.18)' },
-    pink: { text: 'rgba(249,168,212,0.95)', border: 'rgba(244,114,182,0.30)', bg: 'rgba(131,24,67,0.15)', glow: 'rgba(244,114,182,0.18)' },
+    blue: { text: '#60a5fa', border: 'rgba(96, 165, 250, 0.40)', bg: 'rgba(96, 165, 250, 0.15)', glow: 'rgba(96, 165, 250, 0.20)' },
+    green: { text: '#4ade80', border: 'rgba(74, 222, 128, 0.40)', bg: 'rgba(74, 222, 128, 0.15)', glow: 'rgba(74, 222, 128, 0.20)' },
+    teal: { text: '#2dd4bf', border: 'rgba(45, 212, 191, 0.40)', bg: 'rgba(45, 212, 191, 0.15)', glow: 'rgba(45, 212, 191, 0.20)' },
+    purple: { text: '#a78bfa', border: 'rgba(167, 139, 250, 0.40)', bg: 'rgba(167, 139, 250, 0.15)', glow: 'rgba(167, 139, 250, 0.20)' },
+    gold: { text: '#fbbf24', border: 'rgba(251, 191, 36, 0.40)', bg: 'rgba(251, 191, 36, 0.15)', glow: 'rgba(251, 191, 36, 0.20)' },
+    pink: { text: '#f472b6', border: 'rgba(244, 114, 182, 0.40)', bg: 'rgba(244, 114, 182, 0.15)', glow: 'rgba(244, 114, 182, 0.20)' },
 };
 
 // ── Firebase Firestore helpers ─────────────────────────────────────────────
@@ -199,16 +201,16 @@ function MiniCalendar({ tasks, onDateSelect }: { tasks: TaskItem[]; onDateSelect
     const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
     return (
-        <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 18, padding: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div style={{ background: 'rgba(20, 20, 30, 0.50)', border: '1px solid rgba(251, 191, 36, 0.25)', borderRadius: 18, padding: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', backdropFilter: 'blur(16px)' }}>
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <button onClick={() => setViewDate(new Date(year, month - 1, 1))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.40)', padding: 4, lineHeight: 0 }}><ChevronLeft size={14} /></button>
-                <span style={{ fontSize: '0.66rem', fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase', fontFamily: 'monospace' }}>{MONTHS[month]} {year}</span>
-                <button onClick={() => setViewDate(new Date(year, month + 1, 1))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.40)', padding: 4, lineHeight: 0 }}><ChevronRight size={14} /></button>
+                <button onClick={() => setViewDate(new Date(year, month - 1, 1))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255, 255, 255, 0.50)', padding: 4, lineHeight: 0 }}><ChevronLeft size={14} /></button>
+                <span style={{ fontSize: '0.66rem', fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255, 255, 255, 0.80)', textTransform: 'uppercase', fontFamily: 'monospace' }}>{MONTHS[month]} {year}</span>
+                <button onClick={() => setViewDate(new Date(year, month + 1, 1))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255, 255, 255, 0.50)', padding: 4, lineHeight: 0 }}><ChevronRight size={14} /></button>
             </div>
             {/* Day labels */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
-                {DAYS.map((d, i) => <span key={i} style={{ fontSize: '0.50rem', color: 'rgba(255,255,255,0.25)', textAlign: 'center', fontFamily: 'monospace', letterSpacing: '0.05em' }}>{d}</span>)}
+                {DAYS.map((d, i) => <span key={i} style={{ fontSize: '0.50rem', color: 'rgba(251, 191, 36, 0.60)', textAlign: 'center', fontFamily: 'monospace', letterSpacing: '0.05em' }}>{d}</span>)}
             </div>
             {/* Day grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3 }}>
@@ -220,13 +222,13 @@ function MiniCalendar({ tasks, onDateSelect }: { tasks: TaskItem[]; onDateSelect
                     return (
                         <button key={iso} onClick={() => onDateSelect(iso)}
                             style={{
-                                aspectRatio: '1', borderRadius: '50%', border: isToday ? '1.5px solid rgba(251,191,36,0.65)' : '1px solid transparent',
-                                background: hasTasks ? 'rgba(251,191,36,0.15)' : 'transparent',
+                                aspectRatio: '1', borderRadius: '50%', border: isToday ? '1.5px solid rgba(251, 191, 36, 0.80)' : '1px solid transparent',
+                                background: hasTasks ? 'rgba(251, 191, 36, 0.25)' : 'transparent',
                                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 1,
                                 padding: 0, position: 'relative',
                             }}>
-                            <span style={{ fontSize: '0.58rem', color: isToday ? 'rgba(251,191,36,0.90)' : 'rgba(255,255,255,0.50)', fontWeight: isToday ? 700 : 400, fontFamily: 'monospace', lineHeight: 1 }}>{d}</span>
-                            {hasTasks && <div style={{ width: 3, height: 3, borderRadius: '50%', background: 'rgba(251,191,36,0.80)' }} />}
+                            <span style={{ fontSize: '0.58rem', color: isToday ? '#fbbf24' : 'rgba(255, 255, 255, 0.70)', fontWeight: isToday ? 700 : 400, fontFamily: 'monospace', lineHeight: 1 }}>{d}</span>
+                            {hasTasks && <div style={{ width: 3, height: 3, borderRadius: '50%', background: '#fbbf24' }} />}
                         </button>
                     );
                 })}
@@ -245,13 +247,13 @@ function SchedulePrompt({ pill, onSchedule, onSkip }: { pill: TaskItem; onSchedu
 
     return (
         <motion.div initial={{ opacity: 0, y: 10, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.97 }} transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            style={{ background: 'rgba(8,6,20,0.96)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: `1px solid ${colors.border}`, borderRadius: 20, padding: '1rem 1.1rem', boxShadow: `0 8px 40px rgba(0,0,0,0.60), 0 0 20px ${colors.glow}`, display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+            style={{ background: 'rgba(20, 20, 30, 0.60)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: `1px solid ${colors.border}`, borderRadius: 20, padding: '1rem 1.1rem', boxShadow: `0 8px 40px rgba(0, 0, 0, 0.4), 0 0 20px ${colors.glow}`, display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                 <Clock size={13} style={{ color: colors.text }} />
                 <p style={{ margin: 0, fontSize: '0.60rem', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: colors.text }}>When will you do this?</p>
-                <button onClick={onSkip} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.30)', lineHeight: 0, padding: 2 }}><X size={13} /></button>
+                <button onClick={onSkip} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255, 255, 255, 0.40)', lineHeight: 0, padding: 2 }}><X size={13} /></button>
             </div>
-            <p style={{ margin: 0, fontSize: '0.64rem', color: 'rgba(255,255,255,0.40)', fontStyle: 'italic' }}>Tasks with a set time are 3× more likely to get done.</p>
+            <p style={{ margin: 0, fontSize: '0.64rem', color: 'rgba(255, 255, 255, 0.60)', fontStyle: 'italic' }}>Tasks with a set time are 3× more likely to get done.</p>
 
             {/* Date selector */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -275,7 +277,7 @@ function SchedulePrompt({ pill, onSchedule, onSkip }: { pill: TaskItem; onSchedu
             {/* Custom */}
             <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
                 <input type="text" placeholder="Or type a time…" value={custom} onChange={e => setCustom(e.target.value)} onKeyDown={e => e.key === 'Enter' && custom.trim() && onSchedule(selDate, custom.trim())}
-                    style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 999, padding: '0.36rem 0.9rem', color: 'rgba(255,255,255,0.85)', fontSize: '0.64rem', outline: 'none', fontFamily: 'inherit' }} />
+                    style={{ flex: 1, background: 'rgba(255, 255, 255, 0.10)', border: `1px solid ${colors.border}`, borderRadius: 999, padding: '0.36rem 0.9rem', color: 'rgba(255, 255, 255, 0.90)', fontSize: '0.64rem', outline: 'none', fontFamily: 'inherit' }} />
                 {custom.trim() && <button onClick={() => onSchedule(selDate, custom.trim())} style={{ background: colors.bg, border: `1px solid ${colors.border}`, borderRadius: 999, padding: '0.36rem 0.70rem', cursor: 'pointer', color: colors.text, fontSize: '0.60rem', fontWeight: 700, fontFamily: 'inherit' }}>Set <ChevronRight size={9} style={{ display: 'inline', verticalAlign: 'middle' }} /></button>}
             </div>
         </motion.div>
@@ -288,7 +290,11 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
     const [isTyping, setIsTyping] = useState(false);
     const [schedulingId, setSchedulingId] = useState<string | null>(null);
     const [showCalendar, setShowCalendar] = useState(false);
+    const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+    const [aiAdvice, setAiAdvice] = useState<Record<string, string>>({});
+    const [isGeneratingAdvice, setIsGeneratingAdvice] = useState<string | null>(null);
     const [filterDate, setFilterDate] = useState<string | null>(null);
+    const [hoveredBubble, setHoveredBubble] = useState<number | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
     // ── Bodhi Conversation State ──────────────────────────────────────────────
@@ -343,59 +349,18 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
         else startListening();
     }, [isListening, startListening, stopListening]);
 
-    // ── Core submit (text or voice) ──────────────────────────────────────────
-    const submitMessage = useCallback(async (overrideText?: string) => {
+    const router = useRouter();
+    const setPendingMessage = useBodhiChatStore(s => s.setPendingMessage);
+
+    // ── Core submit: intercept → persist → route to /bodhi-chat ─────────────
+    const submitMessage = useCallback((overrideText?: string) => {
         const text = (overrideText ?? inputValue).trim();
-        if (!text || bodhiState !== 'idle') return;
+        if (!text) return;
         setInputValue('');
         if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(55);
-
-        const itemType = detectItemType(text);
-        const isConversationalReply = chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'bodhi';
-
-        // Save to task planner unless pure conversational reply with no actionable content
-        let savedTaskId: string | null = null;
-        if (!isConversationalReply || itemType !== 'task' || text.length > 12) {
-            const instantStyle = keywordCategorize(text);
-            const categoryOverride =
-                itemType === 'challenge' ? 'Challenge' :
-                    itemType === 'issue' ? 'Issue' :
-                        itemType === 'idea' ? 'Idea' :
-                            instantStyle.category;
-            const iconOverride =
-                itemType === 'challenge' ? '⚡' :
-                    itemType === 'issue' ? '🔥' :
-                        itemType === 'idea' ? '💡' :
-                            instantStyle.icon;
-            const newTask: TaskItem = {
-                id: Date.now().toString(), text,
-                ...instantStyle,
-                icon: iconOverride,
-                category: categoryOverride,
-                done: false, createdAt: Date.now(),
-            };
-            onAdd(newTask);
-            savedTaskId = newTask.id;
-            if (!isConversationalReply) setSchedulingId(newTask.id);
-            categorizeViaGemini(text).then(style => onUpdate(newTask.id, { ...style, category: categoryOverride }));
-        }
-
-        // Add user message to chat
-        const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', text, ts: Date.now(), itemType, saved: !!savedTaskId };
-        setChatHistory(prev => [...prev, userMsg]);
-
-        // Activate Bodhi → think
-        setBodhiState('thinking');
-        try {
-            const response = await bodhiChatResponse(text, [...chatHistory, userMsg], tasks, !!savedTaskId, itemType);
-            const bodhiMsg: ChatMessage = { id: (Date.now() + 1).toString(), role: 'bodhi', text: response, ts: Date.now() };
-            setChatHistory(prev => [...prev, bodhiMsg]);
-            setBodhiState('speaking');
-            speakWithTTS(response, () => setBodhiState('idle'));
-        } catch {
-            setBodhiState('idle');
-        }
-    }, [inputValue, bodhiState, chatHistory, tasks, onAdd, onUpdate]);
+        setPendingMessage(text);
+        router.push('/bodhi-chat');
+    }, [inputValue, setPendingMessage, router]);
 
     const handleSubmit = useCallback(() => submitMessage(), [submitMessage]);
     // Keep ref current so STT handler always calls latest version
@@ -414,475 +379,717 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
         }, 700);
     }, [onToggle, onRemove]);
 
-    const activeTasks = tasks.filter(t => !t.done && (!filterDate || t.scheduledDate === filterDate));
+    // AI Advice generator for categories
+    const generateAIAdvice = useCallback(async (category: string, items: TaskItem[]) => {
+        if (items.length === 0) return;
+        setIsGeneratingAdvice(category);
+
+        const adviceMap: Record<string, string[]> = {
+            Task: [
+                "Prioritize by urgency. Start with what matters most today.",
+                "Break large tasks into small steps. Progress builds momentum.",
+                "Time-block your focus. Deep work creates flow.",
+                "Progress over perfection. Each step counts.",
+            ],
+            Challenge: [
+                "Challenges are growth in disguise. Embrace them.",
+                "Break challenges into milestones. Celebrate small wins.",
+                "You're stronger than you know. Trust yourself.",
+                "Every obstacle is a teacher. Learn and rise.",
+            ],
+            Idea: [
+                "Capture ideas immediately. Best ones come unexpectedly!",
+                "Connect unrelated ideas. Innovation lives at intersections.",
+                "Let ideas breathe. Clarity often comes with time.",
+                "Your creativity is infinite. Trust the process.",
+            ],
+            Issue: [
+                "Every problem has a solution. Breathe and approach calmly.",
+                "Ask 'why' five times to find the root cause.",
+                "Stepping back often brings the clarity you need.",
+                "Transform problems into opportunities. You have this!",
+            ],
+        };
+
+        const advices = adviceMap[category] || ["You're doing great! Keep moving forward with peace."];
+        const randomAdvice = advices[Math.floor(Math.random() * advices.length)];
+
+        await new Promise(resolve => setTimeout(resolve, 600));
+
+        setAiAdvice(prev => ({ ...prev, [category]: randomAdvice }));
+        setIsGeneratingAdvice(null);
+    }, []);
+
+    const handleCategoryClick = useCallback((category: string) => {
+        if (expandedCategory === category) {
+            setExpandedCategory(null);
+        } else {
+            setExpandedCategory(category);
+            const categoryItems = tasks.filter(t => t.category === category && !t.done);
+            if (categoryItems.length > 0 && !aiAdvice[category]) {
+                generateAIAdvice(category, categoryItems);
+            }
+        }
+    }, [expandedCategory, tasks, aiAdvice, generateAIAdvice]);
+
+    // Task / Challenge / Idea / Wellness are shown as Stories in the top nav — exclude them from the dashboard grid
+    const STORY_CATEGORIES = ['Task', 'Challenge', 'Idea', 'Wellness'];
+    const activeTasks = tasks.filter(t => !t.done && !STORY_CATEGORIES.includes(t.category) && (!filterDate || t.scheduledDate === filterDate));
     const donePct = tasks.length > 0 ? Math.round((tasks.filter(t => t.done).length / tasks.length) * 100) : 0;
+
+    const categoryStats = [
+        { key: 'Task', emoji: '✅', label: 'Tasks', color: '#4ade80', bg: 'rgba(74,222,128,0.12)', border: 'rgba(74,222,128,0.30)' },
+        { key: 'Challenge', emoji: '⚡', label: 'Challenges', color: '#fb923c', bg: 'rgba(251,146,60,0.12)', border: 'rgba(251,146,60,0.30)' },
+        { key: 'Idea', emoji: '💡', label: 'Ideas', color: '#fbbf24', bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.30)' },
+        { key: 'Issue', emoji: '🔥', label: 'Issues', color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.30)' },
+    ].map(c => ({ ...c, count: tasks.filter(t => !t.done && t.category === c.key).length }));
 
     return (
         <div style={{
-            width: '100%', maxWidth: 700, margin: '0 auto',
-            display: 'flex', flexDirection: 'column', gap: '0.80rem',
-            padding: '0 0.8rem',
+            width: '100%',
+            display: 'flex', flexDirection: 'column', gap: '0.55rem',
             position: 'relative',
         }}>
 
-            {/* ── WORLD-CLASS COMMAND CENTRE HEADER ── */}
+            {/* ── SMART MANAGER PREMIUM GLASS CARD ── */}
             <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                initial={{ opacity: 0, y: 20, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                 style={{
                     position: 'relative',
-                    borderRadius: 22,
-                    padding: '1.1rem 1.2rem 1rem',
-                    background: 'radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.13) 0%, rgba(251,191,36,0.07) 35%, rgba(129,140,248,0.05) 65%, transparent 100%)',
-                    backdropFilter: 'blur(32px) saturate(200%)',
-                    WebkitBackdropFilter: 'blur(32px) saturate(200%)',
-                    border: '1px solid rgba(255,255,255,0.18)',
-                    boxShadow: '0 0 40px rgba(251,191,36,0.06), 0 8px 40px rgba(0,0,0,0.22), inset 0 1.5px 0 rgba(255,255,255,0.22), inset 0 -1px 0 rgba(255,255,255,0.06)',
+                    borderRadius: 28,
+                    padding: '1.25rem 1.1rem 1rem',
+                    background: 'rgba(0, 0, 0, 0.08)',
+                    backdropFilter: 'blur(2px) saturate(110%)',
+                    WebkitBackdropFilter: 'blur(2px) saturate(110%)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    boxShadow: '0 4px 24px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
                     overflow: 'hidden',
                 }}
             >
-                {/* ── Water bubble: primary specular crescent (top-left) ── */}
-                <div aria-hidden style={{ position: 'absolute', top: '4%', left: '8%', width: '55%', height: '32%', background: 'radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.52) 0%, rgba(255,255,255,0.18) 40%, transparent 100%)', borderRadius: '50%', transform: 'rotate(-22deg)', filter: 'blur(3px)', pointerEvents: 'none' }} />
-                {/* ── Tiny bright specular dot (top-right) ── */}
-                <div aria-hidden style={{ position: 'absolute', top: '10%', right: '20%', width: '10%', height: '8%', background: 'radial-gradient(circle, rgba(255,255,255,0.75) 0%, transparent 100%)', borderRadius: '50%', filter: 'blur(1px)', pointerEvents: 'none' }} />
-                {/* ── Rim light (bottom) ── */}
-                <div aria-hidden style={{ position: 'absolute', bottom: '4%', left: '18%', right: '18%', height: '6%', background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.14), transparent)', borderRadius: '50%', filter: 'blur(2px)', pointerEvents: 'none' }} />
-                {/* ── Jelly color aurora ── */}
-                <div aria-hidden style={{ position: 'absolute', bottom: 0, left: '4%', right: '4%', height: '55%', background: 'radial-gradient(ellipse at center bottom, rgba(251,191,36,0.12) 0%, rgba(129,140,248,0.07) 45%, transparent 75%)', filter: 'blur(12px)', pointerEvents: 'none' }} />
-                {/* ── Trapped micro-bubbles ── */}
-                {[{ x: 18, y: 72, r: 3 }, { x: 72, y: 78, r: 2.2 }, { x: 48, y: 82, r: 1.6 }, { x: 85, y: 68, r: 2.6 }, { x: 8, y: 85, r: 1.8 }].map((b, i) => (
-                    <div key={i} aria-hidden style={{ position: 'absolute', left: `${b.x}%`, top: `${b.y}%`, width: b.r * 2, height: b.r * 2, borderRadius: '50%', background: 'radial-gradient(circle at 35% 30%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.10) 50%, transparent 100%)', border: '0.5px solid rgba(255,255,255,0.28)', pointerEvents: 'none' }} />
-                ))}
+                {/* Subtle shimmer — no dark ambient glow */}
+                <div style={{
+                    position: 'absolute', inset: 0, pointerEvents: 'none',
+                    background: 'radial-gradient(ellipse at 30% 0%, rgba(251, 191, 36, 0.06) 0%, transparent 50%)',
+                }} />
 
-                {/* Top row: Title + Action buttons */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.6rem', marginBottom: '0.75rem', position: 'relative', zIndex: 1 }}>
-                    {/* Left: Icon + Headline */}
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.7rem', minWidth: 0 }}>
-                        {/* Pulsing brain icon */}
+
+                {/* ── SMART MANAGER HEADER ── */}
+                <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.9rem' }}>
+                    <div style={{ flex: 1 }}>
+                        <h2 style={{
+                            margin: 0, fontSize: 'clamp(0.58rem, 2.3vw, 0.74rem)',
+                            fontWeight: 700, lineHeight: 1.3, letterSpacing: '0.14em',
+                            color: '#fbbf24',
+                            fontFamily: "'Inter', system-ui, sans-serif",
+                            textTransform: 'uppercase',
+                        }}>
+                            <span style={{ marginRight: 6 }}>✦</span>
+                            Add your tasks, Challenges & ideas
+                        </h2>
+                        <p style={{
+                            margin: '0.4rem 0 0', fontSize: 'clamp(0.64rem, 2.7vw, 0.76rem)',
+                            color: 'rgba(255, 255, 255, 0.65)',
+                            fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
+                            letterSpacing: '0.02em',
+                            fontWeight: 400,
+                            fontStyle: 'italic',
+                        }}>
+                            Calm your mind · Your AI Sakha <span style={{ color: '#fbbf24', fontWeight: 500 }}>Bodhi</span> will advise and schedule it
+                        </p>
+                    </div>
+
+                    {/* ── RIGHT ACTION COLUMN ── */}
+                    {/* ── SMART PLANNER ACTION BUTTON ── */}
+                    <Link href="/vedic-planner" style={{ textDecoration: 'none', flexShrink: 0 }}>
                         <motion.div
-                            animate={{ scale: [1, 1.08, 1], boxShadow: ['0 0 12px rgba(251,191,36,0.25)', '0 0 22px rgba(251,191,36,0.50)', '0 0 12px rgba(251,191,36,0.25)'] }}
-                            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                            whileHover={{ scale: 1.05, y: -2, transition: { duration: 0.2 } }}
+                            whileTap={{ scale: 0.95 }}
                             style={{
-                                width: 38, height: 38, borderRadius: 12, flexShrink: 0,
-                                background: 'linear-gradient(145deg, rgba(251,191,36,0.20), rgba(217,119,6,0.15))',
+                                display: 'flex', alignItems: 'center', gap: '8px',
+                                padding: '0.45rem 0.8rem',
+                                borderRadius: 14,
+                                position: 'relative', overflow: 'hidden',
+                                cursor: 'pointer',
+                                background: 'radial-gradient(ellipse at top left, rgba(251,191,36,0.2) 0%, rgba(10,15,30,0.6) 100%)',
+                                backdropFilter: 'blur(16px) saturate(140%)',
+                                WebkitBackdropFilter: 'blur(16px) saturate(140%)',
                                 border: '1px solid rgba(251,191,36,0.35)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                boxShadow: '0 4px 16px rgba(0,0,0,0.2), inset 0 1px 1px rgba(255,255,255,0.15)',
                             }}
                         >
-                            <Brain size={18} style={{ color: '#fbbf24' }} />
-                        </motion.div>
-                        <div style={{ minWidth: 0 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.18rem' }}>
-                                <Sparkles size={10} style={{ color: 'rgba(251,191,36,0.80)', flexShrink: 0 }} />
+                            <Calendar size={18} strokeWidth={2.5} style={{ color: '#fbbf24', filter: 'drop-shadow(0 0 6px #fbbf24)' }} />
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.1 }}>
                                 <span style={{
-                                    fontSize: '0.52rem', fontWeight: 700, letterSpacing: '0.20em', textTransform: 'uppercase',
-                                    color: 'rgba(251,191,36,0.70)', fontFamily: 'monospace', whiteSpace: 'nowrap',
-                                }}>AI Life Command Centre</span>
+                                    fontSize: '0.50rem', fontWeight: 700,
+                                    letterSpacing: '0.14em', textTransform: 'uppercase',
+                                    color: 'rgba(255,255,255,0.7)',
+                                    fontFamily: "'Inter', system-ui, sans-serif",
+                                }}>Smart</span>
+                                <span style={{
+                                    fontSize: '0.65rem', fontWeight: 800,
+                                    letterSpacing: '0.12em', textTransform: 'uppercase',
+                                    color: '#fbbf24',
+                                    fontFamily: "'Inter', system-ui, sans-serif",
+                                }}>Planner</span>
                             </div>
-                            <h3 style={{
-                                margin: 0,
-                                fontSize: 'clamp(0.88rem, 3.2vw, 1.05rem)',
-                                fontWeight: 800, lineHeight: 1.25, letterSpacing: '-0.01em',
-                                background: 'linear-gradient(120deg, #ffffff 0%, #fde68a 45%, #c4b5fd 100%)',
-                                WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
-                            }}>
-                                Manage your life, Challenges, Tasks and Issues.....
-                            </h3>
-                            <p style={{ margin: '0.18rem 0 0', fontSize: '0.60rem', color: 'rgba(255,255,255,0.38)', lineHeight: 1.45, fontStyle: 'italic' }}>
-                                Bodhi AI will advise, categorise & schedule everything
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Right: Stats + Buttons */}
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.4rem', flexShrink: 0 }}>
-                        {tasks.length > 0 && (
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.14rem' }}>
-                                <span style={{ fontSize: '0.50rem', color: 'rgba(255,255,255,0.40)', fontWeight: 700, letterSpacing: '0.08em' }}>{tasks.filter(t => !t.done).length} active · {donePct}%</span>
-                                <div style={{ width: 62, height: 3.5, borderRadius: 999, background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
-                                    <motion.div
-                                        animate={{ width: `${donePct}%` }}
-                                        transition={{ duration: 0.8, ease: 'easeOut' }}
-                                        style={{ height: '100%', borderRadius: 999, background: 'linear-gradient(90deg, #fbbf24, #a78bfa)' }}
-                                    />
-                                </div>
-                            </div>
-                        )}
-                        <div style={{ display: 'flex', gap: '0.4rem' }}>
-                            {/* PLANNER button — premium */}
-                            <Link href="/vedic-planner" style={{ textDecoration: 'none' }}>
-                                <motion.div
-                                    whileHover={{ scale: 1.07, boxShadow: '0 0 28px rgba(251,191,36,0.60), 0 0 50px rgba(251,191,36,0.22)' }}
-                                    whileTap={{ scale: 0.93 }}
-                                    style={{
-                                        display: 'flex', alignItems: 'center', gap: '0.28rem',
-                                        padding: '0.38rem 0.80rem', borderRadius: 999,
-                                        background: 'linear-gradient(135deg, rgba(251,191,36,0.28) 0%, rgba(217,119,6,0.20) 100%)',
-                                        border: '1.5px solid rgba(251,191,36,0.55)',
-                                        boxShadow: '0 0 16px rgba(251,191,36,0.22), inset 0 1px 0 rgba(255,255,255,0.12)',
-                                        cursor: 'pointer', position: 'relative', overflow: 'hidden',
-                                    }}
-                                >
-                                    <motion.div
-                                        animate={{ x: ['-120%', '220%'] }}
-                                        transition={{ duration: 2.2, repeat: Infinity, ease: 'linear', repeatDelay: 2 }}
-                                        style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.20), transparent)', pointerEvents: 'none' }}
-                                    />
-                                    <LayoutGrid size={11} style={{ color: '#fbbf24', flexShrink: 0 }} />
-                                    <span style={{ fontSize: '0.54rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#fde68a', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
-                                        Planner
-                                    </span>
-                                </motion.div>
-                            </Link>
-                            {/* Calendar */}
-                            <button onClick={() => setShowCalendar(s => !s)} style={{ background: showCalendar ? 'rgba(251,191,36,0.14)' : 'rgba(255,255,255,0.06)', border: showCalendar ? '1.5px solid rgba(251,191,36,0.40)' : '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '0.32rem 0.55rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.22rem' }}>
-                                <Calendar size={11} style={{ color: showCalendar ? '#fbbf24' : 'rgba(255,255,255,0.42)' }} />
-                                <span style={{ fontSize: '0.48rem', fontFamily: 'monospace', letterSpacing: '0.12em', textTransform: 'uppercase', color: showCalendar ? '#fbbf24' : 'rgba(255,255,255,0.35)' }}>Cal</span>
-                            </button>
-                        </div>
-                    </div>
+                        </motion.div>
+                    </Link>
                 </div>
 
-                {/* Category pills row */}
-                <div style={{ display: 'flex', gap: '0.38rem', flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
+                {/* ── 2x2 GLASSY PILL GRID ── */}
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '0.8rem',
+                    marginBottom: '1.5rem',
+                    zIndex: 2,
+                    position: 'relative'
+                }}>
                     {[
-                        { emoji: '✅', label: 'Tasks', color: '#4ade80', bg: 'rgba(74,222,128,0.10)', border: 'rgba(74,222,128,0.25)' },
-                        { emoji: '⚡', label: 'Challenges', color: '#fb923c', bg: 'rgba(251,146,60,0.10)', border: 'rgba(251,146,60,0.25)' },
-                        { emoji: '💡', label: 'Ideas', color: '#fbbf24', bg: 'rgba(251,191,36,0.10)', border: 'rgba(251,191,36,0.25)' },
-                        { emoji: '🔥', label: 'Issues', color: '#f87171', bg: 'rgba(248,113,113,0.10)', border: 'rgba(248,113,113,0.25)' },
-                    ].map(p => (
-                        <div key={p.label} style={{
-                            display: 'flex', alignItems: 'center', gap: '0.22rem',
-                            padding: '0.20rem 0.55rem', borderRadius: 999,
-                            background: p.bg, border: `1px solid ${p.border}`,
-                        }}>
-                            <span style={{ fontSize: '0.62rem', lineHeight: 1 }}>{p.emoji}</span>
-                            <span style={{ fontSize: '0.50rem', fontWeight: 700, letterSpacing: '0.10em', color: p.color, textTransform: 'uppercase', fontFamily: 'monospace' }}>{p.label}</span>
-                        </div>
-                    ))}
-                    <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.48rem', color: 'rgba(255,255,255,0.22)', fontStyle: 'italic', letterSpacing: '0.04em' }}>powered by Sakha Bodhi AI</span>
-                    </div>
+                        { key: 'Task', label: 'TASKS', count: categoryStats.find(c => c.key === 'Task')?.count ?? 0, icon: '✦', color: '#4ade80' },
+                        { key: 'Challenge', label: 'CHALLENGES', count: categoryStats.find(c => c.key === 'Challenge')?.count ?? 0, icon: '⚡', color: '#fb923c' },
+                        { key: 'Idea', label: 'IDEAS', count: categoryStats.find(c => c.key === 'Idea')?.count ?? 0, icon: '♦', color: '#fbbf24' },
+                        { key: 'Issue', label: 'ISSUES', count: categoryStats.find(c => c.key === 'Issue')?.count ?? 0, icon: '🔺', color: '#f87171' },
+                    ].map((b, i) => {
+                        const isActive = expandedCategory === b.key;
+                        return (
+                            <motion.button
+                                key={b.key}
+                                onClick={() => handleCategoryClick(b.key)}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: i * 0.1, ease: 'easeOut' }}
+                                whileHover={{ scale: 1.04, backgroundColor: 'rgba(255,255,255,0.08)' }}
+                                whileTap={{ scale: 0.95 }}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    padding: '0.45rem 0.65rem',
+                                    borderRadius: '999px',
+                                    background: isActive ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.03)',
+                                    border: isActive ? `1.5px solid ${b.color}50` : '1px solid rgba(255,255,255,0.15)',
+                                    backdropFilter: 'blur(16px)',
+                                    WebkitBackdropFilter: 'blur(16px)',
+                                    cursor: 'pointer',
+                                    outline: 'none',
+                                    boxShadow: isActive ? `0 0 15px ${b.color}20, inset 0 2px 5px rgba(255,255,255,0.1)` : 'inset 0 1px 1px rgba(255,255,255,0.1)',
+                                }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <span style={{ color: b.color, fontSize: '0.55rem', filter: `drop-shadow(0 0 5px ${b.color}40)` }}>{b.icon}</span>
+                                    <span style={{
+                                        color: '#ffffff',
+                                        fontSize: '0.42rem',
+                                        fontWeight: 700,
+                                        letterSpacing: '0.12em',
+                                        fontFamily: "'Inter', system-ui, sans-serif"
+                                    }}>
+                                        {b.label}
+                                    </span>
+                                </div>
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    minWidth: '15px',
+                                    height: '15px',
+                                    borderRadius: '50%',
+                                    background: b.count > 0 ? b.color : 'rgba(255,255,255,0.1)',
+                                    color: b.count > 0 ? '#000000' : 'rgba(255,255,255,0.6)',
+                                    fontSize: '0.42rem',
+                                    fontWeight: 800,
+                                    padding: '0 3px',
+                                    boxShadow: b.count > 0 ? `0 0 8px ${b.color}60` : 'inset 0 1px 2px rgba(0,0,0,0.2)'
+                                }}>
+                                    {b.count}
+                                </div>
+                            </motion.button>
+                        );
+                    })}
                 </div>
-            </motion.div>
+
+
+
+
+                <AnimatePresence>
+                    {expandedCategory && (() => {
+                        const categoryItems = tasks.filter(t => t.category === expandedCategory && !t.done);
+                        const categoryConfig = [
+                            { key: 'Task', label: 'Tasks', color: '#4ade80', bg: 'rgba(74, 222, 128, 0.15)' },
+                            { key: 'Challenge', label: 'Challenges', color: '#fb923c', bg: 'rgba(251, 146, 60, 0.15)' },
+                            { key: 'Idea', label: 'Ideas', color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.15)' },
+                            { key: 'Issue', label: 'Issues', color: '#f87171', bg: 'rgba(248, 113, 113, 0.15)' },
+                        ].find(c => c.key === expandedCategory);
+
+                        return (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                                style={{
+                                    overflow: 'hidden',
+                                    marginBottom: '0.85rem',
+                                }}
+                            >
+                                <div style={{
+                                    background: 'rgba(20, 20, 35, 0.40)',
+                                    backdropFilter: 'blur(20px) saturate(160%)',
+                                    borderRadius: 20,
+                                    border: `1px solid ${categoryConfig?.color || '#fbbf24'}40`,
+                                    padding: '1rem',
+                                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
+                                }}>
+                                    {/* Header */}
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            <Brain size={18} style={{ color: categoryConfig?.color || '#fbbf24' }} />
+                                            <span style={{
+                                                fontSize: '0.75rem', fontWeight: 700,
+                                                color: categoryConfig?.color || '#fbbf24',
+                                                letterSpacing: '0.08em', textTransform: 'uppercase',
+                                                fontFamily: "'Inter', system-ui, sans-serif",
+                                            }}>{categoryConfig?.label}</span>
+                                            <span style={{
+                                                fontSize: '0.65rem', color: 'rgba(255, 255, 255, 0.50)',
+                                                fontFamily: "'Inter', system-ui, sans-serif",
+                                            }}>({categoryItems.length})</span>
+                                        </div>
+                                        <button
+                                            onClick={() => setExpandedCategory(null)}
+                                            style={{
+                                                background: 'none', border: 'none', cursor: 'pointer',
+                                                color: 'rgba(255, 255, 255, 0.50)', padding: 4,
+                                            }}
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    </div>
+
+                                    {/* AI Advice Section */}
+                                    <div style={{
+                                        background: 'rgba(251, 191, 36, 0.10)',
+                                        borderRadius: 12,
+                                        padding: '0.75rem',
+                                        marginBottom: '0.75rem',
+                                        border: '1px solid rgba(251, 191, 36, 0.25)',
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                                            <Sparkles size={14} style={{ color: '#fbbf24' }} />
+                                            <span style={{
+                                                fontSize: '0.6rem', fontWeight: 700, color: '#fbbf24',
+                                                letterSpacing: '0.1em', textTransform: 'uppercase',
+                                                fontFamily: "'Inter', system-ui, sans-serif",
+                                            }}>AI Sakha Bodhi Advice</span>
+                                        </div>
+
+                                        {isGeneratingAdvice === expandedCategory ? (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                <div style={{ display: 'flex', gap: 3 }}>
+                                                    {[0, 0.15, 0.3].map(d => (
+                                                        <motion.div key={d}
+                                                            animate={{ y: [0, -4, 0] }}
+                                                            transition={{ duration: 0.6, repeat: Infinity, delay: d }}
+                                                            style={{ width: 5, height: 5, borderRadius: '50%', background: '#fbbf24' }}
+                                                        />
+                                                    ))}
+                                                </div>
+                                                <span style={{
+                                                    fontSize: '0.7rem', color: 'rgba(255, 255, 255, 0.70)',
+                                                    fontStyle: 'italic',
+                                                }}>Bodhi is generating wisdom...</span>
+                                            </div>
+                                        ) : (
+                                            <p style={{
+                                                margin: 0, fontSize: '0.72rem', lineHeight: 1.5,
+                                                color: 'rgba(255, 255, 255, 0.90)',
+                                                fontStyle: 'italic',
+                                            }}>{aiAdvice[expandedCategory] || "Click to receive personalized guidance from your AI Sakha."}</p>
+                                        )}
+                                    </div>
+
+                                    {/* Items List */}
+                                    {categoryItems.length > 0 ? (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                            {categoryItems.map((item, idx) => (
+                                                <motion.div
+                                                    key={item.id}
+                                                    initial={{ opacity: 0, x: -10 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    transition={{ delay: idx * 0.05 }}
+                                                    style={{
+                                                        display: 'flex', alignItems: 'center', gap: '0.6rem',
+                                                        padding: '0.6rem 0.75rem',
+                                                        background: 'rgba(255, 255, 255, 0.06)',
+                                                        borderRadius: 12,
+                                                        border: '1px solid rgba(255, 255, 255, 0.10)',
+                                                    }}
+                                                >
+                                                    <span style={{ fontSize: '1rem' }}>{item.icon || '✨'}</span>
+                                                    <span style={{
+                                                        flex: 1, fontSize: '0.75rem',
+                                                        color: 'rgba(255, 255, 255, 0.90)',
+                                                        lineHeight: 1.4,
+                                                    }}>{item.text}</span>
+                                                    <button
+                                                        onClick={() => handleComplete(item)}
+                                                        style={{
+                                                            background: categoryConfig?.bg || 'rgba(251, 191, 36, 0.15)',
+                                                            border: `1px solid ${categoryConfig?.color || '#fbbf24'}40`,
+                                                            borderRadius: 999,
+                                                            padding: '0.35rem 0.7rem',
+                                                            cursor: 'pointer',
+                                                            color: categoryConfig?.color || '#fbbf24',
+                                                            fontSize: '0.55rem',
+                                                            fontWeight: 700,
+                                                            letterSpacing: '0.06em',
+                                                            textTransform: 'uppercase',
+                                                            display: 'flex', alignItems: 'center', gap: 4,
+                                                        }}
+                                                    >
+                                                        <Check size={10} />
+                                                        Done
+                                                    </button>
+                                                </motion.div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div style={{
+                                            textAlign: 'center', padding: '1.5rem',
+                                            color: 'rgba(255, 255, 255, 0.50)',
+                                        }}>
+                                            <span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem' }}>✨</span>
+                                            <span style={{ fontSize: '0.7rem' }}>No {categoryConfig?.label.toLowerCase()} yet. Add one below!</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        );
+                    })()}
+                </AnimatePresence>
+
+                {/* ── Premium Input Bar ── */}
+                <div style={{
+                    display: 'flex', alignItems: 'center', gap: '0.5rem',
+                    padding: '0.5rem 0.6rem',
+                    borderRadius: 999,
+                    background: 'rgba(255, 255, 255, 0.10)',
+                    backdropFilter: 'blur(24px) saturate(200%)',
+                    WebkitBackdropFilter: 'blur(24px) saturate(200%)',
+                    border: '1.5px solid rgba(255, 255, 255, 0.20)',
+                    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 6px 24px rgba(0, 0, 0, 0.35)',
+                    position: 'relative', zIndex: 2,
+                }}>
+                    <input
+                        ref={inputRef} type="text" value={inputValue}
+                        onChange={e => setInputValue(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+                        placeholder="Type a task — Sakha Bodhi will advise and schedule it..."
+                        style={{
+                            flex: 1,
+                            background: 'transparent',
+                            border: 'none', outline: 'none',
+                            color: 'rgba(255, 255, 255, 0.95)',
+                            fontSize: '0.9rem', fontWeight: 400,
+                            fontFamily: "'Inter', system-ui, sans-serif",
+                            padding: '0.3rem 0.5rem',
+                        }}
+                    />
+
+                    {/* BODHI Button */}
+                    <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        whileHover={{ scale: 1.05 }}
+                        onClick={() => router.push('/bodhi-chat')}
+                        style={{
+                            background: 'rgba(251, 191, 36, 0.15)',
+                            backdropFilter: 'blur(8px)',
+                            border: '1px solid rgba(251, 191, 36, 0.30)',
+                            borderRadius: 999,
+                            padding: '0.4rem 0.8rem',
+                            display: 'flex', alignItems: 'center', gap: 5,
+                            cursor: 'pointer',
+                            color: '#fbbf24',
+                            fontSize: '0.6rem',
+                            fontWeight: 600,
+                            fontFamily: "'Inter', system-ui, sans-serif",
+                            letterSpacing: '0.06em',
+                            flexShrink: 0,
+                        }}
+                    >
+                        <Sparkles size={12} />
+                        BODHI
+                    </motion.button>
+
+                    {inputValue.trim() ? (
+                        <motion.button
+                            onClick={handleSubmit}
+                            whileTap={{ scale: 0.9 }}
+                            whileHover={{ scale: 1.1 }}
+                            style={{
+                                background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.95) 0%, rgba(245, 158, 11, 0.95) 100%)',
+                                border: 'none',
+                                borderRadius: 999,
+                                padding: '0.65rem',
+                                cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                color: '#000',
+                                boxShadow: '0 4px 18px rgba(251, 191, 36, 0.45)',
+                            }}
+                        >
+                            <Send size={18} />
+                        </motion.button>
+                    ) : null}
+                </div>
+
+                {/* Keyboard hint */}
+                <div style={{
+                    display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8,
+                    marginTop: '0.6rem',
+                }}>
+                    <span style={{
+                        fontSize: '0.6rem', color: 'rgba(255, 255, 255, 0.40)',
+                        fontFamily: "'Inter', system-ui, sans-serif",
+                        letterSpacing: '0.05em',
+                    }}>
+                        Press Enter to submit · Click bubbles to view with AI advice
+                    </span>
+                </div>
+            </motion.div >
+
+            {/* Animation keyframes for spinning rings */}
+            < style > {`
+                @keyframes ring-spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+            `}</style >
 
             {/* ── Calendar (toggleable) ── */}
             <AnimatePresence>
-                {showCalendar && (
-                    <motion.div key="calendar" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }} style={{ overflow: 'hidden' }}>
-                        <MiniCalendar tasks={tasks} onDateSelect={d => { setFilterDate(prev => prev === d ? null : d); }} />
-                        {filterDate && <p style={{ margin: '0.3rem 0 0', fontSize: '0.54rem', color: 'rgba(251,191,36,0.55)', fontFamily: 'monospace', letterSpacing: '0.10em', textAlign: 'center' }}>Showing: {filterDate} · tap again to clear</p>}
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                {
+                    showCalendar && (
+                        <motion.div key="calendar" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }} style={{ overflow: 'hidden' }}>
+                            <MiniCalendar tasks={tasks} onDateSelect={d => { setFilterDate(prev => prev === d ? null : d); }} />
+                            {filterDate && <p style={{ margin: '0.3rem 0 0', fontSize: '0.54rem', color: 'rgba(251,191,36,0.55)', fontFamily: 'monospace', letterSpacing: '0.10em', textAlign: 'center' }}>Showing: {filterDate} · tap again to clear</p>}
+                        </motion.div>
+                    )
+                }
+            </AnimatePresence >
 
             {/* ── Schedule Prompt ── */}
             <AnimatePresence>
-                {schedulingId && (() => {
-                    const task = tasks.find(t => t.id === schedulingId);
-                    return task ? (
-                        <SchedulePrompt key={`sched-${schedulingId}`} pill={task}
-                            onSchedule={(date, time) => handleSchedule(schedulingId, date, time)}
-                            onSkip={() => setSchedulingId(null)} />
-                    ) : null;
-                })()}
-            </AnimatePresence>
+                {
+                    schedulingId && (() => {
+                        const task = tasks.find(t => t.id === schedulingId);
+                        return task ? (
+                            <SchedulePrompt key={`sched-${schedulingId}`} pill={task}
+                                onSchedule={(date, time) => handleSchedule(schedulingId, date, time)}
+                                onSkip={() => setSchedulingId(null)} />
+                        ) : null;
+                    })()
+                }
+            </AnimatePresence >
 
-            {/* ── Bodhi Chat History ── */}
+            {/* ── Chat History ── */}
             <AnimatePresence>
-                {chatHistory.length > 0 && (
-                    <motion.div
-                        key="chat"
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        style={{
-                            overflow: 'hidden',
-                            background: 'radial-gradient(ellipse at 30% 10%, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.03) 50%, transparent 100%)',
-                            backdropFilter: 'blur(24px) saturate(180%)',
-                            WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-                            borderRadius: 18,
-                            border: '1px solid rgba(255,255,255,0.14)',
-                            boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.18), 0 4px 20px rgba(0,0,0,0.15)',
-                        }}
-                    >
-                        <div style={{
-                            display: 'flex', flexDirection: 'column', gap: '0.45rem',
-                            padding: '0.75rem',
-                            maxHeight: 220, overflowY: 'auto',
-                            scrollbarWidth: 'none',
-                        }}>
-                            {chatHistory.map(msg => (
-                                <motion.div key={msg.id}
-                                    initial={{ opacity: 0, y: 8 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.30 }}
-                                    style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}
-                                >
-                                    <div style={{
-                                        maxWidth: '82%',
-                                        padding: '0.42rem 0.80rem',
-                                        borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                                        background: msg.role === 'user'
-                                            ? 'rgba(255,255,255,0.10)'
-                                            : 'linear-gradient(135deg,rgba(251,191,36,0.14),rgba(217,119,6,0.10))',
-                                        border: msg.role === 'user'
-                                            ? '1px solid rgba(255,255,255,0.10)'
-                                            : '1px solid rgba(251,191,36,0.22)',
-                                        boxShadow: msg.role === 'bodhi' ? '0 0 12px rgba(251,191,36,0.08)' : 'none',
-                                    }}>
-                                        {msg.role === 'bodhi' && (
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.14rem' }}>
-                                                <motion.div animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 1.8, repeat: Infinity }}>
-                                                    <Sparkles size={8} style={{ color: 'rgba(251,191,36,0.65)' }} />
-                                                </motion.div>
-                                                <span style={{ fontSize: '0.46rem', fontWeight: 700, letterSpacing: '0.18em', color: 'rgba(251,191,36,0.55)', textTransform: 'uppercase', fontFamily: 'monospace' }}>Sakha Bodhi</span>
-                                            </div>
-                                        )}
-                                        <p style={{ margin: 0, fontSize: '0.72rem', lineHeight: 1.5, color: msg.role === 'bodhi' ? 'rgba(252,211,77,0.92)' : 'rgba(255,255,255,0.85)', fontStyle: msg.role === 'bodhi' ? 'italic' : 'normal' }}>{msg.text}</p>
-                                        {msg.saved && msg.itemType && (
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', marginTop: '0.18rem' }}>
-                                                <Check size={8} style={{ color: '#4ade80' }} />
-                                                <span style={{ fontSize: '0.44rem', color: 'rgba(74,222,128,0.70)', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'monospace' }}>Saved as {msg.itemType}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </motion.div>
-                            ))}
-                            {/* Bodhi thinking indicator */}
-                            {bodhiState === 'thinking' && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.25rem 0.65rem' }}
-                                >
-                                    <div style={{ display: 'flex', gap: 3 }}>
-                                        {[0, 0.18, 0.36].map(d => (
-                                            <motion.div key={d}
-                                                animate={{ y: [0, -4, 0] }}
-                                                transition={{ duration: 0.7, repeat: Infinity, delay: d }}
-                                                style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(251,191,36,0.60)' }}
-                                            />
-                                        ))}
-                                    </div>
-                                    <span style={{ fontSize: '0.50rem', color: 'rgba(251,191,36,0.50)', fontStyle: 'italic' }}>Bodhi is thinking…</span>
-                                </motion.div>
-                            )}
-                            <div ref={chatEndRef} />
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* ── Bodhi Speaking Banner ── */}
-            <AnimatePresence>
-                {bodhiState === 'speaking' && (
-                    <motion.div
-                        key="speaking-banner"
-                        initial={{ opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }}
-                        style={{
-                            display: 'flex', alignItems: 'center', gap: '0.6rem',
-                            padding: '0.55rem 0.9rem',
-                            background: 'radial-gradient(ellipse at 25% 15%, rgba(255,255,255,0.14) 0%, rgba(251,191,36,0.08) 40%, transparent 100%)',
-                            backdropFilter: 'blur(20px) saturate(180%)',
-                            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                            border: '1px solid rgba(255,255,255,0.18)',
-                            borderRadius: 14,
-                            boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.22), 0 0 20px rgba(251,191,36,0.06), 0 4px 16px rgba(0,0,0,0.12)',
-                            overflow: 'hidden',
-                            position: 'relative',
-                        }}
-                    >
-                        <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-                            {[0, 0.12, 0.24, 0.12, 0].map((d, i) => (
-                                <motion.div key={i}
-                                    animate={{ scaleY: [0.4, 1.4, 0.4] }}
-                                    transition={{ duration: 0.9, repeat: Infinity, delay: d }}
-                                    style={{ width: 3, height: 14, borderRadius: 2, background: 'rgba(251,191,36,0.70)', transformOrigin: 'center' }}
-                                />
-                            ))}
-                        </div>
-                        <span style={{ fontSize: '0.58rem', color: 'rgba(251,191,36,0.80)', fontStyle: 'italic', fontWeight: 500 }}>Bodhi is speaking… type your reply when done</span>
-                        <button
-                            onClick={() => { window.speechSynthesis?.cancel(); setBodhiState('idle'); }}
-                            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.30)', lineHeight: 0, padding: 2, flexShrink: 0 }}
-                        ><X size={12} /></button>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* ── Enhanced Input Bar ── */}
-            <div style={{ position: 'relative' }}>
-                {/* Typing glow */}
-                <motion.div
-                    animate={isTyping && bodhiState === 'idle' ? { opacity: 1 } : { opacity: 0 }}
-                    transition={{ duration: 0.4 }}
-                    style={{ position: 'absolute', inset: -10, borderRadius: 999, background: 'radial-gradient(ellipse, rgba(251,146,60,0.16) 0%, transparent 70%)', filter: 'blur(12px)', pointerEvents: 'none', zIndex: 0 }}
-                />
-                {/* Bodhi speaking border pulse */}
-                <motion.div
-                    animate={bodhiState === 'speaking' ? { opacity: [0.3, 0.7, 0.3] } : { opacity: 0 }}
-                    transition={{ duration: 1.6, repeat: Infinity }}
-                    style={{ position: 'absolute', inset: -2, borderRadius: 999, border: '1.5px solid rgba(251,191,36,0.40)', pointerEvents: 'none', zIndex: 0 }}
-                />
-                <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '0.45rem', padding: '0.3rem', background: 'radial-gradient(ellipse at 25% 30%, rgba(255,255,255,0.08) 0%, transparent 70%)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)', borderRadius: 999, border: '1px solid rgba(255,255,255,0.12)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), 0 4px 20px rgba(0,0,0,0.15)' }}>
-                    {/* Mic toggle button */}
-                    <motion.button
-                        whileTap={{ scale: 0.88 }}
-                        onClick={toggleMic}
-                        style={{
-                            flexShrink: 0, width: 40, height: 40, borderRadius: '50%',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            background: isListening
-                                ? 'linear-gradient(135deg,rgba(248,113,113,0.28),rgba(239,68,68,0.18))'
-                                : bodhiState === 'speaking' ? 'rgba(251,191,36,0.08)' : 'rgba(255,255,255,0.06)',
-                            border: isListening
-                                ? '1.5px solid rgba(248,113,113,0.55)'
-                                : bodhiState === 'speaking' ? '1px solid rgba(251,191,36,0.25)' : '1px solid rgba(255,255,255,0.10)',
-                            cursor: 'pointer',
-                            boxShadow: isListening ? '0 0 14px rgba(248,113,113,0.28)' : 'none',
-                        }}
-                    >
-                        {isListening
-                            ? <MicOff size={15} style={{ color: '#f87171' }} />
-                            : <Mic size={15} style={{ color: bodhiState === 'speaking' ? 'rgba(251,191,36,0.55)' : 'rgba(255,255,255,0.40)' }} />
-                        }
-                    </motion.button>
-
-                    {/* Text input */}
-                    <div style={{ flex: 1, position: 'relative' }}>
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            value={inputValue}
-                            onChange={e => setInputValue(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-                            onFocus={() => setIsTyping(true)}
-                            onBlur={() => setIsTyping(false)}
-                            placeholder={
-                                isListening ? '🎙️ Listening...' :
-                                    bodhiState === 'thinking' ? '✦ Bodhi is thinking...' :
-                                        bodhiState === 'speaking' ? 'Bodhi is speaking — type your reply...' :
-                                            'Type a task, challenge, idea or issue…'
-                            }
+                {
+                    chatHistory.length > 0 && (
+                        <motion.div
+                            key="chat"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
                             style={{
-                                width: '100%',
-                                background: 'rgba(255,255,255,0.07)',
-                                backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-                                border: `1.5px solid ${bodhiState === 'speaking' ? 'rgba(251,191,36,0.38)' :
-                                    bodhiState === 'thinking' ? 'rgba(129,140,248,0.35)' :
-                                        isListening ? 'rgba(248,113,113,0.45)' :
-                                            isTyping ? 'rgba(251,146,60,0.42)' :
-                                                'rgba(255,255,255,0.10)'
-                                    }`,
-                                borderRadius: 999,
-                                padding: '0.70rem 3.2rem 0.70rem 1.2rem',
-                                color: 'rgba(255,255,255,0.92)',
-                                fontSize: '0.84rem', fontWeight: 300,
-                                outline: 'none',
-                                transition: 'border-color 0.3s ease',
-                                boxSizing: 'border-box', fontFamily: 'inherit', letterSpacing: '0.01em',
+                                overflow: 'hidden',
+                                background: 'rgba(20, 20, 30, 0.45)',
+                                backdropFilter: 'blur(24px) saturate(180%)',
+                                WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+                                borderRadius: 18,
+                                border: '1px solid rgba(251, 191, 36, 0.20)',
+                                boxShadow: '0 4px 24px rgba(0, 0, 0, 0.3)',
                             }}
-                        />
-                        {/* Right indicator: state-aware Bodhi badge */}
-                        <div style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: '0.20rem', pointerEvents: 'none' }}>
-                            {inputValue.trim() && bodhiState === 'idle' ? (
-                                <motion.div
-                                    initial={{ scale: 0 }} animate={{ scale: 1 }}
-                                    style={{ cursor: 'pointer', pointerEvents: 'auto' }}
-                                    onClick={handleSubmit}
-                                >
-                                    <Send size={14} style={{ color: 'rgba(251,191,36,0.75)' }} />
-                                </motion.div>
-                            ) : (
-                                <motion.div
-                                    animate={bodhiState !== 'idle' ? { scale: [1, 1.25, 1], opacity: [0.6, 1, 0.6] } : {}}
-                                    transition={bodhiState !== 'idle' ? { duration: 1.2, repeat: Infinity } : {}}
-                                >
-                                    <Sparkles size={12} style={{
-                                        color:
-                                            bodhiState === 'speaking' ? '#fbbf24' :
-                                                bodhiState === 'thinking' ? '#818cf8' :
-                                                    isTyping ? 'rgba(251,191,36,0.65)' : 'rgba(255,255,255,0.18)'
-                                    }} />
-                                </motion.div>
-                            )}
+                        >
+                            <div style={{
+                                display: 'flex', flexDirection: 'column', gap: '0.45rem',
+                                padding: '0.75rem',
+                                maxHeight: 220, overflowY: 'auto',
+                                scrollbarWidth: 'none',
+                            }}>
+                                {chatHistory.map(msg => (
+                                    <motion.div key={msg.id}
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.30 }}
+                                        style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}
+                                    >
+                                        <div style={{
+                                            maxWidth: '82%',
+                                            padding: '0.42rem 0.80rem',
+                                            borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                                            background: msg.role === 'user'
+                                                ? 'rgba(251, 191, 36, 0.20)'
+                                                : 'rgba(255, 255, 255, 0.12)',
+                                            border: msg.role === 'user'
+                                                ? '1px solid rgba(251, 191, 36, 0.35)'
+                                                : '1px solid rgba(255, 255, 255, 0.20)',
+                                            boxShadow: msg.role === 'bodhi' ? '0 2px 8px rgba(0, 0, 0, 0.2)' : 'none',
+                                        }}>
+                                            {msg.role === 'bodhi' && (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.14rem' }}>
+                                                    <motion.div animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 1.8, repeat: Infinity }}>
+                                                        <Sparkles size={8} style={{ color: '#fbbf24' }} />
+                                                    </motion.div>
+                                                    <span style={{ fontSize: '0.46rem', fontWeight: 700, letterSpacing: '0.18em', color: '#fbbf24', textTransform: 'uppercase', fontFamily: 'monospace' }}>Sakha Bodhi</span>
+                                                </div>
+                                            )}
+                                            <p style={{ margin: 0, fontSize: '0.72rem', lineHeight: 1.5, color: 'rgba(255, 255, 255, 0.95)', fontStyle: msg.role === 'bodhi' ? 'italic' : 'normal' }}>{msg.text}</p>
+                                            {msg.saved && msg.itemType && (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', marginTop: '0.18rem' }}>
+                                                    <Check size={8} style={{ color: '#4ade80' }} />
+                                                    <span style={{ fontSize: '0.44rem', color: 'rgba(74, 222, 128, 0.90)', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'monospace' }}>Saved as {msg.itemType}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                ))}
+                                {/* Bodhi thinking indicator */}
+                                {bodhiState === 'thinking' && (
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.25rem 0.65rem' }}
+                                    >
+                                        <div style={{ display: 'flex', gap: 3 }}>
+                                            {[0, 0.18, 0.36].map(d => (
+                                                <motion.div key={d}
+                                                    animate={{ y: [0, -4, 0] }}
+                                                    transition={{ duration: 0.7, repeat: Infinity, delay: d }}
+                                                    style={{ width: 5, height: 5, borderRadius: '50%', background: '#fbbf24' }}
+                                                />
+                                            ))}
+                                        </div>
+                                        <span style={{ fontSize: '0.50rem', color: '#fbbf24', fontStyle: 'italic' }}>Bodhi is thinking…</span>
+                                    </motion.div>
+                                )}
+                                <div ref={chatEndRef} />
+                            </div>
+                        </motion.div>
+                    )
+                }
+            </AnimatePresence >
+
+            {/* ── Speaking Banner ── */}
+            <AnimatePresence>
+                {
+                    bodhiState === 'speaking' && (
+                        <motion.div
+                            key="speaking-banner"
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -4 }}
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: '0.6rem',
+                                padding: '0.55rem 0.9rem',
+                                background: 'rgba(20, 20, 30, 0.55)',
+                                backdropFilter: 'blur(20px) saturate(180%)',
+                                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                                border: '1px solid rgba(251, 191, 36, 0.30)',
+                                borderRadius: 14,
+                                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+                                overflow: 'hidden',
+                                position: 'relative',
+                            }}
+                        >
+                            <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+                                {[0, 0.12, 0.24, 0.12, 0].map((d, i) => (
+                                    <motion.div key={i}
+                                        animate={{ scaleY: [0.4, 1.4, 0.4] }}
+                                        transition={{ duration: 0.9, repeat: Infinity, delay: d }}
+                                        style={{ width: 3, height: 14, borderRadius: 2, background: '#fbbf24', transformOrigin: 'center' }}
+                                    />
+                                ))}
+                            </div>
+                            <span style={{ fontSize: '0.58rem', color: '#fbbf24', fontStyle: 'italic', fontWeight: 500 }}>Bodhi is speaking… type your reply when done</span>
+                            <button
+                                onClick={() => { window.speechSynthesis?.cancel(); setBodhiState('idle'); }}
+                                style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255, 255, 255, 0.40)', lineHeight: 0, padding: 2, flexShrink: 0 }}
+                            ><X size={12} /></button>
+                        </motion.div>
+                    )
+                }
+            </AnimatePresence >
+
+            {/* ── Active Items Bubble Grid ── */}
+            {
+                activeTasks.length > 0 && (
+                    <div style={{ position: 'relative' }}>
+                        {activeTasks.length > 4 && (
+                            <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 28, background: 'linear-gradient(to bottom, transparent, rgba(20, 20, 30, 0.80))', pointerEvents: 'none', zIndex: 2, borderRadius: '0 0 18px 18px' }} />
+                        )}
+                        <div style={{
+                            display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)',
+                            gap: '0.45rem',
+                            maxHeight: activeTasks.length > 4 ? 250 : 'none',
+                            overflowY: activeTasks.length > 4 ? 'auto' : 'visible',
+                            scrollbarWidth: 'none', paddingBottom: activeTasks.length > 4 ? 24 : 0,
+                        }}>
+                            <AnimatePresence mode="popLayout">
+                                {activeTasks.map((task, idx) => {
+                                    const c = CM[task.colorClass] || CM.gold;
+                                    const CAT_META: Record<string, { color: string; emoji: string; doneLabel: string }> = {
+                                        Issue: { color: '#f87171', emoji: '🔥', doneLabel: 'Resolved' },
+                                        Wellness: { color: '#34d399', emoji: '🌿', doneLabel: 'Done' },
+                                        default: { color: c.text, emoji: task.icon || '✅', doneLabel: 'Done' },
+                                    };
+                                    const meta = CAT_META[task.category] ?? CAT_META.default;
+                                    const catColor = meta.color;
+                                    const catEmoji = task.icon || meta.emoji;
+                                    return (
+                                        <motion.div key={task.id} layout
+                                            initial={{ opacity: 0, scale: 0.72, y: 18, filter: 'blur(10px)' }}
+                                            animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
+                                            exit={{ opacity: 0, scale: 0.65, y: -12, filter: 'blur(8px)' }}
+                                            transition={{ type: 'spring', stiffness: 340, damping: 26, delay: idx * 0.04 }}
+                                            style={{
+                                                display: 'flex', flexDirection: 'column', gap: '0.25rem',
+                                                position: 'relative', overflow: 'hidden',
+                                                borderRadius: 16, padding: '0.62rem 0.70rem',
+                                                background: `linear-gradient(145deg, rgba(255, 255, 255, 0.12) 0%, ${c.bg} 100%)`,
+                                                backdropFilter: 'blur(16px)',
+                                                WebkitBackdropFilter: 'blur(16px)',
+                                                border: `1px solid ${c.border}`,
+                                                boxShadow: `0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.20)`,
+                                                minWidth: 0,
+                                            }}>
+                                            {/* Header row */}
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', position: 'relative', zIndex: 1 }}>
+                                                <span style={{ fontSize: '0.82rem' }}>{catEmoji}</span>
+                                                <span style={{ fontSize: '0.52rem', fontWeight: 700, letterSpacing: '0.10em', color: c.text, textTransform: 'uppercase', fontFamily: 'monospace' }}>{task.category}</span>
+                                                {task.scheduledTime && <span style={{ marginLeft: 'auto', fontSize: '0.44rem', color: c.text, opacity: 0.85, fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: 2 }}><Clock size={7} />{task.scheduledTime}</span>}
+                                            </div>
+                                            {/* Task text */}
+                                            <span style={{ fontSize: '0.74rem', fontWeight: 500, lineHeight: 1.4, color: 'rgba(255, 255, 255, 0.95)', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', width: '100%', position: 'relative', zIndex: 1, textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>{task.text}</span>
+                                            {/* Actions */}
+                                            <div style={{ display: 'flex', gap: '0.22rem', width: '100%', marginTop: 4, position: 'relative', zIndex: 1 }}>
+                                                <button onClick={() => handleComplete(task)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, background: c.bg, border: `1px solid ${c.border}`, borderRadius: 999, padding: '0.22rem 0', cursor: 'pointer', color: c.text, fontSize: '0.50rem', fontWeight: 600, fontFamily: 'inherit', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                                                    <Check size={8} /> {meta.doneLabel}
+                                                </button>
+                                                <button onClick={() => setSchedulingId(task.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255, 255, 255, 0.10)', border: `1px solid ${c.border}`, borderRadius: 999, padding: '0.22rem 0.42rem', cursor: 'pointer', color: c.text }}>
+                                                    <Clock size={8} />
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    );
+                                })}
+                            </AnimatePresence>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            {/* ── Task Pills (2-column grid, vertical scroll, max 2 rows visible) ── */}
-            <div style={{ position: 'relative' }}>
-                {/* Bottom fade gradient for scroll hint */}
-                {activeTasks.length > 4 && (
-                    <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 28, background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.80))', pointerEvents: 'none', zIndex: 2, borderRadius: '0 0 16px 16px' }} />
-                )}
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
-                    gap: '0.48rem',
-                    maxHeight: activeTasks.length > 4 ? 260 : 'none',
-                    overflowY: activeTasks.length > 4 ? 'auto' : 'visible',
-                    overflowX: 'hidden',
-                    scrollBehavior: 'smooth',
-                    WebkitOverflowScrolling: 'touch',
-                    msOverflowStyle: 'none',
-                    scrollbarWidth: 'none',
-                    paddingBottom: activeTasks.length > 4 ? 24 : 2,
-                    paddingRight: 2,
-                }}>
-                    <style>{`
-                        /* Hide scrollbar for task grid */
-                        div::-webkit-scrollbar { display: none; }
-                    `}</style>
-                    <AnimatePresence mode="popLayout">
-                        {activeTasks.map(task => {
-                            const c = CM[task.colorClass] || CM.gold;
-                            return (
-                                <motion.div key={task.id} layout
-                                    initial={{ opacity: 0, scale: 0.80, filter: 'blur(8px)' }}
-                                    animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                                    exit={{ opacity: 0, scale: 0.72, boxShadow: '0 0 24px rgba(255,210,50,0.70)' }}
-                                    transition={{ type: 'spring', stiffness: 380, damping: 24 }}
-                                    style={{
-                                        display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.22rem',
-                                        background: `radial-gradient(ellipse at 30% 18%, rgba(255,255,255,0.18) 0%, ${c.bg} 40%, transparent 100%)`,
-                                        backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                                        border: '1px solid rgba(255,255,255,0.18)',
-                                        boxShadow: `inset 0 1.5px 0 rgba(255,255,255,0.28), inset 0 -1px 0 rgba(255,255,255,0.06), 0 4px 16px rgba(0,0,0,0.18)`,
-                                        borderRadius: 16, padding: '0.55rem 0.65rem', position: 'relative', overflow: 'hidden', minWidth: 0,
-                                    }}>
-                                    {task.scheduledTime && (
-                                        <div style={{ position: 'absolute', top: 5, right: 6, display: 'flex', alignItems: 'center', gap: 2 }}>
-                                            <Clock size={7} style={{ color: c.text, opacity: 0.50 }} />
-                                            <span style={{ fontSize: '0.42rem', color: c.text, opacity: 0.50, fontFamily: 'monospace' }}>{task.scheduledTime}</span>
-                                        </div>
-                                    )}
-                                    {/* specular crescent */}
-                                    <div aria-hidden style={{ position: 'absolute', top: '2%', left: '5%', width: '60%', height: '30%', background: 'radial-gradient(ellipse, rgba(255,255,255,0.38) 0%, rgba(255,255,255,0.10) 50%, transparent 100%)', borderRadius: '50%', transform: 'rotate(-18deg)', filter: 'blur(2px)', pointerEvents: 'none' }} />
-                                    <span style={{ fontSize: '1.0rem', position: 'relative', zIndex: 1 }}>{task.icon}</span>
-                                    <span style={{ fontSize: '0.68rem', fontWeight: 500, lineHeight: 1.3, color: c.text, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', width: '100%', position: 'relative', zIndex: 1 }}>{task.text}</span>
-                                    <span style={{ fontSize: '0.48rem', opacity: 0.38, color: c.text, letterSpacing: '0.06em', position: 'relative', zIndex: 1 }}>{task.category}</span>
-                                    <button onClick={() => handleComplete(task)}
-                                        style={{ marginTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.16)', borderRadius: 999, padding: '0.20rem 0', cursor: 'pointer', color: c.text, fontSize: '0.46rem', fontWeight: 700, fontFamily: 'inherit', letterSpacing: '0.10em', textTransform: 'uppercase', width: '100%', position: 'relative', zIndex: 1 }}>
-                                        <Check size={8} /> Done
-                                    </button>
-                                </motion.div>
-                            );
-                        })}
-                    </AnimatePresence>
-                    {activeTasks.length === 0 && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                            style={{ fontSize: '0.63rem', color: 'rgba(255,255,255,0.20)', fontStyle: 'italic', display: 'flex', alignItems: 'center', minHeight: 72, paddingLeft: '0.3rem', gridColumn: 'span 2' }}>
-                            {filterDate ? `No tasks on ${filterDate}` : 'Your canvas is clear — type a task above ✨'}
-                        </motion.div>
-                    )}
-                </div>
-            </div>
-        </div>
+                )
+            }
+        </div >
     );
 }
