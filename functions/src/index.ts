@@ -3,6 +3,7 @@
  *
  * Feature 1: AI Chat Twin  (onDocumentCreated → Gemini Flash)
  * Feature 3: Action Items  (onDocumentCreated counter → Gemini Pro JSON)
+ * Feature 4: Sakha Bodhi Memory Summarizer  (Tiered Memory Architecture)
  *
  * Deploy: firebase deploy --only functions
  */
@@ -289,5 +290,151 @@ RULES:
         const batch = db.batch();
         unsummarized.docs.forEach((d) => batch.update(d.ref, { summarized: true }));
         await batch.commit();
+    }
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FEATURE 4: Sakha Bodhi Memory Summarizer — Tiered Memory Architecture
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// WHEN IT FIRES:
+//   Every time a new document is written to users/{userId}/short_term_messages.
+//   But it only runs the heavy Gemini pass every STM_BATCH_SIZE (15) messages
+//   to keep costs low while still keeping memory fresh.
+//
+// WHAT IT DOES:
+//   1. Counts unsummarized short_term_messages for the user.
+//   2. Every 15 messages: sends the batch to Gemini Flash for extraction.
+//   3. Gemini returns structured long-term insights (identity, goal, struggle, etc.)
+//   4. Writes each insight to users/{userId}/long_term_insights.
+//   5. Marks all processed messages as summarized=true.
+//   6. Prunes short_term_messages beyond 100 to keep the collection lean.
+//
+// DATA FLOW:
+//   short_term_messages ──► Cloud Function ──► Gemini Flash ──► long_term_insights
+//                                         └──► marks summarized=true
+//                                         └──► prunes old messages > 100
+//
+// ─────────────────────────────────────────────────────────────────────────────
+
+const STM_BATCH_SIZE = 15; // Summarize every N new messages
+
+export const summarizeBodhiMemory = functions.firestore.onDocumentCreated(
+    "users/{userId}/short_term_messages/{msgId}",
+    async (event: functions.firestore.FirestoreEvent<functions.firestore.QueryDocumentSnapshot | undefined, { userId: string; msgId: string }>) => {
+        const userId = event.params.userId;
+
+        // ── Step 1: Count unsummarized messages ────────────────────────────────
+        const stmRef = db.collection(`users/${userId}/short_term_messages`);
+        const unsumSnap0 = await stmRef.where("summarized", "==", false).get();
+        const unsumCount = unsumSnap0.size;
+
+        // Only proceed when we hit the batch threshold
+        if (unsumCount < STM_BATCH_SIZE) return;
+
+        // ── Step 2: Fetch the batch of unsummarized messages ───────────────────
+        const unsumSnap = await stmRef
+            .where("summarized", "==", false)
+            .orderBy("timestamp", "asc")
+            .limit(STM_BATCH_SIZE)
+            .get();
+
+        if (unsumSnap.empty) return;
+
+        const transcript = unsumSnap.docs
+            .map((d) => {
+                const data = d.data();
+                return `[${data.role === "user" ? "User" : "Bodhi"}]: ${data.text}`;
+            })
+            .join("\n");
+
+        // ── Step 3: Send to Gemini Flash for insight extraction ────────────────
+        const model = genAI.getGenerativeModel({
+            model: "gemini-2.5-flash",
+            generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: SchemaType.OBJECT,
+                    properties: {
+                        insights: {
+                            type: SchemaType.ARRAY,
+                            description: "List of long-term insights extracted from the conversation",
+                            items: {
+                                type: SchemaType.OBJECT,
+                                properties: {
+                                    category: {
+                                        type: SchemaType.STRING,
+                                        format: "enum",
+                                        enum: ["identity", "goal", "struggle", "milestone", "preference", "relationship", "health", "spiritual"],
+                                        description: "Category of the insight",
+                                    },
+                                    insight: {
+                                        type: SchemaType.STRING,
+                                        description: "A concise, third-person fact about the user. e.g. 'User is building an app called OneSUTRA' or 'User wakes at 5 AM for Sadhana'",
+                                    },
+                                },
+                                required: ["category", "insight"],
+                            },
+                        },
+                    },
+                    required: ["insights"],
+                },
+            },
+        });
+
+        const prompt = `You are an AI memory analyst for a spiritual AI companion named Sakha Bodhi.
+Analyze this conversation excerpt and extract ONLY meaningful long-term facts about the USER.
+
+CONVERSATION:
+${transcript}
+
+EXTRACTION RULES:
+- Extract facts about: identity, beliefs, goals, struggles, milestones, preferences, relationships, health habits, spiritual practices.
+- Write each insight in third-person about the user: "User is...", "User wants to...", "User struggles with..."
+- DO NOT extract facts about Bodhi or generic pleasantries.
+- DO NOT hallucinate. Only extract what is clearly stated.
+- Return an empty insights array if there is nothing meaningful.
+- Keep each insight under 20 words.`;
+
+        let insights: Array<{ category: string; insight: string }> = [];
+        try {
+            const result = await model.generateContent(prompt);
+            const json = JSON.parse(result.response.text());
+            insights = json.insights ?? [];
+        } catch (e) {
+            functions.logger.warn("[Bodhi Memory] Gemini extraction failed", e);
+        }
+
+        // ── Step 4: Write long-term insights to Firestore ──────────────────────
+        if (insights.length > 0) {
+            const ltiRef = db.collection(`users/${userId}/long_term_insights`);
+            const writeBatch = db.batch();
+            for (const insight of insights) {
+                writeBatch.set(ltiRef.doc(), {
+                    category: insight.category,
+                    insight: insight.insight,
+                    savedAt: Date.now(),
+                    source: "auto_summarizer",
+                });
+            }
+            await writeBatch.commit();
+            functions.logger.info(`[Bodhi Memory] ✅ Saved ${insights.length} long-term insights for user ${userId}`);
+        }
+
+        // ── Step 5: Mark processed messages as summarized ──────────────────────
+        const markBatch = db.batch();
+        unsumSnap.docs.forEach((d) => markBatch.update(d.ref, { summarized: true }));
+        await markBatch.commit();
+
+        // ── Step 6: Prune old messages beyond 100 ─────────────────────────────
+        // This keeps the collection lean and prevents Firestore read costs from growing.
+        const allSnap = await stmRef.orderBy("timestamp", "asc").get();
+        if (allSnap.size > 100) {
+            const toDelete = allSnap.docs.slice(0, allSnap.size - 100);
+            const pruneBatch = db.batch();
+            toDelete.forEach((d) => pruneBatch.delete(d.ref));
+            await pruneBatch.commit();
+            functions.logger.info(`[Bodhi Memory] 🗑️ Pruned ${toDelete.length} old messages for user ${userId}`);
+        }
     }
 );
