@@ -1996,28 +1996,76 @@ export function useSakhaConversation({
                     const conversationHistory = history.replace(/^User:/gm, userName + ': ');
                     let timeGapStr = 'This is your first conversation for now.';
                     let timeGapMins = 9999;
-                    if (lastTimestamp) {
-                        const gapMs = Date.now() - lastTimestamp;
+
+                    // ── Also check Firestore meta for cross-session last-seen ──
+                    // This gives an accurate gap even after browser restarts.
+                    let crossSessionLastMs: number | null = null;
+                    try {
+                        const { getFirebaseFirestore } = await import('@/lib/firebase');
+                        const { doc: fsDoc, getDoc: fsGetDoc, setDoc: fsSetDoc, serverTimestamp: fsSTS } = await import('firebase/firestore');
+                        const db2 = await getFirebaseFirestore();
+                        const metaSnap = await fsGetDoc(fsDoc(db2, 'users', sessionUid, 'bodhi_sessions', 'meta'));
+                        if (metaSnap.exists()) {
+                            crossSessionLastMs = metaSnap.data()?.lastSeenAt?.toMillis?.() ?? null;
+                        }
+                        // Save this session's start time for future gap tracking
+                        fsSetDoc(fsDoc(db2, 'users', sessionUid, 'bodhi_sessions', 'meta'), {
+                            lastSeenAt: fsSTS(),
+                        }, { merge: true }).catch(() => { });
+                    } catch { /* non-critical */ }
+
+                    // Use whichever timestamp is more recent: in-session history OR cross-session meta
+                    const effectiveLastMs = crossSessionLastMs && lastTimestamp
+                        ? Math.max(crossSessionLastMs, lastTimestamp)
+                        : crossSessionLastMs ?? lastTimestamp ?? null;
+
+                    if (effectiveLastMs) {
+                        const gapMs = Date.now() - effectiveLastMs;
                         timeGapMins = Math.floor(gapMs / (1000 * 60));
                         const hours = Math.floor(timeGapMins / 60);
                         const days = Math.floor(hours / 24);
+                        const weeks = Math.floor(days / 7);
+                        const months = Math.floor(days / 30);
 
-                        const lastDate = new Date(lastTimestamp);
+                        const lastDate = new Date(effectiveLastMs);
                         const isToday = new Date().toDateString() === lastDate.toDateString();
-                        const dayStr = isToday ? 'today' : (days === 1 ? 'yesterday' : `${days} days ago`);
+                        const isYesterday = days === 1;
                         const timeOfDay = lastDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                        const dayStr = isToday ? 'today' : isYesterday ? 'yesterday' : `${days} days ago`;
 
-                        if (timeGapMins < 60) {
-                            timeGapStr = `[TIME AWARENESS] The user last talked to you explicitly ${timeGapMins} minute${timeGapMins !== 1 ? 's' : ''} ago (${dayStr} at ${timeOfDay}).`;
+                        let gapLabel: string;
+                        let examplePhrase: string;
+
+                        if (timeGapMins < 5) {
+                            gapLabel = `just ${timeGapMins} minute${timeGapMins !== 1 ? 's' : ''} ago`;
+                            examplePhrase = `"Humne abhi-abhi baat ki thi — kuch reh gaya tha kya?" or seamlessly continue where we left off.`;
+                        } else if (timeGapMins < 60) {
+                            gapLabel = `${timeGapMins} minutes ago (at ${timeOfDay})`;
+                            examplePhrase = `"Humne bas ${timeGapMins} minute pehle hi baat ki thi" or reference what was just discussed.`;
                         } else if (hours < 24 && isToday) {
-                            const minsLimit = timeGapMins % 60;
-                            timeGapStr = `[TIME AWARENESS] The user last talked to you today, ${hours} hour${hours > 1 ? 's' : ''} and ${minsLimit} minute${minsLimit !== 1 ? 's' : ''} ago (at ${timeOfDay}).`;
+                            const minsLeft = timeGapMins % 60;
+                            gapLabel = `${hours} hour${hours > 1 ? 's' : ''}${minsLeft > 0 ? ` ${minsLeft} min` : ''} ago (at ${timeOfDay})`;
+                            examplePhrase = `"Aaj ${timeOfDay} ko jo humne baat ki thi..." to reconnect naturally.`;
+                        } else if (isYesterday) {
+                            gapLabel = `yesterday at ${timeOfDay}`;
+                            examplePhrase = `"Kal ${timeOfDay} ko humari baat hui thi — kaisa raha din baad mein?"`;
+                        } else if (days < 7) {
+                            gapLabel = `${days} days ago`;
+                            examplePhrase = `"${days} din ho gaye the — kaisa chal raha hai sab?" and reference a long-term insight if available.`;
+                        } else if (weeks < 5) {
+                            gapLabel = `${weeks} week${weeks > 1 ? 's' : ''} ago`;
+                            examplePhrase = `"${weeks} hafte baad aap aaye — main soch raha tha aapke baare mein. [Reference a goal or struggle from memory]"`;
                         } else {
-                            timeGapStr = `[TIME AWARENESS] The user last talked to you ${dayStr} at ${timeOfDay} (${hours} hours ago).`;
+                            gapLabel = `${months} month${months > 1 ? 's' : ''} ago`;
+                            examplePhrase = `"Itne time baad — ${months} mahine ho gaye the. Aapka safar kaisa raha? [Reference something from long-term memory]"`;
                         }
 
-                        timeGapStr += ` You MUST implicitly use this time awareness naturally to make the user feel connected. For example, if it was 15 mins ago, say "Humne bas 15 minute pehle hi baat ki thi...", or if today morning say "Aaj subah jo humne discuss kiya tha..."`;
+                        timeGapStr = `[TIME AWARENESS]
+Last seen: ${gapLabel} on ${dayStr}.
+Example opening: ${examplePhrase}
+RULE: ALWAYS weave this gap naturally into your first sentence. Do NOT say "main wapas aa gaya" or "Good morning". Make the user feel you noticed the time.`;
                     }
+
 
                     // Build health & personality profile
                     let healthProfile = '';
