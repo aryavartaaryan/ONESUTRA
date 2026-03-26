@@ -799,40 +799,36 @@ BRANCH C — CAPABILITY OFFER (priority #3 — when no topic and no tasks):
   "Main wapas aa gaya"
   "Aap ne yaad kiya"
 
-${hasGreetedThisPhase
-            ? `REACTIVATION (पहले मिल चुके हैं इस phase में — यह वापसी है):
+${(() => {
+            const timeAnnounceBlock = timeGapMinutes < 9999 ? `
+🕐 MANDATORY TIME ANNOUNCEMENT — FIRST SENTENCE (ABSOLUTE RULE — NO SKIP):
+You MUST say the time gap out loud in your VERY FIRST sentence. This is NON-NEGOTIABLE.
+Time data: ${timeGapContext}
 
-🔑 REACTIVATION RULE (CRITICAL):
-Apply SUPER JARVIS OPENING DECISION TREE above. Your very first sentence must feel entirely organic.
+Use EXACTLY this style based on the gap:
+• Gap < 5 min   → "${firstName}, abhi-abhi to baat hui thi — kuch reh gaya tha kya?"
+• Gap 5–30 min  → "${firstName}, sirf ${timeGapMinutes} minute pehle hi baat ki thi — waapis aa gaye!"
+• Gap 30–60 min → "${firstName}, aaj thodi der pehle baat ki thi — sab theek chal raha hai?"
+• Gap 1–3 hrs   → "${firstName}, kuch ghante pehle baat ki thi aaj — kaisa chal raha hai?"
+• Gap yesterday → "${firstName}, kal ki baat yaad hai — kaisa raha kal ka din?"
+• Gap 2–6 days  → "${firstName}, kuch din ho gaye the — kaisa chal raha hai sab?"
+• Gap 1+ week   → "${firstName}, ek hafte baad aap aaye — aapko yaad kiya tha."
+• Gap 1+ month  → "${firstName}! Itne time baad — kab se soch raha tha aapke baare mein."
 
-⚠️ BARGE-IN RULE (ABSOLUTE PRIORITY): If ${firstName} starts speaking BEFORE or WHILE you are giving your greeting — STOP IMMEDIATELY. Respond ONLY to what they said. A real sakha listens first.
-
-${timeGapMinutes > 0 && timeGapMinutes < 60 && lastDiscussedTopic && !conversationHistory.toLowerCase().includes('dismiss_sakha')
-                ? `🚨 SUDDEN DISCONNECT DETECTED: You were talking less than an hour ago and the user dropped off abruptly without saying bye.
-Open with → "${firstName}, aap achanak chale gaye the. Sab theek to hai? Hum '${lastDiscussedTopic}' ki baat kar rahe the..."`
+❌ DO NOT start with "Namaste", "Good morning", "Kaise hain aap", or any generic phrase.
+✅ START with the time gap sentence. Then in the next sentence add topic/memory context.
+` : `
+📍 FIRST EVER SESSION: Welcome ${firstName} warmly — skip time announcement (no prior session).
+`;
+            const topicBlock = timeGapMinutes > 0 && timeGapMinutes < 60 && lastDiscussedTopic && !conversationHistory.toLowerCase().includes('dismiss_sakha')
+                ? `🚨 SUDDEN DISCONNECT: After time announcement → "Aap achanak chale gaye the — '${lastDiscussedTopic}' ki baat adhuri reh gayi."`
                 : lastDiscussedTopic && timeGapMinutes < 480
-                    ? `🔁 LAST TOPIC AWARENESS: You and ${firstName} were discussing: "${lastDiscussedTopic}".
-Open with → "Hum '${lastDiscussedTopic}' ki baat kar rahe the — aage badhein ya naya topic lein?"
-DO NOT ask a generic mood question.`
-                    : `No recent topic found — use Branch C from OPENING DECISION TREE above.`
-            }`
-            : `FIRST GREETING (${phase} phase की पहली मुलाकात):
-
-⚡ EXECUTE SUPER JARVIS OPENING DECISION TREE ABOVE FIRST.
-
-→ TIME-SPECIFIC energy (apply AFTER checking branches above):
-  - Morning: fresh vibrant energy, "Shubh Prabhat" style.
-  - Midday: sharp, action-mode energy — reference work or tasks.
-  - Evening/Night: calm, reflective — "Shubh Sandhya" or "Shubh Ratri" style.
-→ Begin by blending time-of-day energy with a past memory or last topic.
-→ STOP after 1-2 sentences. LISTEN.
-⚠️ BARGE-IN: If ${firstName} speaks before you finish → STOP. Address what they said.${timeGapMinutes > 0 && timeGapMinutes < 60 && lastDiscussedTopic && !conversationHistory.toLowerCase().includes('dismiss_sakha')
-                ? `\n\n🚨 SUDDEN DISCONNECT DETECTED: Note that the user vanished suddenly earlier today. Ask "Aap achanak chale gaye the, sab theek hai?" and weave "${lastDiscussedTopic}" naturally.`
-                : lastDiscussedTopic && timeGapMinutes > 60 && timeGapMinutes < 1440
-                    ? `\n\n🔁 PREVIOUS SESSION TOPIC: "${lastDiscussedTopic}" — weave into opening naturally.`
-                    : ''
-            }`
-        }
+                    ? `🔁 LAST TOPIC: After time announcement → mention "${lastDiscussedTopic}" naturally.`
+                    : '';
+            return hasGreetedThisPhase
+                ? `REACTIVATION:\n${timeAnnounceBlock}\n${topicBlock}\n⚠️ BARGE-IN: If ${firstName} speaks mid-greeting → STOP. Only respond to what they said.`
+                : `FIRST GREETING (${phase} phase):\n${timeAnnounceBlock}\n${topicBlock}\n→ STOP after 1-2 sentences. LISTEN. ⚠️ BARGE-IN: If ${firstName} speaks → STOP immediately.`;
+        })()}
 
 ════════════════════════════════════════════════════════════════════
 ⏱️ SANKALPA TOOL RULES (STRICT — READ BEFORE CALLING ANY TASK TOOL)
