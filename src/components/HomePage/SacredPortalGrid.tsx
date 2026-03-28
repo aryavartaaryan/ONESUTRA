@@ -455,6 +455,20 @@ export default function SacredPortalGrid() {
     }, []);
 
     const onPD = useCallback((e: React.PointerEvent) => {
+        const el = containerRef.current;
+        if (!el) return;
+        const rc = el.getBoundingClientRect();
+        const dx = e.clientX - (rc.left + rc.width / 2);
+        const dy = e.clientY - (rc.top + rc.height / 2);
+        const dist = Math.hypot(dx, dy);
+
+        // Guard: only allow rotation when touch originates on/near the orbit ring.
+        // Block the central core area (inside the inner edge of the planet band).
+        const currentOrbitR = rc.width * 0.43;
+        const currentOrbSize = Math.max(56, rc.width * 0.16);
+        const minDragDist = currentOrbitR - currentOrbSize * 0.6;
+        if (dist < minDragDist) return;
+
         isPointerDown.current = true;
         isDragging.current = false;
         hasMoved.current = false;
