@@ -337,15 +337,13 @@ export default function SakhaBodhiOrb({
                             exit={{ scale: 0, opacity: 0 }}
                             transition={{ type: 'spring', stiffness: 180, damping: 22, duration: 0.7 }}
                         >
-                            {/* ── Cymatic soundwave rings (speaking state) ──────────── */}
-                            {sakhaState === 'speaking' && (
-                                <>
-                                    <div className={styles.soundRing} />
-                                    <div className={styles.soundRing} />
-                                    <div className={styles.soundRing} />
-                                    <div className={styles.soundRing} />
-                                </>
-                            )}
+                            {/* ── Cymatic soundwave rings (always in DOM, opacity-toggled to avoid repaint on mount) ── */}
+                            <div style={{ opacity: sakhaState === 'speaking' ? 1 : 0, transition: 'opacity 0.3s ease', willChange: 'opacity' }}>
+                                <div className={styles.soundRing} />
+                                <div className={styles.soundRing} />
+                                <div className={styles.soundRing} />
+                                <div className={styles.soundRing} />
+                            </div>
 
                             {/* ── Liquid "Goo" blob container ───────────────────────── */}
                             <motion.div

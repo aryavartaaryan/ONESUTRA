@@ -158,12 +158,25 @@ export default function MantraStories() {
   const openStory = (index: number) => {
     setActiveStoryIndex(index);
     setProgress(0);
+    // Push a dummy history entry so the browser back button closes the story
+    window.history.pushState({ mantraStory: true }, '');
   };
 
   const closeStories = () => {
     setActiveStoryIndex(null);
     setProgress(0);
   };
+
+  // Intercept browser / hardware back button while a story is open
+  useEffect(() => {
+    if (activeStoryIndex === null) return;
+    const handlePopState = (e: PopStateEvent) => {
+      // Story is open — absorb the back navigation and just close the modal
+      closeStories();
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [activeStoryIndex]);
 
   const nextStory = () => {
     if (activeStoryIndex !== null && activeStoryIndex < stories.length - 1) {
@@ -374,14 +387,23 @@ export default function MantraStories() {
                   background: '#000',
                 }}
               >
-                {/* Full background image */}
-                <div style={{
-                  position: 'absolute',
-                  inset: 0,
-                  backgroundImage: `url(${stories[activeStoryIndex].imageUrl})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                }} />
+                {/* Full background image — crossfades between stories */}
+                <AnimatePresence initial={false}>
+                  <motion.div
+                    key={`bg-${activeStoryIndex}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.45, ease: 'easeInOut' }}
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      backgroundImage: `url(${stories[activeStoryIndex].imageUrl})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                    }}
+                  />
+                </AnimatePresence>
 
                 {/* Dark gradient overlay from top */}
                 <div style={{
@@ -510,11 +532,14 @@ export default function MantraStories() {
                   </motion.button>
                 </div>
 
-                {/* Center Content */}
+                {/* Center Content — slides in/out per story */}
+                <AnimatePresence mode="wait" initial={false}>
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2, duration: 0.5 }}
+                  key={`content-${activeStoryIndex}`}
+                  initial={{ opacity: 0, scale: 0.90, y: 24 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.90, y: -24 }}
+                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                   style={{
                     position: 'absolute',
                     top: '50%',
@@ -523,6 +548,7 @@ export default function MantraStories() {
                     textAlign: 'center',
                     zIndex: 5,
                     padding: '24px',
+                    width: '100%',
                   }}
                 >
                   {/* Large Icon */}
@@ -569,6 +595,7 @@ export default function MantraStories() {
                     {stories[activeStoryIndex].description}
                   </p>
                 </motion.div>
+                </AnimatePresence>
 
                 {/* Bottom gradient */}
                 <div style={{

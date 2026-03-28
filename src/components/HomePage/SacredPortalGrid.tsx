@@ -291,9 +291,9 @@ function FeatureDetail({ item, onClose, onNavigate }: { item: OrbItem; onClose: 
             onClick={onClose}
             style={{
                 position: 'fixed', inset: 0, zIndex: 9998,
-                background: 'rgba(2,1,10,0.88)',
-                backdropFilter: 'blur(24px)',
-                WebkitBackdropFilter: 'blur(24px)',
+                background: 'rgba(2,1,10,0.97)',
+                backdropFilter: 'blur(32px)',
+                WebkitBackdropFilter: 'blur(32px)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 padding: '1rem',
             }}
@@ -386,6 +386,27 @@ function FeatureDetail({ item, onClose, onNavigate }: { item: OrbItem; onClose: 
     );
 }
 
+// ── Orb click sound ─────────────────────────────────────────────────────────────
+function playOrbClickSound() {
+    if (typeof window === 'undefined') return;
+    try {
+        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        [1047, 1319, 1568].forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            g.gain.setValueAtTime(0, ctx.currentTime + i * 0.08);
+            g.gain.linearRampToValueAtTime(0.14, ctx.currentTime + i * 0.08 + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 0.32);
+            osc.connect(g); g.connect(ctx.destination);
+            osc.start(ctx.currentTime + i * 0.08);
+            osc.stop(ctx.currentTime + i * 0.08 + 0.34);
+        });
+        setTimeout(() => ctx.close(), 1000);
+    } catch { /* silent */ }
+}
+
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function SacredPortalGrid() {
     const [raagOpen, setRaagOpen] = useState(false);
@@ -401,9 +422,8 @@ export default function SacredPortalGrid() {
     const isHovered = useRef(false);
     const startAngle = useRef(0);
     const lastAngle = useRef(0);
-    const vel = useRef(0.015);
+    const vel = useRef(0);
     const animRef = useRef<number>(0);
-    const AUTO = 0.015;
 
     // Responsive sizing
     useEffect(() => {
@@ -413,14 +433,15 @@ export default function SacredPortalGrid() {
         return () => window.removeEventListener('resize', calc);
     }, []);
 
-    // Animation loop
+    // Animation loop — friction-only, no auto-rotation (touch/drag controlled)
     useEffect(() => {
         const tick = () => {
             if (!isDragging.current && !isPointerDown.current) {
-                if (!isHovered.current) vel.current += (AUTO - vel.current) * 0.04;
-                else vel.current *= 0.85; // smoothly slow down to stop if hovered
+                vel.current *= 0.94; // momentum decays to zero after user lets go
             }
-            setRotation(r => (r + vel.current + 360) % 360);
+            if (Math.abs(vel.current) > 0.0005) {
+                setRotation(r => (r + vel.current + 360) % 360);
+            }
             animRef.current = requestAnimationFrame(tick);
         };
         animRef.current = requestAnimationFrame(tick);
@@ -482,7 +503,7 @@ export default function SacredPortalGrid() {
         <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: `${orbitSize * 0.04}px 0`, userSelect: 'none' }}>
 
             {/* ── ORBIT SECTION ELEGANT TITLE ── */}
-            <div style={{ textAlign: 'center', marginBottom: orbitSize * 0.06, width: '100%', padding: '0 1rem', position: 'relative', zIndex: 10 }}>
+            <div style={{ textAlign: 'center', marginBottom: orbitSize * 0.06, width: '100%', padding: '0 1rem', position: 'relative', zIndex: 10, willChange: 'transform', transform: 'translateZ(0)' }}>
                 <h2 style={{
                     margin: 0, fontSize: 'clamp(0.85rem, 3.5vw, 1.15rem)',
                     fontWeight: 700, letterSpacing: '0.15em',
@@ -590,8 +611,8 @@ export default function SacredPortalGrid() {
                         <div key={item.id} style={{ position: 'absolute', left: cx, top: cy, transform: 'translate(-50%, -50%)', zIndex: 20 }}>
                             <motion.div whileHover={{ scale: 1.18, filter: `drop-shadow(0 0 ${orbSize * 0.2}px ${item.color})` }} whileTap={{ scale: 0.90 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }}>
                                 {item.isModal
-                                    ? <div onClick={() => setRaagOpen(true)} style={{ cursor: 'pointer' }}><GeodeOrb item={item} sz={orbSize} idx={i} /></div>
-                                    : <div onClick={() => { if (!hasMoved.current) setExpandedItem(item); }} style={{ cursor: 'pointer' }}>
+                                    ? <div onClick={() => { playOrbClickSound(); setRaagOpen(true); }} style={{ cursor: 'pointer' }}><GeodeOrb item={item} sz={orbSize} idx={i} /></div>
+                                    : <div onClick={() => { if (!hasMoved.current) { playOrbClickSound(); setExpandedItem(item); } }} style={{ cursor: 'pointer' }}>
                                         <GeodeOrb item={item} sz={orbSize} idx={i} />
                                     </div>
                                 }

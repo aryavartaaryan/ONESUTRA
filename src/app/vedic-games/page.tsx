@@ -303,7 +303,7 @@ export default function VedicGamesPage() {
             <div style={{ position: 'relative', zIndex: 1, maxWidth: '900px', margin: '0 auto', padding: '1.5rem', paddingBottom: '5rem' }}>
                 {/* Header */}
                 <header style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-                    <button onClick={() => activeGame ? setActiveGame(null) : router.back()}
+                    <button onClick={() => activeGame ? setActiveGame(null) : router.push('/')}
                         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '50%', color: '#fff', cursor: 'pointer', flexShrink: 0 }}>
                         <ChevronLeft size={22} />
                     </button>

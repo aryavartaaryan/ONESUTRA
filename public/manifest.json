@@ -1,8 +1,8 @@
 {
-    "name": "ReZo",
-    "short_name": "ReZo",
-    "description": "ReZo — your conscious digital sanctuary for mindful social connection.",
-    "start_url": "/pranaverse",
+    "name": "OneSUTRA",
+    "short_name": "OneSUTRA",
+    "description": "OneSUTRA — your conscious digital sanctuary for mindful living, Vedic wisdom & AI guidance.",
+    "start_url": "/",
     "display": "standalone",
     "background_color": "#010310",
     "theme_color": "#010310",

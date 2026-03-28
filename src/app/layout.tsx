@@ -3,13 +3,13 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "SUTRAConnect | Conscious Living",
-  description: "SUTRAConnect — your conscious digital sanctuary. Personalized Vedic wellness, mindful connection, and AI-powered guidance for holistic well-being.",
+  title: "OneSUTRA | Conscious Living",
+  description: "OneSUTRA — your conscious digital sanctuary. Personalized Vedic wellness, mindful connection, and AI-powered guidance for holistic well-being.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "SUTRAConnect",
+    title: "OneSUTRA",
   },
   icons: {
     icon: '/favicon.ico',

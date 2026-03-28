@@ -1195,7 +1195,7 @@ export default function StickyTopNav() {
                 }} />
 
                 {/* Logo + wordmark */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, willChange: 'transform', transform: 'translateZ(0)' }}>
                     {/* Sacred geometry badge */}
                     <div style={{
                         width: 40, height: 40, borderRadius: '50%',

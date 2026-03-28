@@ -525,6 +525,7 @@ const InlineBubble = ({ b, index, dropZoneRef, dropHighlight, setDropHighlight, 
     const startRef = useRef<{ cx: number; cy: number; bx: number; by: number } | null>(null);
     const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
     const [isDragging, setIsDragging] = useState(false);
+    const [ghostBursting, setGhostBursting] = useState(false);
 
     const checkOver = (cx: number, cy: number) => {
         if (!dropZoneRef.current) return false;
@@ -555,7 +556,7 @@ const InlineBubble = ({ b, index, dropZoneRef, dropHighlight, setDropHighlight, 
         const over = checkOver(e.clientX, e.clientY);
         const totalMove = Math.abs(e.clientX - startRef.current.cx) + Math.abs(e.clientY - startRef.current.cy);
         setIsDragging(false);
-        setDragPos(null);
+        if (!over) setDragPos(null);
         startRef.current = null;
         setDropHighlight(false);
 
@@ -563,6 +564,10 @@ const InlineBubble = ({ b, index, dropZoneRef, dropHighlight, setDropHighlight, 
             setIsBursting(true);
             setBurstKey(k => k + 1);
             setTimeout(() => setIsBursting(false), 600);
+            // Snap ghost to exact pointer position so burst fires at the drop zone, not at the offset bubble-center
+            setDragPos({ x: e.clientX, y: e.clientY });
+            setGhostBursting(true);
+            setTimeout(() => { setDragPos(null); setGhostBursting(false); }, 400);
 
             if (isPlanner) {
                 router.push('/vedic-planner');
@@ -591,10 +596,32 @@ const InlineBubble = ({ b, index, dropZoneRef, dropHighlight, setDropHighlight, 
                 setPendingMessage(msg);
                 router.push('/bodhi-chat');
             }, 650);
-        } else if (totalMove < 10 && !isPlanner) {
-            handleCategoryClick(b.key);
         } else if (totalMove < 10 && isPlanner) {
             router.push('/vedic-planner');
+        } else if (totalMove < 10) {
+            // Tap: burst at tap point → open Bodhi chat with label pre-filled
+            setIsBursting(true);
+            setBurstKey(k => k + 1);
+            setTimeout(() => setIsBursting(false), 450);
+            setDragPos({ x: e.clientX, y: e.clientY });
+            setGhostBursting(true);
+            setTimeout(() => { setDragPos(null); setGhostBursting(false); }, 400);
+            try {
+                const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                [880, 1046.5].forEach((freq, fi) => {
+                    const osc = ctx.createOscillator(); const g = ctx.createGain();
+                    osc.type = 'sine'; osc.frequency.value = freq;
+                    g.gain.setValueAtTime(0, ctx.currentTime + fi * 0.09);
+                    g.gain.linearRampToValueAtTime(0.18, ctx.currentTime + fi * 0.09 + 0.025);
+                    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + fi * 0.09 + 0.38);
+                    osc.connect(g); g.connect(ctx.destination);
+                    osc.start(ctx.currentTime + fi * 0.09); osc.stop(ctx.currentTime + fi * 0.09 + 0.40);
+                });
+                setTimeout(() => ctx.close(), 1000);
+            } catch { /* silent */ }
+            const msg = `${b.label}: `;
+            setPendingMessage(msg);
+            setTimeout(() => router.push('/bodhi-chat'), 400);
         }
     };
 
@@ -606,7 +633,7 @@ const InlineBubble = ({ b, index, dropZoneRef, dropHighlight, setDropHighlight, 
                 width: b.size, height: b.size, marginBottom: -b.arcY, borderRadius: '50%', position: 'relative', flexShrink: 0,
                 animationName: dragPos ? 'none' : b.anim, animationDuration: `${b.dur + index * 0.4}s`, animationDelay: `${index * 0.55}s`,
                 animationTimingFunction: 'ease-in-out', animationIterationCount: 'infinite',
-                opacity: isBursting ? 0 : 1, transform: isBursting ? 'scale(2.2)' : undefined, transition: isBursting ? 'opacity 0.4s ease, transform 0.4s ease' : 'opacity 0.2s',
+                opacity: (isBursting || isDragging) ? 0 : 1, transition: 'opacity 0.15s ease',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                 background: isOverDrop ? `radial-gradient(circle at 30% 25%, rgba(255,255,255,0.60) 0%, rgba(251,191,36,0.45) 50%, rgba(251,191,36,0.15) 100%)` : `radial-gradient(circle at 30% 25%, rgba(255,255,255,0.38) 0%, ${b.bg} 52%, rgba(0,0,0,0.25) 100%)`,
                 backdropFilter: 'blur(14px) saturate(180%)', WebkitBackdropFilter: 'blur(14px) saturate(180%)',
@@ -631,8 +658,8 @@ const InlineBubble = ({ b, index, dropZoneRef, dropHighlight, setDropHighlight, 
     return (
         <React.Fragment>
             {bubbleEl}
-            {dragPos && isDragging && (
-                <div style={{ position: 'fixed', left: dragPos.x, top: dragPos.y, transform: 'translate(-50%, -50%)', width: b.size, height: b.size, borderRadius: '50%', zIndex: 9999, background: isOverDrop ? `radial-gradient(circle at 30% 25%, rgba(255,255,255,0.60) 0%, rgba(251,191,36,0.45) 50%, rgba(251,191,36,0.15) 100%)` : `radial-gradient(circle at 30% 25%, rgba(255,255,255,0.38) 0%, ${b.bg} 52%, rgba(0,0,0,0.25) 100%)`, backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', border: isOverDrop ? '2px solid rgba(251,191,36,0.95)' : '1.5px solid rgba(255,255,255,0.28)', boxShadow: isOverDrop ? `0 0 0 5px rgba(251,191,36,0.25), 0 10px 36px rgba(251,191,36,0.45)` : `0 12px 40px rgba(0,0,0,0.45)`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'grabbing', pointerEvents: 'none' }}>
+            {dragPos && (isDragging || ghostBursting) && (
+                <div style={{ position: 'fixed', left: dragPos.x, top: dragPos.y, transform: ghostBursting ? 'translate(-50%, -50%) scale(1.9)' : 'translate(-50%, -50%)', opacity: ghostBursting ? 0 : 1, transition: ghostBursting ? 'transform 0.38s ease-out, opacity 0.38s ease-out' : 'none', width: b.size, height: b.size, borderRadius: '50%', zIndex: 9999, background: (isOverDrop || ghostBursting) ? `radial-gradient(circle at 30% 25%, rgba(255,255,255,0.60) 0%, rgba(251,191,36,0.45) 50%, rgba(251,191,36,0.15) 100%)` : `radial-gradient(circle at 30% 25%, rgba(255,255,255,0.38) 0%, ${b.bg} 52%, rgba(0,0,0,0.25) 100%)`, backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', border: (isOverDrop || ghostBursting) ? '2px solid rgba(251,191,36,0.95)' : '1.5px solid rgba(255,255,255,0.28)', boxShadow: ghostBursting ? `0 0 0 10px rgba(251,191,36,0.15), 0 0 50px rgba(251,191,36,0.50)` : isOverDrop ? `0 0 0 5px rgba(251,191,36,0.25), 0 10px 36px rgba(251,191,36,0.45)` : `0 12px 40px rgba(0,0,0,0.45)`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'grabbing', pointerEvents: 'none' }}>
                     <div style={{ position: 'absolute', top: '7%', left: '13%', width: '48%', height: '30%', background: 'linear-gradient(155deg, rgba(255,255,255,0.80) 0%, rgba(255,255,255,0) 100%)', borderRadius: '50%', transform: 'rotate(-22deg)' }} />
                     <span style={{ fontSize: b.size > 68 ? '1.4rem' : '1.1rem', lineHeight: 1, zIndex: 2 }}>{b.emoji}</span>
                     <span style={{ fontSize: '0.36rem', fontWeight: 900, color: '#fff', letterSpacing: '0.07em', textTransform: 'uppercase', textShadow: '0 1px 5px rgba(0,0,0,0.75)', zIndex: 2 }}>{b.label}</span>

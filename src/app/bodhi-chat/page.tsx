@@ -507,24 +507,24 @@ export default function BodhiChatPage() {
 
                 {/* Header */}
                 <motion.header initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}
-                    style={{ flexShrink: 0, display: 'flex', alignItems: 'center', padding: '52px 16px 10px', gap: '0.7rem', background: 'linear-gradient(180deg, rgba(4,2,16,0.95) 0%, rgba(6,3,18,0.65) 70%, transparent 100%)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', position: 'relative', zIndex: 10 }}>
+                    style={{ flexShrink: 0, display: 'flex', alignItems: 'center', padding: 'max(44px, calc(env(safe-area-inset-top) + 10px)) 12px 10px', gap: '0.5rem', background: 'linear-gradient(180deg, rgba(4,2,16,0.95) 0%, rgba(6,3,18,0.65) 70%, transparent 100%)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', position: 'relative', zIndex: 10 }}>
                     <motion.button whileTap={{ scale: 0.88 }} onClick={() => { disconnect(); router.push('/'); }}
                         style={{ flexShrink: 0, width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.75)' }}>
                         <ArrowLeft size={16} />
                     </motion.button>
                     <BodhiMiniOrb thinking={isThinking} speaking={isSpeaking} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ fontSize: '1.05rem', fontWeight: 800, fontFamily: "'Outfit', sans-serif", background: 'linear-gradient(120deg, #ffffff 0%, #fde68a 50%, #c4b5fd 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', display: 'block' }}>Sakha Bodhi</span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginTop: '0.06rem' }}>
-                            <span style={{ fontSize: '0.50rem', color: stateColor, fontWeight: 700, letterSpacing: '0.08em', transition: 'color 0.3s' }}>{stateLabel}</span>
-                            <span style={{ fontSize: '0.45rem', color: 'rgba(255,255,255,0.28)' }}>Life Manager AI</span>
+                    <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                        <span style={{ fontSize: 'clamp(0.9rem, 4vw, 1.05rem)', fontWeight: 800, fontFamily: "'Outfit', sans-serif", background: 'linear-gradient(120deg, #ffffff 0%, #fde68a 50%, #c4b5fd 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Sakha Bodhi</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.06rem' }}>
+                            <span style={{ fontSize: 'clamp(0.42rem, 1.8vw, 0.50rem)', color: stateColor, fontWeight: 700, letterSpacing: '0.06em', transition: 'color 0.3s', whiteSpace: 'nowrap' }}>{stateLabel}</span>
+                            <span style={{ fontSize: 'clamp(0.38rem, 1.6vw, 0.45rem)', color: 'rgba(255,255,255,0.28)', whiteSpace: 'nowrap' }}>Life Manager AI</span>
                         </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0 }}>
                         {pendingCount > 0 && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.22rem', background: 'rgba(251,191,36,0.10)', border: '1px solid rgba(251,191,36,0.22)', borderRadius: 999, padding: '0.22rem 0.5rem' }}>
-                                <CheckCircle2 size={10} style={{ color: '#fbbf24' }} />
-                                <span style={{ fontSize: '0.46rem', color: 'rgba(251,191,36,0.85)', fontWeight: 700, fontFamily: 'monospace' }}>{pendingCount} pending</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.18rem', background: 'rgba(251,191,36,0.10)', border: '1px solid rgba(251,191,36,0.22)', borderRadius: 999, padding: '0.20rem 0.4rem' }}>
+                                <CheckCircle2 size={9} style={{ color: '#fbbf24' }} />
+                                <span style={{ fontSize: 'clamp(0.38rem, 1.5vw, 0.46rem)', color: 'rgba(251,191,36,0.85)', fontWeight: 700, fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{pendingCount}</span>
                             </div>
                         )}
                         <motion.button whileTap={{ scale: 0.90 }} onClick={() => router.push('/vedic-planner')}
@@ -614,7 +614,7 @@ export default function BodhiChatPage() {
                         )}
                     </AnimatePresence>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(28px) saturate(180%)', WebkitBackdropFilter: 'blur(28px) saturate(180%)', border: isTypingFocus ? '1px solid rgba(251,191,36,0.38)' : '1px solid rgba(255,255,255,0.12)', borderRadius: 999, padding: '0.38rem 0.38rem 0.38rem 1rem', boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.18), 0 4px 24px rgba(0,0,0,0.22)', transition: 'border-color 0.3s' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(28px) saturate(180%)', WebkitBackdropFilter: 'blur(28px) saturate(180%)', border: isTypingFocus ? '1px solid rgba(251,191,36,0.38)' : '1px solid rgba(255,255,255,0.12)', borderRadius: 999, padding: '0.38rem 0.55rem 0.38rem 1rem', boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.18), 0 4px 24px rgba(0,0,0,0.22)', transition: 'border-color 0.3s', overflow: 'visible' }}>
                         {/* Voice input button */}
                         <VoiceInputButton 
                             isListening={isListening} 
