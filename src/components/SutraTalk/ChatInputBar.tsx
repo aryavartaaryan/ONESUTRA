@@ -20,7 +20,9 @@ export default function ChatInputBar({ accent, chatId, user, onMessageSend, mark
     const inputRef = useRef<HTMLInputElement>(null);
 
     React.useEffect(() => {
-        setTimeout(() => inputRef.current?.focus(), 200);
+        // Focus input when chat changes (works for both OneSutra and Telegram chats)
+        const timer = setTimeout(() => inputRef.current?.focus(), 200);
+        return () => clearTimeout(timer);
     }, [chatId]);
 
     const handleSend = useCallback(async () => {
@@ -69,7 +71,9 @@ export default function ChatInputBar({ accent, chatId, user, onMessageSend, mark
                 </AnimatePresence>
 
                 {/* Main pill */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(6,4,18,0.72)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: `1px solid ${accent}30`, borderRadius: 999, padding: '0.5rem 0.6rem 0.5rem 1rem', boxShadow: `0 0 24px ${accent}18, 0 8px 28px rgba(0,0,0,0.45)` }}>
+                <div 
+                    onClick={() => inputRef.current?.focus()}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(6,4,18,0.72)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: `1px solid ${accent}30`, borderRadius: 999, padding: '0.5rem 0.6rem 0.5rem 1rem', boxShadow: `0 0 24px ${accent}18, 0 8px 28px rgba(0,0,0,0.45)`, cursor: 'text' }}>
 
                     {/* + / attachment */}
                     <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.38)', lineHeight: 0, padding: '4px', flexShrink: 0 }}>
@@ -80,26 +84,27 @@ export default function ChatInputBar({ accent, chatId, user, onMessageSend, mark
                     <input
                         ref={inputRef}
                         type="text"
+                        autoFocus
                         value={input}
                         onChange={e => { setInput(e.target.value); markTyping(); }}
                         onBlur={clearTyping}
-                        onKeyDown={e => { 
+                        onKeyDown={e => {
                             if (e.keyCode === 229 || (e.nativeEvent as any).isComposing) return;
                             if (e.key === 'Enter' && !e.shiftKey) {
                                 if (
-                                    typeof navigator !== 'undefined' && 
+                                    typeof navigator !== 'undefined' &&
                                     (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
                                 ) {
                                     return;
                                 }
-                                e.preventDefault(); 
+                                e.preventDefault();
                                 if (input.trim()) {
-                                    handleSend(); 
+                                    handleSend();
                                 }
-                            } 
+                            }
                         }}
                         placeholder="Type a message…"
-                        style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'rgba(255,255,255,0.90)', fontSize: '0.95rem', fontFamily: "'Inter', sans-serif", caretColor: accent, minWidth: 0 }}
+                        style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'rgba(255,255,255,0.90)', fontSize: '0.95rem', fontFamily: "'Inter', sans-serif", caretColor: accent, minWidth: 0, pointerEvents: 'auto' }}
                     />
 
                     {/* Mic / voice note button */}

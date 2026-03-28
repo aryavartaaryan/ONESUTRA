@@ -11,7 +11,7 @@ export default function SlidingPuzzle() {
   useEffect(() => {
     // Basic shuffle: Since doing true random shuffle might result in an unsolvable 8-puzzle,
     // we make N valid random moves backward from the sorted state to guarantee solvability.
-    let currentTiles = [...WIN_STATE];
+    const currentTiles = [...WIN_STATE];
     let emptyIndex = 8;
     for (let i = 0; i < 100; i++) {
         const row = Math.floor(emptyIndex / SIZE);

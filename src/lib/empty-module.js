@@ -3,18 +3,22 @@
 // Next.js Turbopack/webpack resolveAlias points these Node modules here.
 
 // Create a base class that can be safely extended
-class EmptyBase {}
+class EmptyBase { }
 
-// Export both a default object and a class to handle extension attempts
-module.exports = {
-  default: {},
-  EmptyBase,
-  // Handle common exports that telegram might expect
-  createConnection: () => ({}),
-  connect: () => ({}),
-  constants: {},
-  protocols: {},
+// Dummy inspect for util.inspect required by GramJS formatting
+const dummyInspect = () => '';
+dummyInspect.custom = Symbol.for('nodejs.util.inspect.custom');
+
+const exportsObj = {
+    createConnection: () => ({}),
+    connect: () => ({}),
+    constants: {},
+    protocols: {},
+    inspect: dummyInspect,
 };
+exportsObj.EmptyBase = EmptyBase;
 
-// Also export as ES module default for compatibility
-export default {};
+module.exports = {
+    ...exportsObj,
+    default: exportsObj
+};

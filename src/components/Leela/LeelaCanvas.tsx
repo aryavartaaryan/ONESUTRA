@@ -830,7 +830,7 @@ export default function LeelaCanvas() {
         try { audioRef.current?.fadeOut(1.2); } catch { }
         let fo = opacity;
         const fout = setInterval(() => { fo = Math.max(0, fo - 0.06); setOpacity(fo); if (fo <= 0) { clearInterval(fout); try { audioRef.current?.cleanup(); } catch { } setState('menu'); setPhase(0); setProfile(null); } }, 25);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [opacity]);
 
     useEffect(() => () => {

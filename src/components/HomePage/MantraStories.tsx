@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2, VolumeX, ChevronLeft, ChevronRight, Sparkles, Check, Zap, Lightbulb, AlertCircle } from 'lucide-react';
+import { Volume2, VolumeX, ChevronLeft, ChevronRight, Sparkles, Check, Zap, Lightbulb, AlertCircle, type LucideIcon } from 'lucide-react';
 
 // ── Time-based Unsplash image collections ───────────────────────────────────
 const UNSPLASH_COLLECTIONS = {
@@ -41,7 +41,7 @@ interface Story {
   bgGradient: string;
   imageUrl: string;
   duration: number;
-  icon: React.ReactNode;
+  icon: LucideIcon;
   description: string;
 }
 
@@ -86,7 +86,7 @@ export default function MantraStories() {
         bgGradient: 'linear-gradient(135deg, rgba(74, 222, 128, 0.9), rgba(34, 197, 94, 0.95))',
         imageUrl: baseImage,
         duration: 8,
-        icon: <Check size={24} />,
+        icon: Check,
         description: 'Your daily tasks await',
       },
       {
@@ -98,7 +98,7 @@ export default function MantraStories() {
         bgGradient: 'linear-gradient(135deg, rgba(251, 146, 60, 0.9), rgba(234, 88, 12, 0.95))',
         imageUrl: getRandomImage(timeOfDay),
         duration: 8,
-        icon: <Zap size={24} />,
+        icon: Zap,
         description: 'Face your challenges',
       },
       {
@@ -110,7 +110,7 @@ export default function MantraStories() {
         bgGradient: 'linear-gradient(135deg, rgba(251, 191, 36, 0.9), rgba(217, 119, 6, 0.95))',
         imageUrl: getRandomImage(timeOfDay),
         duration: 8,
-        icon: <Lightbulb size={24} />,
+        icon: Lightbulb,
         description: 'Spark your creativity',
       },
       {
@@ -122,7 +122,7 @@ export default function MantraStories() {
         bgGradient: 'linear-gradient(135deg, rgba(248, 113, 113, 0.9), rgba(220, 38, 38, 0.95))',
         imageUrl: getRandomImage(timeOfDay),
         duration: 8,
-        icon: <AlertCircle size={24} />,
+        icon: AlertCircle,
         description: 'Resolve what blocks you',
       },
     ];
@@ -288,7 +288,7 @@ export default function MantraStories() {
                 boxShadow: `0 4px 16px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.6), 0 0 16px ${story.color}70`,
                 border: '1.5px solid rgba(255,255,255,0.5)',
               }}>
-                {React.cloneElement(story.icon as React.ReactElement, { size: 20, color: '#fff' })}
+                <story.icon size={20} color="#fff" />
               </div>
 
               {/* Bottom: label + description */}
@@ -461,7 +461,7 @@ export default function MantraStories() {
                       border: '2px solid #fff',
                       boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
                     }}>
-                      {React.cloneElement(stories[activeStoryIndex].icon as React.ReactElement, {
+                      {React.createElement(stories[activeStoryIndex].icon, {
                         size: 18,
                         color: '#fff'
                       })}
@@ -543,7 +543,7 @@ export default function MantraStories() {
                       boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
                     }}
                   >
-                    {React.cloneElement(stories[activeStoryIndex].icon as React.ReactElement, {
+                    {React.createElement(stories[activeStoryIndex].icon, {
                       size: 48,
                       color: '#fff'
                     })}

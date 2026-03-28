@@ -1,20 +1,49 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSakhaConversation, type DayPhase } from '@/hooks/useSakhaConversation';
 import { useLanguage } from '@/context/LanguageContext';
 import { type TaskItem } from '@/hooks/useDailyTasks';
 import AgenticWebView from '@/components/AgenticWebView';
+import { Sparkles, Calendar, Focus, Moon, Wind, Lightbulb } from 'lucide-react';
 import styles from './SakhaBodhiOrb.module.css';
+
+// ─── Mood data ───────────────────────────────────────────────────────────────
+const MOOD_EMOJIS_ORB = [
+    { emoji: '😊', label: 'Happy', mood: 'HAPPY/JOYFUL', color: '#fbbf24' },
+    { emoji: '😔', label: 'Sad', mood: 'SAD/LOW', color: '#818cf8' },
+    { emoji: '😤', label: 'Stressed', mood: 'STRESSED/ANXIOUS', color: '#f87171' },
+    { emoji: '🤩', label: 'Excited', mood: 'EXCITED/ENERGIZED', color: '#2dd4bf' },
+    { emoji: '😴', label: 'Tired', mood: 'TIRED/DRAINED', color: '#94a3b8' },
+    { emoji: '🎯', label: 'Focused', mood: 'FOCUSED/PRODUCTIVE', color: '#4ade80' },
+    { emoji: '😕', label: 'Confused', mood: 'CONFUSED/STUCK', color: '#fb923c' },
+    { emoji: '🙏', label: 'Grateful', mood: 'GRATEFUL/PEACEFUL', color: '#c4b5fd' },
+];
 
 // ─── Phase meta ───────────────────────────────────────────────────────────────
 
-const PHASE_CONFIG: Record<DayPhase, { label: string; emoji: string }> = {
-    morning: { label: 'Brahma Muhurta · Morning', emoji: '🌅' },
-    midday: { label: 'Deep Work · Mid-Day', emoji: '☀️' },
-    evening: { label: 'Sandhya · Evening', emoji: '🪔' },
-    night: { label: 'Nisha · Late Night', emoji: '🌙' },
+const PHASE_CONFIG: Record<DayPhase, { label: string; emoji: string; wisdom: string }> = {
+    morning: { 
+        label: 'Brahma Muhurta · Morning', 
+        emoji: '🌅',
+        wisdom: 'The morning breeze carries the wisdom of a thousand sages. Begin with intention.'
+    },
+    midday: { 
+        label: 'Deep Work · Mid-Day', 
+        emoji: '☀️',
+        wisdom: 'Like the sun at its zenith, let your focus burn bright and true.'
+    },
+    evening: { 
+        label: 'Sandhya · Evening', 
+        emoji: '🪔',
+        wisdom: 'As day surrenders to night, surrender your worries to the cosmic rhythm.'
+    },
+    night: { 
+        label: 'Nisha · Late Night', 
+        emoji: '🌙',
+        wisdom: 'In the silence of night, the universe whispers its deepest truths.'
+    },
 };
 
 // ─── Geometric 4-point clarity star (SVG, no religious meaning) ───────────────
@@ -68,6 +97,13 @@ export default function SakhaBodhiOrb({
     onNavigateToPlanner,
 }: SakhaBodhiOrbProps) {
     const { lang } = useLanguage();
+
+    const [breathingMode, setBreathingMode] = useState(false);
+    const [showWisdom, setShowWisdom] = useState(true);
+    const [orbMoodEmoji, setOrbMoodEmoji] = useState('');
+    const [orbMoodLabel, setOrbMoodLabel] = useState('');
+    const [floatingEmojis, setFloatingEmojis] = useState<Array<{ id: string; emoji: string }>>([]);
+
     const {
         sakhaState,
         phase,
@@ -87,14 +123,33 @@ export default function SakhaBodhiOrb({
         onRemoveTask,
         onTriggerMeditationScreen,
         onNavigateToPlanner,
+        userMood: orbMoodEmoji ? `${orbMoodEmoji} ${orbMoodLabel}` : '',
     });
 
     useEffect(() => {
         let mounted = true;
-        // Small delay to ensure clean mount handling in Strict Mode
         const play = setTimeout(() => {
             if (mounted) activate();
         }, 100);
+
+        // Load saved mood from Firebase
+        if (userId) {
+            (async () => {
+                try {
+                    const { getFirebaseFirestore } = await import('@/lib/firebase');
+                    const { doc, getDoc } = await import('firebase/firestore');
+                    const db = await getFirebaseFirestore();
+                    const snap = await getDoc(doc(db, 'users', userId));
+                    if (!mounted || !snap.exists()) return;
+                    const m = snap.data()?.current_mood;
+                    if (m?.emoji && Date.now() - m.updatedAt < 6 * 60 * 60 * 1000) {
+                        setOrbMoodEmoji(m.emoji);
+                        const found = MOOD_EMOJIS_ORB.find(x => x.mood === m.mood);
+                        setOrbMoodLabel(found?.label ?? '');
+                    }
+                } catch { /* silent */ }
+            })();
+        }
 
         return () => {
             mounted = false;
@@ -103,6 +158,58 @@ export default function SakhaBodhiOrb({
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const handleOrbMoodSelect = useCallback((emoji: string, label: string, mood: string) => {
+        // Always save mood to Firebase
+        if (userId) {
+            import('@/lib/firebase').then(({ getFirebaseFirestore }) =>
+                import('firebase/firestore').then(({ doc, setDoc }) =>
+                    getFirebaseFirestore().then(db =>
+                        setDoc(doc(db, 'users', userId), { current_mood: { emoji, mood, updatedAt: Date.now() } }, { merge: true })
+                    )
+                )
+            ).catch(() => {});
+        }
+
+        if (sakhaState === 'speaking') {
+            // Float-up animation mode — emoji rises and disappears
+            const floatId = `float_${Date.now()}_${Math.random()}`;
+            setFloatingEmojis(prev => [...prev, { id: floatId, emoji }]);
+            setTimeout(() => setFloatingEmojis(prev => prev.filter(e => e.id !== floatId)), 1600);
+            // Still update mood so Bodhi knows
+            setOrbMoodEmoji(emoji);
+            setOrbMoodLabel(label);
+        } else {
+            // Normal toggle mode
+            if (orbMoodEmoji === emoji) {
+                setOrbMoodEmoji('');
+                setOrbMoodLabel('');
+            } else {
+                setOrbMoodEmoji(emoji);
+                setOrbMoodLabel(label);
+            }
+        }
+    }, [orbMoodEmoji, sakhaState, userId]);
+
+    // ── Quick Action Handlers ────────────────────────────────────────────────
+    const handleMeditate = () => {
+        onTriggerMeditationScreen?.();
+    };
+
+    const handlePlan = () => {
+        onNavigateToPlanner?.();
+    };
+
+    const handleFocus = () => {
+        // Activate Brahmastra focus mode via custom event
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('activateBrahmastra', { detail: { reason: 'Deep focus with Sakha' } }));
+        }
+    };
+
+    const handleRest = () => {
+        setBreathingMode(true);
+    };
 
     // ── Phase info ────────────────────────────────────────────────────────────
     const phaseInfo = PHASE_CONFIG[phase];
@@ -346,6 +453,278 @@ export default function SakhaBodhiOrb({
                             </div>
                         </motion.div>
 
+                        {/* ── Quick Action Buttons ─────────────────────────────────── */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.6, duration: 0.5 }}
+                            style={{
+                                position: 'fixed',
+                                top: 100,
+                                right: 24,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 12,
+                                zIndex: 100,
+                            }}
+                        >
+                            {[
+                                { icon: Sparkles, label: 'Meditate', onClick: handleMeditate, color: '#c4b5fd' },
+                                { icon: Calendar, label: 'Plan', onClick: handlePlan, color: '#fbbf24' },
+                                { icon: Focus, label: 'Focus', onClick: handleFocus, color: '#4ade80' },
+                                { icon: Wind, label: 'Breathe', onClick: handleRest, color: '#2dd4bf' },
+                            ].map((action, i) => (
+                                <motion.button
+                                    key={action.label}
+                                    whileHover={{ scale: 1.05, x: -4 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={action.onClick}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.7 + i * 0.1 }}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 10,
+                                        padding: '10px 16px',
+                                        background: 'rgba(255,255,255,0.06)',
+                                        backdropFilter: 'blur(12px)',
+                                        border: `1px solid ${action.color}30`,
+                                        borderRadius: 999,
+                                        cursor: 'pointer',
+                                        color: action.color,
+                                        fontSize: '0.65rem',
+                                        fontWeight: 600,
+                                        letterSpacing: '0.08em',
+                                        textTransform: 'uppercase',
+                                        fontFamily: 'system-ui, sans-serif',
+                                        boxShadow: `0 4px 20px ${action.color}15`,
+                                    }}
+                                >
+                                    <action.icon size={14} />
+                                    {action.label}
+                                </motion.button>
+                            ))}
+                        </motion.div>
+
+                        {/* ── Daily Wisdom Card ────────────────────────────────────── */}
+                        <AnimatePresence>
+                            {showWisdom && sakhaState === 'idle' && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    transition={{ delay: 0.8, duration: 0.5 }}
+                                    style={{
+                                        position: 'fixed',
+                                        bottom: 140,
+                                        left: 24,
+                                        maxWidth: 280,
+                                        padding: '16px 20px',
+                                        background: 'rgba(255,255,255,0.04)',
+                                        backdropFilter: 'blur(20px)',
+                                        border: '1px solid rgba(255,255,255,0.10)',
+                                        borderRadius: 16,
+                                        borderLeft: '3px solid rgba(251,191,36,0.50)',
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                                        <Lightbulb size={14} style={{ color: '#fbbf24' }} />
+                                        <span style={{ fontSize: '0.55rem', color: 'rgba(251,191,36,0.80)', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                                            Daily Wisdom
+                                        </span>
+                                    </div>
+                                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'rgba(255,255,255,0.75)', lineHeight: 1.6, fontStyle: 'italic', fontFamily: "'Georgia', serif" }}>
+                                        {phaseInfo.wisdom}
+                                    </p>
+                                    <button
+                                        onClick={() => setShowWisdom(false)}
+                                        style={{
+                                            position: 'absolute',
+                                            top: 8,
+                                            right: 8,
+                                            width: 20,
+                                            height: 20,
+                                            borderRadius: '50%',
+                                            background: 'transparent',
+                                            border: 'none',
+                                            color: 'rgba(255,255,255,0.30)',
+                                            cursor: 'pointer',
+                                            fontSize: '0.70rem',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}
+                                    >
+                                        ×
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* ── Floating emoji animation (when Bodhi is speaking) ── */}
+                        <AnimatePresence>
+                            {floatingEmojis.map(fe => (
+                                <motion.div
+                                    key={fe.id}
+                                    initial={{ opacity: 1, y: 0, scale: 1 }}
+                                    animate={{ opacity: 0, y: -220, scale: 1.8 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 1.4, ease: 'easeOut' }}
+                                    style={{
+                                        position: 'fixed',
+                                        bottom: 160,
+                                        left: 0,
+                                        right: 0,
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        zIndex: 300,
+                                        fontSize: '2.2rem',
+                                        pointerEvents: 'none',
+                                    }}
+                                >
+                                    {fe.emoji}
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+
+                        {/* ── Mood Emoji Picker (always visible, real-time feedback) ── */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5, duration: 0.4 }}
+                            style={{
+                                position: 'fixed',
+                                bottom: 110,
+                                left: 0,
+                                right: 0,
+                                zIndex: 200,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: 8,
+                                pointerEvents: 'none',
+                            }}
+                        >
+                            <div style={{
+                                fontSize: '0.52rem',
+                                color: 'rgba(255,255,255,0.38)',
+                                letterSpacing: '0.12em',
+                                textTransform: 'uppercase',
+                                fontFamily: 'system-ui, sans-serif',
+                                fontWeight: 600,
+                                pointerEvents: 'none',
+                            }}>
+                                {orbMoodEmoji
+                                    ? `Feeling ${orbMoodLabel} — Bodhi knows`
+                                    : sakhaState === 'speaking' ? 'Share your mood ↓' : 'How are you feeling?'}
+                            </div>
+                            <div style={{ display: 'flex', gap: 10, pointerEvents: 'auto' }}>
+                                {MOOD_EMOJIS_ORB.map(m => (
+                                    <motion.button
+                                        key={m.emoji}
+                                        whileTap={{ scale: 0.80 }}
+                                        whileHover={{ scale: 1.15 }}
+                                        onClick={(e) => { e.stopPropagation(); handleOrbMoodSelect(m.emoji, m.label, m.mood); }}
+                                        title={m.label}
+                                        style={{
+                                            width: 40,
+                                            height: 40,
+                                            borderRadius: '50%',
+                                            background: orbMoodEmoji === m.emoji ? `${m.color}30` : 'rgba(255,255,255,0.06)',
+                                            border: orbMoodEmoji === m.emoji
+                                                ? `2px solid ${m.color}90`
+                                                : '1px solid rgba(255,255,255,0.12)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            cursor: 'pointer',
+                                            fontSize: '1.2rem',
+                                            backdropFilter: 'blur(12px)',
+                                            boxShadow: orbMoodEmoji === m.emoji
+                                                ? `0 0 14px ${m.color}50, inset 0 1px 0 rgba(255,255,255,0.20)`
+                                                : '0 2px 8px rgba(0,0,0,0.20)',
+                                            transition: 'background 0.2s, border 0.2s, box-shadow 0.2s',
+                                        }}
+                                    >
+                                        {m.emoji}
+                                    </motion.button>
+                                ))}
+                            </div>
+                        </motion.div>
+
+                        {/* ── Breathing Mode Overlay ───────────────────────────────── */}
+                        <AnimatePresence>
+                            {breathingMode && (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    style={{
+                                        position: 'fixed',
+                                        inset: 0,
+                                        zIndex: 50,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        background: 'rgba(0,0,0,0.85)',
+                                        backdropFilter: 'blur(20px)',
+                                    }}
+                                >
+                                    <motion.div
+                                        animate={{
+                                            scale: [1, 1.5, 1.5, 1],
+                                            opacity: [0.3, 0.6, 0.6, 0.3],
+                                        }}
+                                        transition={{
+                                            duration: 8,
+                                            repeat: Infinity,
+                                            ease: 'easeInOut',
+                                            times: [0, 0.4, 0.6, 1],
+                                        }}
+                                        style={{
+                                            width: 200,
+                                            height: 200,
+                                            borderRadius: '50%',
+                                            background: 'radial-gradient(circle, rgba(45,212,191,0.40) 0%, transparent 70%)',
+                                            position: 'absolute',
+                                        }}
+                                    />
+                                    <div style={{ position: 'relative', zIndex: 10, textAlign: 'center' }}>
+                                        <motion.p
+                                            animate={{ opacity: [0.5, 1, 1, 0.5] }}
+                                            transition={{ duration: 8, repeat: Infinity, times: [0, 0.4, 0.6, 1] }}
+                                            style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.90)', marginBottom: 8 }}
+                                        >
+                                            Breathe
+                                        </motion.p>
+                                        <p style={{ fontSize: '0.70rem', color: 'rgba(255,255,255,0.50)', letterSpacing: '0.1em' }}>
+                                            Inhale · Hold · Exhale
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => setBreathingMode(false)}
+                                        style={{
+                                            position: 'absolute',
+                                            bottom: 60,
+                                            padding: '12px 24px',
+                                            background: 'rgba(255,255,255,0.08)',
+                                            border: '1px solid rgba(255,255,255,0.20)',
+                                            borderRadius: 999,
+                                            color: 'rgba(255,255,255,0.70)',
+                                            cursor: 'pointer',
+                                            fontSize: '0.65rem',
+                                            letterSpacing: '0.1em',
+                                            textTransform: 'uppercase',
+                                        }}
+                                    >
+                                        Exit Breathing
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
                         {/* ── Glass pill state indicator ────────────────────────────── */}
                         <AnimatePresence mode="wait">
                             {stateLabel && (
@@ -365,7 +744,7 @@ export default function SakhaBodhiOrb({
 
                         {/* Subtitles intentional hidden from UI */}
 
-                        {/* ── Dismiss button ────────────────────────────────────────── */}
+                        {/* ── Dismiss button ───────────────────────────────────────────────── */}
                         <button
                             className={styles.dismissBtn}
                             onClick={handleDismiss}

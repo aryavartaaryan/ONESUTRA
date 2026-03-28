@@ -91,7 +91,7 @@ export const approveMockSellerApp = (id: string, adminEmail: string) => {
 };
 
 // DONATIONS MOCK STORE
-let donations: any[] = [];
+const donations: any[] = [];
 
 export const getMockDonations = () => {
   return [...donations];
@@ -110,7 +110,7 @@ export const addMockDonation = (amount: number, message: string, user: string) =
 };
 
 // PRO USERS & APP USERS MOCK STORE
-let proUsers: any[] = [
+const proUsers: any[] = [
     { email: "aryasumant@oneshutra.in", name: "Arya Sumant", date: new Date().toISOString() }
 ];
 

@@ -85,7 +85,7 @@ export function generateFusionRecipes(ingredients: string[]): Recipe[] {
     // Try to match templates
     // Strategy: Pick 2 distinct ingredients and see if they fit a template
     if (classified.length >= 2) {
-        for (let template of TEMPLATES) {
+        for (const template of TEMPLATES) {
             // Find ingredients matching requirements
             const slot1 = classified.find(c => c.tags.some(t => template.requires.includes(t)));
             const slot2 = classified.find(c => c !== slot1 && c.tags.some(t => template.requires.includes(t)));

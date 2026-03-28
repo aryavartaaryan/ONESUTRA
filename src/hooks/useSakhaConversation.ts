@@ -6,6 +6,27 @@ import { useUsers } from '@/hooks/useUsers';
 import { useChats } from '@/hooks/useChats';
 import { getChatId } from '@/hooks/useMessages';
 
+// ── isTaskDue: only tasks due now or overdue count as "pending" ───────────────
+function isTaskDue(startTime?: string): boolean {
+    if (!startTime) return true;
+    const s = startTime.toLowerCase().trim();
+    if (/\btomorrow\b|\bkal\b|\bnext\s+\w+|\bagle\b|\bparson\b|परसों|कल/.test(s)) return false;
+    const m = s.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm|बजे)?/i);
+    if (!m) {
+        const dayMatch = s.match(/\b(\d{1,2})(?:st|nd|rd|th)?\b/);
+        if (dayMatch && parseInt(dayMatch[1]) > new Date().getDate()) return false;
+        return true;
+    }
+    let h = parseInt(m[1]);
+    const min = parseInt(m[2] || '0');
+    const ap = m[3]?.toLowerCase();
+    if (ap === 'pm' && h < 12) h += 12;
+    else if (ap === 'am' && h === 12) h = 0;
+    else if (!ap && /\b(evening|shaam|raat|night|afternoon|dopahar)\b/.test(s) && h < 12) h += 12;
+    const taskTime = new Date(); taskTime.setHours(h, min, 0, 0);
+    return taskTime.getTime() - Date.now() <= 30 * 60 * 1000;
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type DayPhase = 'morning' | 'midday' | 'evening' | 'night';
@@ -39,6 +60,8 @@ interface UseSakhaConversationOptions {
     onRemoveTask?: (taskId: string) => Promise<void>;
     onTriggerMeditationScreen?: () => void;
     onNavigateToPlanner?: () => void;
+    /** User-stated mood from emoji picker — overrides keyword-based detection */
+    userMood?: string;
 }
 
 // ─── Day Phase Detection ──────────────────────────────────────────────────────
@@ -84,7 +107,8 @@ function buildSystemPrompt(
         : '  (No tasks set yet)';
 
     const completedTasks = sankalpaItems.filter(s => s.done);
-    const pendingTasks = sankalpaItems.filter(s => !s.done);
+    const pendingTasks = sankalpaItems.filter(s => !s.done && isTaskDue(s.startTime));
+    const futureTasks = sankalpaItems.filter(s => !s.done && !isTaskDue(s.startTime));
 
     // Calculate Task Patterns ("Ultra Level Intelligence")
     const totalDoneCount = completedTasks.length;
@@ -149,9 +173,13 @@ function buildSystemPrompt(
     // Late night = 9 PM (21) to 2 AM (2)
     const isLateNight = currentHour >= 21 || currentHour < 2;
 
+    const futureTasksBlock = futureTasks.length > 0
+        ? `\nSCHEDULED LATER (NOT due yet — do NOT treat as pending or try to re-add):\n${futureTasks.map((t, i) => `  ${i + 1}. ${t.text}${t.startTime ? ` [scheduled: ${t.startTime}]` : ''}`).join('\n')}`
+        : '';
+
     const taskDensityMsg = pendingTasks.length === 0
-        ? `${firstName} की Sankalpa list अभी खाली है — आज के लिए कोई task set नहीं है। Task के बारे में actively पूछो मत। बजाय उसके — ${firstName} का mood पूछो, दिन कैसा जा रहा है, या एक creative micro-challenge दो।`
-        : `${firstName} की Sankalpa list में ${pendingTasks.length} task pending हैं।\n${pendingTasks.map((t, i) => `  ${i + 1}. ${t.text}`).join('\n')}\nCRITICAL ACTION: एक task naturally pick करो और उसमें creative तरीके से help offer करो — जैसे एक सखा करता है, command की तरह नहीं।`;
+        ? `${firstName} की Sankalpa list में अभी कोई due task नहीं है।${futureTasksBlock}\nTask के बारे में actively पूछो मत। ${firstName} का mood पूछो या एक creative micro-challenge दो।`
+        : `${firstName} की Sankalpa list में ${pendingTasks.length} task अभी due हैं:\n${pendingTasks.map((t, i) => `  ${i + 1}. ${t.text}`).join('\n')}${futureTasksBlock}\n⚠️ ANTI-REPEAT RULE: ये tasks ALREADY SAVED हैं। इनमें से किसी को भी add_sankalpa_task से DOBARA मत add करो। केवल user द्वारा बताए गए नए tasks ही add करो।\nCRITICAL ACTION: एक task naturally pick करो और उसमें creative तरीके से help offer करो।`;
 
     // ── Morning Vedic Verse Rotation (changes daily for variety) ──────────────
     const today = new Date();
@@ -1212,6 +1240,7 @@ export function useSakhaConversation({
     userId = null,
     onAddTask,
     onRemoveTask,
+    userMood = '',
 }: UseSakhaConversationOptions) {
     const { users: realUsers } = useUsers(userId);
     const realContacts = realUsers.filter(u => u.uid !== 'ai_vaidya' && u.uid !== 'ai_rishi');
@@ -1260,6 +1289,7 @@ export function useSakhaConversation({
     const userNameRef = useRef(userName);
     const preferredLanguageRef = useRef<'hi' | 'en'>(preferredLanguage);
     const userIdRef = useRef(userId);
+    const userMoodRef = useRef(userMood);
     const lastSavedUserTurnRef = useRef<{ text: string; at: number }>({ text: '', at: 0 });
 
     // SutraConnect real-time awareness refs
@@ -1284,6 +1314,7 @@ export function useSakhaConversation({
     useEffect(() => { userNameRef.current = userName; }, [userName]);
     useEffect(() => { preferredLanguageRef.current = preferredLanguage; }, [preferredLanguage]);
     useEffect(() => { userIdRef.current = userId; }, [userId]);
+    useEffect(() => { userMoodRef.current = userMood; }, [userMood]);
     useEffect(() => { realContactsRef.current = realContacts; }, [realContacts]);
     useEffect(() => { chatMetaRef.current = chatMeta; }, [chatMeta]);
 
@@ -2198,6 +2229,8 @@ RULE: ALWAYS weave this gap naturally into your first sentence. Do NOT say "main
                 if (sankalpaRef.current.filter(s => !s.done).length > 5) detectedMood = detectedMood === 'NEUTRAL' ? 'STRESSED' : detectedMood;
             }
             if (timeGapMins > 480 || conversationHistory === '') detectedMood = detectedMood === 'NEUTRAL' ? 'FRESH_START' : detectedMood;
+            // User-stated emoji mood overrides keyword detection (highest priority)
+            if (userMoodRef.current) detectedMood = userMoodRef.current;
 
             // ══ NEWS CONTEXT: use Google Search grounding — no pre-fetch needed ══
             const newsContext = `★ LIVE NEWS: You have Google Search access. When the user asks about what's happening in the news, India, politics, technology, sports, health, or the world — use your googleSearch tool to pull REAL, LATEST news (from today, ${new Date().toLocaleDateString('en-IN')}). Share up to 10 relevant stories naturally. Do NOT make up news.
@@ -2225,13 +2258,17 @@ RULE: ALWAYS weave this gap naturally into your first sentence. Do NOT say "main
                                             type: Type.STRING,
                                             description: 'The name of the task, e.g. "Morning Meditation" or "Breakfast at 7 AM".',
                                         },
+                                        category: {
+                                            type: Type.STRING,
+                                            description: 'Category: Task (default), Idea, Challenge, or Issue.',
+                                        },
                                         start_time: {
                                             type: Type.STRING,
-                                            description: 'The time or schedule for this task, e.g. "7:00 AM", "tomorrow morning", "evening 6 PM". Include "tomorrow" or day references exactly as the user said them. Optional.',
+                                            description: 'The time or schedule for this task, e.g. "7:00 AM", "tomorrow morning", "evening 6 PM". Optional.',
                                         },
                                         allocated_time_minutes: {
                                             type: Type.INTEGER,
-                                            description: 'Number of minutes the user wants to spend on this task. Optional — only provide if the user mentioned a duration or if this is a timed activity like meditation/workout/study.',
+                                            description: 'Number of minutes for the task. Optional.',
                                         },
                                     },
                                     required: ['task_name'],
@@ -2611,19 +2648,37 @@ RULE: ALWAYS weave this gap naturally into your first sentence. Do NOT say "main
                                 // ── add_sankalpa_task ──────────────────────────
                                 if (fcName === 'add_sankalpa_task') {
                                     const taskName: string = fcArgs.task_name ?? 'Task';
+
+                                    // ── DEDUP: skip if same task already exists ──
+                                    const alreadyExists = sankalpaRef.current.some(
+                                        t => t.text.toLowerCase().trim() === taskName.toLowerCase().trim()
+                                    );
+                                    if (alreadyExists) {
+                                        responseMessage = `SKIP: "${taskName}" is already saved. Tell user warmly in ONE sentence it is already in the list. Do NOT add again.`;
+                                    } else {
                                     const allocatedMins: number | undefined = fcArgs.allocated_time_minutes && fcArgs.allocated_time_minutes > 0
                                         ? fcArgs.allocated_time_minutes
                                         : undefined;
                                     const startTime: string = fcArgs.start_time ?? '';
+                                    // Map category from tool args
+                                    const rawCat = (fcArgs.category ?? 'Task').toString();
+                                    const catMap: Record<string, string> = {
+                                        task: 'Task', Task: 'Task',
+                                        idea: 'Idea', Idea: 'Idea',
+                                        challenge: 'Challenge', Challenge: 'Challenge',
+                                        issue: 'Issue', Issue: 'Issue',
+                                    };
+                                    const mappedCategory = catMap[rawCat] ?? 'Task';
+                                    const iconMap: Record<string, string> = { Task: '✅', Idea: '💡', Challenge: '⚡', Issue: '🔥' };
                                     const current = [...sankalpaRef.current];
                                     const newTask: TaskItem = {
                                         id: Date.now().toString(),
                                         text: taskName,
                                         done: false,
-                                        category: 'Spiritual',
+                                        category: mappedCategory,
                                         colorClass: 'gold',
                                         accentColor: 'rgba(251,191,36,0.85)',
-                                        icon: startTime ? '📅' : '✨',
+                                        icon: startTime ? '📅' : (iconMap[mappedCategory] ?? '✨'),
                                         createdAt: Date.now(),
                                         ...(allocatedMins !== undefined && { allocatedMinutes: allocatedMins }),
                                         startTime: startTime || undefined,
@@ -2662,7 +2717,8 @@ RULE: ALWAYS weave this gap naturally into your first sentence. Do NOT say "main
                                     const timeDesc = allocatedMins ? ` (${allocatedMins} min)` : '';
                                     const scheduleDesc = startTime ? ` scheduled for ${startTime}` : '';
                                     responseMessage = `DONE: Task "${taskName}"${timeDesc}${scheduleDesc} successfully added to Sankalpa list. Current time: ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}. Say a warm ONE-sentence confirmation in Hindi ONCE only. If startTime is in the future, do NOT tell user to do it now. DO NOT repeat the confirmation.`;
-                                    console.log(`[Bodhi SDK] ✅ add_sankalpa_task: "${taskName}" | ${allocatedMins ?? 'no'} min | startTime: ${startTime || 'none'}`);
+                                    console.log(`[Bodhi SDK] ✅ add_sankalpa_task: "${taskName}" | cat:${mappedCategory} | ${allocatedMins ?? 'no'} min | startTime: ${startTime || 'none'}`);
+                                    } // end !alreadyExists
                                 }
 
                                 // ── remove_sankalpa_task ───────────────────────

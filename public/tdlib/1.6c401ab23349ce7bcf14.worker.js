@@ -525,7 +525,7 @@ var substr = 'ab'.substr(-1) === 'b'
  * @author   Feross Aboukhadijeh <http://feross.org>
  * @license  MIT
  */
-/* eslint-disable no-proto */
+ 
 
 
 
@@ -843,7 +843,7 @@ function checked (length) {
 }
 
 function SlowBuffer (length) {
-  if (+length != length) { // eslint-disable-line eqeqeq
+  if (+length != length) {  
     length = 0
   }
   return Buffer.alloc(+length)
@@ -2306,7 +2306,7 @@ function blitBuffer (src, dst, offset, length) {
 }
 
 function isnan (val) {
-  return val !== val // eslint-disable-line no-self-compare
+  return val !== val  
 }
 
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(8)))

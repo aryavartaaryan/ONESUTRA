@@ -113,7 +113,7 @@ const STORIES = [
 ] as const;
 
 // ── User Story Types (Tasks / Challenges / Ideas) ──────────────────────────────
-type UserStoryCategory = 'task' | 'challenge' | 'idea';
+type UserStoryCategory = 'task' | 'challenge' | 'idea' | 'issue';
 
 interface UserStory {
     id: string;
@@ -128,13 +128,14 @@ interface UserStory {
     accentColor: string;
     bgGradient: string;
     text: string;
+    startTime?: string;
     aiAdvice?: string;
 }
 
 function buildUserStories(tasks: TaskItem[]): UserStory[] {
     const counters: Record<string, number> = {};
     return tasks
-        .filter(t => !t.done && ['Task', 'Challenge', 'Idea', 'Wellness'].includes(t.category))
+        .filter(t => !t.done && ['Task', 'Challenge', 'Idea', 'Wellness', 'Issue'].includes(t.category))
         .map(t => {
             const cat = t.category.toLowerCase() as UserStoryCategory;
             counters[cat] = (counters[cat] || 0) + 1;
@@ -168,6 +169,13 @@ function buildUserStories(tasks: TaskItem[]): UserStory[] {
                     bgGradient: 'linear-gradient(160deg, #001a0f 0%, #003d20 45%, #000d08 100%)',
                     sublabel: `Wellness ${num}`,
                 },
+                issue: {
+                    emoji: t.icon || '🔥',
+                    ring: 'conic-gradient(from 0deg, #f87171, #ef4444, #fca5a5, #f87171)',
+                    color: '#f87171', accentColor: '#ef4444',
+                    bgGradient: 'linear-gradient(160deg, #1a0000 0%, #3d0000 45%, #120000 100%)',
+                    sublabel: `Issue ${num}`,
+                },
             };
             const selected = cfg[cat] ?? cfg.task;
             return {
@@ -178,6 +186,7 @@ function buildUserStories(tasks: TaskItem[]): UserStory[] {
                 label: t.text.length > 12 ? t.text.slice(0, 11) + '…' : t.text,
                 ...selected,
                 text: t.text,
+                startTime: t.startTime,
                 aiAdvice: t.aiAdvice,
             };
         });
@@ -331,6 +340,20 @@ function UserStoryBubble({ story, onClick, index = 0 }: { story: UserStory; onCl
                     WebkitBoxOrient: 'vertical' as const,
                     overflow: 'hidden',
                 }}>{story.label}</div>
+                {/* Date/time if scheduled */}
+                {story.startTime && (
+                    <div style={{
+                        fontSize: '0.38rem', fontWeight: 600,
+                        color: story.color,
+                        fontFamily: "'Inter', system-ui, sans-serif",
+                        marginTop: 2,
+                        letterSpacing: '0.06em',
+                        opacity: 0.85,
+                        display: 'flex', alignItems: 'center', gap: 2,
+                    }}>
+                        📅 {story.startTime}
+                    </div>
+                )}
             </div>
         </motion.button>
     );
@@ -750,7 +773,7 @@ function StoryBubble({ story, onClick, index = 0 }: { story: typeof STORIES[numb
                     fontFamily: "'Inter', system-ui, sans-serif",
                     textShadow: `0 0 8px ${story.color}80`,
                     lineHeight: 1.2, marginBottom: 2,
-                }}>{'sublabel' in story ? story.sublabel : story.label}</div>
+                }}>{story.sublabel}</div>
                 <div style={{
                     fontSize: '0.48rem', fontWeight: 600,
                     color: 'rgba(255,255,255,0.90)',

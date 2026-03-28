@@ -9,7 +9,13 @@ interface YtSearchVideo {
 }
 
 function buildEmbedUrl(videoId: string): string {
-    return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?autoplay=1`;
+    const params = new URLSearchParams({
+        autoplay: '1',
+        rel: '0',
+        modestbranding: '1',
+        playsinline: '1',
+    });
+    return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?${params.toString()}`;
 }
 
 export async function POST(req: Request) {

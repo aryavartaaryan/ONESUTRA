@@ -20,7 +20,7 @@ function getPanchang(date: Date) {
     const age = ((date.getTime() - newMoon) % lunation + lunation) % lunation;
     const ageIdx = Math.floor((age / lunation) * 30);
     const paksha = ageIdx < 15 ? 0 : 1;
-    let tithiIdx = ageIdx % 15;
+    const tithiIdx = ageIdx % 15;
     let tithi = TITHI[tithiIdx];
     let tithiHi = TITHI_HI[tithiIdx];
     if (tithiIdx === 14) { tithi = paksha === 0 ? 'Paurṇimā' : 'Amāvāsyā'; tithiHi = paksha === 0 ? 'पूर्णिमा' : 'अमावस्या'; }

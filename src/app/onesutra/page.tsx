@@ -163,14 +163,14 @@ export default function OneSutraPage() {
     const tgContactCount = Object.keys(useSutraConnectStore((s) => s.contactMap || {})).length;
     const messageThreads = useSutraConnectStore((s) => s.messageThreads || {});
     const unreadCounts = useSutraConnectStore((s) => s.unreadCounts || {});
-    const clearUnread = useSutraConnectStore((s) => s.clearUnread); 
+    const clearUnread = useSutraConnectStore((s) => s.clearUnread);
 
 
     const [showTelegramModal, setShowTelegramModal] = useState(false);
     const [isVoiceCallActive, setIsVoiceCallActive] = useState(false);
     const ringIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const ringCtxRef = useRef<AudioContext | null>(null);
-    
+
     // States for Audio/Video calls (Dyte SDK + invite flow)
     const [isCalling, setIsCalling] = useState<{ mode: 'audio' | 'video', contact: any, inviteId?: string, phase: 'ringing' | 'connecting' } | null>(null);
     const [dyteAuthToken, setDyteAuthToken] = useState<string | null>(null);
@@ -293,7 +293,7 @@ export default function OneSutraPage() {
     const startDyteCall = useCallback(async (contact: any, isVideo: boolean) => {
         setIsCalling(prev => prev ? { ...prev, phase: 'connecting' } : { mode: isVideo ? 'video' : 'audio', contact, phase: 'connecting' });
         try {
-            const response = await fetch('/api/create-meeting', { 
+            const response = await fetch('/api/create-meeting', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -715,13 +715,14 @@ export default function OneSutraPage() {
         .filter(([phone, entry]) => !entry.is_onesutra_user)
         .map(([phone, entry], i) => {
             // Build display name: "FirstName LastName" or username or phone as fallback
-            const displayName = entry.first_name && entry.last_name
+            const displayNameTemplate = entry.first_name && entry.last_name
                 ? `${entry.first_name} ${entry.last_name}`.trim()
                 : entry.first_name
                     ? entry.first_name
                     : entry.username
                         ? `@${entry.username}`
                         : phone;
+            const displayName = `${displayNameTemplate} (${phone})`;
 
             return {
                 uid: `tg_${entry.telegram_user_id}`,
@@ -748,7 +749,7 @@ export default function OneSutraPage() {
     }
 
     // If no Telegram contacts from contactMap, create fallback from localStorage
-    let fallbackTelegramContacts: any[] = [];
+    const fallbackTelegramContacts: any[] = [];
     if (telegramContacts.length === 0 && isTelegramSynced && typeof window !== 'undefined') {
         console.log('[OneSutra] No contacts from contactMap, checking localStorage...');
         // Check for any Telegram messages in localStorage to create contacts
@@ -764,7 +765,7 @@ export default function OneSutraPage() {
                             // Create a fallback contact
                             fallbackTelegramContacts.push({
                                 uid: `tg_${telegramUserId}`,
-                                name: `Telegram User ${telegramUserId}`,
+                                name: `Telegram User (${telegramUserId})`,
                                 photoURL: null,
                                 aura: AURA_PALETTE[(realContacts.length + i) % AURA_PALETTE.length],
                                 auraGlow: 'rgba(29,161,242,0.28)',
@@ -1119,7 +1120,7 @@ export default function OneSutraPage() {
 
                                 // Use source-of-truth unread counters.
                                 const baseUnread = meta?.unreadCount ?? 0;
-                                let unread = isTgContact
+                                const unread = isTgContact
                                     ? storeUnreadCount
                                     : baseUnread;
 
@@ -1478,10 +1479,10 @@ export default function OneSutraPage() {
                                             >
                                                 <Phone size={15} />
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={async () => {
                                                     if (!activeContact) return;
-                                                    
+
                                                     if (!activeContact?.isAI) {
                                                         try {
                                                             await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
@@ -1706,13 +1707,13 @@ export default function OneSutraPage() {
 
             {/* ── Dyte Video Call Screen ── */}
             {dyteAuthToken && (
-                <DyteCall 
-                    authToken={dyteAuthToken} 
+                <DyteCall
+                    authToken={dyteAuthToken}
                     mode={isCalling?.mode ?? 'audio'}
                     onLeave={() => {
                         setDyteAuthToken(null);
                         setIsCalling(null);
-                    }} 
+                    }}
                 />
             )}
 

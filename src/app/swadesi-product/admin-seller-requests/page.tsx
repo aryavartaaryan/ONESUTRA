@@ -3,7 +3,7 @@ import AdminApprovalTable from "@/components/tables/AdminApprovalTable";
 
 export default async function AdminSellerApplicationsPage() {
   // TEMPORARY MOCK DATA
-  let requests: any[] = [
+  const requests: any[] = [
     {
       id: "req1", proposal: "I produce organic raw forest honey directly from farms.", status: "PENDING", createdAt: new Date(),
       user: { email: "local.maker@example.com", name: "Ravi Farmer" }

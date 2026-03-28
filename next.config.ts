@@ -43,9 +43,6 @@ const nextConfig: NextConfig = {
       zlib: { browser: './src/lib/empty-module.js' },
       http: { browser: './src/lib/empty-module.js' },
       https: { browser: './src/lib/empty-module.js' },
-      // Completely exclude telegram package from client bundle
-      'telegram': { browser: './src/lib/empty-module.js' },
-      'tdweb': { browser: './src/lib/empty-module.js' },
     },
   },
 
@@ -69,15 +66,9 @@ const nextConfig: NextConfig = {
         http: false,
         https: false,
       };
-      
-      // Exclude telegram packages from client bundle completely
-      config.externals = config.externals || [];
-      config.externals.push({
-        'telegram': 'commonjs telegram',
-        'tdweb': 'commonjs tdweb',
-        'telegram/sessions/StringSession': 'commonjs telegram/sessions/StringSession',
-        'telegram/Password': 'commonjs telegram/Password',
-      });
+
+      // Exclude specific server-only packages if needed, but not telegram
+      /* config.externals = config.externals || []; */
     }
     return config;
   },

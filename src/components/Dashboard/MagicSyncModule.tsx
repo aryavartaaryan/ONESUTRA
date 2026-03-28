@@ -650,9 +650,129 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
     const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
     const [aiAdvice, setAiAdvice] = useState<Record<string, string>>({});
     const [isGeneratingAdvice, setIsGeneratingAdvice] = useState<string | null>(null);
-    const [filterDate, setFilterDate] = useState<string | null>(null);
+    const [mood, setMood] = useState<string | null>(null);
+    const [showMoodCheck, setShowMoodCheck] = useState(true);
     const [dropHighlight, setDropHighlight] = useState(false);
+    const [filterDate, setFilterDate] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+
+    // ── Mood Check Component ────────────────────────────────────────────────
+    const MoodCheck = () => (
+        <AnimatePresence>
+            {showMoodCheck && !mood && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    style={{
+                        position: 'absolute',
+                        top: -50,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        background: 'rgba(255,255,255,0.06)',
+                        backdropFilter: 'blur(16px)',
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        borderRadius: 999,
+                        padding: '8px 16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        zIndex: 10,
+                    }}
+                >
+                    <span style={{ fontSize: '0.60rem', color: 'rgba(255,255,255,0.60)', fontFamily: "'Inter', system-ui, sans-serif" }}>
+                        How are you feeling?
+                    </span>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                        {[
+                            { emoji: '😔', label: 'low', color: '#f87171' },
+                            { emoji: '😌', label: 'calm', color: '#2dd4bf' },
+                            { emoji: '🙂', label: 'good', color: '#4ade80' },
+                            { emoji: '⚡', label: 'energetic', color: '#fbbf24' },
+                        ].map((m) => (
+                            <motion.button
+                                key={m.label}
+                                whileHover={{ scale: 1.2 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => { setMood(m.label); setShowMoodCheck(false); }}
+                                style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    fontSize: '1.2rem',
+                                    filter: mood === m.label ? `drop-shadow(0 0 8px ${m.color})` : 'none',
+                                    transition: 'filter 0.2s',
+                                }}
+                                title={m.label}
+                            >
+                                {m.emoji}
+                            </motion.button>
+                        ))}
+                    </div>
+                    <button
+                        onClick={() => setShowMoodCheck(false)}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'rgba(255,255,255,0.30)',
+                            cursor: 'pointer',
+                            fontSize: '0.70rem',
+                            marginLeft: 4,
+                        }}
+                    >
+                        ×
+                    </button>
+                </motion.div>
+            )}
+        </AnimatePresence>
+    );
+
+    // ── Mini Task Summary ───────────────────────────────────────────────────
+    const TaskSummary = () => {
+        const pending = tasks.filter(t => !t.done);
+        const urgent = pending.filter(t => t.category === 'Issue' || t.category === 'Challenge').length;
+        
+        if (pending.length === 0) return null;
+        
+        return (
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                style={{
+                    position: 'absolute',
+                    top: 12,
+                    right: 12,
+                    background: 'rgba(0,0,0,0.40)',
+                    backdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255,255,255,0.10)',
+                    borderRadius: 12,
+                    padding: '8px 12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    zIndex: 5,
+                }}
+            >
+                <div style={{ textAlign: 'center' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fbbf24' }}>{pending.length}</span>
+                    <span style={{ fontSize: '0.50rem', color: 'rgba(255,255,255,0.50)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pending</span>
+                </div>
+                {urgent > 0 && (
+                    <div style={{ 
+                        width: 1, 
+                        height: 24, 
+                        background: 'rgba(255,255,255,0.10)' 
+                    }} />
+                )}
+                {urgent > 0 && (
+                    <div style={{ textAlign: 'center' }}>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#f87171' }}>{urgent}</span>
+                        <span style={{ fontSize: '0.50rem', color: 'rgba(255,255,255,0.50)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Urgent</span>
+                    </div>
+                )}
+            </motion.div>
+        );
+    };
     const dropZoneRef = useRef<HTMLDivElement>(null);
     const moduleRef = useRef<HTMLDivElement>(null);
 
@@ -828,6 +948,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
             display: 'flex', flexDirection: 'column', gap: '0.55rem',
             position: 'relative',
         }}>
+            <MoodCheck />
 
             {/* ── SMART MANAGER PREMIUM GLASS CARD ── */}
             <motion.div
@@ -846,6 +967,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                     overflow: 'visible',
                 }}
             >
+                <TaskSummary />
                 {/* Subtle shimmer */}
                 <div style={{
                     position: 'absolute', inset: 0, pointerEvents: 'none', borderRadius: 28, overflow: 'hidden',

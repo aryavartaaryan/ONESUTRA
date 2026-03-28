@@ -325,7 +325,7 @@ export function useTelegramWeb(): UseTelegramWebReturn {
             setError(friendlyError(err?.message));
             setStep(password ? 'WAIT_PASSWORD' : 'WAIT_CODE');
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [setTelegramSynced, setContactMap]);
 
     // ── Disconnect ────────────────────────────────────────────────────────────

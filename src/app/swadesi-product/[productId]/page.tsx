@@ -9,7 +9,7 @@ import BuyProductButton from "@/components/product/BuyProductButton";
 export default async function CustomerProductPage(props: { params: Promise<{ productId: string }> }) {
   const { productId } = await props.params;
   const products = getMockProducts();
-  let product = products.find((p: any) => p.id === productId);
+  const product = products.find((p: any) => p.id === productId);
 
   if (!product) {
     notFound();

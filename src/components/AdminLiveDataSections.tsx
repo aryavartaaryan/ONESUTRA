@@ -52,7 +52,7 @@ export default function AdminLiveDataSections() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    let unsubs: (() => void)[] = [];
+    const unsubs: (() => void)[] = [];
 
     getFirebaseFirestore().then((db) => {
       // DONATIONS — real-time listener

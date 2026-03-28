@@ -197,7 +197,7 @@ export default function Home() {
   }, []);
 
   // Auto-dismiss splash after 12 seconds (handled inside the component itself)
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+   
 
   useEffect(() => {
     const handler = () => setIsAboutOpen(true);
