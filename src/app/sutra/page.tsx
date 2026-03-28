@@ -50,28 +50,17 @@ export default function SutraPage() {
                 }}>←</Link>
 
                 <div style={{ flex: 1 }}>
-                    <h1 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'rgba(255,255,255,0.9)' }}>
-                        Sutra Connect
+                    <h1 style={{
+                        margin: 0, fontSize: '1.1rem', fontWeight: 800,
+                        background: 'linear-gradient(120deg, #fff 0%, #c4b5fd 50%, #a78bfa 100%)',
+                        WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
+                        letterSpacing: '0.08em',
+                    }}>
+                        RESONANCE
                     </h1>
-                    <p style={{ margin: 0, fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)' }}>
-                        Unified Native · Telegram Inbox
+                    <p style={{ margin: 0, fontSize: '0.62rem', color: 'rgba(167,139,250,0.5)', letterSpacing: '0.12em' }}>
+                        Conscious Circle
                     </p>
-                </div>
-
-                {/* Network status badge */}
-                <div style={{
-                    padding: '0.25rem 0.6rem', borderRadius: 999,
-                    background: 'rgba(109,40,217,0.18)',
-                    border: '1px solid rgba(109,40,217,0.3)',
-                    display: 'flex', alignItems: 'center', gap: '0.35rem',
-                }}>
-                    <div style={{
-                        width: 6, height: 6, borderRadius: '50%',
-                        background: 'rgba(109,40,217,0.9)',
-                    }} />
-                    <span style={{ fontSize: '0.6rem', color: 'rgba(167,139,250,0.9)', fontWeight: 600 }}>
-                        LIVE
-                    </span>
                 </div>
             </header>
 

@@ -10,7 +10,7 @@ export default function ConditionalVahanaBar() {
     const pathname = usePathname();
 
     // Hide navigation in the Dhyan Kshetra experience, oneSUTRA chat, and onboarding (needs full screen)
-    const hideNav = pathname.startsWith('/dhyan-kshetra') || pathname.startsWith('/onesutra') || pathname.startsWith('/acharya-sanctum');
+    const hideNav = pathname.startsWith('/dhyan-kshetra') || pathname.startsWith('/onesutra') || pathname.startsWith('/acharya-sanctum') || pathname.startsWith('/resonance');
 
     if (hideNav) return null;
 

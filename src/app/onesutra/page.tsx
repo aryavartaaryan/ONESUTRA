@@ -48,22 +48,7 @@ const TelegramAuthModal = dynamic(
 // Use a stable timestamp for server/client hydration consistency
 const AI_JOINED_AT = 1710313200000; // Fixed timestamp (e.g. Mar 13 2024)
 
-const AI_CONTACTS = [
-    {
-        uid: 'ai_vaidya', name: 'Digital Vaidya', role: 'AI Agent · Ayurvedic Guide',
-        emoji: '🤖', aura: '#E8A030', auraGlow: 'rgba(232,160,48,0.35)', isAI: true,
-        statusLabel: 'Available', online: true,
-        joinedAt: AI_JOINED_AT,
-        lastMsg: 'ॐ Your Pitta score is optimal today. Begin with Rāga Bhairav.',
-    },
-    {
-        uid: 'ai_rishi', name: 'Rishi AI Coach', role: 'AI Agent · Life Architect',
-        emoji: '🔮', aura: '#E860A0', auraGlow: 'rgba(220,80,150,0.28)', isAI: true,
-        statusLabel: 'Available', online: true,
-        joinedAt: AI_JOINED_AT,
-        lastMsg: 'Your weekly Sankalpa report is ready. 73% completion — excellent!',
-    },
-];
+const AI_CONTACTS: { uid: string; name: string; role: string; emoji: string; aura: string; auraGlow: string; isAI: boolean; statusLabel: string; online: boolean; joinedAt: number; lastMsg: string }[] = [];
 
 function fmtTime(ms: number): string {
     return new Date(ms).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
