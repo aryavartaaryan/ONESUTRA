@@ -42,8 +42,8 @@ type Tab = 'story' | 'chat' | 'map';
 type ChatView = 'contacts' | 'chat';
 type FriendStatus = 'none' | 'sent' | 'received' | 'friends';
 
-const AVATAR_COLORS = ['#8b5cf6','#ec4899','#3b82f6','#14b8a6','#f97316','#22c55e','#a855f7','#f59e0b'];
-const EMOJIS = ['🙏','✨','🌿','🕉️','🌸','💛','🔥','🌟','💫','🌊','🌺','🎵','🧘','🌙','☀️','💜','🙌','👋','❤️','🌈','🦋','🍃','🌻','🛕','🪷','🌄','🌅','🎶','🏔️','🌾'];
+const AVATAR_COLORS = ['#8b5cf6', '#ec4899', '#3b82f6', '#14b8a6', '#f97316', '#22c55e', '#a855f7', '#f59e0b'];
+const EMOJIS = ['🙏', '✨', '🌿', '🕉️', '🌸', '💛', '🔥', '🌟', '💫', '🌊', '🌺', '🎵', '🧘', '🌙', '☀️', '💜', '🙌', '👋', '❤️', '🌈', '🦋', '🍃', '🌻', '🛕', '🪷', '🌄', '🌅', '🎶', '🏔️', '🌾'];
 
 interface FriendDoc {
     id: string;
@@ -69,7 +69,7 @@ function StoryBubble({ story, idx, onClick }: { story: typeof RESONANCE_STORIES[
         >
             <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${story.bg})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: 18 }} />
             <div style={{ position: 'absolute', inset: 0, borderRadius: 18, background: 'linear-gradient(180deg,rgba(0,0,0,0.05) 0%,rgba(0,0,0,0.5) 70%,rgba(0,0,0,0.75) 100%)' }} />
-            <motion.div animate={{ opacity: [0.6,1,0.6] }} transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+            <motion.div animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
                 style={{ position: 'absolute', inset: 0, borderRadius: 18, boxShadow: `inset 0 0 0 2px ${story.color}80, 0 0 12px ${story.color}40`, pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', width: 28, height: 28, borderRadius: '50%', background: `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.55) 0%, ${story.color}60 60%, rgba(0,0,0,0.1) 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, boxShadow: `0 2px 8px rgba(0,0,0,0.4), 0 0 10px ${story.color}50`, border: '1.5px solid rgba(255,255,255,0.4)' }}>{story.emoji}</div>
             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '4px 5px 6px', background: 'rgba(0,0,0,0.28)', backdropFilter: 'blur(8px)', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
@@ -96,7 +96,7 @@ function StoryViewer({ stories, startIdx, onClose }: { stories: typeof RESONANCE
             if (pct >= 100) { clearInterval(timer); idx < stories.length - 1 ? setIdx(i => i + 1) : onClose(); }
         }, 80);
         return () => clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [idx]);
 
     return (
@@ -118,7 +118,7 @@ function StoryViewer({ stories, startIdx, onClose }: { stories: typeof RESONANCE
                     <X size={15} />
                 </motion.button>
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '5rem 2rem', textAlign: 'center', zIndex: 1 }}>
-                    <motion.div animate={{ scale: [1,1.12,1], y: [0,-12,0] }} transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }} style={{ fontSize: 'clamp(3rem,12vw,5rem)', marginBottom: '1.2rem', filter: `drop-shadow(0 0 24px ${story.color}80)` }}>{story.emoji}</motion.div>
+                    <motion.div animate={{ scale: [1, 1.12, 1], y: [0, -12, 0] }} transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }} style={{ fontSize: 'clamp(3rem,12vw,5rem)', marginBottom: '1.2rem', filter: `drop-shadow(0 0 24px ${story.color}80)` }}>{story.emoji}</motion.div>
                     <h2 style={{ fontSize: 'clamp(1.4rem,5.5vw,2.2rem)', fontWeight: 800, color: '#fff', margin: '0 0 0.4rem', fontFamily: "'Playfair Display',Georgia,serif", textShadow: `0 0 40px ${story.color}60` }}>{story.label}</h2>
                     <p style={{ fontSize: '0.9rem', color: `${story.color}cc`, fontStyle: 'italic', margin: '0 0 1.2rem' }}>{story.sublabel}</p>
                     {(story as any).mantra && (
@@ -189,17 +189,17 @@ function SakhaBodhiCard({ onClick }: { onClick: () => void }) {
         <motion.div onClick={onClick} whileTap={{ scale: 0.97 }}
             style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', padding: '0.9rem 1rem', background: 'linear-gradient(135deg,rgba(167,139,250,0.13) 0%,rgba(109,40,217,0.06) 100%)', borderRadius: 18, border: '1px solid rgba(167,139,250,0.28)', marginBottom: '0.65rem', cursor: 'pointer', position: 'relative', overflow: 'hidden' }}>
             <div aria-hidden style={{ position: 'absolute', top: '-20%', right: '-5%', width: 80, height: 80, background: 'radial-gradient(circle,rgba(167,139,250,0.3) 0%,transparent 70%)', filter: 'blur(16px)', pointerEvents: 'none' }} />
-            <motion.div animate={{ boxShadow: ['0 0 10px rgba(167,139,250,0.35)','0 0 22px rgba(167,139,250,0.65)','0 0 10px rgba(167,139,250,0.35)'] }} transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+            <motion.div animate={{ boxShadow: ['0 0 10px rgba(167,139,250,0.35)', '0 0 22px rgba(167,139,250,0.65)', '0 0 10px rgba(167,139,250,0.35)'] }} transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
                 style={{ width: 50, height: 50, borderRadius: '50%', background: 'radial-gradient(circle at 35% 28%,rgba(255,255,255,0.42) 0%,rgba(167,139,250,0.75) 42%,rgba(109,40,217,0.9) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', flexShrink: 0, border: '2px solid rgba(167,139,250,0.55)' }}>🌟</motion.div>
             <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
                     <p style={{ margin: 0, fontWeight: 800, fontSize: '0.9rem', color: '#e9d5ff' }}>Sakha Bodhi</p>
                     <span style={{ padding: '1px 6px', borderRadius: 99, background: 'rgba(167,139,250,0.2)', border: '1px solid rgba(167,139,250,0.38)', fontSize: '0.5rem', fontWeight: 700, color: '#c4b5fd', letterSpacing: '0.1em', textTransform: 'uppercase' }}>AI Guru</span>
-                    <motion.div animate={{ scale: [1,1.3,1], opacity: [0.7,1,0.7] }} transition={{ duration: 1.5, repeat: Infinity }} style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 6px rgba(74,222,128,0.8)' }} />
+                    <motion.div animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }} transition={{ duration: 1.5, repeat: Infinity }} style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 6px rgba(74,222,128,0.8)' }} />
                 </div>
                 <p style={{ margin: 0, fontSize: '0.72rem', color: 'rgba(167,139,250,0.6)' }}>Vedic wisdom · Sacred knowledge · Your conscious guide</p>
             </div>
-            <motion.span animate={{ x: [0,4,0] }} transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }} style={{ color: 'rgba(167,139,250,0.5)', fontSize: '1.2rem', flexShrink: 0 }}>›</motion.span>
+            <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }} style={{ color: 'rgba(167,139,250,0.5)', fontSize: '1.2rem', flexShrink: 0 }}>›</motion.span>
         </motion.div>
     );
 }
@@ -317,7 +317,7 @@ function InlineChat({ chatWith, currentUser, onBack }: { chatWith: SutraUser; cu
 function DharmaMap() {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '3rem 2rem', textAlign: 'center', gap: '1.5rem' }}>
-            <motion.div animate={{ scale: [1,1.08,1], rotate: [0,5,-5,0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            <motion.div animate={{ scale: [1, 1.08, 1], rotate: [0, 5, -5, 0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
                 style={{ width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle at 35% 30%, rgba(251,191,36,0.4) 0%, rgba(251,191,36,0.08) 60%, transparent 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid rgba(251,191,36,0.3)', boxShadow: '0 0 40px rgba(251,191,36,0.2)' }}>
                 <Compass size={44} style={{ color: '#fbbf24', filter: 'drop-shadow(0 0 12px rgba(251,191,36,0.6))' }} />
             </motion.div>
@@ -359,12 +359,12 @@ export default function ResonancePage() {
                 const db = await getFirebaseFirestore();
                 unsub1 = onSnapshot(query(collection(db, 'resonance_friends'), where('fromUid', '==', uid)), snap => {
                     fromDocs.clear();
-                    snap.docs.forEach(d => fromDocs.set(d.id, { id: d.id, ...(d.data() as Omit<FriendDoc,'id'>) }));
+                    snap.docs.forEach(d => fromDocs.set(d.id, { id: d.id, ...(d.data() as Omit<FriendDoc, 'id'>) }));
                     merge();
                 });
                 unsub2 = onSnapshot(query(collection(db, 'resonance_friends'), where('toUid', '==', uid)), snap => {
                     toDocs.clear();
-                    snap.docs.forEach(d => toDocs.set(d.id, { id: d.id, ...(d.data() as Omit<FriendDoc,'id'>) }));
+                    snap.docs.forEach(d => toDocs.set(d.id, { id: d.id, ...(d.data() as Omit<FriendDoc, 'id'>) }));
                     merge();
                 });
             } catch { /* offline */ }
@@ -474,7 +474,7 @@ export default function ResonancePage() {
                                             style={{ position: 'relative', width: '100%', height: 200, borderRadius: 22, overflow: 'hidden', border: 'none', padding: 0, cursor: 'pointer', background: 'transparent', marginBottom: '0.85rem', display: 'block' }}>
                                             <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${hero.bg})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.8)' }} />
                                             <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg,${hero.color}30 0%,transparent 50%,rgba(0,0,0,0.7) 100%)` }} />
-                                            <motion.div animate={{ opacity: [0.4,0.9,0.4] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                                            <motion.div animate={{ opacity: [0.4, 0.9, 0.4] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
                                                 style={{ position: 'absolute', inset: 0, borderRadius: 22, boxShadow: `inset 0 0 0 2px ${hero.color}60, 0 0 30px ${hero.color}20`, pointerEvents: 'none' }} />
                                             <div style={{ position: 'absolute', top: 14, left: 14, padding: '3px 10px', borderRadius: 99, background: 'rgba(251,191,36,0.22)', border: '1px solid rgba(251,191,36,0.5)', fontSize: '0.55rem', fontWeight: 800, color: '#fbbf24', letterSpacing: '0.15em', textTransform: 'uppercase' }}>✦ Featured</div>
                                             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0.85rem 1rem' }}>
@@ -500,7 +500,7 @@ export default function ResonancePage() {
                                                 style={{ position: 'relative', height: 200, borderRadius: 18, overflow: 'hidden', border: 'none', padding: 0, cursor: 'pointer', background: '#0a0c1e' }}>
                                                 <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${s.bg})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.45 }} />
                                                 <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(160deg,${s.color}18 0%,rgba(0,0,0,0.7) 60%,rgba(0,0,0,0.85) 100%)` }} />
-                                                <motion.div animate={{ opacity: [0.4,0.85,0.4] }} transition={{ duration: 2.5+i*0.3, repeat: Infinity, ease: 'easeInOut' }}
+                                                <motion.div animate={{ opacity: [0.4, 0.85, 0.4] }} transition={{ duration: 2.5 + i * 0.3, repeat: Infinity, ease: 'easeInOut' }}
                                                     style={{ position: 'absolute', inset: 0, borderRadius: 18, boxShadow: `inset 0 0 0 1.5px ${s.color}55`, pointerEvents: 'none' }} />
                                                 <div style={{ position: 'absolute', top: 10, left: 10, fontSize: '1.5rem', filter: `drop-shadow(0 0 10px ${s.color}80)` }}>{s.emoji}</div>
                                                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0.65rem 0.75rem' }}>
@@ -526,7 +526,7 @@ export default function ResonancePage() {
                                                 style={{ position: 'relative', height: 160, borderRadius: 18, overflow: 'hidden', border: 'none', padding: 0, cursor: 'pointer', background: 'transparent' }}>
                                                 <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${s.bg})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.82)' }} />
                                                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(0,0,0,0.04) 0%,rgba(0,0,0,0.62) 100%)' }} />
-                                                <motion.div animate={{ opacity: [0.4,0.8,0.4] }} transition={{ duration: 3+i*0.35, repeat: Infinity, ease: 'easeInOut' }}
+                                                <motion.div animate={{ opacity: [0.4, 0.8, 0.4] }} transition={{ duration: 3 + i * 0.35, repeat: Infinity, ease: 'easeInOut' }}
                                                     style={{ position: 'absolute', inset: 0, borderRadius: 18, boxShadow: `inset 0 0 0 1.5px ${s.color}45`, pointerEvents: 'none' }} />
                                                 <div style={{ position: 'absolute', top: 9, right: 9, fontSize: '1.25rem', filter: `drop-shadow(0 0 7px ${s.color}70)` }}>{s.emoji}</div>
                                                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0.55rem 0.7rem' }}>
@@ -619,17 +619,18 @@ export default function ResonancePage() {
             {/* ── BOTTOM NAV: Map | Chat | Story (Snapchat order) ── */}
             <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50, background: 'rgba(5,8,16,0.95)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderTop: '1px solid rgba(139,92,246,0.15)', display: 'flex', paddingBottom: 'env(safe-area-inset-bottom,0px)' }}>
                 {([
-                    { id: 'map', icon: MapPin, label: 'Map', color: '#fbbf24' },
-                    { id: 'chat', icon: MessageCircle, label: 'Chat', color: '#4ade80', badge: incomingRequests.length },
-                    { id: 'story', icon: BookOpen, label: 'Story', color: '#a78bfa' },
-                ] as Array<{ id: Tab; icon: React.ElementType; label: string; color: string; badge?: number }>).map(({ id, icon: Icon, label, color, badge }) => {
+                    { id: 'map' as Tab, icon: MapPin as React.ElementType, label: 'Map', color: '#fbbf24' },
+                    { id: 'chat' as Tab, icon: MessageCircle as React.ElementType, label: 'Chat', color: '#4ade80', badge: incomingRequests.length },
+                    { id: 'story' as Tab, icon: BookOpen as React.ElementType, label: 'Story', color: '#a78bfa' },
+                ]).map(({ id, icon, label, color, badge }) => {
                     const active = activeTab === id;
+                    const NavIcon = icon as React.FC<{ size?: number; style?: React.CSSProperties }>;
                     return (
-                        <motion.button key={id} whileTap={{ scale: 0.9 }} onClick={() => setActiveTab(id as Tab)}
+                        <motion.button key={id} whileTap={{ scale: 0.9 }} onClick={() => setActiveTab(id)}
                             style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, padding: '0.75rem 0', background: 'none', border: 'none', cursor: 'pointer', position: 'relative' }}>
                             {active && <motion.div layoutId="nav-pill" style={{ position: 'absolute', inset: '4px 10px', borderRadius: 12, background: `${color}10`, border: `1px solid ${color}22` }} transition={{ type: 'spring', stiffness: 420, damping: 32 }} />}
                             <div style={{ position: 'relative', zIndex: 1 }}>
-                                <Icon size={21} style={{ color: active ? color : 'rgba(255,255,255,0.28)', filter: active ? `drop-shadow(0 0 6px ${color}80)` : 'none', transition: 'all 0.18s' }} />
+                                <NavIcon size={21} style={{ color: active ? color : 'rgba(255,255,255,0.28)', filter: active ? `drop-shadow(0 0 6px ${color}80)` : 'none', transition: 'all 0.18s' }} />
                                 {badge !== undefined && badge > 0 && (
                                     <div style={{ position: 'absolute', top: -4, right: -5, minWidth: 13, height: 13, borderRadius: 99, background: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.42rem', fontWeight: 800, color: '#fff', border: '1.5px solid #050810', padding: '0 2px' }}>{badge}</div>
                                 )}
