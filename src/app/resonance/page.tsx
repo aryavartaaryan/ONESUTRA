@@ -4,12 +4,15 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, MapPin, MessageCircle, BookOpen, UserPlus, Check, X, Bell, Users, Compass, Send, Smile, Search } from 'lucide-react';
+import { ArrowLeft, Bell, Search } from 'lucide-react';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
-import type { OneSutraUser } from '@/hooks/useOneSutraAuth';
-import { useUsers } from '@/hooks/useUsers';
-import type { SutraUser } from '@/hooks/useUsers';
-import { useMessages, getChatId } from '@/hooks/useMessages';
+import { useUsers, SutraUser } from '@/hooks/useUsers';
+import { Tab, FriendDoc, FriendStatus } from '@/components/Resonance/ResonanceTypes';
+import FriendCard from '@/components/Resonance/FriendCard';
+import SakhaBodhiCard from '@/components/Resonance/SakhaBodhiCard';
+import InlineChat from '@/components/Resonance/InlineChat';
+import DharmaMap from '@/components/Resonance/DharmaMap';
+import ResonanceNavBar from '@/components/Resonance/ResonanceNavBar';
 
 // ─── Story data — Sacred moments + all mantras ───────────────────────────────
 const RESONANCE_STORIES = [
@@ -136,199 +139,13 @@ function StoryViewer({ stories, startIdx, onClose }: { stories: typeof RESONANCE
     );
 }
 
-// ─── Snapchat-Style Friend Card ───────────────────────────────────────────────
-function FriendCard({ user: u, status, onAdd, onAccept, onDecline, onChat, isRequest = false }: {
-    user: SutraUser; status: FriendStatus; onAdd?: () => void; onAccept?: () => void; onDecline?: () => void; onChat?: () => void; isRequest?: boolean;
-}) {
-    const initials = (u.name || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-    const colorIdx = u.uid.charCodeAt(0) % AVATAR_COLORS.length;
-    const avatarBg = AVATAR_COLORS[colorIdx];
 
-    return (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.03)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.06)', marginBottom: '0.5rem' }}>
-            <div style={{ position: 'relative', flexShrink: 0 }}>
-                {u.photoURL ? (
-                    <img src={u.photoURL} alt={u.name} style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', border: `2px solid ${avatarBg}60` }} />
-                ) : (
-                    <div style={{ width: 48, height: 48, borderRadius: '50%', background: `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.35) 0%, ${avatarBg}80 50%, ${avatarBg}40 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', fontWeight: 700, color: '#fff', border: `2px solid ${avatarBg}60`, boxShadow: `0 0 12px ${avatarBg}40` }}>{initials}</div>
-                )}
-                {u.online && <div style={{ position: 'absolute', bottom: 1, right: 1, width: 10, height: 10, borderRadius: '50%', background: '#22c55e', border: '2px solid #0d0820', boxShadow: '0 0 6px rgba(34,197,94,0.8)' }} />}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: 0, fontWeight: 700, fontSize: '0.88rem', color: 'rgba(255,255,255,0.92)', fontFamily: "'Inter',system-ui,sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.name}</p>
-                <p style={{ margin: '0.1rem 0 0', fontSize: '0.72rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Inter',system-ui,sans-serif" }}>{u.bio ? u.bio.slice(0, 28) : 'OneSUTRA member'}</p>
-            </div>
-            <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                {isRequest ? (
-                    <>
-                        <motion.button whileTap={{ scale: 0.9 }} onClick={onAccept} style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(34,197,94,0.18)', border: '1.5px solid rgba(34,197,94,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#22c55e' }}><Check size={16} /></motion.button>
-                        <motion.button whileTap={{ scale: 0.9 }} onClick={onDecline} style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', border: '1.5px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.4)' }}><X size={16} /></motion.button>
-                    </>
-                ) : status === 'none' ? (
-                    <motion.button whileTap={{ scale: 0.9 }} onClick={onAdd}
-                        style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0.45rem 0.9rem', borderRadius: 99, background: 'rgba(251,191,36,0.15)', border: '1.5px solid rgba(251,191,36,0.45)', cursor: 'pointer', color: '#fbbf24', fontSize: '0.75rem', fontWeight: 700 }}>
-                        <UserPlus size={13} /> Add
-                    </motion.button>
-                ) : status === 'sent' ? (
-                    <div style={{ padding: '0.45rem 0.9rem', borderRadius: 99, background: 'rgba(255,255,255,0.05)', border: '1.5px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontWeight: 600 }}>Sent</div>
-                ) : status === 'friends' ? (
-                    <motion.button whileTap={{ scale: 0.9 }} onClick={onChat}
-                        style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0.45rem 0.9rem', borderRadius: 99, background: 'rgba(139,92,246,0.18)', border: '1.5px solid rgba(139,92,246,0.45)', color: '#c4b5fd', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer' }}>
-                        <MessageCircle size={12} /> Chat
-                    </motion.button>
-                ) : null}
-            </div>
-        </motion.div>
-    );
-}
 
-// ─── Sakha Bodhi AI Card ──────────────────────────────────────────────────────
-function SakhaBodhiCard({ onClick }: { onClick: () => void }) {
-    return (
-        <motion.div onClick={onClick} whileTap={{ scale: 0.97 }}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', padding: '0.9rem 1rem', background: 'linear-gradient(135deg,rgba(167,139,250,0.13) 0%,rgba(109,40,217,0.06) 100%)', borderRadius: 18, border: '1px solid rgba(167,139,250,0.28)', marginBottom: '0.65rem', cursor: 'pointer', position: 'relative', overflow: 'hidden' }}>
-            <div aria-hidden style={{ position: 'absolute', top: '-20%', right: '-5%', width: 80, height: 80, background: 'radial-gradient(circle,rgba(167,139,250,0.3) 0%,transparent 70%)', filter: 'blur(16px)', pointerEvents: 'none' }} />
-            <motion.div animate={{ boxShadow: ['0 0 10px rgba(167,139,250,0.35)', '0 0 22px rgba(167,139,250,0.65)', '0 0 10px rgba(167,139,250,0.35)'] }} transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-                style={{ width: 50, height: 50, borderRadius: '50%', background: 'radial-gradient(circle at 35% 28%,rgba(255,255,255,0.42) 0%,rgba(167,139,250,0.75) 42%,rgba(109,40,217,0.9) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', flexShrink: 0, border: '2px solid rgba(167,139,250,0.55)' }}>🌟</motion.div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                    <p style={{ margin: 0, fontWeight: 800, fontSize: '0.9rem', color: '#e9d5ff' }}>Sakha Bodhi</p>
-                    <span style={{ padding: '1px 6px', borderRadius: 99, background: 'rgba(167,139,250,0.2)', border: '1px solid rgba(167,139,250,0.38)', fontSize: '0.5rem', fontWeight: 700, color: '#c4b5fd', letterSpacing: '0.1em', textTransform: 'uppercase' }}>AI Guru</span>
-                    <motion.div animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }} transition={{ duration: 1.5, repeat: Infinity }} style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 6px rgba(74,222,128,0.8)' }} />
-                </div>
-                <p style={{ margin: 0, fontSize: '0.72rem', color: 'rgba(167,139,250,0.6)' }}>Vedic wisdom · Sacred knowledge · Your conscious guide</p>
-            </div>
-            <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }} style={{ color: 'rgba(167,139,250,0.5)', fontSize: '1.2rem', flexShrink: 0 }}>›</motion.span>
-        </motion.div>
-    );
-}
 
-// ─── Inline Chat ──────────────────────────────────────────────────────────────
-function InlineChat({ chatWith, currentUser, onBack }: { chatWith: SutraUser; currentUser: OneSutraUser; onBack: () => void }) {
-    const chatId = getChatId(currentUser.uid, chatWith.uid);
-    const { messages } = useMessages(chatId, currentUser.uid);
-    const [text, setText] = useState('');
-    const [showEmoji, setShowEmoji] = useState(false);
-    const bottomRef = useRef<HTMLDivElement>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
-    const colorIdx = chatWith.uid.charCodeAt(0) % AVATAR_COLORS.length;
-    const avatarBg = AVATAR_COLORS[colorIdx];
-    const initials = chatWith.name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
 
-    useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages.length]);
 
-    const sendMsg = useCallback(async () => {
-        const msg = text.trim(); if (!msg) return;
-        setText(''); setShowEmoji(false);
-        try {
-            const { getFirebaseFirestore } = await import('@/lib/firebase');
-            const { collection, addDoc, doc, setDoc, serverTimestamp, increment } = await import('firebase/firestore');
-            const db = await getFirebaseFirestore();
-            await addDoc(collection(db, 'onesutra_chats', chatId, 'messages'), {
-                text: msg, senderId: currentUser.uid, senderName: currentUser.name,
-                createdAt: serverTimestamp(), sentBy: 'user', deliveryMode: 'normal',
-            });
-            await setDoc(doc(db, 'onesutra_chats', chatId), {
-                lastMessage: { text: msg, senderId: currentUser.uid, senderName: currentUser.name, sentBy: 'user', createdAt: serverTimestamp() },
-                [`unreadCounts.${chatWith.uid}`]: increment(1),
-            }, { merge: true });
-        } catch { /* offline */ }
-    }, [text, chatId, currentUser, chatWith.uid]);
 
-    return (
-        <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', stiffness: 340, damping: 30 }}
-            style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', flexDirection: 'column', background: '#050810', fontFamily: "'Inter',system-ui,sans-serif" }}>
-            {/* BG */}
-            <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=25&fit=crop)', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.04 }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(5,8,16,0.96) 0%,rgba(5,8,16,0.88) 50%,rgba(5,8,16,0.96) 100%)' }} />
-                <div style={{ position: 'absolute', top: 0, left: '25%', width: 220, height: 220, background: `radial-gradient(circle,${avatarBg}18 0%,transparent 70%)`, filter: 'blur(40px)' }} />
-            </div>
-            {/* Header */}
-            <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', background: 'rgba(5,8,16,0.93)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(139,92,246,0.15)' }}>
-                <motion.button whileTap={{ scale: 0.9 }} onClick={onBack} style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', flexShrink: 0 }}><ArrowLeft size={15} /></motion.button>
-                {chatWith.photoURL
-                    ? <img src={chatWith.photoURL} alt={chatWith.name} style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', border: `2px solid ${avatarBg}60`, flexShrink: 0 }} />
-                    : <div style={{ width: 38, height: 38, borderRadius: '50%', background: `radial-gradient(circle at 35% 30%,rgba(255,255,255,0.35) 0%,${avatarBg}80 50%,${avatarBg}50 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', fontWeight: 700, color: '#fff', border: `2px solid ${avatarBg}60`, flexShrink: 0 }}>{initials}</div>}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontWeight: 700, fontSize: '0.92rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{chatWith.name}</p>
-                    <p style={{ margin: '1px 0 0', fontSize: '0.65rem', color: chatWith.online ? '#4ade80' : 'rgba(255,255,255,0.35)' }}>{chatWith.online ? '● Online now' : '● OneSUTRA'}</p>
-                </div>
-            </div>
-            {/* Messages */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', position: 'relative', zIndex: 1 }}>
-                {messages.length === 0 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, paddingTop: '4rem', gap: '0.75rem', opacity: 0.4 }}>
-                        <div style={{ fontSize: '2.8rem' }}>🙏</div>
-                        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', textAlign: 'center', margin: 0 }}>Begin your conscious conversation</p>
-                    </div>
-                )}
-                {messages.map(msg => {
-                    const isMe = msg.senderId === currentUser.uid;
-                    const timeStr = new Date(msg.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-                    return (
-                        <motion.div key={msg.id} initial={{ opacity: 0, y: 6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                            style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', alignItems: 'flex-end', gap: 6 }}>
-                            {!isMe && (chatWith.photoURL
-                                ? <img src={chatWith.photoURL} alt="" style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, marginBottom: 4 }} />
-                                : <div style={{ width: 24, height: 24, borderRadius: '50%', background: `${avatarBg}80`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 700, color: '#fff', flexShrink: 0, marginBottom: 4 }}>{initials.charAt(0)}</div>)}
-                            <div style={{ maxWidth: '72%', display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start', gap: 3 }}>
-                                <div style={{ padding: '0.6rem 0.9rem', borderRadius: isMe ? '18px 18px 4px 18px' : '18px 18px 18px 4px', background: isMe ? 'linear-gradient(135deg,#8b5cf6 0%,#6d28d9 100%)' : 'rgba(255,255,255,0.09)', color: '#fff', fontSize: '0.88rem', lineHeight: 1.5, wordBreak: 'break-word', boxShadow: isMe ? '0 2px 14px rgba(109,40,217,0.4)' : '0 1px 4px rgba(0,0,0,0.3)', border: isMe ? 'none' : '1px solid rgba(255,255,255,0.07)' }}>{msg.text}</div>
-                                <span style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.25)', paddingInline: 4 }}>{timeStr}</span>
-                            </div>
-                        </motion.div>
-                    );
-                })}
-                <div ref={bottomRef} />
-            </div>
-            {/* Emoji panel */}
-            <AnimatePresence>
-                {showEmoji && (
-                    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 16 }}
-                        style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: '0.6rem 1rem', background: 'rgba(8,10,24,0.97)', borderTop: '1px solid rgba(255,255,255,0.06)', maxHeight: 130, overflowY: 'auto', position: 'relative', zIndex: 2 }}>
-                        {EMOJIS.map(e => (
-                            <motion.button key={e} whileTap={{ scale: 0.82 }} onClick={() => { setText(t => t + e); inputRef.current?.focus(); }}
-                                style={{ fontSize: '1.45rem', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 3px', lineHeight: 1 }}>{e}</motion.button>
-                        ))}
-                    </motion.div>
-                )}
-            </AnimatePresence>
-            {/* Input bar */}
-            <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: 8, padding: '0.65rem 0.85rem', background: 'rgba(5,8,16,0.96)', backdropFilter: 'blur(20px)', borderTop: '1px solid rgba(255,255,255,0.06)', paddingBottom: 'calc(0.65rem + env(safe-area-inset-bottom,0px))' }}>
-                <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowEmoji(s => !s)}
-                    style={{ width: 36, height: 36, borderRadius: '50%', background: showEmoji ? 'rgba(167,139,250,0.2)' : 'rgba(255,255,255,0.06)', border: `1px solid ${showEmoji ? 'rgba(167,139,250,0.4)' : 'rgba(255,255,255,0.08)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
-                    <Smile size={16} style={{ color: showEmoji ? '#a78bfa' : 'rgba(255,255,255,0.5)' }} />
-                </motion.button>
-                <input ref={inputRef} value={text} onChange={e => setText(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
-                    placeholder="Type a message… 🙏" maxLength={500}
-                    style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 22, padding: '0.6rem 1rem', color: '#fff', fontSize: '0.88rem', outline: 'none', fontFamily: "'Inter',system-ui,sans-serif" }} />
-                <motion.button whileTap={{ scale: 0.9 }} onClick={sendMsg} disabled={!text.trim()}
-                    style={{ width: 36, height: 36, borderRadius: '50%', background: text.trim() ? 'linear-gradient(135deg,#8b5cf6,#6d28d9)' : 'rgba(255,255,255,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: text.trim() ? 'pointer' : 'default', flexShrink: 0, boxShadow: text.trim() ? '0 2px 14px rgba(109,40,217,0.5)' : 'none' }}>
-                    <Send size={14} style={{ color: text.trim() ? '#fff' : 'rgba(255,255,255,0.2)', marginLeft: 1 }} />
-                </motion.button>
-            </div>
-        </motion.div>
-    );
-}
 
-// ─── Map Placeholder ──────────────────────────────────────────────────────────
-function DharmaMap() {
-    return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '3rem 2rem', textAlign: 'center', gap: '1.5rem' }}>
-            <motion.div animate={{ scale: [1, 1.08, 1], rotate: [0, 5, -5, 0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                style={{ width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle at 35% 30%, rgba(251,191,36,0.4) 0%, rgba(251,191,36,0.08) 60%, transparent 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid rgba(251,191,36,0.3)', boxShadow: '0 0 40px rgba(251,191,36,0.2)' }}>
-                <Compass size={44} style={{ color: '#fbbf24', filter: 'drop-shadow(0 0 12px rgba(251,191,36,0.6))' }} />
-            </motion.div>
-            <div>
-                <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.4rem', fontWeight: 800, color: '#fbbf24', fontFamily: "'Playfair Display',Georgia,serif", letterSpacing: '0.04em' }}>Dharma Compass</h2>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, maxWidth: 260 }}>Discover conscious seekers near you — sacred locations, spiritual events & community gatherings.</p>
-            </div>
-            <div style={{ padding: '0.6rem 1.4rem', borderRadius: 99, background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.25)', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(251,191,36,0.7)', textTransform: 'uppercase' }}>Coming Soon</div>
-        </div>
-    );
-}
 
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 export default function ResonancePage() {
@@ -616,30 +433,7 @@ export default function ResonancePage() {
                 </AnimatePresence>
             </main>
 
-            {/* ── BOTTOM NAV: Map | Chat | Story (Snapchat order) ── */}
-            <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50, background: 'rgba(5,8,16,0.95)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderTop: '1px solid rgba(139,92,246,0.15)', display: 'flex', paddingBottom: 'env(safe-area-inset-bottom,0px)' }}>
-                {([
-                    { id: 'map' as Tab, icon: MapPin as React.ElementType, label: 'Map', color: '#fbbf24' },
-                    { id: 'chat' as Tab, icon: MessageCircle as React.ElementType, label: 'Chat', color: '#4ade80', badge: incomingRequests.length },
-                    { id: 'story' as Tab, icon: BookOpen as React.ElementType, label: 'Story', color: '#a78bfa' },
-                ]).map(({ id, icon, label, color, badge }) => {
-                    const active = activeTab === id;
-                    const NavIcon = icon as React.FC<{ size?: number; style?: React.CSSProperties }>;
-                    return (
-                        <motion.button key={id} whileTap={{ scale: 0.9 }} onClick={() => setActiveTab(id)}
-                            style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, padding: '0.75rem 0', background: 'none', border: 'none', cursor: 'pointer', position: 'relative' }}>
-                            {active && <motion.div layoutId="nav-pill" style={{ position: 'absolute', inset: '4px 10px', borderRadius: 12, background: `${color}10`, border: `1px solid ${color}22` }} transition={{ type: 'spring', stiffness: 420, damping: 32 }} />}
-                            <div style={{ position: 'relative', zIndex: 1 }}>
-                                <NavIcon size={21} style={{ color: active ? color : 'rgba(255,255,255,0.28)', filter: active ? `drop-shadow(0 0 6px ${color}80)` : 'none', transition: 'all 0.18s' }} />
-                                {badge !== undefined && badge > 0 && (
-                                    <div style={{ position: 'absolute', top: -4, right: -5, minWidth: 13, height: 13, borderRadius: 99, background: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.42rem', fontWeight: 800, color: '#fff', border: '1.5px solid #050810', padding: '0 2px' }}>{badge}</div>
-                                )}
-                            </div>
-                            <span style={{ fontSize: '0.62rem', fontWeight: active ? 700 : 500, color: active ? color : 'rgba(255,255,255,0.28)', letterSpacing: '0.05em', transition: 'all 0.18s', zIndex: 1 }}>{label}</span>
-                        </motion.button>
-                    );
-                })}
-            </nav>
+            <ResonanceNavBar activeTab={activeTab} setActiveTab={setActiveTab} badgeCount={incomingRequests.length} />
 
             {/* ── Story Viewer overlay ── */}
             <AnimatePresence>
