@@ -26,15 +26,15 @@ const STORIES = [
     {
         id: 'acharya-consultation',
         type: 'awareness' as const,
-        label: 'Acharya',
-        sublabel: 'Free Consult',
-        preview: '🩺',
+        label: 'Gurukul',
+        sublabel: 'Find Guru',
+        preview: '🎓',
         ring: 'conic-gradient(from 0deg, #22c55e, #4ade80, #86efac, #22c55e)',
         color: '#4ade80',
-        headline: 'Free Ayurvedic Consultation',
-        description: 'Consult Acharya Pranav for a free, personalised Ayurvedic health assessment. Ancient wisdom meets modern science — heal your body, mind & spirit the natural way.',
-        cta: 'Consult Acharya Now →',
-        destination: '/acharya-samvad',
+        headline: 'Guru & Gurukul Directory',
+        description: 'Connect with authentic Vedic scholars, Gurukuls & spiritual masters across India — discover ancient wisdom schools and find your perfect guide on the sacred path.',
+        cta: 'Explore Gurukul →',
+        destination: '/guru-gurukul',
         bgGradient: 'linear-gradient(160deg, #001a08 0%, #003818 45%, #000e05 100%)',
         accentColor: '#4ade80',
     },
@@ -1249,10 +1249,10 @@ export default function StickyTopNav() {
                     {/* Interactive Icons — 4 destinations with labels */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: 12 }}>
                         {[
-                            { href: '/pranaverse', Icon: Clapperboard, color: '#a78bfa', label: 'PranaVibes', useBubbleStyle: false },
+                            { href: '/pranaverse', Icon: Clapperboard, color: '#a78bfa', label: 'PranaVibes', useBubbleStyle: true },
                             { href: '/project-leela', Icon: Radio, color: '#fbbf24', label: 'Raag', useBubbleStyle: true },
-                            { href: '/vedic-games', Icon: Gamepad2, color: '#4ade80', label: 'Games', useBubbleStyle: false },
-                            { href: '/acharya-samvad', Icon: Leaf, color: '#22d3ee', label: 'Acharya', useBubbleStyle: false },
+                            { href: '/vedic-games', Icon: Gamepad2, color: '#4ade80', label: 'Games', useBubbleStyle: true },
+                            { href: '/guru-gurukul', Icon: Leaf, color: '#22d3ee', label: 'Gurukul', useBubbleStyle: true },
                         ].map(({ href, Icon, color, label, useBubbleStyle }) => (
                             <Link key={href} href={href} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, textDecoration: 'none' }}>
                                 {useBubbleStyle ? (

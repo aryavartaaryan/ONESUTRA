@@ -305,6 +305,7 @@ export default function BodhiChatPage() {
     const { pendingMessage, clearPendingMessage } = useBodhiChatStore();
 
     const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [historyLoaded, setHistoryLoaded] = useState(false);
     const [inputValue, setInputValue] = useState('');
     const [isTypingFocus, setIsTypingFocus] = useState(false);
     const [uid, setUid] = useState<string | null>(null);
@@ -312,6 +313,8 @@ export default function BodhiChatPage() {
     const [keyboardHint, setKeyboardHint] = useState(false);
     const [selectedMoodEmoji, setSelectedMoodEmoji] = useState<string>('');
     const [selectedMoodLabel, setSelectedMoodLabel] = useState<string>('');
+    const [showMoodPicker, setShowMoodPicker] = useState(false);
+    const [showEmoji, setShowEmoji] = useState(false);
 
     const inputRef = useRef<HTMLInputElement>(null);
     const chatEndRef = useRef<HTMLDivElement>(null);
@@ -319,6 +322,7 @@ export default function BodhiChatPage() {
     const greetedRef = useRef(false);
     const connectCalledRef = useRef(false);
     const recognitionRef = useRef<any>(null);
+    const proactiveSentRef = useRef(false);
 
     const displayName = user?.name || 'Mitra';
     const pendingCount = tasks.filter(t => !t.done && t.category !== 'Idea' && t.category !== 'Challenge').length;
@@ -414,6 +418,31 @@ export default function BodhiChatPage() {
         ).catch(() => { });
     }, []);
 
+    // Load historical bodhi chat messages from Firebase
+    useEffect(() => {
+        if (!uid || historyLoaded) return;
+        (async () => {
+            try {
+                const { getFirebaseFirestore } = await import('@/lib/firebase');
+                const { doc, getDoc } = await import('firebase/firestore');
+                const db = await getFirebaseFirestore();
+                const snap = await getDoc(doc(db, 'users', uid));
+                if (!snap.exists()) { setHistoryLoaded(true); return; }
+                const history: Array<{ role: string; text: string; timestamp: number }> = snap.data()?.bodhi_history ?? [];
+                if (history.length > 0) {
+                    const historicalMsgs: ChatMessage[] = history.map((m, i) => ({
+                        id: `hist_${m.timestamp}_${i}`,
+                        role: m.role === 'bodhi' ? 'bodhi' : 'user',
+                        text: m.text,
+                        timestamp: m.timestamp,
+                    }));
+                    setMessages(historicalMsgs);
+                }
+                setHistoryLoaded(true);
+            } catch { setHistoryLoaded(true); }
+        })();
+    }, [uid, historyLoaded]);
+
     // Handle mood selection — emoji appears in chat and is sent to Bodhi
     const handleMoodSelect = useCallback((emoji: string, label: string, mood: string) => {
         if (selectedMoodEmoji === emoji) {
@@ -445,6 +474,26 @@ export default function BodhiChatPage() {
         connect();
     }, [connect]);
 
+    // Proactive wellness check-ins — injected directly as Bodhi messages once per session
+    useEffect(() => {
+        if (proactiveSentRef.current) return;
+        const todayKey = `bodhi_proactive_${new Date().toDateString()}`;
+        const h = new Date().getHours();
+        const m = new Date().getMinutes();
+        const isLunch = h === 13 && m <= 30;
+        const isRest = h === 22 && m >= 30;
+        if (!isLunch && !isRest) return;
+        const msgKey = isLunch ? `${todayKey}_lunch` : `${todayKey}_rest`;
+        if (typeof window !== 'undefined' && localStorage.getItem(msgKey)) return;
+        proactiveSentRef.current = true;
+        const text = isLunch
+            ? 'Hey my friend, just checking in! 🍽️ Make sure you step away for a good lunch. Your body is your temple — nourish it with love. A rested mind creates magic. 💫'
+            : "It's getting late, Sakha. 🌙 Time to rest those eyes and recharge that beautiful mind. Your dreams carry tomorrow's wisdom. Goodnight! ✨🙏";
+        const proactiveMsg: ChatMessage = { id: `proactive_${Date.now()}`, role: 'bodhi', text, timestamp: Date.now() };
+        setMessages(prev => [...prev, proactiveMsg]);
+        if (typeof window !== 'undefined') localStorage.setItem(msgKey, '1');
+    }, []);
+
     // Send pending message from homepage once connected
     useEffect(() => {
         if (!pendingMessage || pendingSentRef.current || chatState !== 'ready') return;
@@ -455,10 +504,18 @@ export default function BodhiChatPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pendingMessage, chatState]);
 
-    // Auto-scroll
+    // Instant scroll when history first loads (no visible scroll animation)
     useEffect(() => {
+        if (historyLoaded) {
+            chatEndRef.current?.scrollIntoView({ behavior: 'instant' as ScrollBehavior });
+        }
+    }, [historyLoaded]);
+
+    // Smooth scroll for new messages only
+    useEffect(() => {
+        if (!historyLoaded) return;
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, isThinking]);
+    }, [messages, isThinking]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Cleanup on unmount
     useEffect(() => () => { disconnect(); stopVoiceInput(); }, [disconnect, stopVoiceInput]);
@@ -614,7 +671,26 @@ export default function BodhiChatPage() {
                         )}
                     </AnimatePresence>
 
+                    {/* Emoji picker panel */}
+                    <AnimatePresence>
+                        {showEmoji && (
+                            <motion.div initial={{ opacity: 0, y: 8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.96 }} transition={{ duration: 0.18 }}
+                                style={{ marginBottom: '0.45rem', padding: '0.55rem 0.65rem', background: 'rgba(8,4,24,0.96)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 16, backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', display: 'flex', flexWrap: 'wrap' as const, gap: '0.3rem', maxHeight: 140, overflowY: 'auto' as const }}>
+                                {['😊','😄','🙏','❤️','🔥','✨','💫','🌟','🌙','☀️','🎯','💡','⚡','🧘','🕉️','🪷','🌸','🌺','🍃','🌿','🌊','🏔️','🦋','🦚','💎','👑','🎵','🎶','🤩','😍','😂','😭','🥰','😎','🤔','🙌','👏','💪','🤝','🫂','🌈','🎊','🎉','🥳','💯','✅','🚀','🌏','🕊️','🐉','🦁'].map(em => (
+                                    <motion.button key={em} whileTap={{ scale: 0.80 }} onClick={() => { setInputValue(p => p + em); setShowEmoji(false); inputRef.current?.focus(); }}
+                                        style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1rem' }}>
+                                        {em}
+                                    </motion.button>
+                                ))}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(28px) saturate(180%)', WebkitBackdropFilter: 'blur(28px) saturate(180%)', border: isTypingFocus ? '1px solid rgba(251,191,36,0.38)' : '1px solid rgba(255,255,255,0.12)', borderRadius: 999, padding: '0.38rem 0.55rem 0.38rem 1rem', boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.18), 0 4px 24px rgba(0,0,0,0.22)', transition: 'border-color 0.3s', overflow: 'visible' }}>
+                        {/* Emoji toggle */}
+                        <motion.button whileTap={{ scale: 0.88 }} onClick={() => setShowEmoji(v => !v)}
+                            style={{ flexShrink: 0, width: 32, height: 32, borderRadius: '50%', background: showEmoji ? 'rgba(251,191,36,0.14)' : 'transparent', border: showEmoji ? '1px solid rgba(251,191,36,0.30)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: showEmoji ? '#fbbf24' : 'rgba(255,255,255,0.38)', transition: 'all 0.2s', fontSize: '1rem' }}>
+                            😊
+                        </motion.button>
                         {/* Voice input button */}
                         <VoiceInputButton 
                             isListening={isListening} 
@@ -650,65 +726,51 @@ export default function BodhiChatPage() {
                         </motion.button>
                     </div>
 
-                    {/* Quick chips */}
-                    <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.45rem', overflowX: 'auto', paddingBottom: '0.1rem', scrollbarWidth: 'none' }}>
-                        <style>{`.chips-scroll::-webkit-scrollbar{display:none}`}</style>
+                    {/* Compact quick-action + mood row */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.40rem', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 2 }}>
+                        <style>{`.qrow::-webkit-scrollbar{display:none}`}</style>
                         {[
-                            { label: 'Add Task', icon: '✅', prompt: 'I need to ' },
-                            { label: 'New Idea', icon: '💡', prompt: 'I have an idea: ' },
-                            { label: 'Challenge', icon: '⚡', prompt: "I'm facing: " },
-                            { label: 'Issue', icon: '🔥', prompt: "There's an issue: " },
-                            { label: 'Pending', icon: '📋', prompt: 'What are my pending tasks?' },
+                            { icon: '✅', prompt: 'I need to ', title: 'Task' },
+                            { icon: '💡', prompt: 'I have an idea: ', title: 'Idea' },
+                            { icon: '⚡', prompt: "I'm facing: ", title: 'Challenge' },
+                            { icon: '🔥', prompt: "There's an issue: ", title: 'Issue' },
+                            { icon: '📋', prompt: 'What are my pending tasks?', title: 'Pending' },
                         ].map(chip => (
-                            <motion.button key={chip.label} whileTap={{ scale: 0.92 }}
+                            <motion.button key={chip.title} whileTap={{ scale: 0.88 }}
                                 onClick={() => { setInputValue(chip.prompt); inputRef.current?.focus(); }}
-                                style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '0.22rem', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 999, padding: '0.25rem 0.65rem', cursor: 'pointer', fontFamily: "'Outfit', sans-serif" }}>
-                                <span style={{ fontSize: '0.58rem' }}>{chip.icon}</span>
-                                <span style={{ fontSize: '0.48rem', color: 'rgba(255,255,255,0.58)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{chip.label}</span>
+                                title={chip.title}
+                                style={{ flexShrink: 0, width: 32, height: 32, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '0.85rem' }}>
+                                {chip.icon}
                             </motion.button>
                         ))}
+                        <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.10)', flexShrink: 0, margin: '0 0.1rem' }} />
+                        <motion.button whileTap={{ scale: 0.88 }} onClick={() => setShowMoodPicker(p => !p)}
+                            style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5, background: selectedMoodEmoji ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.05)', border: `1px solid ${selectedMoodEmoji ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.09)'}`, borderRadius: 999, padding: '0.22rem 0.55rem', cursor: 'pointer' }}>
+                            <span style={{ fontSize: '0.82rem' }}>{selectedMoodEmoji || '😊'}</span>
+                            <span style={{ fontSize: '0.44rem', color: 'rgba(255,255,255,0.50)', fontWeight: 600, letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>{selectedMoodLabel || 'Mood'}</span>
+                            <motion.span animate={{ rotate: showMoodPicker ? 180 : 0 }} transition={{ duration: 0.2 }} style={{ fontSize: '0.44rem', color: 'rgba(255,255,255,0.35)', display: 'inline-block' }}>▾</motion.span>
+                        </motion.button>
                     </div>
 
-                    {/* Mood emoji picker */}
-                    <div style={{ marginTop: '0.45rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.28rem' }}>
-                            <span style={{ fontSize: '0.40rem', color: 'rgba(255,255,255,0.28)', letterSpacing: '0.10em', textTransform: 'uppercase', fontFamily: 'monospace' }}>Mood</span>
-                            {selectedMoodEmoji && (
-                                <span style={{ fontSize: '0.40rem', color: 'rgba(255,255,255,0.45)', fontFamily: 'monospace' }}>
-                                    — Bodhi knows you're feeling {selectedMoodLabel}
-                                </span>
-                            )}
-                        </div>
-                        <div style={{ display: 'flex', gap: '0.32rem', overflowX: 'auto', scrollbarWidth: 'none' }}>
-                            {MOOD_EMOJIS.map(m => (
-                                <motion.button
-                                    key={m.emoji}
-                                    whileTap={{ scale: 0.80 }}
-                                    animate={{ scale: selectedMoodEmoji === m.emoji ? 1.14 : 1 }}
-                                    transition={{ type: 'spring', stiffness: 350, damping: 20 }}
-                                    onClick={(e) => { e.stopPropagation(); handleMoodSelect(m.emoji, m.label, m.mood); }}
-                                    title={m.label}
-                                    style={{
-                                        flexShrink: 0,
-                                        width: 34,
-                                        height: 34,
-                                        borderRadius: '50%',
-                                        background: selectedMoodEmoji === m.emoji ? `${m.color}28` : 'rgba(255,255,255,0.05)',
-                                        border: selectedMoodEmoji === m.emoji ? `1.5px solid ${m.color}80` : '1px solid rgba(255,255,255,0.08)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        cursor: 'pointer',
-                                        fontSize: '1rem',
-                                        transition: 'background 0.2s, border 0.2s',
-                                        boxShadow: selectedMoodEmoji === m.emoji ? `0 0 10px ${m.color}55` : 'none',
-                                    }}
-                                >
-                                    {m.emoji}
-                                </motion.button>
-                            ))}
-                        </div>
-                    </div>
+                    {/* Expandable mood picker */}
+                    <AnimatePresence>
+                        {showMoodPicker && (
+                            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.22 }} style={{ overflow: 'hidden' }}>
+                                <div style={{ display: 'flex', gap: '0.28rem', paddingTop: '0.40rem', overflowX: 'auto', scrollbarWidth: 'none' }}>
+                                    {MOOD_EMOJIS.map(m => (
+                                        <motion.button key={m.emoji} whileTap={{ scale: 0.82 }}
+                                            animate={{ scale: selectedMoodEmoji === m.emoji ? 1.14 : 1 }}
+                                            transition={{ type: 'spring', stiffness: 350, damping: 20 }}
+                                            onClick={(e) => { e.stopPropagation(); handleMoodSelect(m.emoji, m.label, m.mood); setShowMoodPicker(false); }}
+                                            title={m.label}
+                                            style={{ flexShrink: 0, width: 36, height: 36, borderRadius: '50%', background: selectedMoodEmoji === m.emoji ? `${m.color}28` : 'rgba(255,255,255,0.05)', border: selectedMoodEmoji === m.emoji ? `1.5px solid ${m.color}80` : '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.05rem', boxShadow: selectedMoodEmoji === m.emoji ? `0 0 10px ${m.color}55` : 'none' }}>
+                                            {m.emoji}
+                                        </motion.button>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                     <p style={{ textAlign: 'center', margin: '0.32rem 0 0', fontSize: '0.43rem', color: 'rgba(255,255,255,0.18)', letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: "'Outfit', sans-serif" }}>
                         ✦ Bodhi · Gemini Live Audio · Text + Voice ✦

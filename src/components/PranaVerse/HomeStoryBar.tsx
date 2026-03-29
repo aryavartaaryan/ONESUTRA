@@ -269,6 +269,95 @@ const WISDOM_QUOTES = [
     { text: '"The moon does not fight. It waits. Patience is its mastery."', source: 'Vedic Wisdom' },
 ];
 
+// ── Panchang Data ─────────────────────────────────────────────────────────────
+const TITHI_NAMES = [
+    'प्रतिपदा','द्वितीया','तृतीया','चतुर्थी','पंचमी',
+    'षष्ठी','सप्तमी','अष्टमी','नवमी','दशमी',
+    'एकादशी','द्वादशी','त्रयोदशी','चतुर्दशी','पूर्णिमा',
+    'प्रतिपदा','द्वितीया','तृतीया','चतुर्थी','पंचमी',
+    'षष्ठी','सप्तमी','अष्टमी','नवमी','दशमी',
+    'एकादशी','द्वादशी','त्रयोदशी','चतुर्दशी','अमावस्या',
+];
+const NAKSHATRA_NAMES = [
+    'अश्विनी','भरणी','कृत्तिका','रोहिणी','मृगशिरा','आर्द्रा','पुनर्वसु',
+    'पुष्य','आश्लेषा','मघा','पूर्वफाल्गुनी','उत्तरफाल्गुनी','हस्त',
+    'चित्रा','स्वाति','विशाखा','अनुराधा','ज्येष्ठा','मूल',
+    'पूर्वाषाढ़ा','उत्तराषाढ़ा','श्रवण','धनिष्ठा','शतभिषा',
+    'पूर्वभाद्रपद','उत्तरभाद्रपद','रेवती',
+];
+const YOGA_NAMES = [
+    'विष्कुंभ','प्रीति','आयुष्मान','सौभाग्य','शोभन','अतिगण्ड','सुकर्मा',
+    'धृति','शूल','गण्ड','वृद्धि','ध्रुव','व्याघात','हर्षण','वज्र',
+    'सिद्धि','व्यतीपात','वरीयान','परिघ','शिव','सिद्ध','साध्य','शुभ',
+    'शुक्ल','ब्रह्म','इन्द्र','वैधृति',
+];
+const VAAR_NAMES  = ['रविवार','सोमवार','मंगलवार','बुधवार','गुरुवार','शुक्रवार','शनिवार'];
+const VAAR_ICONS  = ['☀️','🌙','🔴','☿','🪐','⭐','🪐'];
+const VAAR_DEVATA = ['सूर्य','चंद्र','मंगल','बुध','बृहस्पति','शुक्र','शनि'];
+
+const HINDU_FESTIVALS: Record<string, string> = {
+    '2025-01-14':'मकर संक्रांति','2025-01-29':'मौनी अमावस्या',
+    '2025-02-02':'बसंत पंचमी','2025-02-12':'माघ पूर्णिमा','2025-02-26':'महाशिवरात्रि',
+    '2025-03-13':'होलिका दहन','2025-03-14':'होली',
+    '2025-03-30':'गुड़ी पड़वा • चैत्र नवरात्रि',
+    '2025-04-06':'राम नवमी','2025-04-12':'हनुमान जयंती','2025-04-13':'चैत्र पूर्णिमा',
+    '2025-04-30':'अक्षय तृतीया',
+    '2025-05-12':'बुद्ध पूर्णिमा',
+    '2025-06-11':'गंगा दशहरा',
+    '2025-07-10':'गुरु पूर्णिमा',
+    '2025-08-01':'हरियाली तीज','2025-08-05':'नाग पंचमी',
+    '2025-08-09':'रक्षा बंधन','2025-08-16':'जन्माष्टमी','2025-08-27':'गणेश चतुर्थी',
+    '2025-09-29':'शारदीय नवरात्रि',
+    '2025-10-02':'दशहरा','2025-10-20':'दीपावली',
+    '2025-10-22':'गोवर्धन पूजा','2025-10-23':'भाई दूज','2025-10-28':'छठ पूजा',
+    '2025-11-05':'देव दीपावली','2025-11-15':'कार्तिक पूर्णिमा',
+    '2026-02-15':'महाशिवरात्रि','2026-03-03':'होलिका दहन','2026-03-04':'होली',
+    '2026-04-19':'अक्षय तृतीया','2026-05-01':'बुद्ध पूर्णिमा',
+    '2026-07-29':'गुरु पूर्णिमा','2026-08-05':'जन्माष्टमी',
+};
+const ANNUAL_FESTIVALS: Record<string, string> = {
+    '01-14':'मकर संक्रांति','01-26':'गणतंत्र दिवस',
+    '08-15':'स्वतंत्रता दिवस','10-02':'गांधी जयंती',
+};
+
+function toJulianDay(d: Date): number {
+    const y = d.getUTCFullYear(), m = d.getUTCMonth() + 1;
+    const day = d.getUTCDate() + d.getUTCHours() / 24;
+    const A = Math.floor((14 - m) / 12);
+    const Y = y + 4800 - A, M = m + 12 * A - 3;
+    return day + Math.floor((153 * M + 2) / 5) + 365 * Y +
+        Math.floor(Y / 4) - Math.floor(Y / 100) + Math.floor(Y / 400) - 32045;
+}
+
+function computeDailyPanchang(date: Date) {
+    const jd = toJulianDay(date);
+    const T = (jd - 2451545.0) / 36525.0;
+    // Sun & Moon mean longitudes
+    let sunLon  = ((280.46646 + 36000.76983 * T) % 360 + 360) % 360;
+    let moonLon = ((218.3165  + 481267.8813 * T) % 360 + 360) % 360;
+    // Tithi from elongation (each tithi = 12°)
+    const elongation = ((moonLon - sunLon) % 360 + 360) % 360;
+    const tithiIdx   = Math.floor(elongation / 12) % 30;
+    const tithi      = TITHI_NAMES[tithiIdx];
+    const paksha     = tithiIdx < 15 ? 'शुक्ल पक्ष ☽' : 'कृष्ण पक्ष 🌑';
+    // Nakshatra (each = 360/27°)
+    const nakIdx  = Math.floor(((moonLon % 360 + 360) % 360) / (360 / 27)) % 27;
+    const nakshatra = NAKSHATRA_NAMES[nakIdx];
+    // Yoga ((sun+moon) / (360/27))
+    const yogaLon = ((sunLon + moonLon) % 360 + 360) % 360;
+    const yoga    = YOGA_NAMES[Math.floor(yogaLon / (360 / 27)) % 27];
+    // Vaar
+    const dow = date.getDay();
+    const vaar = VAAR_NAMES[dow], vaarIcon = VAAR_ICONS[dow], vaarDevata = VAAR_DEVATA[dow];
+    // Vikram Samvat (new year ~Chaitra = April)
+    const y = date.getFullYear(), mo = date.getMonth(), dy = date.getDate();
+    const samvat = (mo > 3 || (mo === 3 && dy >= 1)) ? y + 57 : y + 56;
+    // Festival
+    const mmdd = `${String(mo + 1).padStart(2,'0')}-${String(dy).padStart(2,'0')}`;
+    const festival = HINDU_FESTIVALS[`${y}-${mmdd}`] || ANNUAL_FESTIVALS[mmdd] || null;
+    return { tithi, paksha, nakshatra, yoga, vaar, vaarIcon, vaarDevata, samvat, festival };
+}
+
 function useTimeImages() {
     const slot = getTimeSlot();
     const imgs = BG_IMAGES[slot];
@@ -320,6 +409,62 @@ function PortalSlideContent({ p }: { p: typeof PORTAL_DATA[0] }) {
             <Link href={p.href} style={{ textDecoration: 'none' }}>
                 <motion.div whileTap={{ scale: 0.96 }} style={{ display: 'inline-block', padding: '0.65rem 2rem', borderRadius: 99, background: `linear-gradient(135deg, ${p.color}, ${p.color}bb)`, color: '#fff', fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: '0.82rem', letterSpacing: '0.06em', textTransform: 'uppercase', boxShadow: `0 6px 24px ${p.color}55` }}>Enter Portal →</motion.div>
             </Link>
+        </div>
+    );
+}
+
+// ── Panchang Slide Content ──────────────────────────────────────────────────
+function PanchangSlideContent({ panchang }: { panchang: ReturnType<typeof computeDailyPanchang> }) {
+    const today = new Date();
+    const dateStr = today.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const rows = [
+        { label: 'तिथि', value: panchang.tithi,     icon: '🌙', color: '#a78bfa' },
+        { label: 'पक्ष',  value: panchang.paksha,   icon: '☽',  color: '#93c5fd' },
+        { label: 'नक्षत्र', value: panchang.nakshatra, icon: '⭐', color: '#34d399' },
+        { label: 'योग',   value: panchang.yoga,     icon: '✦',  color: '#f472b6' },
+    ];
+    return (
+        <div style={{ padding: '0 1.4rem', textAlign: 'center', width: '100%' }}>
+            {/* Festival banner */}
+            {panchang.festival && (
+                <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.08 }}
+                    style={{ background: 'linear-gradient(135deg,rgba(251,191,36,0.22),rgba(245,158,11,0.12))', border: '1px solid rgba(251,191,36,0.50)', borderRadius: 12, padding: '0.4rem 0.9rem', marginBottom: '0.75rem', display: 'inline-block' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#fbbf24', fontWeight: 700, letterSpacing: '0.04em', fontFamily: "'Noto Serif Devanagari',serif" }}>🪔 {panchang.festival}</span>
+                </motion.div>
+            )}
+            {/* Vaar */}
+            <motion.div initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.12, type: 'spring', stiffness: 220 }}
+                style={{ fontSize: '2.2rem', marginBottom: '0.1rem' }}>{panchang.vaarIcon}</motion.div>
+            <motion.p initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}
+                style={{ fontFamily: "'Noto Serif Devanagari','Cormorant Garamond',serif", fontSize: '1.65rem', fontWeight: 700, color: '#fbbf24', textShadow: '0 0 28px rgba(251,191,36,0.65)', marginBottom: '0.1rem', lineHeight: 1.2 }}>
+                {panchang.vaar}
+            </motion.p>
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.28 }}
+                style={{ fontSize: '0.56rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.08em', marginBottom: '0.85rem', fontFamily: "'Inter',sans-serif" }}>
+                {dateStr}
+            </motion.p>
+            {/* Panchang grid */}
+            <motion.div initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.32 }}
+                style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', marginBottom: '0.8rem' }}>
+                {rows.map(({ label, value, icon, color }) => (
+                    <div key={label} style={{ background: 'rgba(255,255,255,0.055)', border: `1px solid ${color}28`, borderRadius: 12, padding: '0.45rem 0.35rem', backdropFilter: 'blur(10px)' }}>
+                        <div style={{ fontSize: '0.78rem', marginBottom: '0.1rem' }}>{icon}</div>
+                        <div style={{ fontSize: '0.44rem', color: 'rgba(255,255,255,0.38)', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: "'Inter',sans-serif", marginBottom: '0.18rem' }}>{label}</div>
+                        <div style={{ fontFamily: "'Noto Serif Devanagari',serif", fontSize: '0.76rem', fontWeight: 700, color, lineHeight: 1.25 }}>{value}</div>
+                    </div>
+                ))}
+            </motion.div>
+            {/* Devata + Samvat */}
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.52 }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem', flexWrap: 'wrap' as const }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 99, padding: '0.28rem 0.8rem' }}>
+                    <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.50)', fontFamily: "'Noto Serif Devanagari',serif" }}>देवता: {panchang.vaarDevata}</span>
+                </div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.22)', borderRadius: 99, padding: '0.28rem 0.8rem' }}>
+                    <span style={{ fontSize: '0.62rem' }}>🕉️</span>
+                    <span style={{ fontFamily: "'Noto Serif Devanagari',serif", fontSize: '0.65rem', color: 'rgba(251,191,36,0.85)', fontWeight: 600 }}>वि. सं. {panchang.samvat}</span>
+                </div>
+            </motion.div>
         </div>
     );
 }
@@ -610,7 +755,7 @@ function VideoStoryViewer({ story, allVideoStories, startIdx, onClose, onFinishe
 
 // ── Full-Screen IMAGE Story Viewer (existing groups) ──────────────────────────
 const SLIDE_DURATION = 7000;
-function StoryViewer({ groups, startGroupIdx, onClose }: { groups: StoryGroup[]; startGroupIdx: number; onClose: () => void }) {
+function StoryViewer({ groups, startGroupIdx, onClose, onFinished }: { groups: StoryGroup[]; startGroupIdx: number; onClose: () => void; onFinished?: () => void }) {
     const [gIdx, setGIdx] = useState(startGroupIdx);
     const [sIdx, setSIdx] = useState(0);
     const [progress, setProgress] = useState(0);
@@ -625,7 +770,7 @@ function StoryViewer({ groups, startGroupIdx, onClose }: { groups: StoryGroup[];
         clearTimer(); setProgress(0); progressRef.current = 0;
         if (sIdx < totalSlides - 1) setSIdx(s => s + 1);
         else if (gIdx < groups.length - 1) { setGIdx(g => g + 1); setSIdx(0); }
-        else onClose();
+        else { if (onFinished) onFinished(); else onClose(); }
     }, [sIdx, totalSlides, gIdx, groups.length, onClose]);
     const goPrev = useCallback(() => {
         clearTimer(); setProgress(0); progressRef.current = 0;
@@ -725,13 +870,14 @@ export default function HomeStoryBar() {
     }, []);
 
     // Build image story groups
+    const todayPanchang = computeDailyPanchang(new Date());
     const imageGroups: StoryGroup[] = [
         {
-            id: 'panchang', label: 'Panchang', icon: '☀️', color: '#fbbf24',
+            id: 'panchang', label: 'Cosmic Date', icon: '☀️', color: '#fbbf24',
             gradient: 'linear-gradient(135deg,#f59e0b,#d97706)',
             ringColors: ['#fbbf24', '#fde68a'],
             slides: [
-                { id: 'p1', bg: getImg(0), accent: '#fbbf24', content: <WisdomSlideContent q={{ text: `Today is ${new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}. Begin with gratitude.`, source: 'Vedic Calendar' }} /> },
+                { id: 'p1', bg: getImg(0), accent: '#fbbf24', content: <PanchangSlideContent panchang={todayPanchang} /> },
                 { id: 'p2', bg: getImg(1), accent: '#fde68a', content: <WisdomSlideContent q={WISDOM_QUOTES[0]} /> },
             ],
         },
@@ -808,7 +954,86 @@ export default function HomeStoryBar() {
                     <span style={{ fontSize: '0.48rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.04em' }}>Your Story</span>
                 </div>
 
-                {/* ── VIDEO STORY BUBBLES (first!) ── */}
+                {/* ── IMAGE STORY BUBBLES (first — tasks, portals, wisdom) ── */}
+                {imageGroups.map((group, idx) => {
+                    const isViewed = viewedIds.has(group.id);
+                    const bgImg = group.slides[0]?.bg ?? '';
+                    return (
+                        <motion.div
+                            key={group.id}
+                            initial={{ opacity: 0, scale: 0.7, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            transition={{ delay: idx * 0.04, type: 'spring', stiffness: 280, damping: 20 }}
+                            whileTap={{ scale: 0.91 }}
+                            onClick={() => openImageGroup(idx)}
+                            style={{
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem',
+                                flexShrink: 0, cursor: 'pointer',
+                                animation: isViewed ? 'none' : `storyBubbleFloat ${3.5 + idx * 0.4}s ease-in-out ${idx * 0.15}s infinite`,
+                            }}
+                        >
+                            {/* Outer illuminating ring — matches video story size/style */}
+                            <div style={{
+                                width: 68, height: 68, borderRadius: '50%', padding: 3,
+                                background: isViewed
+                                    ? 'rgba(255,255,255,0.08)'
+                                    : `conic-gradient(${group.ringColors[0]} 0deg, #fde68a 90deg, ${group.ringColors[1]} 180deg, #fde68a 270deg, ${group.ringColors[0]} 360deg)`,
+                                animation: isViewed ? 'none' : `videoRingPulse ${2.6 + idx * 0.28}s ease-in-out ${idx * 0.22}s infinite, videoShimmer ${3.2 + idx * 0.2}s ease-in-out ${idx * 0.18}s infinite`,
+                                flexShrink: 0, position: 'relative',
+                            }}>
+                                {/* Inner circle with natural image */}
+                                <div style={{
+                                    width: '100%', height: '100%', borderRadius: '50%',
+                                    border: '2.5px solid #000', overflow: 'hidden', position: 'relative',
+                                    filter: isViewed ? 'grayscale(0.6) brightness(0.55)' : 'none',
+                                }}>
+                                    {/* Natural background image */}
+                                    <img
+                                        src={bgImg}
+                                        alt={group.label}
+                                        style={{
+                                            position: 'absolute', inset: 0, width: '100%', height: '100%',
+                                            objectFit: 'cover', objectPosition: 'center',
+                                            filter: 'brightness(0.78) saturate(1.3)',
+                                        }}
+                                    />
+                                    {/* Dark gradient from bottom */}
+                                    <div style={{
+                                        position: 'absolute', inset: 0,
+                                        background: 'linear-gradient(180deg, transparent 25%, rgba(0,0,0,0.58) 100%)',
+                                    }} />
+                                    {/* Color tint from group accent */}
+                                    <div style={{
+                                        position: 'absolute', inset: 0,
+                                        background: `radial-gradient(circle at 50% 40%, ${group.color}44 0%, transparent 72%)`,
+                                    }} />
+                                    {/* Superimposed icon */}
+                                    <div style={{
+                                        position: 'absolute', inset: 0,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    }}>
+                                        <span style={{
+                                            fontSize: '1.25rem',
+                                            filter: `drop-shadow(0 0 10px ${group.color}) drop-shadow(0 0 5px ${group.color}cc)`,
+                                            opacity: isViewed ? 0.5 : 1,
+                                        }}>{group.icon}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <span style={{
+                                fontSize: '0.48rem', fontFamily: "'Inter',sans-serif", fontWeight: 700,
+                                color: isViewed ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.88)',
+                                letterSpacing: '0.04em', textAlign: 'center',
+                                maxWidth: 66, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            }}>{group.label}</span>
+                        </motion.div>
+                    );
+                })}
+
+                {/* Divider between non-video and video stories */}
+                <div style={{ width: 1, height: 58, background: 'rgba(251,191,36,0.12)', flexShrink: 0, alignSelf: 'center' }} />
+
+                {/* ── VIDEO STORY BUBBLES (after non-video) ── */}
                 {VIDEO_STORIES.map((story, idx) => {
                     const isViewed = viewedIds.has(story.id);
                     return (
@@ -869,52 +1094,6 @@ export default function HomeStoryBar() {
                     );
                 })}
 
-                {/* Divider between video and image stories */}
-                <div style={{ width: 1, height: 58, background: 'rgba(251,191,36,0.12)', flexShrink: 0, alignSelf: 'center' }} />
-
-                {/* ── IMAGE STORY BUBBLES ── */}
-                {imageGroups.map((group, idx) => {
-                    const isViewed = viewedIds.has(group.id);
-                    return (
-                        <motion.div
-                            key={group.id}
-                            initial={{ opacity: 0, scale: 0.7, y: 10 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            transition={{ delay: (idx + VIDEO_STORIES.length) * 0.04, type: 'spring', stiffness: 280, damping: 20 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => openImageGroup(idx)}
-                            style={{
-                                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem',
-                                flexShrink: 0, cursor: 'pointer',
-                                animation: isViewed ? 'none' : `storyBubbleFloat ${3.5 + idx * 0.4}s ease-in-out ${idx * 0.15}s infinite`,
-                            }}
-                        >
-                            <div style={{
-                                '--rc': group.color,
-                                '--rc2': group.color + '55',
-                                width: 60, height: 60, borderRadius: '50%', padding: 3,
-                                background: isViewed
-                                    ? 'rgba(255,255,255,0.1)'
-                                    : `conic-gradient(${group.ringColors[0]} 0deg, ${group.ringColors[1]} 180deg, ${group.ringColors[0]} 360deg)`,
-                                animation: isViewed ? 'none' : `goldenRingPulse ${2.8 + idx * 0.3}s ease-in-out ${idx * 0.25}s infinite`,
-                                flexShrink: 0,
-                            } as React.CSSProperties}>
-                                <div style={{
-                                    width: '100%', height: '100%', borderRadius: '50%', border: '2.5px solid #000',
-                                    background: group.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    fontSize: '1.35rem',
-                                    filter: isViewed ? 'grayscale(0.5) brightness(0.65)' : 'none',
-                                }}>{group.icon}</div>
-                            </div>
-                            <span style={{
-                                fontSize: '0.48rem', fontFamily: "'Inter',sans-serif", fontWeight: 600,
-                                color: isViewed ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.82)',
-                                letterSpacing: '0.04em', textAlign: 'center',
-                                maxWidth: 58, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                            }}>{group.label}</span>
-                        </motion.div>
-                    );
-                })}
             </div>
 
             {/* Full-screen video viewer */}
@@ -941,6 +1120,7 @@ export default function HomeStoryBar() {
                         groups={imageGroups}
                         startGroupIdx={activeGroupIdx}
                         onClose={() => setActiveGroupIdx(null)}
+                        onFinished={() => { setActiveGroupIdx(null); openVideoStory(0); }}
                     />
                 )}
             </AnimatePresence>

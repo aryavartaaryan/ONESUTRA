@@ -1,6 +1,6 @@
 import { SutraUser } from '@/hooks/useUsers';
 
-export type Tab = 'story' | 'chat' | 'map';
+export type Tab = 'story' | 'chat' | 'map' | 'home';
 
 export interface FriendDoc {
     id: string;

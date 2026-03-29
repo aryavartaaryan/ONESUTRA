@@ -63,13 +63,13 @@ type OrbItem = {
 };
 
 const ORBIT_ITEMS: OrbItem[] = [
-    { id: 'ayurhealth', title: 'ACHARYA', subtitle: 'Awaken Guidance', description: 'AI-powered Vedic wisdom guru — personalized spiritual guidance & ancient knowledge at your fingertips.', href: '/acharya-samvad', color: '#a855f7', glow: '#9333ea', icon: '🌿', shape: '' },
+    { id: 'ayurhealth', title: 'GURUKUL', subtitle: 'Sacred Learning', description: 'Connect with Vedic scholars, Gurukuls & masters — discover ancient wisdom schools and spiritual guides across India.', href: '/guru-gurukul', color: '#a855f7', glow: '#9333ea', icon: '🎓', shape: '' },
     { id: 'dhyan', title: 'MEDITATE', subtitle: 'Sacred Mantras', description: 'Immerse in curated sacred mantras & guided meditations — find inner stillness with healing frequencies.', href: '/dhyan-kshetra', color: '#3b82f6', glow: '#2563eb', icon: '🧘', shape: '' },
     { id: 'outplugs', title: 'INSHORTS', subtitle: 'Mindful News', description: 'Distraction-free mindful news — stay informed without the noise, curated through a conscious lens.', href: '/outplugs', color: '#d946ef', glow: '#a21caf', icon: '📰', shape: '' },
     { id: 'prana-raag', title: 'RAAG MUSIC', subtitle: 'Resonances', description: 'Ancient Indian classical ragas matched to the time of day — healing frequencies for every moment.', href: '/project-leela', color: '#38bdf8', glow: '#0284c7', icon: '🎵', shape: '' },
     { id: 'swadesi', title: 'SWADESHI', subtitle: 'Sacred Commerce', description: 'Discover authentic Indian artisan products — sacred commerce that honors tradition & empowers craftsmen.', href: '/swadesi-product', color: '#f97316', glow: '#ea580c', icon: '🛍️', shape: '' },
     { id: 'vedic-games', title: 'GAMES', subtitle: 'Mindful Play', description: 'Vedic-inspired mindful games — sharpen your mind while connecting with ancient Indian wisdom.', href: '/vedic-games', color: '#ec4899', glow: '#be185d', icon: '🎲', shape: '' },
-    { id: 'sutraconnect', title: 'RESONANCE', subtitle: 'Sacred Circle', description: 'Connect with conscious seekers — friend circles, sacred stories & mindful social in ONESUTRA style.', href: '/resonance', color: '#8b5cf6', glow: '#7c3aed', icon: '🌐', shape: '' },
+    { id: 'prancers', title: 'PRANCERS', subtitle: 'Urja Feed', description: 'Your pranic social energy feed — share your spiritual journey, connect with seekers & radiate conscious light.', href: '/pranaverse', color: '#06b6d4', glow: '#0891b2', icon: '⚡', shape: '' },
     { id: 'pranaverse', title: 'PRANAVIBES', subtitle: 'Conscious Feed', description: 'Your conscious social feed — inspirational reels, mantras & wisdom curated for spiritual growth.', href: '/pranaverse', color: '#14b8a6', glow: '#0d9488', icon: '🌊', shape: '' },
     { id: 'vedic-sangrah', title: 'RITUALS', subtitle: 'Sacred Practices', description: 'Daily sacred practices & rituals — step-by-step guidance for pujas, havans & spiritual ceremonies.', href: '/vedic-sangrah', color: '#6366f1', glow: '#4f46e5', icon: '🛕', shape: '' },
 ];
@@ -539,114 +539,114 @@ export default function SacredPortalGrid() {
             </div>
 
             <div style={{ position: 'relative', width: orbitSize, height: orbitSize, flexShrink: 0 }}>
-            <div ref={containerRef}
-                style={{ position: 'absolute', inset: 0, touchAction: 'none', cursor: 'grab' }}
-                onPointerDown={onPD} onPointerMove={onPM} onPointerUp={onPU}
-                onPointerLeave={() => { onPU(); isHovered.current = false; }}
-                onPointerEnter={() => { isHovered.current = true; }}
-            >
+                <div ref={containerRef}
+                    style={{ position: 'absolute', inset: 0, touchAction: 'none', cursor: 'grab' }}
+                    onPointerDown={onPD} onPointerMove={onPM} onPointerUp={onPU}
+                    onPointerLeave={() => { onPU(); isHovered.current = false; }}
+                    onPointerEnter={() => { isHovered.current = true; }}
+                >
 
-                {/* ── PHOTOREALISTIC PLATFORM IMAGE (fixed/non-rotating center) ── */}
-                <div style={{
-                    position: 'absolute',
-                    left: '50%', top: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: platformSize, height: platformSize,
-                    zIndex: 8, pointerEvents: 'none',
-                }}>
-                    {/* Outer glow behind platform */}
-                    <motion.div
-                        animate={{ opacity: [0.55, 0.85, 0.55], scale: [1, 1.06, 1] }}
-                        transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
-                        style={{
-                            position: 'absolute', inset: '-12%',
-                            background: 'radial-gradient(circle, rgba(251,191,36,0.35) 0%, rgba(180,110,0,0.15) 45%, transparent 72%)',
-                            borderRadius: '50%', filter: 'blur(18px)',
-                        }}
-                    />
-                    {/* The central OrbitImage — full fill, black background screened out */}
-                    <img
-                        src="/images/OneSUTRAOrbit.jpeg"
-                        alt="OneSUTRA Orbit Platform"
-                        style={{
-                            width: '100%', height: '100%',
-                            objectFit: 'cover',
-                            objectPosition: 'center',
-                            borderRadius: '50%',
-                            // screen blend removes the black JPEG background completely
-                            mixBlendMode: 'screen',
-                            // extra luminance contrast to make the lotus pop
-                            filter: `brightness(1.35) contrast(1.12) saturate(1.25) drop-shadow(0 0 ${platformSize * 0.07}px rgba(251,191,36,0.9))`,
-                            position: 'relative', zIndex: 1,
-                        }}
-                    />
-                    {/* Decorative flame pulse on top */}
-                    <motion.div
-                        animate={{ scale: [1, 1.35, 1], opacity: [0.4, 0.75, 0.4] }}
-                        transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-                        style={{
-                            position: 'absolute',
-                            top: '16%', left: '50%',
-                            transform: 'translateX(-50%)',
-                            width: platformSize * 0.18, height: platformSize * 0.18,
-                            background: 'radial-gradient(circle, rgba(255,160,30,0.75) 0%, transparent 70%)',
-                            borderRadius: '50%', filter: 'blur(12px)', zIndex: 2,
-                        }}
-                    />
+                    {/* ── PHOTOREALISTIC PLATFORM IMAGE (fixed/non-rotating center) ── */}
+                    <div style={{
+                        position: 'absolute',
+                        left: '50%', top: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: platformSize, height: platformSize,
+                        zIndex: 8, pointerEvents: 'none',
+                    }}>
+                        {/* Outer glow behind platform */}
+                        <motion.div
+                            animate={{ opacity: [0.55, 0.85, 0.55], scale: [1, 1.06, 1] }}
+                            transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+                            style={{
+                                position: 'absolute', inset: '-12%',
+                                background: 'radial-gradient(circle, rgba(251,191,36,0.35) 0%, rgba(180,110,0,0.15) 45%, transparent 72%)',
+                                borderRadius: '50%', filter: 'blur(18px)',
+                            }}
+                        />
+                        {/* The central OrbitImage — full fill, black background screened out */}
+                        <img
+                            src="/images/OneSUTRAOrbit.jpeg"
+                            alt="OneSUTRA Orbit Platform"
+                            style={{
+                                width: '100%', height: '100%',
+                                objectFit: 'cover',
+                                objectPosition: 'center',
+                                borderRadius: '50%',
+                                // screen blend removes the black JPEG background completely
+                                mixBlendMode: 'screen',
+                                // extra luminance contrast to make the lotus pop
+                                filter: `brightness(1.35) contrast(1.12) saturate(1.25) drop-shadow(0 0 ${platformSize * 0.07}px rgba(251,191,36,0.9))`,
+                                position: 'relative', zIndex: 1,
+                            }}
+                        />
+                        {/* Decorative flame pulse on top */}
+                        <motion.div
+                            animate={{ scale: [1, 1.35, 1], opacity: [0.4, 0.75, 0.4] }}
+                            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                            style={{
+                                position: 'absolute',
+                                top: '16%', left: '50%',
+                                transform: 'translateX(-50%)',
+                                width: platformSize * 0.18, height: platformSize * 0.18,
+                                background: 'radial-gradient(circle, rgba(255,160,30,0.75) 0%, transparent 70%)',
+                                borderRadius: '50%', filter: 'blur(12px)', zIndex: 2,
+                            }}
+                        />
+                    </div>
+
+                    {/* Orbit track ring — transparent golden halo */}
+                    <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 4 }}
+                        viewBox={`0 0 ${orbitSize} ${orbitSize}`}>
+                        <defs>
+                            <filter id="ringGlow">
+                                <feGaussianBlur stdDeviation="5" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+                            </filter>
+                        </defs>
+                        <circle cx={orbitSize / 2} cy={orbitSize / 2} r={orbitR} fill="none"
+                            stroke="rgba(251,191,36,0.22)" strokeWidth={orbSize * 0.85} />
+                        <circle cx={orbitSize / 2} cy={orbitSize / 2} r={orbitR} fill="none"
+                            stroke="rgba(251,191,36,0.88)" strokeWidth="1.8" filter="url(#ringGlow)" />
+                        <circle cx={orbitSize / 2} cy={orbitSize / 2} r={orbitR - orbSize * 0.43} fill="none"
+                            stroke="rgba(251,191,36,0.20)" strokeWidth="0.7" />
+                        <circle cx={orbitSize / 2} cy={orbitSize / 2} r={orbitR + orbSize * 0.43} fill="none"
+                            stroke="rgba(251,191,36,0.20)" strokeWidth="0.7" />
+                    </svg>
+
+                    {/* Gold tendril lines */}
+                    <Tendrils S={orbitSize} rot={rotation} />
+
+                    {/* 9 Photorealistic-style Geode Orbs */}
+                    {ORBIT_ITEMS.map((item, i) => {
+                        const deg = -90 + i * (360 / N) + rotation;
+                        const rad = deg * Math.PI / 180;
+                        const cx = orbitSize / 2 + Math.cos(rad) * orbitR;
+                        const cy = orbitSize / 2 + Math.sin(rad) * orbitR;
+                        return (
+                            <div key={item.id} style={{ position: 'absolute', left: cx, top: cy, transform: 'translate(-50%, -50%)', zIndex: 20 }}>
+                                <motion.div whileHover={{ scale: 1.18, filter: `drop-shadow(0 0 ${orbSize * 0.2}px ${item.color})` }} whileTap={{ scale: 0.90 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }}>
+                                    {item.isModal
+                                        ? <div onClick={() => { playOrbClickSound(); setRaagOpen(true); }} style={{ cursor: 'pointer' }}><GeodeOrb item={item} sz={orbSize} idx={i} /></div>
+                                        : <div onClick={() => { if (!hasMoved.current) { playOrbClickSound(); setExpandedItem(item); } }} style={{ cursor: 'pointer' }}>
+                                            <GeodeOrb item={item} sz={orbSize} idx={i} />
+                                        </div>
+                                    }
+                                </motion.div>
+                            </div>
+                        );
+                    })}
                 </div>
-
-                {/* Orbit track ring — transparent golden halo */}
-                <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 4 }}
-                    viewBox={`0 0 ${orbitSize} ${orbitSize}`}>
-                    <defs>
-                        <filter id="ringGlow">
-                            <feGaussianBlur stdDeviation="5" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
-                        </filter>
-                    </defs>
-                    <circle cx={orbitSize / 2} cy={orbitSize / 2} r={orbitR} fill="none"
-                        stroke="rgba(251,191,36,0.22)" strokeWidth={orbSize * 0.85} />
-                    <circle cx={orbitSize / 2} cy={orbitSize / 2} r={orbitR} fill="none"
-                        stroke="rgba(251,191,36,0.88)" strokeWidth="1.8" filter="url(#ringGlow)" />
-                    <circle cx={orbitSize / 2} cy={orbitSize / 2} r={orbitR - orbSize * 0.43} fill="none"
-                        stroke="rgba(251,191,36,0.20)" strokeWidth="0.7" />
-                    <circle cx={orbitSize / 2} cy={orbitSize / 2} r={orbitR + orbSize * 0.43} fill="none"
-                        stroke="rgba(251,191,36,0.20)" strokeWidth="0.7" />
-                </svg>
-
-                {/* Gold tendril lines */}
-                <Tendrils S={orbitSize} rot={rotation} />
-
-                {/* 9 Photorealistic-style Geode Orbs */}
-                {ORBIT_ITEMS.map((item, i) => {
-                    const deg = -90 + i * (360 / N) + rotation;
-                    const rad = deg * Math.PI / 180;
-                    const cx = orbitSize / 2 + Math.cos(rad) * orbitR;
-                    const cy = orbitSize / 2 + Math.sin(rad) * orbitR;
-                    return (
-                        <div key={item.id} style={{ position: 'absolute', left: cx, top: cy, transform: 'translate(-50%, -50%)', zIndex: 20 }}>
-                            <motion.div whileHover={{ scale: 1.18, filter: `drop-shadow(0 0 ${orbSize * 0.2}px ${item.color})` }} whileTap={{ scale: 0.90 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }}>
-                                {item.isModal
-                                    ? <div onClick={() => { playOrbClickSound(); setRaagOpen(true); }} style={{ cursor: 'pointer' }}><GeodeOrb item={item} sz={orbSize} idx={i} /></div>
-                                    : <div onClick={() => { if (!hasMoved.current) { playOrbClickSound(); setExpandedItem(item); } }} style={{ cursor: 'pointer' }}>
-                                        <GeodeOrb item={item} sz={orbSize} idx={i} />
-                                    </div>
-                                }
-                            </motion.div>
-                        </div>
-                    );
-                })}
-            </div>
-            {/* Central scroll-passthrough: sibling of containerRef → its touchAction:pan-y is NOT
+                {/* Central scroll-passthrough: sibling of containerRef → its touchAction:pan-y is NOT
                 overridden by containerRef's touchAction:none. Touches on center scroll the page;
                 touches outside this circle (on the ring/planets) still reach containerRef for rotation. */}
-            <div style={{
-                position: 'absolute', left: '50%', top: '50%',
-                transform: 'translate(-50%,-50%)',
-                width: (orbitSize * 0.43 - Math.max(56, orbitSize * 0.16) * 0.5) * 2,
-                height: (orbitSize * 0.43 - Math.max(56, orbitSize * 0.16) * 0.5) * 2,
-                borderRadius: '50%', touchAction: 'pan-y', zIndex: 30,
-                pointerEvents: 'auto',
-            }} />
+                <div style={{
+                    position: 'absolute', left: '50%', top: '50%',
+                    transform: 'translate(-50%,-50%)',
+                    width: (orbitSize * 0.43 - Math.max(56, orbitSize * 0.16) * 0.5) * 2,
+                    height: (orbitSize * 0.43 - Math.max(56, orbitSize * 0.16) * 0.5) * 2,
+                    borderRadius: '50%', touchAction: 'pan-y', zIndex: 30,
+                    pointerEvents: 'auto',
+                }} />
             </div>
 
             <AnimatePresence>

@@ -33,7 +33,7 @@ export default function InlineChat({ chatWith, currentUser, onBack }: { chatWith
     const [showEmoji, setShowEmoji] = useState(false);
     const [bgImage, setBgImage] = useState(TIME_BGS.night);
     const bottomRef = useRef<HTMLDivElement>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
     const colorIdx = chatWith.uid.charCodeAt(0) % AVATAR_COLORS.length;
     const avatarBg = AVATAR_COLORS[colorIdx];
     const initials = chatWith.name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();

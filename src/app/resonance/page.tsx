@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Bell, Search } from 'lucide-react';
+import { ArrowLeft, Bell, Search, X } from 'lucide-react';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { useUsers, SutraUser } from '@/hooks/useUsers';
 import { Tab, FriendDoc, FriendStatus } from '@/components/Resonance/ResonanceTypes';
@@ -41,23 +41,10 @@ const RESONANCE_STORIES = [
 ];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Tab = 'story' | 'chat' | 'map';
 type ChatView = 'contacts' | 'chat';
-type FriendStatus = 'none' | 'sent' | 'received' | 'friends';
 
 const AVATAR_COLORS = ['#8b5cf6', '#ec4899', '#3b82f6', '#14b8a6', '#f97316', '#22c55e', '#a855f7', '#f59e0b'];
 const EMOJIS = ['🙏', '✨', '🌿', '🕉️', '🌸', '💛', '🔥', '🌟', '💫', '🌊', '🌺', '🎵', '🧘', '🌙', '☀️', '💜', '🙌', '👋', '❤️', '🌈', '🦋', '🍃', '🌻', '🛕', '🪷', '🌄', '🌅', '🎶', '🏔️', '🌾'];
-
-interface FriendDoc {
-    id: string;
-    fromUid: string;
-    toUid: string;
-    fromName: string;
-    fromPhoto: string | null;
-    toName: string;
-    status: 'pending' | 'accepted' | 'declined';
-    createdAt: number;
-}
 
 // ─── Story Bubble ─────────────────────────────────────────────────────────────
 function StoryBubble({ story, idx, onClick }: { story: typeof RESONANCE_STORIES[0]; idx: number; onClick: () => void }) {

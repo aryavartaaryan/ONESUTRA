@@ -13,10 +13,6 @@ export default function VahanaBar() {
 
     const NAV = [
         {
-            id: 'onesutra', href: '/onesutra', Icon: MessageCircle,
-            label: lang === 'hi' ? 'सूत्र' : 'Connect',
-        },
-        {
             id: 'jobs', href: '/jobs-skills', Icon: Briefcase,
             label: lang === 'hi' ? 'कौशल' : 'Skills',
         },
