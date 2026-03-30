@@ -13,7 +13,8 @@ interface ShareSheetProps {
 
 function buildShareUrl(postId: string | number): string {
     if (typeof window === 'undefined') return '';
-    return `${window.location.origin}/pranaverse?post=${postId}`;
+    // Always link directly to the specific reel page for immersive sharing
+    return `${window.location.origin}/pranaverse/reel/${postId}`;
 }
 
 const SHARE_TARGETS = (url: string, text: string) => [
@@ -22,7 +23,7 @@ const SHARE_TARGETS = (url: string, text: string) => [
         label: 'WhatsApp',
         icon: '💬',
         circleClass: styles.shareIconWhatsapp,
-        href: `https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + url)}`,
+        href: `https://api.whatsapp.com/send?text=${encodeURIComponent(text + '\n\n🌟 Join PranaVerse — the world\'s most conscious social network\n' + url)}`,
     },
     {
         key: 'facebook',

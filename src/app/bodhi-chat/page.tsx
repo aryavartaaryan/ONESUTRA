@@ -59,7 +59,7 @@ interface ChatMessage {
 // ─── Utils ────────────────────────────────────────────────────────────────────
 function formatTime(timestamp: number): string {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    return date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' });
 }
 
 function getTimeAgo(timestamp: number): string {
@@ -134,17 +134,17 @@ function ChatBubble({ msg, isLive = false, showTimestamp = true }: { msg: ChatMe
                         </span>
                     </motion.div>
                 )}
-                
+
                 {/* Timestamp */}
                 {showTimestamp && (
-                    <motion.span 
+                    <motion.span
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.3 }}
                         onClick={() => setShowFullTime(!showFullTime)}
-                        style={{ 
-                            fontSize: '0.40rem', 
-                            color: 'rgba(255,255,255,0.35)', 
+                        style={{
+                            fontSize: '0.40rem',
+                            color: 'rgba(255,255,255,0.35)',
                             letterSpacing: '0.06em',
                             fontFamily: 'monospace',
                             cursor: 'pointer',
@@ -164,53 +164,116 @@ function ChatBubble({ msg, isLive = false, showTimestamp = true }: { msg: ChatMe
 
 // ─── Bodhi Orb ────────────────────────────────────────────────────────────────
 function BodhiMiniOrb({ thinking, speaking }: { thinking: boolean; speaking: boolean }) {
+    const isActive = thinking || speaking;
     const orbAnim = thinking
         ? { scale: [1, 1.02, 0.98, 1], transition: { duration: 2.5, repeat: Infinity, ease: 'easeInOut' as const } }
         : speaking
-            ? { scale: [1, 1.08, 0.95, 1.05, 1], transition: { duration: 1.6, repeat: Infinity, ease: 'easeInOut' as const } }
-            : { scale: [1, 1.04, 1], transition: { duration: 7, repeat: Infinity, ease: 'easeInOut' as const } };
+            ? { scale: [1, 1.09, 0.94, 1.06, 1], transition: { duration: 1.4, repeat: Infinity, ease: 'easeInOut' as const } }
+            : { scale: [1, 1.04, 1], transition: { duration: 6, repeat: Infinity, ease: 'easeInOut' as const } };
 
     return (
-        <div style={{ position: 'relative', width: 64, height: 64 }}>
+        <div style={{ position: 'relative', width: 62, height: 62 }}>
+            {/* Speaking aura rings */}
             {speaking && [0, 1, 2].map(i => (
                 <motion.div key={i}
-                    animate={{ scale: [1, 1.8 + i * 0.3], opacity: [0.35, 0] }}
-                    transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.42, ease: 'easeOut' }}
-                    style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '1.5px solid rgba(251,191,36,0.45)' }}
+                    animate={{ scale: [1, 1.9 + i * 0.3], opacity: [0.38, 0] }}
+                    transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.4, ease: 'easeOut' }}
+                    style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '1.5px solid rgba(251,191,36,0.50)' }}
                 />
             ))}
+            {/* Thinking rings */}
             {thinking && [0, 1].map(i => (
                 <motion.div key={i}
-                    animate={{ scale: [1, 1.5 + i * 0.2], opacity: [0.25, 0] }}
+                    animate={{ scale: [1, 1.55 + i * 0.2], opacity: [0.28, 0] }}
                     transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.55, ease: 'easeOut' }}
-                    style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '1px solid rgba(129,140,248,0.40)' }}
+                    style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '1px solid rgba(34,211,238,0.45)' }}
                 />
             ))}
+            {/* Rotating dashed ring when active */}
+            {isActive && (
+                <motion.div
+                    animate={{ rotate: [0, 360] }}
+                    transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+                    style={{
+                        position: 'absolute', inset: -6, borderRadius: '50%',
+                        border: '1px dashed rgba(251,191,36,0.55)',
+                        pointerEvents: 'none',
+                    }}
+                />
+            )}
             <motion.div animate={orbAnim} style={{
-                width: 64, height: 64, borderRadius: '50%', position: 'relative',
-                background: 'radial-gradient(circle at 36% 26%, rgba(255,255,255,0.32) 0%, rgba(251,191,36,0.18) 28%, rgba(129,140,248,0.14) 55%, rgba(99,102,241,0.10) 80%, transparent 100%)',
-                backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                border: '1.5px solid rgba(255,255,255,0.22)',
-                boxShadow: '0 0 26px rgba(251,191,36,0.18), 0 8px 24px rgba(0,0,0,0.30), inset 0 2px 0 rgba(255,255,255,0.28)',
+                width: 62, height: 62, borderRadius: '50%', position: 'relative',
+                background: isActive
+                    ? 'radial-gradient(circle at 38% 30%, rgba(120,200,255,0.28) 0%, rgba(18,28,95,0.94) 45%, rgba(4,7,38,0.97) 100%)'
+                    : 'radial-gradient(circle at 38% 30%, rgba(120,200,255,0.18) 0%, rgba(18,28,95,0.88) 45%, rgba(4,7,38,0.95) 100%)',
+                backdropFilter: 'blur(12px) saturate(180%)', WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+                border: `1.5px solid ${speaking ? 'rgba(251,191,36,0.55)' : thinking ? 'rgba(34,211,238,0.55)' : 'rgba(34,211,238,0.42)'}`,
+                boxShadow: speaking
+                    ? '0 0 0 1px rgba(251,191,36,0.18), 0 6px 28px rgba(251,191,36,0.30), 0 0 48px rgba(251,191,36,0.15)'
+                    : thinking
+                        ? '0 0 0 1px rgba(34,211,238,0.18), 0 6px 28px rgba(34,211,238,0.25), 0 0 48px rgba(34,211,238,0.12)'
+                        : '0 0 0 1px rgba(34,211,238,0.14), 0 6px 24px rgba(14,116,144,0.40)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
             }}>
-                <div aria-hidden style={{ position: 'absolute', top: '7%', left: '10%', width: '52%', height: '34%', background: 'radial-gradient(ellipse, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0.18) 45%, transparent 100%)', borderRadius: '50%', transform: 'rotate(-25deg)', filter: 'blur(2.5px)' }} />
-                <div aria-hidden style={{ position: 'absolute', bottom: 0, left: '5%', right: '5%', height: '55%', background: 'radial-gradient(ellipse at center bottom, rgba(251,191,36,0.18) 0%, rgba(129,140,248,0.10) 45%, transparent 75%)', filter: 'blur(6px)' }} />
-                <span style={{ fontSize: '1.3rem', position: 'relative', zIndex: 2, filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.5))' }}>✦</span>
+                {/* Inner glow pulse */}
+                <motion.div
+                    animate={{ opacity: [0.3, 0.65, 0.3], scale: [0.7, 1.1, 0.7] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                    style={{
+                        position: 'absolute', inset: 0, borderRadius: '50%',
+                        background: speaking
+                            ? 'radial-gradient(circle at center, rgba(251,191,36,0.45) 0%, rgba(34,211,238,0.18) 55%, transparent 80%)'
+                            : 'radial-gradient(circle at center, rgba(139,92,246,0.45) 0%, rgba(34,211,238,0.18) 55%, transparent 80%)',
+                        pointerEvents: 'none',
+                    }}
+                />
+                {/* Yogi SVG — eyes open when active, closed when idle */}
+                <svg width="36" height="40" viewBox="0 0 40 44" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ position: 'relative', zIndex: 2 }}>
+                    <circle cx="20" cy="12" r="9.5" fill={isActive ? 'rgba(255,215,0,0.18)' : 'rgba(255,215,0,0.05)'} />
+                    <circle cx="20" cy="12" r="7.5" fill="none" stroke={isActive ? 'rgba(255,215,0,0.75)' : 'rgba(255,215,0,0.32)'} strokeWidth={isActive ? '1' : '0.7'} strokeDasharray={isActive ? '3 1.2' : '2.5 1.5'} />
+                    <circle cx="20" cy="12" r="5" fill={isActive ? 'rgba(255,255,255,0.98)' : 'rgba(220,245,255,0.92)'} />
+                    {isActive ? (
+                        <>
+                            <ellipse cx="18" cy="11.8" rx="1.2" ry="1.0" fill="#0f172a" />
+                            <circle cx="18" cy="11.8" r="0.45" fill={speaking ? '#fbbf24' : '#22d3ee'} />
+                            <ellipse cx="22" cy="11.8" rx="1.2" ry="1.0" fill="#0f172a" />
+                            <circle cx="22" cy="11.8" r="0.45" fill={speaking ? '#fbbf24' : '#22d3ee'} />
+                            <ellipse cx="20" cy="10.2" rx="1.6" ry="1.0" fill="#FFD700" opacity="0.95" />
+                            <circle cx="20" cy="10.2" r="0.65" fill="#fff" />
+                        </>
+                    ) : (
+                        <>
+                            <path d="M17 12 Q18 11 19 12" stroke="rgba(80,120,160,0.65)" strokeWidth="0.7" fill="none" strokeLinecap="round" />
+                            <path d="M21 12 Q22 11 23 12" stroke="rgba(80,120,160,0.65)" strokeWidth="0.7" fill="none" strokeLinecap="round" />
+                            <ellipse cx="20" cy="10.8" rx="1.4" ry="0.85" fill="#FFD700" />
+                            <circle cx="20" cy="10.8" r="0.5" fill="rgba(255,255,255,0.9)" />
+                        </>
+                    )}
+                    <rect x="17.8" y="17" width="4.4" height="2.8" rx="1.5" fill="rgba(210,240,255,0.85)" />
+                    <path d="M 14 30 L 15.5 20 Q 20 18.5 24.5 20 L 26 30 Z" fill="rgba(190,230,255,0.85)" />
+                    <path d="M 15.5 24 Q 12 26.5 11 30" stroke="rgba(190,230,255,0.85)" strokeWidth="2.6" strokeLinecap="round" fill="none" />
+                    <circle cx="11" cy="30" r="2.2" fill="rgba(190,230,255,0.75)" />
+                    <path d="M 24.5 24 Q 28 26.5 29 30" stroke="rgba(190,230,255,0.85)" strokeWidth="2.6" strokeLinecap="round" fill="none" />
+                    <circle cx="29" cy="30" r="2.2" fill="rgba(190,230,255,0.75)" />
+                    <path d="M 7 37 Q 13 32.5 20 33.5 Q 27 32.5 33 37 Q 30 41.5 20 42 Q 10 41.5 7 37 Z" fill="rgba(170,220,255,0.80)" />
+                    <line x1="20" y1="19.5" x2="20" y2="30" stroke={isActive ? 'rgba(34,211,238,0.7)' : 'rgba(100,220,255,0.4)'} strokeWidth={isActive ? '1' : '0.7'} />
+                    <circle cx="20" cy="23.5" r="1.0" fill={speaking ? '#fbbf24' : isActive ? '#22d3ee' : 'rgba(100,220,255,0.85)'} />
+                    <circle cx="20" cy="7" r={isActive ? '2.2' : '1.7'} fill={isActive ? 'rgba(167,139,250,0.8)' : 'rgba(167,139,250,0.50)'} />
+                </svg>
             </motion.div>
         </div>
     );
 }
 
 // ─── Voice Input Button ───────────────────────────────────────────────────────
-function VoiceInputButton({ 
-    isListening, 
-    onStart, 
-    onStop, 
-    disabled 
-}: { 
-    isListening: boolean; 
-    onStart: () => void; 
+function VoiceInputButton({
+    isListening,
+    onStart,
+    onStop,
+    disabled
+}: {
+    isListening: boolean;
+    onStart: () => void;
     onStop: () => void;
     disabled?: boolean;
 }) {
@@ -219,7 +282,7 @@ function VoiceInputButton({
             whileTap={{ scale: 0.88 }}
             onClick={isListening ? onStop : onStart}
             disabled={disabled}
-            animate={isListening ? { 
+            animate={isListening ? {
                 scale: [1, 1.1, 1],
                 boxShadow: [
                     '0 0 0 0 rgba(248,113,113,0.4)',
@@ -228,22 +291,22 @@ function VoiceInputButton({
                 ]
             } : {}}
             transition={isListening ? { duration: 1.2, repeat: Infinity } : {}}
-            style={{ 
-                flexShrink: 0, 
-                width: 36, 
-                height: 36, 
-                borderRadius: '50%', 
-                background: isListening 
-                    ? 'linear-gradient(135deg, rgba(248,113,113,0.35), rgba(239,68,68,0.25))' 
-                    : 'rgba(255,255,255,0.06)', 
-                border: isListening 
-                    ? '1px solid rgba(248,113,113,0.50)' 
-                    : '1px solid rgba(255,255,255,0.10)', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                cursor: disabled ? 'default' : 'pointer', 
-                color: isListening ? '#f87171' : 'rgba(255,255,255,0.50)', 
+            style={{
+                flexShrink: 0,
+                width: 36,
+                height: 36,
+                borderRadius: '50%',
+                background: isListening
+                    ? 'linear-gradient(135deg, rgba(248,113,113,0.35), rgba(239,68,68,0.25))'
+                    : 'rgba(255,255,255,0.06)',
+                border: isListening
+                    ? '1px solid rgba(248,113,113,0.50)'
+                    : '1px solid rgba(255,255,255,0.10)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: disabled ? 'default' : 'pointer',
+                color: isListening ? '#f87171' : 'rgba(255,255,255,0.50)',
                 transition: 'all 0.25s',
                 position: 'relative',
             }}
@@ -283,15 +346,15 @@ function AnimatedBackground({ chatState }: { chatState: string }) {
     };
 
     return (
-        <motion.div 
+        <motion.div
             initial={false}
             animate={{ background: getGradient() }}
             transition={{ duration: 1.5, ease: 'easeInOut' }}
-            style={{ 
-                position: 'fixed', 
-                inset: 0, 
-                zIndex: 0, 
-            }} 
+            style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 0,
+            }}
         />
     );
 }
@@ -552,11 +615,11 @@ export default function BodhiChatPage() {
 
     return (
         <>
-            <div style={{ 
-                position: 'fixed', 
-                inset: 0, 
-                zIndex: -1, 
-                background: 'linear-gradient(160deg, rgba(4,2,16,0.98) 0%, rgba(8,4,24,0.97) 40%, rgba(6,3,18,0.98) 100%)' 
+            <div style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: -1,
+                background: 'linear-gradient(160deg, rgba(4,2,16,0.98) 0%, rgba(8,4,24,0.97) 40%, rgba(6,3,18,0.98) 100%)'
             }} />
             <AnimatedBackground chatState={chatState} />
 
@@ -574,7 +637,7 @@ export default function BodhiChatPage() {
                         <span style={{ fontSize: 'clamp(0.9rem, 4vw, 1.05rem)', fontWeight: 800, fontFamily: "'Outfit', sans-serif", background: 'linear-gradient(120deg, #ffffff 0%, #fde68a 50%, #c4b5fd 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Sakha Bodhi</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.06rem' }}>
                             <span style={{ fontSize: 'clamp(0.42rem, 1.8vw, 0.50rem)', color: stateColor, fontWeight: 700, letterSpacing: '0.06em', transition: 'color 0.3s', whiteSpace: 'nowrap' }}>{stateLabel}</span>
-                            <span style={{ fontSize: 'clamp(0.38rem, 1.6vw, 0.45rem)', color: 'rgba(255,255,255,0.28)', whiteSpace: 'nowrap' }}>Life Manager AI</span>
+                            <span style={{ fontSize: 'clamp(0.38rem, 1.6vw, 0.45rem)', color: 'rgba(167,139,250,0.65)', whiteSpace: 'nowrap' }}>Always here to enhance your life ✦</span>
                         </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0 }}>
@@ -604,9 +667,9 @@ export default function BodhiChatPage() {
                             <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.32)', fontStyle: 'italic', fontFamily: "'Outfit', sans-serif", lineHeight: 1.6 }}>
                                 {chatState === 'connecting' ? 'Bodhi se jud raha hoon…' : chatState === 'error' ? 'Connection mein takleef — retry karein' : 'बोधि सुनने के लिए तैयार है…'}
                             </p>
-                            <motion.div 
-                                initial={{ opacity: 0 }} 
-                                animate={{ opacity: 1 }} 
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
                                 transition={{ delay: 1 }}
                                 style={{ display: 'flex', alignItems: 'center', gap: 6 }}
                             >
@@ -676,7 +739,7 @@ export default function BodhiChatPage() {
                         {showEmoji && (
                             <motion.div initial={{ opacity: 0, y: 8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.96 }} transition={{ duration: 0.18 }}
                                 style={{ marginBottom: '0.45rem', padding: '0.55rem 0.65rem', background: 'rgba(8,4,24,0.96)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 16, backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', display: 'flex', flexWrap: 'wrap' as const, gap: '0.3rem', maxHeight: 140, overflowY: 'auto' as const }}>
-                                {['😊','😄','🙏','❤️','🔥','✨','💫','🌟','🌙','☀️','🎯','💡','⚡','🧘','🕉️','🪷','🌸','🌺','🍃','🌿','🌊','🏔️','🦋','🦚','💎','👑','🎵','🎶','🤩','😍','😂','😭','🥰','😎','🤔','🙌','👏','💪','🤝','🫂','🌈','🎊','🎉','🥳','💯','✅','🚀','🌏','🕊️','🐉','🦁'].map(em => (
+                                {['😊', '😄', '🙏', '❤️', '🔥', '✨', '💫', '🌟', '🌙', '☀️', '🎯', '💡', '⚡', '🧘', '🕉️', '🪷', '🌸', '🌺', '🍃', '🌿', '🌊', '🏔️', '🦋', '🦚', '💎', '👑', '🎵', '🎶', '🤩', '😍', '😂', '😭', '🥰', '😎', '🤔', '🙌', '👏', '💪', '🤝', '🫂', '🌈', '🎊', '🎉', '🥳', '💯', '✅', '🚀', '🌏', '🕊️', '🐉', '🦁'].map(em => (
                                     <motion.button key={em} whileTap={{ scale: 0.80 }} onClick={() => { setInputValue(p => p + em); setShowEmoji(false); inputRef.current?.focus(); }}
                                         style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1rem' }}>
                                         {em}
@@ -692,13 +755,13 @@ export default function BodhiChatPage() {
                             😊
                         </motion.button>
                         {/* Voice input button */}
-                        <VoiceInputButton 
-                            isListening={isListening} 
-                            onStart={startVoiceInput} 
+                        <VoiceInputButton
+                            isListening={isListening}
+                            onStart={startVoiceInput}
                             onStop={stopVoiceInput}
                             disabled={isThinking}
                         />
-                        
+
                         <input ref={inputRef} type="text" value={inputValue}
                             onChange={e => setInputValue(e.target.value)}
                             onKeyDown={e => {
@@ -711,7 +774,7 @@ export default function BodhiChatPage() {
                             onBlur={() => setIsTypingFocus(false)}
                             disabled={isThinking || isListening}
                             placeholder={
-                                isListening 
+                                isListening
                                     ? (lang === 'en' ? 'Listening... speak now' : 'सुन रहा हूँ... बोलिए') :
                                     chatState === 'connecting' ? 'Bodhi jud raha hai…' :
                                         isThinking ? 'Bodhi soch raha hai…' :

@@ -1,9 +1,5 @@
-import AryaSangrah from '@/components/MantraSangrah/AryaSangrah';
+import GurkulVedicSangrah from '@/components/Gurukul/GurkulVedicSangrah';
 
-export default function AryaSangrahPage() {
-  return (
-    <div style={{ backgroundColor: '#111', minHeight: '100vh' }}>
-      <AryaSangrah />
-    </div>
-  );
+export default function VedicSangrahPage() {
+  return <GurkulVedicSangrah />;
 }

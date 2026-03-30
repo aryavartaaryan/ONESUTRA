@@ -197,7 +197,7 @@ export default function Home() {
   }, []);
 
   // Auto-dismiss splash after 12 seconds (handled inside the component itself)
-   
+
 
   useEffect(() => {
     const handler = () => setIsAboutOpen(true);
@@ -384,60 +384,128 @@ export default function Home() {
             transition={{ type: 'spring', stiffness: 220, damping: 18 }}
           >
             {/* Label */}
-            <span style={{
-              position: 'absolute', bottom: '100%', left: '50%',
-              transform: 'translateX(-50%)', marginBottom: 8,
-              fontSize: 9, fontWeight: 700, letterSpacing: '0.16em',
-              textTransform: 'uppercase', color: 'rgba(45,212,191,0.72)',
-              fontFamily: 'system-ui, sans-serif', whiteSpace: 'nowrap',
-              textShadow: '0 1px 6px rgba(0,0,0,0.7)', pointerEvents: 'none',
-            }}>Sakha Bodhi</span>
-
-            {/* Outer blur plasma ring */}
-            <motion.div
-              animate={{ scale: [1, 1.12, 1], opacity: [0.45, 0.25, 0.45] }}
-              transition={{ duration: 3.8, repeat: Infinity, ease: 'easeInOut' }}
+            <motion.span
+              animate={{ opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
               style={{
-                position: 'absolute', inset: -14,
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(20,184,166,0.35) 0%, rgba(253,224,71,0.18) 55%, transparent 75%)',
-                filter: 'blur(10px)',
+                position: 'absolute', bottom: '108%', left: '50%',
+                transform: 'translateX(-50%)', marginBottom: 4,
+                fontSize: 8, fontWeight: 800, letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                background: 'linear-gradient(90deg, #22d3ee, #a78bfa, #22d3ee)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                fontFamily: 'system-ui, sans-serif', whiteSpace: 'nowrap',
                 pointerEvents: 'none',
+                filter: 'drop-shadow(0 1px 4px rgba(34,211,238,0.55))',
+              }}>Sakha Bodhi</motion.span>
+
+            {/* Outer cosmic radiation */}
+            <motion.div
+              animate={{ scale: [1, 1.32, 1], opacity: [0.28, 0.10, 0.28] }}
+              transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+              style={{
+                position: 'absolute', inset: -20, borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(34,211,238,0.38) 0%, rgba(139,92,246,0.20) 50%, transparent 78%)',
+                filter: 'blur(12px)', pointerEvents: 'none',
               }}
             />
 
-            {/* Mid glow ring */}
+            {/* Mid rotating sacred geometry ring */}
             <motion.div
-              animate={{ scale: [1, 1.08, 1], opacity: [0.6, 0.3, 0.6] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+              animate={{ rotate: [0, 360] }}
+              transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
               style={{
-                position: 'absolute', inset: -6,
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(253,224,71,0.28) 0%, rgba(20,184,166,0.22) 60%, transparent 80%)',
-                filter: 'blur(6px)',
-                pointerEvents: 'none',
+                position: 'absolute', inset: -7, borderRadius: '50%',
+                border: '1px dashed rgba(251,191,36,0.5)', pointerEvents: 'none',
               }}
             />
 
-            {/* Core button — the Pranic Spark itself */}
+            {/* Inner soft violet-teal aura */}
+            <motion.div
+              animate={{ scale: [1, 1.10, 1], opacity: [0.7, 0.28, 0.7] }}
+              transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+              style={{
+                position: 'absolute', inset: -4, borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(139,92,246,0.30) 0%, rgba(34,211,238,0.22) 60%, transparent 85%)',
+                filter: 'blur(5px)', pointerEvents: 'none',
+              }}
+            />
+
+            {/* Three orbiting energy particles */}
+            {([0, 120, 240] as number[]).map((deg, i) => (
+              <motion.div
+                key={i}
+                animate={{ rotate: [deg, deg + 360] }}
+                transition={{ duration: 5 + i * 0.7, repeat: Infinity, ease: 'linear' }}
+                style={{ position: 'absolute', inset: -14, borderRadius: '50%', pointerEvents: 'none' }}
+              >
+                <div style={{
+                  position: 'absolute', top: '50%', left: '50%',
+                  width: 4, height: 4, borderRadius: '50%',
+                  background: i === 0 ? '#fbbf24' : i === 1 ? '#22d3ee' : '#a78bfa',
+                  boxShadow: `0 0 7px ${i === 0 ? '#fbbf24' : i === 1 ? '#22d3ee' : '#a78bfa'}`,
+                  transform: 'translate(-50%, -50%) translateX(34px)',
+                }} />
+              </motion.div>
+            ))}
+
+            {/* Core button — Sakha Bodhi as meditating cosmic figure */}
             <motion.button
               animate={{ scale: [1, 1.05, 1] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut' }}
               onClick={() => { unlockAudio(); setIsSakhaActive(true); }}
               aria-label="Open Sakha Bodhi AI companion"
-              title="Awaken Sakha Bodhi"
+              title="Awaken Sakha Bodhi — Your Cosmic Companion"
               style={{
-                width: 56, height: 56,
-                borderRadius: '50%',
-                border: '1px solid rgba(255,255,255,0.20)',
-                background: 'radial-gradient(circle at 38% 32%, rgba(253,224,71,0.55) 0%, rgba(20,184,166,0.80) 45%, rgba(15,118,110,0.92) 100%)',
-                boxShadow: '0 4px 24px rgba(20,184,166,0.45), 0 0 0 1px rgba(255,255,255,0.08)',
-                cursor: 'pointer',
-                position: 'relative',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
+                width: 62, height: 62, borderRadius: '50%',
+                border: '1.5px solid rgba(34,211,238,0.52)',
+                background: 'radial-gradient(circle at 38% 30%, rgba(120,200,255,0.22) 0%, rgba(18,28,95,0.92) 45%, rgba(4,7,38,0.97) 100%)',
+                boxShadow: '0 0 0 1px rgba(34,211,238,0.18), 0 6px 28px rgba(14,116,144,0.55), 0 0 48px rgba(34,211,238,0.20), inset 0 1px 0 rgba(255,255,255,0.18)',
+                cursor: 'pointer', position: 'relative',
+                backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
               }}
-            />
+            >
+              {/* Inner radiance pulse */}
+              <motion.div
+                animate={{ opacity: [0.3, 0.6, 0.3], scale: [0.7, 1.1, 0.7] }}
+                transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+                style={{
+                  position: 'absolute', inset: 0, borderRadius: '50%',
+                  background: 'radial-gradient(circle at center, rgba(139,92,246,0.45) 0%, rgba(34,211,238,0.18) 55%, transparent 80%)',
+                  pointerEvents: 'none',
+                }}
+              />
+              {/* Meditating Sakha Bodhi — SVG yogi figure */}
+              <svg width="38" height="42" viewBox="0 0 40 44" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ position: 'relative', zIndex: 2 }}>
+                {/* Divine halo */}
+                <circle cx="20" cy="12" r="9.5" fill="rgba(255,215,0,0.07)" />
+                <circle cx="20" cy="12" r="7.5" fill="none" stroke="rgba(255,215,0,0.38)" strokeWidth="0.7" strokeDasharray="2.5 1.5" />
+                {/* Head */}
+                <circle cx="20" cy="12" r="5" fill="rgba(220,245,255,0.95)" />
+                {/* Ajna — third eye chakra */}
+                <ellipse cx="20" cy="10.8" rx="1.5" ry="0.9" fill="#FFD700" />
+                <circle cx="20" cy="10.8" r="0.55" fill="rgba(255,255,255,0.95)" />
+                {/* Neck */}
+                <rect x="17.8" y="17" width="4.4" height="2.8" rx="1.5" fill="rgba(210,240,255,0.88)" />
+                {/* Torso */}
+                <path d="M 14 30 L 15.5 20 Q 20 18.5 24.5 20 L 26 30 Z" fill="rgba(190,230,255,0.88)" />
+                {/* Left arm to knee */}
+                <path d="M 15.5 24 Q 12 26.5 11 30" stroke="rgba(190,230,255,0.88)" strokeWidth="2.8" strokeLinecap="round" fill="none" />
+                <circle cx="11" cy="30" r="2.3" fill="rgba(190,230,255,0.78)" />
+                {/* Right arm to knee */}
+                <path d="M 24.5 24 Q 28 26.5 29 30" stroke="rgba(190,230,255,0.88)" strokeWidth="2.8" strokeLinecap="round" fill="none" />
+                <circle cx="29" cy="30" r="2.3" fill="rgba(190,230,255,0.78)" />
+                {/* Lotus seated legs */}
+                <path d="M 7 37 Q 13 32.5 20 33.5 Q 27 32.5 33 37 Q 30 41.5 20 42 Q 10 41.5 7 37 Z" fill="rgba(170,220,255,0.82)" />
+                {/* Sushumna nadi — spine channel */}
+                <line x1="20" y1="19.5" x2="20" y2="30" stroke="rgba(100,220,255,0.45)" strokeWidth="0.7" />
+                {/* Anahata — heart chakra */}
+                <circle cx="20" cy="23.5" r="1.1" fill="rgba(100,220,255,0.9)" />
+                {/* Sahasrara — crown glow */}
+                <circle cx="20" cy="7" r="1.8" fill="rgba(167,139,250,0.55)" />
+              </svg>
+            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -467,6 +535,91 @@ export default function Home() {
 
       {/* Sticky Feedback Button */}
       <StickyFeedbackButton />
+
+      {/* ══ HOME BOTTOM NAV BAR ══ */}
+      <nav style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 900,
+        background: 'rgba(5,8,16,0.92)',
+        backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+        borderTop: '1px solid rgba(251,191,36,0.12)',
+        display: 'flex',
+        paddingBottom: 'env(safe-area-inset-bottom,0px)',
+      }}>
+        {[
+          { id: 'home', label: 'Home', color: '#f472b6', href: null },
+          { id: 'pranaverse', label: 'PranaVerse', color: '#a78bfa', href: '/pranaverse' },
+          { id: 'chat', label: 'Chat', color: '#4ade80', href: '/pranaverse-chat' },
+          { id: 'maps', label: 'Maps', color: '#fbbf24', href: '/pranaverse?tab=map' },
+        ].map(({ id, label, color, href }) => {
+          const active = id === 'home';
+          // Elegant PranaVerse SVG icon — radiating sacred portal
+          const PranaVerseIcon = ({ c }: { c: string }) => (
+            <svg width="22" height="22" viewBox="0 0 44 44" fill="none" style={{ filter: `drop-shadow(0 0 5px ${c}88)` }}>
+              {/* Outer dashed ring */}
+              <circle cx="22" cy="22" r="20" stroke={c} strokeWidth="0.8" strokeOpacity="0.35" strokeDasharray="3 2" />
+              {/* Mid ring */}
+              <circle cx="22" cy="22" r="14" stroke={c} strokeWidth="1" strokeOpacity="0.6" />
+              {/* 8 spokes */}
+              {[0, 45, 90, 135, 180, 225, 270, 315].map((deg, k) => {
+                const r = deg * Math.PI / 180;
+                return <line key={k}
+                  x1={22 + Math.cos(r) * 7} y1={22 + Math.sin(r) * 7}
+                  x2={22 + Math.cos(r) * (k % 2 === 0 ? 18 : 13)} y2={22 + Math.sin(r) * (k % 2 === 0 ? 18 : 13)}
+                  stroke={c} strokeWidth={k % 2 === 0 ? '1.4' : '0.8'}
+                  strokeOpacity={k % 2 === 0 ? 0.95 : 0.55} strokeLinecap="round" />;
+              })}
+              {/* 4 cardinal dots */}
+              {[0, 90, 180, 270].map((deg, k) => {
+                const r = deg * Math.PI / 180;
+                return <circle key={k} cx={22 + Math.cos(r) * 20} cy={22 + Math.sin(r) * 20} r="1.6" fill={c} fillOpacity="0.75" />;
+              })}
+              {/* Inner glow core */}
+              <circle cx="22" cy="22" r="6" fill={`${c}44`} />
+              <circle cx="22" cy="22" r="4" fill={`${c}bb`} />
+              <circle cx="22" cy="22" r="1.8" fill="#fff" fillOpacity="0.95" />
+            </svg>
+          );
+          const iconEl = id === 'pranaverse'
+            ? <PranaVerseIcon c={color} />
+            : <span style={{ fontSize: '1.15rem' }}>{
+              id === 'home' ? '🏠' : id === 'chat' ? '💬' : '🗺️'
+            }</span>;
+          return (
+            <motion.button
+              key={id}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => { if (href) window.location.href = href; }}
+              style={{
+                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+                justifyContent: 'center', gap: 3, padding: '0.7rem 0',
+                background: 'none', border: 'none', cursor: href ? 'pointer' : 'default',
+                position: 'relative',
+              }}
+            >
+              {active && (
+                <motion.div
+                  layoutId="home-nav-pill"
+                  style={{
+                    position: 'absolute', inset: '4px 10px', borderRadius: 12,
+                    background: `${color}10`, border: `1px solid ${color}22`,
+                  }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+                />
+              )}
+              <span style={{
+                filter: active ? `drop-shadow(0 0 6px ${color}80)` : 'none',
+                transition: 'filter 0.18s', position: 'relative', zIndex: 1,
+              }}>{iconEl}</span>
+              <span style={{
+                fontSize: '0.55rem', fontWeight: active ? 700 : 500,
+                color: active ? color : id === 'pranaverse' ? `${color}88` : 'rgba(255,255,255,0.32)',
+                letterSpacing: '0.05em', transition: 'color 0.18s', zIndex: 1,
+                fontFamily: "'Outfit',sans-serif",
+              }}>{label}</span>
+            </motion.button>
+          );
+        })}
+      </nav>
     </>
   );
 }

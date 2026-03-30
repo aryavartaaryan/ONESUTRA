@@ -73,7 +73,7 @@ export default function PranaVersePortalCard() {
                         textTransform: 'uppercase', color: 'rgba(253,230,138,0.82)',
                     }}
                 >
-                    ✦ The Conscious Feed ✦
+                    ✦ The Conscious Social Network ✦
                 </motion.span>
 
                 {/* Main heading */}
@@ -81,7 +81,7 @@ export default function PranaVersePortalCard() {
                     fontFamily: "'Cinzel', 'Playfair Display', Georgia, serif",
                     fontSize: 'clamp(1.6rem, 6vw, 2.4rem)',
                     fontWeight: 700, margin: 0,
-                    background: 'linear-gradient(135deg, #fde68a 0%, #fbbf24 50%, #f59e0b 100%)',
+                    background: 'linear-gradient(135deg, #c4b5fd 0%, #a78bfa 45%, #818cf8 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                     backgroundClip: 'text',
@@ -89,7 +89,7 @@ export default function PranaVersePortalCard() {
                     lineHeight: 1.15,
                     textShadow: 'none',
                 }}>
-                    Enter The PranaVerse
+                    Enter PranaVerse
                 </h2>
 
                 {/* Subtext */}
@@ -98,7 +98,7 @@ export default function PranaVersePortalCard() {
                     letterSpacing: '0.06em', margin: 0,
                     fontFamily: 'inherit',
                 }}>
-                    Sync your frequency. Raise your vibration.
+                    Where Consciousness Meets Community ✦ Sacred Social Network
                 </p>
 
                 {/* Portal button with pulsing glow */}

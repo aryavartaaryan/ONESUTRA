@@ -3,6 +3,369 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { X } from 'lucide-react';
+import { useDailyTasks, type TaskItem } from '@/hooks/useDailyTasks';
+import { BODHI_DEFAULT_STORIES } from '@/components/HomePage/StickyTopNav';
+
+// ── User story types (mirroring StickyTopNav) ─────────────────────────
+type UserStoryCategory = 'task' | 'challenge' | 'idea' | 'issue' | 'wellness';
+
+interface UserTaskStory {
+    id: string;
+    taskId: string;
+    category: UserStoryCategory;
+    label: string;
+    text: string;
+    emoji: string;
+    color: string;
+    accentColor: string;
+    bgGradient: string;
+    ringColors: [string, string];
+    sublabel: string;
+    startTime?: string;
+    aiAdvice?: string;
+}
+
+function buildUserTaskStories(tasks: TaskItem[]): UserTaskStory[] {
+    const activeTasks = tasks.filter(t => !t.done && ['Task', 'Challenge', 'Idea', 'Wellness', 'Issue'].includes(t.category));
+    const source = activeTasks.length > 0 ? activeTasks : BODHI_DEFAULT_STORIES.filter(t => !t.done);
+    const counters: Record<string, number> = {};
+    return source.map(t => {
+        const cat = t.category.toLowerCase() as UserStoryCategory;
+        counters[cat] = (counters[cat] || 0) + 1;
+        const num = counters[cat];
+        const cfg: Record<string, { emoji: string; color: string; accentColor: string; bgGradient: string; ringColors: [string, string]; sublabel: string }> = {
+            task: { emoji: t.icon || '✅', color: '#4ade80', accentColor: '#22c55e', bgGradient: 'linear-gradient(135deg,#001a08,#003818)', ringColors: ['#4ade80', '#86efac'], sublabel: `Task ${num}` },
+            idea: { emoji: t.icon || '💡', color: '#fbbf24', accentColor: '#f59e0b', bgGradient: 'linear-gradient(135deg,#1a1000,#3d2800)', ringColors: ['#fbbf24', '#fde68a'], sublabel: `Idea ${num}` },
+            challenge: { emoji: t.icon || '⚡', color: '#fb923c', accentColor: '#f97316', bgGradient: 'linear-gradient(135deg,#1a0500,#3d0f00)', ringColors: ['#fb923c', '#fed7aa'], sublabel: `Challenge ${num}` },
+            wellness: { emoji: t.icon || '🌿', color: '#34d399', accentColor: '#10b981', bgGradient: 'linear-gradient(135deg,#001a0f,#003d20)', ringColors: ['#34d399', '#6ee7b7'], sublabel: `Wellness ${num}` },
+            issue: { emoji: t.icon || '🔥', color: '#f87171', accentColor: '#ef4444', bgGradient: 'linear-gradient(135deg,#1a0000,#3d0000)', ringColors: ['#f87171', '#fca5a5'], sublabel: `Issue ${num}` },
+        };
+        const c = cfg[cat] ?? cfg.task;
+        return {
+            id: `utask-${t.id}`,
+            taskId: t.id,
+            category: cat,
+            label: t.text.length > 12 ? t.text.slice(0, 11) + '…' : t.text,
+            text: t.text,
+            emoji: c.emoji,
+            color: c.color,
+            accentColor: c.accentColor,
+            bgGradient: c.bgGradient,
+            ringColors: c.ringColors,
+            sublabel: c.sublabel,
+            startTime: t.startTime,
+            aiAdvice: t.aiAdvice,
+        };
+    });
+}
+
+// ── User Task Circular Bubble (matches PranaVerse circular style) ──────────
+function UserTaskBubble({ story, isViewed, onClick, idx }: { story: UserTaskStory; isViewed: boolean; onClick: () => void; idx: number }) {
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.7, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ delay: idx * 0.04, type: 'spring', stiffness: 280, damping: 20 }}
+            whileTap={{ scale: 0.91 }}
+            onClick={onClick}
+            style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem',
+                flexShrink: 0, cursor: 'pointer',
+                animation: isViewed ? 'none' : `storyBubbleFloat ${3.5 + idx * 0.4}s ease-in-out ${idx * 0.15}s infinite`,
+            }}
+        >
+            {/* Conic gradient ring */}
+            <div style={{
+                width: 68, height: 68, borderRadius: '50%', padding: 3,
+                background: isViewed
+                    ? 'rgba(255,255,255,0.08)'
+                    : `conic-gradient(${story.ringColors[0]} 0deg, ${story.ringColors[1]} 90deg, ${story.ringColors[0]} 180deg, ${story.ringColors[1]} 270deg, ${story.ringColors[0]} 360deg)`,
+                animation: isViewed ? 'none' : `videoRingPulse ${2.6 + idx * 0.28}s ease-in-out ${idx * 0.22}s infinite`,
+                flexShrink: 0, position: 'relative',
+            }}>
+                <div style={{
+                    width: '100%', height: '100%', borderRadius: '50%',
+                    border: '2.5px solid #000', overflow: 'hidden', position: 'relative',
+                    background: story.bgGradient,
+                    filter: isViewed ? 'grayscale(0.6) brightness(0.55)' : 'none',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                    {/* Glow tint */}
+                    <div style={{
+                        position: 'absolute', inset: 0,
+                        background: `radial-gradient(circle at 50% 40%, ${story.color}44 0%, transparent 72%)`,
+                    }} />
+                    {/* Emoji */}
+                    <span style={{
+                        fontSize: '1.4rem',
+                        filter: `drop-shadow(0 0 10px ${story.color}) drop-shadow(0 0 5px ${story.color}cc)`,
+                        opacity: isViewed ? 0.5 : 1,
+                        position: 'relative', zIndex: 1,
+                    }}>{story.emoji}</span>
+                </div>
+                {/* Category badge */}
+                {!isViewed && (
+                    <div style={{
+                        position: 'absolute', bottom: -1, right: -1,
+                        background: `linear-gradient(135deg,${story.color},${story.accentColor})`,
+                        borderRadius: '50%', width: 16, height: 16,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        border: '2px solid #000',
+                        boxShadow: `0 0 8px ${story.color}80`,
+                        fontSize: '0.5rem',
+                    }}>
+                        <span style={{ fontSize: '0.45rem' }}>{story.category === 'task' ? '✓' : story.category === 'idea' ? '★' : story.category === 'challenge' ? '⚡' : '⚠'}</span>
+                    </div>
+                )}
+            </div>
+            <span style={{
+                fontSize: '0.48rem', fontFamily: "'Inter',sans-serif", fontWeight: 700,
+                color: isViewed ? 'rgba(255,255,255,0.28)' : story.color,
+                letterSpacing: '0.04em', textAlign: 'center',
+                maxWidth: 66, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                textShadow: isViewed ? 'none' : `0 0 8px ${story.color}80`,
+            }}>{story.label}</span>
+        </motion.div>
+    );
+}
+
+// ── User Task Full-Screen Viewer ───────────────────────────────────────
+const BG_TASK_IMAGES: Record<string, string[]> = {
+    task: [
+        'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=600&fit=crop&q=80',
+    ],
+    idea: [
+        'https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=400&h=600&fit=crop&q=80',
+    ],
+    challenge: [
+        'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1484627147104-f5197bcd6651?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1455156218388-5e61b526818b?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1470770903676-69b98201ea1c?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1475274047050-1d0c0975f9f1?w=400&h=600&fit=crop&q=80',
+    ],
+    issue: [
+        'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1484627147104-f5197bcd6651?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1475274047050-1d0c0975f9f1?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1455156218388-5e61b526818b?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1470770903676-69b98201ea1c?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400&h=600&fit=crop&q=80',
+    ],
+    wellness: [
+        'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1501630834273-4b5604d2ee31?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=400&h=600&fit=crop&q=80',
+    ],
+};
+
+function UserTaskViewer({ stories, currentIdx, onClose, onNext, onPrev, onRemove }: {
+    stories: UserTaskStory[];
+    currentIdx: number;
+    onClose: () => void;
+    onNext: () => void;
+    onPrev: () => void;
+    onRemove: (taskId: string) => void;
+}) {
+    const story = stories[currentIdx];
+    const [progress, setProgress] = useState(0);
+
+    useEffect(() => {
+        setProgress(0);
+        let elapsed = 0;
+        const duration = 10000;
+        const step = 80;
+        const timer = setInterval(() => {
+            elapsed += step;
+            const pct = Math.min((elapsed / duration) * 100, 100);
+            setProgress(pct);
+            if (pct >= 100) { clearInterval(timer); onNext(); }
+        }, step);
+        return () => clearInterval(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [story?.id]);
+
+    useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        return () => { document.body.style.overflow = ''; };
+    }, []);
+
+    if (!story) return null;
+    const bgArr = BG_TASK_IMAGES[story.category] || BG_TASK_IMAGES.task;
+    const bgImg = bgArr[currentIdx % bgArr.length];
+
+    return (
+        <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 10002, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            onClick={onClose}
+        >
+            <motion.div
+                onClick={e => e.stopPropagation()}
+                initial={{ scale: 0.94 }} animate={{ scale: 1 }} exit={{ scale: 0.94 }}
+                transition={{ type: 'spring', stiffness: 340, damping: 30 }}
+                style={{ position: 'relative', width: '100%', maxWidth: 480, height: '100dvh', overflow: 'hidden', background: '#000' }}
+            >
+                {/* BG Image */}
+                <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${bgImg})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.82)' }} />
+                {/* Color mood overlay */}
+                <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(160deg, ${story.accentColor}28 0%, transparent 40%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0.65) 100%)` }} />
+
+                {/* Progress bars */}
+                <div style={{ position: 'absolute', top: 14, left: 12, right: 12, display: 'flex', gap: 4, zIndex: 20 }}>
+                    {stories.map((_, i) => (
+                        <div key={i} style={{ flex: 1, height: 2.5, borderRadius: 2, background: 'rgba(255,255,255,0.25)', overflow: 'hidden' }}>
+                            <div style={{ height: '100%', background: `linear-gradient(90deg,${story.color},#fbbf24)`, width: i < currentIdx ? '100%' : i === currentIdx ? `${progress}%` : '0%', borderRadius: 2 }} />
+                        </div>
+                    ))}
+                </div>
+
+                {/* Close */}
+                <button onClick={e => { e.stopPropagation(); onClose(); }} style={{
+                    position: 'absolute', top: 30, right: 12,
+                    width: 36, height: 36, borderRadius: '50%',
+                    background: 'rgba(0,0,0,0.38)', backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255,255,255,0.18)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', color: '#fff', zIndex: 20,
+                }}><X size={15} /></button>
+
+                {/* Ambient glow */}
+                <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', width: 380, height: 380, background: `radial-gradient(circle, ${story.accentColor}38, transparent 70%)`, top: '-10%', left: '50%', transform: 'translateX(-50%)', filter: 'blur(60px)' }} />
+                </div>
+
+                {/* Content */}
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '5rem 2rem 7rem', textAlign: 'center', zIndex: 1 }}>
+                    {/* Category badge */}
+                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0.28rem 0.9rem', borderRadius: 999, background: `${story.accentColor}20`, border: `1px solid ${story.accentColor}50`, marginBottom: '1.2rem' }}
+                    >
+                        <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: story.accentColor, fontFamily: "'Inter',sans-serif" }}>{story.sublabel}</span>
+                    </motion.div>
+
+                    {/* Floating emoji */}
+                    <motion.div animate={{ scale: [1, 1.12, 1], y: [0, -10, 0] }} transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+                        style={{ fontSize: 'clamp(3rem,12vw,4.5rem)', marginBottom: '1.2rem', filter: `drop-shadow(0 0 24px ${story.accentColor}80)` }}
+                    >{story.emoji}</motion.div>
+
+                    {/* Task text */}
+                    <motion.h2 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+                        style={{ fontSize: 'clamp(1.25rem,5vw,1.9rem)', fontWeight: 800, color: '#fff', margin: '0 0 0.6rem', fontFamily: "'Playfair Display',Georgia,serif", lineHeight: 1.3, textShadow: `0 0 40px ${story.accentColor}50` }}
+                    >{story.text}</motion.h2>
+
+                    {/* Divider */}
+                    <div style={{ width: 40, height: 2, borderRadius: 2, background: story.accentColor, marginBottom: '1rem', boxShadow: `0 0 10px ${story.accentColor}80` }} />
+
+                    {/* Bodhi Advice */}
+                    {story.aiAdvice && (
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
+                            style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(16px)', border: `1px solid ${story.accentColor}30`, borderRadius: 16, padding: '1rem 1.25rem', maxWidth: 320, marginBottom: '1.5rem' }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '0.5rem' }}>
+                                <span style={{ fontSize: '1rem' }}>🤖</span>
+                                <span style={{ fontSize: '0.6rem', fontWeight: 700, color: story.accentColor, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: "'Inter',sans-serif" }}>Bodhi’s Guidance</span>
+                            </div>
+                            <p style={{ fontSize: '0.82rem', color: `${story.accentColor}cc`, fontStyle: 'italic', lineHeight: 1.65, margin: 0, fontFamily: "'Inter',sans-serif", fontWeight: 300 }}>“{story.aiAdvice}”</p>
+                        </motion.div>
+                    )}
+
+                    {/* Action */}
+                    {story.category !== 'idea' && (
+                        <motion.button
+                            onClick={e => { e.stopPropagation(); onRemove(story.taskId); onNext(); }}
+                            whileHover={{ scale: 1.06, boxShadow: `0 8px 40px ${story.accentColor}60` }}
+                            whileTap={{ scale: 0.96 }}
+                            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+                            style={{
+                                padding: '0.9rem 2.2rem',
+                                background: `linear-gradient(135deg, ${story.accentColor}ee 0%, ${story.accentColor}99 100%)`,
+                                border: `1.5px solid ${story.accentColor}`,
+                                borderRadius: 50, color: '#fff',
+                                fontSize: '0.95rem', fontWeight: 700,
+                                cursor: 'pointer', backdropFilter: 'blur(14px)',
+                                boxShadow: `0 6px 32px ${story.accentColor}44`,
+                                fontFamily: "'Inter',sans-serif",
+                            }}
+                        >
+                            {story.category === 'challenge' ? '⚡ Overcame It' : story.category === 'issue' ? '✓ Resolved' : '✓ Done'}
+                        </motion.button>
+                    )}
+                </div>
+
+                {/* Tap zones */}
+                <div onClick={e => { e.stopPropagation(); onPrev(); }} style={{ position: 'absolute', left: 0, top: 60, bottom: 60, width: '28%', zIndex: 15, cursor: 'pointer' }} />
+                <div onClick={e => { e.stopPropagation(); onNext(); }} style={{ position: 'absolute', right: 0, top: 60, bottom: 60, width: '28%', zIndex: 15, cursor: 'pointer' }} />
+            </motion.div>
+        </motion.div>
+    );
+}
+
+// ── Category Group Bubble for PranaVerse (ONE card per category) ────────────
+function UserCategoryGroupBubble({ category, stories, onOpen, isViewed, idx }: {
+    category: UserStoryCategory; stories: UserTaskStory[];
+    onOpen: () => void; isViewed: boolean; idx: number;
+}) {
+    const count = stories.length;
+    const catMeta: Record<UserStoryCategory, { emoji: string; label: string; color: string; accentColor: string; ringColors: [string, string] }> = {
+        task: { emoji: '✅', label: 'Tasks', color: '#4ade80', accentColor: '#22c55e', ringColors: ['#4ade80', '#86efac'] },
+        challenge: { emoji: '⚡', label: 'Challenges', color: '#fb923c', accentColor: '#f97316', ringColors: ['#fb923c', '#fed7aa'] },
+        idea: { emoji: '💡', label: 'Ideas', color: '#fbbf24', accentColor: '#f59e0b', ringColors: ['#fbbf24', '#fde68a'] },
+        issue: { emoji: '🔥', label: 'Issues', color: '#f87171', accentColor: '#ef4444', ringColors: ['#f87171', '#fca5a5'] },
+        wellness: { emoji: '🌿', label: 'Wellness', color: '#34d399', accentColor: '#10b981', ringColors: ['#34d399', '#6ee7b7'] },
+    };
+    const meta = catMeta[category];
+    const bgImg = BG_TASK_IMAGES[category]?.[0] ?? BG_TASK_IMAGES.task[0];
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.7, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ delay: idx * 0.05, type: 'spring', stiffness: 280, damping: 20 }}
+            whileTap={{ scale: 0.91 }}
+            onClick={onOpen}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', flexShrink: 0, cursor: 'pointer' }}
+        >
+            {/* Conic ring */}
+            <div style={{
+                width: 68, height: 68, borderRadius: '50%', padding: 3,
+                background: isViewed ? 'rgba(255,255,255,0.08)' : `conic-gradient(${meta.ringColors[0]} 0deg,${meta.ringColors[1]} 90deg,${meta.ringColors[0]} 180deg,${meta.ringColors[1]} 270deg,${meta.ringColors[0]} 360deg)`,
+                animation: isViewed ? 'none' : `videoRingPulse ${2.6 + idx * 0.28}s ease-in-out ${idx * 0.22}s infinite`,
+                flexShrink: 0, position: 'relative',
+            }}>
+                <div style={{ width: '100%', height: '100%', borderRadius: '50%', border: '2.5px solid #000', overflow: 'hidden', position: 'relative', filter: isViewed ? 'grayscale(0.6) brightness(0.55)' : 'none' }}>
+                    <img src={bgImg} alt={meta.label} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', filter: 'brightness(0.75) saturate(1.3)' }} />
+                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,transparent 20%,rgba(0,0,0,0.55) 100%)' }} />
+                    <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at 50% 40%,${meta.color}44 0%,transparent 72%)` }} />
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ fontSize: '1.35rem', filter: `drop-shadow(0 0 10px ${meta.color}) drop-shadow(0 0 5px ${meta.color}cc)`, opacity: isViewed ? 0.5 : 1 }}>{meta.emoji}</span>
+                    </div>
+                </div>
+                {/* Count badge */}
+                {!isViewed && (
+                    <div style={{ position: 'absolute', top: 0, right: 0, background: `linear-gradient(135deg,${meta.color},${meta.accentColor})`, borderRadius: '50%', minWidth: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #000', boxShadow: `0 0 8px ${meta.color}80`, fontSize: '0.44rem', fontWeight: 800, color: '#000', paddingInline: 2, fontFamily: "'Inter',system-ui,sans-serif", zIndex: 2 }}>
+                        {count}
+                    </div>
+                )}
+            </div>
+            <span style={{ fontSize: '0.46rem', fontFamily: "'Inter',sans-serif", fontWeight: 700, color: isViewed ? 'rgba(255,255,255,0.28)' : meta.color, letterSpacing: '0.05em', textAlign: 'center', maxWidth: 66, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: isViewed ? 'none' : `0 0 8px ${meta.color}80` }}>{meta.label}</span>
+        </motion.div>
+    );
+}
 
 // ── Time helpers ───────────────────────────────────────────────────────────────
 function getTimeSlot() {
@@ -255,12 +618,138 @@ const MANTRA_DATA = [
     { sanskrit: 'सर्वे भवन्तु सुखिनः', roman: 'Sarve Bhavantu Sukhinah', meaning: 'May all beings be happy', color: '#86efac' },
 ];
 const PORTAL_DATA = [
-    { title: 'ACHARYA', icon: '🌿', color: '#a855f7', href: '/acharya-samvad', desc: 'AI-powered Vedic wisdom guru — personalized spiritual guidance' },
-    { title: 'MEDITATE', icon: '🧘', color: '#3b82f6', href: '/dhyan-kshetra', desc: 'Sacred mantras & guided meditations for inner stillness' },
-    { title: 'INSHORTS', icon: '📰', color: '#d946ef', href: '/outplugs', desc: 'Distraction-free mindful news through a conscious lens' },
-    { title: 'RAAG MUSIC', icon: '🎵', color: '#38bdf8', href: '/project-leela', desc: 'Classical ragas matched to the time of day' },
-    { title: 'RESONANCE', icon: '🌐', color: '#8b5cf6', href: '/resonance', desc: 'Connect with conscious seekers & sacred stories' },
+    { title: 'AyurHealth', icon: '🌿', color: '#10b981', href: '/acharya-samvad', desc: 'AI Ayurvedacharya Pranav — your personal Vedic health guide. Prakruti analysis, Ayurvedic remedies & sacred healing wisdom available 24/7.' },
+    { title: 'Meditate', icon: '🧘', color: '#3b82f6', href: '/dhyan-kshetra', desc: 'Energy Mantras & Stotras — immerse in curated sacred mantras & guided meditations for deep inner stillness and healing frequencies.' },
+    { title: 'Inshorts', icon: '📰', color: '#d946ef', href: '/outplugs', desc: 'Distraction-free mindful news through a conscious lens — stay informed without noise or negativity.' },
+    { title: 'Raag Music', icon: '🎵', color: '#38bdf8', href: '/project-leela', desc: 'Classical ragas matched to exact time of day — healing frequencies for every moment of your sacred journey.' },
+    { title: 'Swadeshi', icon: '🛍️', color: '#f97316', href: '/swadesi-product', desc: 'Pure Organics — authentic Indian artisan products, sacred commerce that honors tradition & empowers craftsmen.' },
+    { title: 'Skills', icon: '🎯', color: '#22d3ee', href: '/skills', desc: 'Upgrade & Transform — curated skill tracks from ancient Vedic arts to modern tech. Learn, grow, and evolve with expert-guided paths.' },
+    { title: 'Games', icon: '🎲', color: '#ec4899', href: '/vedic-games', desc: 'Productive Play — Vedic-inspired mindful games that sharpen your mind while connecting with ancient Indian wisdom & culture.' },
+    { title: 'PranaVerse', icon: '✦', color: '#a78bfa', href: '/pranaverse', desc: 'Resonance Feeds & Network — the sacred conscious social network. Share your Prana, discover wisdom reels & raise collective vibration.' },
+    { title: 'Gurukul', icon: '🪔', color: '#f59e0b', href: '/vedic-sangrah', desc: "World-Class Wisdom — World's Premier Gurukul blending AI, Mathematics & Modern Sciences with Bhagavat Gita, Upanishads & Vedic wisdom." },
 ];
+
+
+// ── Gurukul curriculum data for stories ───────────────────────────────────────
+const GURUKUL_MODERN = [
+    { icon: '🤖', title: 'Artificial Intelligence', sub: 'Machine Learning & Neural Networks', color: '#60a5fa' },
+    { icon: '🧮', title: 'Vedic Mathematics', sub: 'Ancient Sutras meet Modern Math', color: '#34d399' },
+    { icon: '💻', title: 'Programming & Coding', sub: 'Building the Digital Future', color: '#a78bfa' },
+    { icon: '🔬', title: 'Modern Sciences', sub: 'Physics, Chemistry, Biology', color: '#22d3ee' },
+];
+const GURUKUL_ANCIENT = [
+    { icon: '📖', title: 'Bhagavat Gita', sub: 'Divine Song of Eternal Dharma', color: '#fbbf24' },
+    { icon: '🕉️', title: 'Upanishads', sub: 'Supreme Vedantic Philosophy', color: '#f97316' },
+    { icon: '🪷', title: 'Sanskrit Vyakaran', sub: 'Language of the Gods — Panini Grammar', color: '#c084fc' },
+    { icon: '🧿', title: 'Darshan Shastra', sub: 'Six Schools of Indian Philosophy', color: '#f472b6' },
+    { icon: '🌿', title: 'Ayurveda & Yoga', sub: 'Science of Life & Union', color: '#4ade80' },
+];
+
+// ── GurukuklSlideContent — beautiful curriculum showcase ──────────────────────
+function GurululModernSlide() {
+    return (
+        <div style={{ padding: '0 1.4rem', textAlign: 'center', width: '100%' }}>
+            <motion.div initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1, type: 'spring' }}
+                style={{ fontSize: '3rem', marginBottom: '0.6rem' }}>🤖</motion.div>
+            <motion.h2 initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}
+                style={{ fontFamily: "'Inter',sans-serif", fontSize: '1.05rem', fontWeight: 800, color: '#60a5fa', letterSpacing: '0.1em', textTransform: 'uppercase', textShadow: '0 0 20px rgba(96,165,250,0.7)', marginBottom: '0.3rem' }}
+            >Modern Knowledge</motion.h2>
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+                style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.06em', marginBottom: '0.9rem' }}
+            >Skills for the future, rooted in Bharat</motion.p>
+            <motion.div initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35 }}
+                style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                {GURUKUL_MODERN.map((item, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: `rgba(${item.color === '#60a5fa' ? '96,165,250' : item.color === '#34d399' ? '52,211,153' : item.color === '#a78bfa' ? '167,139,250' : '34,211,238'},0.08)`, border: `1px solid ${item.color}28`, borderRadius: 12, padding: '0.5rem 0.75rem', backdropFilter: 'blur(8px)' }}>
+                        <span style={{ fontSize: '1.4rem', filter: `drop-shadow(0 0 8px ${item.color}88)` }}>{item.icon}</span>
+                        <div style={{ textAlign: 'left' }}>
+                            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: item.color, fontFamily: "'Inter',sans-serif" }}>{item.title}</div>
+                            <div style={{ fontSize: '0.52rem', color: 'rgba(255,255,255,0.45)', fontFamily: "'Inter',sans-serif", marginTop: 1 }}>{item.sub}</div>
+                        </div>
+                    </div>
+                ))}
+            </motion.div>
+        </div>
+    );
+}
+function GurululAncientSlide() {
+    return (
+        <div style={{ padding: '0 1.4rem', textAlign: 'center', width: '100%' }}>
+            <motion.div initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1, type: 'spring' }}
+                style={{ fontSize: '3rem', marginBottom: '0.6rem' }}>🕉️</motion.div>
+            <motion.h2 initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}
+                style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '1.2rem', fontWeight: 700, color: '#fbbf24', letterSpacing: '0.06em', textShadow: '0 0 24px rgba(251,191,36,0.7)', marginBottom: '0.3rem' }}
+            >Ancient Wisdom</motion.h2>
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+                style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.06em', fontStyle: 'italic', marginBottom: '0.9rem' }}
+            >ज्ञान यज्ञ — The sacred fire of Vedic knowledge</motion.p>
+            <motion.div initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35 }}
+                style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                {GURUKUL_ANCIENT.map((item, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', background: 'rgba(251,191,36,0.06)', border: `1px solid ${item.color}22`, borderRadius: 12, padding: '0.45rem 0.7rem', backdropFilter: 'blur(8px)' }}>
+                        <span style={{ fontSize: '1.3rem', filter: `drop-shadow(0 0 8px ${item.color}88)` }}>{item.icon}</span>
+                        <div style={{ textAlign: 'left' }}>
+                            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: item.color, fontFamily: "'Cormorant Garamond',serif" }}>{item.title}</div>
+                            <div style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.42)', fontFamily: "'Inter',sans-serif", marginTop: 1 }}>{item.sub}</div>
+                        </div>
+                    </div>
+                ))}
+            </motion.div>
+        </div>
+    );
+}
+function GurululVisionSlide({ getImg }: { getImg: (n: number) => string }) {
+    return (
+        <div style={{ padding: '0 1.5rem', textAlign: 'center' }}>
+            <motion.div animate={{ scale: [1, 1.12, 1] }} transition={{ duration: 2.5, repeat: Infinity }}
+                style={{ width: 88, height: 88, borderRadius: '50%', margin: '0 auto 1rem', background: 'radial-gradient(circle at 38% 32%, rgba(255,255,255,0.35) 0%, rgba(245,158,11,0.7) 50%, rgba(245,158,11,0.35) 100%)', border: '2px solid rgba(251,191,36,0.6)', boxShadow: '0 0 48px rgba(251,191,36,0.6), 0 0 80px rgba(251,191,36,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.8rem' }}
+            >🏛️</motion.div>
+            <motion.h2 initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}
+                style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '1.5rem', fontWeight: 700, color: '#fbbf24', textShadow: '0 0 28px rgba(251,191,36,0.8)', marginBottom: '0.5rem', lineHeight: 1.2 }}
+            >World's Premier Gurukul</motion.h2>
+            <motion.p initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35 }}
+                style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.72)', lineHeight: 1.6, fontStyle: 'italic', marginBottom: '1rem', padding: '0 0.5rem' }}
+            >Where the wisdom of Rishi meets the intelligence of the future. The top product of conscious civilization.</motion.p>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}
+                style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap' as const }}>
+                {['AI', 'Vedas', 'Math', 'Gita', 'Startup', 'Sanskrit'].map((tag, i) => (
+                    <span key={i} style={{ fontSize: '0.55rem', padding: '0.2rem 0.55rem', borderRadius: 99, background: i % 2 === 0 ? 'rgba(96,165,250,0.12)' : 'rgba(251,191,36,0.12)', border: i % 2 === 0 ? '1px solid rgba(96,165,250,0.35)' : '1px solid rgba(251,191,36,0.35)', color: i % 2 === 0 ? '#93c5fd' : '#fde68a', fontFamily: "'Inter',sans-serif", fontWeight: 600 }}>{tag}</span>
+                ))}
+            </motion.div>
+        </div>
+    );
+}
+function GurululStartupSlide() {
+    return (
+        <div style={{ padding: '0 1.4rem', textAlign: 'center', width: '100%' }}>
+            <motion.div initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1, type: 'spring' }}
+                style={{ fontSize: '3rem', marginBottom: '0.6rem' }}>🚀</motion.div>
+            <motion.h2 initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}
+                style={{ fontFamily: "'Inter',sans-serif", fontSize: '1.05rem', fontWeight: 800, color: '#4ade80', letterSpacing: '0.1em', textTransform: 'uppercase', textShadow: '0 0 20px rgba(74,222,128,0.7)', marginBottom: '0.3rem' }}
+            >Startup Support</motion.h2>
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+                style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.06em', marginBottom: '0.9rem', fontStyle: 'italic' }}
+            >🌱 From idea to launch — we guide every step</motion.p>
+            <motion.div initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35 }}
+                style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                {[
+                    { e: '💡', t: 'Idea Generation', d: 'Conscious-tech ideas rooted in Dharma' },
+                    { e: '🛠️', t: 'Product Development', d: 'AI-powered  build & MVP creation' },
+                    { e: '🚀', t: 'Launch Strategy', d: 'Go-to-market & growth strategy' },
+                    { e: '🌱', t: 'Vedic Business Values', d: 'Dharmic entrepreneurship principles' },
+                ].map((item, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(74,222,128,0.07)', border: '1px solid rgba(74,222,128,0.2)', borderRadius: 12, padding: '0.5rem 0.75rem', backdropFilter: 'blur(8px)' }}>
+                        <span style={{ fontSize: '1.2rem' }}>{item.e}</span>
+                        <div style={{ textAlign: 'left' }}>
+                            <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#4ade80', fontFamily: "'Inter',sans-serif" }}>{item.t}</div>
+                            <div style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.42)', fontFamily: "'Inter',sans-serif", marginTop: 1 }}>{item.d}</div>
+                        </div>
+                    </div>
+                ))}
+            </motion.div>
+        </div>
+    );
+}
 const WISDOM_QUOTES = [
     { text: '"The quiet mind is not empty — it is full of the universe."', source: 'Vedic Sutra' },
     { text: '"Yesterday I was clever. Today I am wise, I am changing myself."', source: 'Rumi' },
@@ -271,53 +760,53 @@ const WISDOM_QUOTES = [
 
 // ── Panchang Data ─────────────────────────────────────────────────────────────
 const TITHI_NAMES = [
-    'प्रतिपदा','द्वितीया','तृतीया','चतुर्थी','पंचमी',
-    'षष्ठी','सप्तमी','अष्टमी','नवमी','दशमी',
-    'एकादशी','द्वादशी','त्रयोदशी','चतुर्दशी','पूर्णिमा',
-    'प्रतिपदा','द्वितीया','तृतीया','चतुर्थी','पंचमी',
-    'षष्ठी','सप्तमी','अष्टमी','नवमी','दशमी',
-    'एकादशी','द्वादशी','त्रयोदशी','चतुर्दशी','अमावस्या',
+    'प्रतिपदा', 'द्वितीया', 'तृतीया', 'चतुर्थी', 'पंचमी',
+    'षष्ठी', 'सप्तमी', 'अष्टमी', 'नवमी', 'दशमी',
+    'एकादशी', 'द्वादशी', 'त्रयोदशी', 'चतुर्दशी', 'पूर्णिमा',
+    'प्रतिपदा', 'द्वितीया', 'तृतीया', 'चतुर्थी', 'पंचमी',
+    'षष्ठी', 'सप्तमी', 'अष्टमी', 'नवमी', 'दशमी',
+    'एकादशी', 'द्वादशी', 'त्रयोदशी', 'चतुर्दशी', 'अमावस्या',
 ];
 const NAKSHATRA_NAMES = [
-    'अश्विनी','भरणी','कृत्तिका','रोहिणी','मृगशिरा','आर्द्रा','पुनर्वसु',
-    'पुष्य','आश्लेषा','मघा','पूर्वफाल्गुनी','उत्तरफाल्गुनी','हस्त',
-    'चित्रा','स्वाति','विशाखा','अनुराधा','ज्येष्ठा','मूल',
-    'पूर्वाषाढ़ा','उत्तराषाढ़ा','श्रवण','धनिष्ठा','शतभिषा',
-    'पूर्वभाद्रपद','उत्तरभाद्रपद','रेवती',
+    'अश्विनी', 'भरणी', 'कृत्तिका', 'रोहिणी', 'मृगशिरा', 'आर्द्रा', 'पुनर्वसु',
+    'पुष्य', 'आश्लेषा', 'मघा', 'पूर्वफाल्गुनी', 'उत्तरफाल्गुनी', 'हस्त',
+    'चित्रा', 'स्वाति', 'विशाखा', 'अनुराधा', 'ज्येष्ठा', 'मूल',
+    'पूर्वाषाढ़ा', 'उत्तराषाढ़ा', 'श्रवण', 'धनिष्ठा', 'शतभिषा',
+    'पूर्वभाद्रपद', 'उत्तरभाद्रपद', 'रेवती',
 ];
 const YOGA_NAMES = [
-    'विष्कुंभ','प्रीति','आयुष्मान','सौभाग्य','शोभन','अतिगण्ड','सुकर्मा',
-    'धृति','शूल','गण्ड','वृद्धि','ध्रुव','व्याघात','हर्षण','वज्र',
-    'सिद्धि','व्यतीपात','वरीयान','परिघ','शिव','सिद्ध','साध्य','शुभ',
-    'शुक्ल','ब्रह्म','इन्द्र','वैधृति',
+    'विष्कुंभ', 'प्रीति', 'आयुष्मान', 'सौभाग्य', 'शोभन', 'अतिगण्ड', 'सुकर्मा',
+    'धृति', 'शूल', 'गण्ड', 'वृद्धि', 'ध्रुव', 'व्याघात', 'हर्षण', 'वज्र',
+    'सिद्धि', 'व्यतीपात', 'वरीयान', 'परिघ', 'शिव', 'सिद्ध', 'साध्य', 'शुभ',
+    'शुक्ल', 'ब्रह्म', 'इन्द्र', 'वैधृति',
 ];
-const VAAR_NAMES  = ['रविवार','सोमवार','मंगलवार','बुधवार','गुरुवार','शुक्रवार','शनिवार'];
-const VAAR_ICONS  = ['☀️','🌙','🔴','☿','🪐','⭐','🪐'];
-const VAAR_DEVATA = ['सूर्य','चंद्र','मंगल','बुध','बृहस्पति','शुक्र','शनि'];
+const VAAR_NAMES = ['रविवार', 'सोमवार', 'मंगलवार', 'बुधवार', 'गुरुवार', 'शुक्रवार', 'शनिवार'];
+const VAAR_ICONS = ['☀️', '🌙', '🔴', '☿', '🪐', '⭐', '🪐'];
+const VAAR_DEVATA = ['सूर्य', 'चंद्र', 'मंगल', 'बुध', 'बृहस्पति', 'शुक्र', 'शनि'];
 
 const HINDU_FESTIVALS: Record<string, string> = {
-    '2025-01-14':'मकर संक्रांति','2025-01-29':'मौनी अमावस्या',
-    '2025-02-02':'बसंत पंचमी','2025-02-12':'माघ पूर्णिमा','2025-02-26':'महाशिवरात्रि',
-    '2025-03-13':'होलिका दहन','2025-03-14':'होली',
-    '2025-03-30':'गुड़ी पड़वा • चैत्र नवरात्रि',
-    '2025-04-06':'राम नवमी','2025-04-12':'हनुमान जयंती','2025-04-13':'चैत्र पूर्णिमा',
-    '2025-04-30':'अक्षय तृतीया',
-    '2025-05-12':'बुद्ध पूर्णिमा',
-    '2025-06-11':'गंगा दशहरा',
-    '2025-07-10':'गुरु पूर्णिमा',
-    '2025-08-01':'हरियाली तीज','2025-08-05':'नाग पंचमी',
-    '2025-08-09':'रक्षा बंधन','2025-08-16':'जन्माष्टमी','2025-08-27':'गणेश चतुर्थी',
-    '2025-09-29':'शारदीय नवरात्रि',
-    '2025-10-02':'दशहरा','2025-10-20':'दीपावली',
-    '2025-10-22':'गोवर्धन पूजा','2025-10-23':'भाई दूज','2025-10-28':'छठ पूजा',
-    '2025-11-05':'देव दीपावली','2025-11-15':'कार्तिक पूर्णिमा',
-    '2026-02-15':'महाशिवरात्रि','2026-03-03':'होलिका दहन','2026-03-04':'होली',
-    '2026-04-19':'अक्षय तृतीया','2026-05-01':'बुद्ध पूर्णिमा',
-    '2026-07-29':'गुरु पूर्णिमा','2026-08-05':'जन्माष्टमी',
+    '2025-01-14': 'मकर संक्रांति', '2025-01-29': 'मौनी अमावस्या',
+    '2025-02-02': 'बसंत पंचमी', '2025-02-12': 'माघ पूर्णिमा', '2025-02-26': 'महाशिवरात्रि',
+    '2025-03-13': 'होलिका दहन', '2025-03-14': 'होली',
+    '2025-03-30': 'गुड़ी पड़वा • चैत्र नवरात्रि',
+    '2025-04-06': 'राम नवमी', '2025-04-12': 'हनुमान जयंती', '2025-04-13': 'चैत्र पूर्णिमा',
+    '2025-04-30': 'अक्षय तृतीया',
+    '2025-05-12': 'बुद्ध पूर्णिमा',
+    '2025-06-11': 'गंगा दशहरा',
+    '2025-07-10': 'गुरु पूर्णिमा',
+    '2025-08-01': 'हरियाली तीज', '2025-08-05': 'नाग पंचमी',
+    '2025-08-09': 'रक्षा बंधन', '2025-08-16': 'जन्माष्टमी', '2025-08-27': 'गणेश चतुर्थी',
+    '2025-09-29': 'शारदीय नवरात्रि',
+    '2025-10-02': 'दशहरा', '2025-10-20': 'दीपावली',
+    '2025-10-22': 'गोवर्धन पूजा', '2025-10-23': 'भाई दूज', '2025-10-28': 'छठ पूजा',
+    '2025-11-05': 'देव दीपावली', '2025-11-15': 'कार्तिक पूर्णिमा',
+    '2026-02-15': 'महाशिवरात्रि', '2026-03-03': 'होलिका दहन', '2026-03-04': 'होली',
+    '2026-04-19': 'अक्षय तृतीया', '2026-05-01': 'बुद्ध पूर्णिमा',
+    '2026-07-29': 'गुरु पूर्णिमा', '2026-08-05': 'जन्माष्टमी',
 };
 const ANNUAL_FESTIVALS: Record<string, string> = {
-    '01-14':'मकर संक्रांति','01-26':'गणतंत्र दिवस',
-    '08-15':'स्वतंत्रता दिवस','10-02':'गांधी जयंती',
+    '01-14': 'मकर संक्रांति', '01-26': 'गणतंत्र दिवस',
+    '08-15': 'स्वतंत्रता दिवस', '10-02': 'गांधी जयंती',
 };
 
 function toJulianDay(d: Date): number {
@@ -333,19 +822,19 @@ function computeDailyPanchang(date: Date) {
     const jd = toJulianDay(date);
     const T = (jd - 2451545.0) / 36525.0;
     // Sun & Moon mean longitudes
-    let sunLon  = ((280.46646 + 36000.76983 * T) % 360 + 360) % 360;
-    let moonLon = ((218.3165  + 481267.8813 * T) % 360 + 360) % 360;
+    let sunLon = ((280.46646 + 36000.76983 * T) % 360 + 360) % 360;
+    let moonLon = ((218.3165 + 481267.8813 * T) % 360 + 360) % 360;
     // Tithi from elongation (each tithi = 12°)
     const elongation = ((moonLon - sunLon) % 360 + 360) % 360;
-    const tithiIdx   = Math.floor(elongation / 12) % 30;
-    const tithi      = TITHI_NAMES[tithiIdx];
-    const paksha     = tithiIdx < 15 ? 'शुक्ल पक्ष ☽' : 'कृष्ण पक्ष 🌑';
+    const tithiIdx = Math.floor(elongation / 12) % 30;
+    const tithi = TITHI_NAMES[tithiIdx];
+    const paksha = tithiIdx < 15 ? 'शुक्ल पक्ष ☽' : 'कृष्ण पक्ष 🌑';
     // Nakshatra (each = 360/27°)
-    const nakIdx  = Math.floor(((moonLon % 360 + 360) % 360) / (360 / 27)) % 27;
+    const nakIdx = Math.floor(((moonLon % 360 + 360) % 360) / (360 / 27)) % 27;
     const nakshatra = NAKSHATRA_NAMES[nakIdx];
     // Yoga ((sun+moon) / (360/27))
     const yogaLon = ((sunLon + moonLon) % 360 + 360) % 360;
-    const yoga    = YOGA_NAMES[Math.floor(yogaLon / (360 / 27)) % 27];
+    const yoga = YOGA_NAMES[Math.floor(yogaLon / (360 / 27)) % 27];
     // Vaar
     const dow = date.getDay();
     const vaar = VAAR_NAMES[dow], vaarIcon = VAAR_ICONS[dow], vaarDevata = VAAR_DEVATA[dow];
@@ -353,7 +842,7 @@ function computeDailyPanchang(date: Date) {
     const y = date.getFullYear(), mo = date.getMonth(), dy = date.getDate();
     const samvat = (mo > 3 || (mo === 3 && dy >= 1)) ? y + 57 : y + 56;
     // Festival
-    const mmdd = `${String(mo + 1).padStart(2,'0')}-${String(dy).padStart(2,'0')}`;
+    const mmdd = `${String(mo + 1).padStart(2, '0')}-${String(dy).padStart(2, '0')}`;
     const festival = HINDU_FESTIVALS[`${y}-${mmdd}`] || ANNUAL_FESTIVALS[mmdd] || null;
     return { tithi, paksha, nakshatra, yoga, vaar, vaarIcon, vaarDevata, samvat, festival };
 }
@@ -418,10 +907,10 @@ function PanchangSlideContent({ panchang }: { panchang: ReturnType<typeof comput
     const today = new Date();
     const dateStr = today.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     const rows = [
-        { label: 'तिथि', value: panchang.tithi,     icon: '🌙', color: '#a78bfa' },
-        { label: 'पक्ष',  value: panchang.paksha,   icon: '☽',  color: '#93c5fd' },
+        { label: 'तिथि', value: panchang.tithi, icon: '🌙', color: '#a78bfa' },
+        { label: 'पक्ष', value: panchang.paksha, icon: '☽', color: '#93c5fd' },
         { label: 'नक्षत्र', value: panchang.nakshatra, icon: '⭐', color: '#34d399' },
-        { label: 'योग',   value: panchang.yoga,     icon: '✦',  color: '#f472b6' },
+        { label: 'योग', value: panchang.yoga, icon: '✦', color: '#f472b6' },
     ];
     return (
         <div style={{ padding: '0 1.4rem', textAlign: 'center', width: '100%' }}>
@@ -544,6 +1033,7 @@ function VideoStoryViewer({ story, allVideoStories, startIdx, onClose, onFinishe
     const VIDEO_DURATION = 30000;
 
     const current = allVideoStories[currentIdx];
+    const pranaLabel = { morning: '🌅 Morning Prana', day: '☀️ Noon Prana', evening: '🪔 Sandhya Prana', night: '🌙 Night Prana' }[getTimeSlot()];
 
     const clearTimer = () => { if (timerRef.current) clearInterval(timerRef.current); };
 
@@ -680,7 +1170,7 @@ function VideoStoryViewer({ story, allVideoStories, startIdx, onClose, onFinishe
                     <motion.div key={`info-${currentIdx}`} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', border: `1px solid ${current.color}44`, borderRadius: 99, padding: '0.2rem 0.7rem', marginBottom: '0.6rem' }}>
                             <div style={{ width: 6, height: 6, borderRadius: '50%', background: current.color, boxShadow: `0 0 8px ${current.color}` }} />
-                            <span style={{ fontSize: '0.52rem', color: current.color, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: "'Inter',sans-serif" }}>✦ Sacred Video · PranaVerse</span>
+                            <span style={{ fontSize: '0.52rem', color: current.color, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: "'Inter',sans-serif" }}>⚡ {pranaLabel} · PranaVerse</span>
                         </div>
                         <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 'clamp(1.6rem,6vw,2.2rem)', fontWeight: 600, color: '#fff', textShadow: '0 2px 20px rgba(0,0,0,0.8)', marginBottom: '0.3rem', lineHeight: 1.2 }}>{current.label}</h2>
                         <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.72)', fontStyle: 'italic', letterSpacing: '0.03em' }}>{current.description}</p>
@@ -860,14 +1350,10 @@ export default function HomeStoryBar() {
     const [viewedIds, setViewedIds] = useState<Set<string>>(new Set());
     const [activeGroupIdx, setActiveGroupIdx] = useState<number | null>(null);
     const [activeVideoIdx, setActiveVideoIdx] = useState<number | null>(null);
-    const [tasks, setTasks] = useState<Array<{ text: string; done: boolean }>>([]);
+    const [activeUserTaskIdx, setActiveUserTaskIdx] = useState<number | null>(null);
+    const { tasks, removeTask } = useDailyTasks();
 
-    useEffect(() => {
-        try {
-            const raw = localStorage.getItem('vedic_sankalpa');
-            if (raw) setTasks(JSON.parse(raw));
-        } catch { /* ignore */ }
-    }, []);
+    const userTaskStories = React.useMemo(() => buildUserTaskStories(tasks), [tasks]);
 
     // Build image story groups
     const todayPanchang = computeDailyPanchang(new Date());
@@ -893,12 +1379,24 @@ export default function HomeStoryBar() {
             ringColors: ['#fbbf24', '#fbcfe8'],
             slides: WISDOM_QUOTES.map((q, i) => ({ id: `w${i}`, bg: getImg(i % 4), accent: '#f472b6', content: <WisdomSlideContent q={q} /> })),
         },
-        ...PORTAL_DATA.slice(0, 4).map((portal, pi) => ({
+        ...PORTAL_DATA.map((portal, pi) => ({
             id: `portal-${portal.title}`, label: portal.title, icon: portal.icon, color: portal.color,
             gradient: `linear-gradient(135deg,${portal.color},${portal.color}99)`,
             ringColors: [portal.color, '#fbbf24'] as [string, string],
-            slides: [{ id: `portal-${pi}-s1`, bg: getImg(pi), accent: portal.color, content: <PortalSlideContent p={portal} /> }],
+            slides: [{ id: `portal-${pi}-s1`, bg: getImg(pi % 4), accent: portal.color, content: <PortalSlideContent p={portal} /> }],
         })),
+        // ── Gurukul — 3-slide story: Vision + Modern + Ancient ──
+        {
+            id: 'gurukul', label: 'Gurukul', icon: '🪔', color: '#f59e0b',
+            gradient: 'linear-gradient(135deg,#f59e0b,#d97706)',
+            ringColors: ['#fbbf24', '#fb923c'] as [string, string],
+            slides: [
+                { id: 'gk-vision', bg: getImg(1), accent: '#fbbf24', content: <GurululVisionSlide getImg={getImg} /> },
+                { id: 'gk-modern', bg: getImg(2), accent: '#60a5fa', content: <GurululModernSlide /> },
+                { id: 'gk-startup', bg: getImg(3), accent: '#4ade80', content: <GurululStartupSlide /> },
+                { id: 'gk-ancient', bg: getImg(0), accent: '#fbbf24', content: <GurululAncientSlide /> },
+            ],
+        },
     ];
 
     const openImageGroup = (idx: number) => {
@@ -912,12 +1410,27 @@ export default function HomeStoryBar() {
         window.history.pushState({ pvStory: true }, '');
     };
 
+    const openUserTask = (idx: number) => {
+        setActiveUserTaskIdx(idx);
+        setViewedIds(v => new Set([...v, userTaskStories[idx].id]));
+    };
+    const closeUserTask = () => setActiveUserTaskIdx(null);
+    const nextUserTask = () => {
+        if (activeUserTaskIdx === null) return;
+        if (activeUserTaskIdx < userTaskStories.length - 1) setActiveUserTaskIdx(i => i! + 1);
+        else { closeUserTask(); openImageGroup(0); }
+    };
+    const prevUserTask = () => {
+        if (activeUserTaskIdx === null) return;
+        if (activeUserTaskIdx > 0) setActiveUserTaskIdx(i => i! - 1);
+    };
+
     useEffect(() => {
-        if (activeGroupIdx === null && activeVideoIdx === null) return;
-        const handler = () => { setActiveGroupIdx(null); setActiveVideoIdx(null); };
+        if (activeGroupIdx === null && activeVideoIdx === null && activeUserTaskIdx === null) return;
+        const handler = () => { setActiveGroupIdx(null); setActiveVideoIdx(null); setActiveUserTaskIdx(null); };
         window.addEventListener('popstate', handler);
         return () => window.removeEventListener('popstate', handler);
-    }, [activeGroupIdx, activeVideoIdx]);
+    }, [activeGroupIdx, activeVideoIdx, activeUserTaskIdx]);
 
     return (
         <>
@@ -954,7 +1467,28 @@ export default function HomeStoryBar() {
                     <span style={{ fontSize: '0.48rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.04em' }}>Your Story</span>
                 </div>
 
-                {/* ── IMAGE STORY BUBBLES (first — tasks, portals, wisdom) ── */}
+                {/* ── USER TASK STORIES: ONE grouped card per category ── */}
+                {(['task', 'challenge', 'idea', 'issue', 'wellness'] as const).map((cat, i) => {
+                    const catStories = userTaskStories.filter(s => s.category === cat);
+                    if (catStories.length === 0) return null;
+                    return (
+                        <UserCategoryGroupBubble
+                            key={cat}
+                            category={cat}
+                            stories={catStories}
+                            onOpen={() => openUserTask(userTaskStories.findIndex(s => s.category === cat))}
+                            isViewed={catStories.every(s => viewedIds.has(s.id))}
+                            idx={i}
+                        />
+                    );
+                })}
+
+                {/* Divider between user stories and cosmic/mantra stories */}
+                {userTaskStories.length > 0 && (
+                    <div style={{ width: 1, height: 58, background: 'rgba(251,191,36,0.18)', flexShrink: 0, alignSelf: 'center' }} />
+                )}
+
+                {/* ── IMAGE STORY BUBBLES (Cosmic Date, Mantras, Wisdom, Portals) ── */}
                 {imageGroups.map((group, idx) => {
                     const isViewed = viewedIds.has(group.id);
                     const bgImg = group.slides[0]?.bg ?? '';
@@ -972,7 +1506,6 @@ export default function HomeStoryBar() {
                                 animation: isViewed ? 'none' : `storyBubbleFloat ${3.5 + idx * 0.4}s ease-in-out ${idx * 0.15}s infinite`,
                             }}
                         >
-                            {/* Outer illuminating ring — matches video story size/style */}
                             <div style={{
                                 width: 68, height: 68, borderRadius: '50%', padding: 3,
                                 background: isViewed
@@ -981,51 +1514,20 @@ export default function HomeStoryBar() {
                                 animation: isViewed ? 'none' : `videoRingPulse ${2.6 + idx * 0.28}s ease-in-out ${idx * 0.22}s infinite, videoShimmer ${3.2 + idx * 0.2}s ease-in-out ${idx * 0.18}s infinite`,
                                 flexShrink: 0, position: 'relative',
                             }}>
-                                {/* Inner circle with natural image */}
                                 <div style={{
                                     width: '100%', height: '100%', borderRadius: '50%',
                                     border: '2.5px solid #000', overflow: 'hidden', position: 'relative',
                                     filter: isViewed ? 'grayscale(0.6) brightness(0.55)' : 'none',
                                 }}>
-                                    {/* Natural background image */}
-                                    <img
-                                        src={bgImg}
-                                        alt={group.label}
-                                        style={{
-                                            position: 'absolute', inset: 0, width: '100%', height: '100%',
-                                            objectFit: 'cover', objectPosition: 'center',
-                                            filter: 'brightness(0.78) saturate(1.3)',
-                                        }}
-                                    />
-                                    {/* Dark gradient from bottom */}
-                                    <div style={{
-                                        position: 'absolute', inset: 0,
-                                        background: 'linear-gradient(180deg, transparent 25%, rgba(0,0,0,0.58) 100%)',
-                                    }} />
-                                    {/* Color tint from group accent */}
-                                    <div style={{
-                                        position: 'absolute', inset: 0,
-                                        background: `radial-gradient(circle at 50% 40%, ${group.color}44 0%, transparent 72%)`,
-                                    }} />
-                                    {/* Superimposed icon */}
-                                    <div style={{
-                                        position: 'absolute', inset: 0,
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    }}>
-                                        <span style={{
-                                            fontSize: '1.25rem',
-                                            filter: `drop-shadow(0 0 10px ${group.color}) drop-shadow(0 0 5px ${group.color}cc)`,
-                                            opacity: isViewed ? 0.5 : 1,
-                                        }}>{group.icon}</span>
+                                    <img src={bgImg} alt={group.label} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', filter: 'brightness(0.78) saturate(1.3)' }} />
+                                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 25%, rgba(0,0,0,0.58) 100%)' }} />
+                                    <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at 50% 40%, ${group.color}44 0%, transparent 72%)` }} />
+                                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <span style={{ fontSize: '1.25rem', filter: `drop-shadow(0 0 10px ${group.color}) drop-shadow(0 0 5px ${group.color}cc)`, opacity: isViewed ? 0.5 : 1 }}>{group.icon}</span>
                                     </div>
                                 </div>
                             </div>
-                            <span style={{
-                                fontSize: '0.48rem', fontFamily: "'Inter',sans-serif", fontWeight: 700,
-                                color: isViewed ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.88)',
-                                letterSpacing: '0.04em', textAlign: 'center',
-                                maxWidth: 66, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                            }}>{group.label}</span>
+                            <span style={{ fontSize: '0.48rem', fontFamily: "'Inter',sans-serif", fontWeight: 700, color: isViewed ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.88)', letterSpacing: '0.04em', textAlign: 'center', maxWidth: 66, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{group.label}</span>
                         </motion.div>
                     );
                 })}
@@ -1044,57 +1546,44 @@ export default function HomeStoryBar() {
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             transition={{ delay: idx * 0.04, type: 'spring', stiffness: 300, damping: 22 }}
                             onClick={() => openVideoStory(idx)}
-                            style={{
-                                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem',
-                                flexShrink: 0, cursor: 'pointer',
-                                animation: isViewed ? 'none' : `storyBubbleFloat ${3.8 + idx * 0.35}s ease-in-out ${idx * 0.12}s infinite`,
-                            }}
+                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', flexShrink: 0, cursor: 'pointer', animation: isViewed ? 'none' : `storyBubbleFloat ${3.8 + idx * 0.35}s ease-in-out ${idx * 0.12}s infinite` }}
                         >
-                            {/* Outer gold glow ring */}
                             <div style={{
                                 width: 68, height: 68, borderRadius: '50%',
                                 padding: 3,
-                                background: isViewed
-                                    ? 'rgba(255,255,255,0.08)'
-                                    : `conic-gradient(#fbbf24 0deg, #fde68a 90deg, ${story.color} 180deg, #fde68a 270deg, #fbbf24 360deg)`,
+                                background: isViewed ? 'rgba(255,255,255,0.08)' : `conic-gradient(#fbbf24 0deg, #fde68a 90deg, ${story.color} 180deg, #fde68a 270deg, #fbbf24 360deg)`,
                                 animation: isViewed ? 'none' : `videoRingPulse 2.4s ease-in-out ${idx * 0.22}s infinite, videoShimmer 3s ease-in-out ${idx * 0.18}s infinite`,
-                                flexShrink: 0,
-                                position: 'relative',
+                                flexShrink: 0, position: 'relative',
                             }}>
-                                {/* Inner black border separator */}
-                                <div style={{
-                                    width: '100%', height: '100%', borderRadius: '50%',
-                                    border: '2.5px solid #000',
-                                    overflow: 'hidden',
-                                    filter: isViewed ? 'grayscale(0.6) brightness(0.55)' : 'none',
-                                }}>
+                                <div style={{ width: '100%', height: '100%', borderRadius: '50%', border: '2.5px solid #000', overflow: 'hidden', filter: isViewed ? 'grayscale(0.6) brightness(0.55)' : 'none' }}>
                                     <VideoBubble story={story} isViewed={isViewed} idx={idx} />
                                 </div>
-                                {/* Video indicator badge */}
                                 {!isViewed && (
-                                    <div style={{
-                                        position: 'absolute', bottom: -1, right: -1,
-                                        background: 'linear-gradient(135deg,#fbbf24,#f59e0b)',
-                                        borderRadius: '50%', width: 16, height: 16,
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        border: '2px solid #000',
-                                        boxShadow: '0 0 8px rgba(251,191,36,0.8)',
-                                    }}>
+                                    <div style={{ position: 'absolute', bottom: -1, right: -1, background: 'linear-gradient(135deg,#fbbf24,#f59e0b)', borderRadius: '50%', width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #000', boxShadow: '0 0 8px rgba(251,191,36,0.8)' }}>
                                         <span style={{ fontSize: '0.35rem', color: '#000', fontWeight: 800, marginLeft: 1 }}>▶</span>
                                     </div>
                                 )}
                             </div>
-                            <span style={{
-                                fontSize: '0.48rem', fontFamily: "'Inter',sans-serif", fontWeight: 700,
-                                color: isViewed ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.88)',
-                                letterSpacing: '0.04em', textAlign: 'center',
-                                maxWidth: 66, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                            }}>{story.label}</span>
+                            <span style={{ fontSize: '0.48rem', fontFamily: "'Inter',sans-serif", fontWeight: 700, color: isViewed ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.88)', letterSpacing: '0.04em', textAlign: 'center', maxWidth: 66, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{story.label}</span>
                         </motion.div>
                     );
                 })}
 
             </div>
+
+            {/* User task story viewer */}
+            <AnimatePresence>
+                {activeUserTaskIdx !== null && userTaskStories.length > 0 && (
+                    <UserTaskViewer
+                        stories={userTaskStories}
+                        currentIdx={activeUserTaskIdx}
+                        onClose={closeUserTask}
+                        onNext={nextUserTask}
+                        onPrev={prevUserTask}
+                        onRemove={removeTask}
+                    />
+                )}
+            </AnimatePresence>
 
             {/* Full-screen video viewer */}
             <AnimatePresence>
@@ -1104,11 +1593,7 @@ export default function HomeStoryBar() {
                         allVideoStories={VIDEO_STORIES}
                         startIdx={activeVideoIdx}
                         onClose={() => setActiveVideoIdx(null)}
-                        onFinished={() => {
-                            // Chain seamlessly into image story groups
-                            setActiveVideoIdx(null);
-                            openImageGroup(0);
-                        }}
+                        onFinished={() => { setActiveVideoIdx(null); openImageGroup(0); }}
                     />
                 )}
             </AnimatePresence>

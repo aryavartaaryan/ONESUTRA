@@ -72,14 +72,14 @@ const DIMENSIONS = [
     {
         id: 'feed',
         icon: InfinityWaveIcon,
-        label: 'Holistic Feed',
-        titleEn: 'Holistic Feed',
-        titleHi: 'जागृत फ़ीड',
-        descEn: 'Scroll through peace, not noise. Mantras, wisdom, and sacred video.',
-        descHi: 'शांति से स्क्रोल करें, शोर से नहीं।',
-        gradient: 'linear-gradient(135deg, rgba(20,184,166,0.22) 0%, rgba(59,130,246,0.14) 100%)',
-        glow: 'rgba(20,184,166,0.3)',
-        accent: '#5eead4',
+        label: 'PranaVerse',
+        titleEn: 'PranaVerse Social Feed',
+        titleHi: 'प्राणवर्स फ़ीड',
+        descEn: 'Sacred conscious social network. Share Prana, raise vibrations, find your tribe.',
+        descHi: 'पवित्र सचेत सोशल नेटवर्क। अपनी ऊर्जा साझा करें।',
+        gradient: 'linear-gradient(135deg, rgba(126,87,194,0.25) 0%, rgba(99,102,241,0.15) 100%)',
+        glow: 'rgba(167,139,250,0.3)',
+        accent: '#a78bfa',
         href: '/pranaverse',
         span: 'wide',
     },
@@ -146,9 +146,9 @@ function PulseCTA() {
             />
             <Link href="/pranaverse" className={styles.ctaButton}>
                 <span className={styles.ctaButtonInner}>
-                    <span className={styles.ctaIcon}>🕉️</span>
-                    <span className={styles.ctaText}>Enter the PranaVerse</span>
-                    <span className={styles.ctaSubtext}>Begin Your Stress-Free Day →</span>
+                    <span className={styles.ctaIcon}>✦</span>
+                    <span className={styles.ctaText}>Enter PranaVerse</span>
+                    <span className={styles.ctaSubtext}>Sacred Conscious Social Network →</span>
                 </span>
             </Link>
         </motion.div>

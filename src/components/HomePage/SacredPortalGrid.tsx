@@ -63,15 +63,25 @@ type OrbItem = {
 };
 
 const ORBIT_ITEMS: OrbItem[] = [
-    { id: 'ayurhealth', title: 'GURUKUL', subtitle: 'Sacred Learning', description: 'Connect with Vedic scholars, Gurukuls & masters — discover ancient wisdom schools and spiritual guides across India.', href: '/guru-gurukul', color: '#a855f7', glow: '#9333ea', icon: '🎓', shape: '' },
-    { id: 'dhyan', title: 'MEDITATE', subtitle: 'Sacred Mantras', description: 'Immerse in curated sacred mantras & guided meditations — find inner stillness with healing frequencies.', href: '/dhyan-kshetra', color: '#3b82f6', glow: '#2563eb', icon: '🧘', shape: '' },
-    { id: 'outplugs', title: 'INSHORTS', subtitle: 'Mindful News', description: 'Distraction-free mindful news — stay informed without the noise, curated through a conscious lens.', href: '/outplugs', color: '#d946ef', glow: '#a21caf', icon: '📰', shape: '' },
-    { id: 'prana-raag', title: 'RAAG MUSIC', subtitle: 'Resonances', description: 'Ancient Indian classical ragas matched to the time of day — healing frequencies for every moment.', href: '/project-leela', color: '#38bdf8', glow: '#0284c7', icon: '🎵', shape: '' },
-    { id: 'swadesi', title: 'SWADESHI', subtitle: 'Sacred Commerce', description: 'Discover authentic Indian artisan products — sacred commerce that honors tradition & empowers craftsmen.', href: '/swadesi-product', color: '#f97316', glow: '#ea580c', icon: '🛍️', shape: '' },
-    { id: 'vedic-games', title: 'GAMES', subtitle: 'Mindful Play', description: 'Vedic-inspired mindful games — sharpen your mind while connecting with ancient Indian wisdom.', href: '/vedic-games', color: '#ec4899', glow: '#be185d', icon: '🎲', shape: '' },
-    { id: 'prancers', title: 'PRANCERS', subtitle: 'Urja Feed', description: 'Your pranic social energy feed — share your spiritual journey, connect with seekers & radiate conscious light.', href: '/pranaverse', color: '#06b6d4', glow: '#0891b2', icon: '⚡', shape: '' },
-    { id: 'pranaverse', title: 'PRANAVIBES', subtitle: 'Conscious Feed', description: 'Your conscious social feed — inspirational reels, mantras & wisdom curated for spiritual growth.', href: '/pranaverse', color: '#14b8a6', glow: '#0d9488', icon: '🌊', shape: '' },
-    { id: 'vedic-sangrah', title: 'RITUALS', subtitle: 'Sacred Practices', description: 'Daily sacred practices & rituals — step-by-step guidance for pujas, havans & spiritual ceremonies.', href: '/vedic-sangrah', color: '#6366f1', glow: '#4f46e5', icon: '🛕', shape: '' },
+    { id: 'ai-acharya', title: 'AyurHealth', subtitle: 'Ayurvedic Guidance & Followup', description: 'Consult AI Ayurvedacharya Pranav — your personal Vedic health guide. Get Prakruti analysis, Ayurvedic remedies & sacred healing wisdom, available 24/7.', href: '/acharya-samvad', color: '#10b981', glow: '#059669', icon: '🌿✦', shape: '' },
+    { id: 'dhyan', title: 'Meditate', subtitle: 'Energy Mantras & Stotras', description: 'Immerse in curated sacred mantras & guided meditations — find inner stillness with healing frequencies.', href: '/dhyan-kshetra', color: '#3b82f6', glow: '#2563eb', icon: '🧘', shape: '' },
+    { id: 'outplugs', title: 'Inshorts', subtitle: 'Mindful News', description: 'Distraction-free mindful news — stay informed without the noise, curated through a conscious lens.', href: '/outplugs', color: '#d946ef', glow: '#a21caf', icon: '📰', shape: '' },
+    { id: 'prana-raag', title: 'Raag Music', subtitle: 'Resonances', description: 'Ancient Indian classical ragas matched to the time of day — healing frequencies for every moment.', href: '/project-leela', color: '#38bdf8', glow: '#0284c7', icon: '🎵', shape: '' },
+    { id: 'swadesi', title: 'Swadeshi', subtitle: 'Pure Organics', description: 'Discover authentic Indian artisan products — sacred commerce that honors tradition & empowers craftsmen.', href: '/swadesi-product', color: '#f97316', glow: '#ea580c', icon: '🛍️', shape: '' },
+    { id: 'skills', title: 'Skills', subtitle: 'Upgrade & Transform', description: 'Unlock your potential with curated skill tracks — from ancient Vedic arts to modern tech. Learn, grow, and evolve with expert-guided paths tailored to your journey.', href: '/skills', color: '#22d3ee', glow: '#0891b2', icon: '🎯', shape: '' },
+    { id: 'vedic-games', title: 'Games', subtitle: 'Productive Play', description: 'Vedic-inspired mindful games — sharpen your mind while connecting with ancient Indian wisdom.', href: '/vedic-games', color: '#ec4899', glow: '#be185d', icon: '🎲', shape: '' },
+    {
+        id: 'pranaverse',
+        title: 'PranaVerse',
+        subtitle: 'Resonance Feeds & Network',
+        description: 'PranaVerse — the sacred conscious social network. Share your Prana, discover sacred wisdom reels, connect with seekers worldwide, and raise collective vibration.',
+        href: '/pranaverse',
+        color: '#a78bfa',
+        glow: '#7c3aed',
+        icon: '✦',
+        shape: '',
+    },
+    { id: 'gurukul', title: 'Gurukul', subtitle: 'World-Class Wisdom', description: '🏛️ World\'s Premier Gurukul — AI, Mathematics & Modern Sciences + Bhagavat Gita, Upanishads, Sanskrit Vyakaran, Darshan & Vedic wisdom. We also provide Startup Support: ideas, product development & launch.', href: '/vedic-sangrah', color: '#f59e0b', glow: '#d97706', icon: '🪔✦', shape: '' },
 ];
 
 
@@ -88,7 +98,7 @@ const MICRO_BUBBLES: { x: number; y: number; r: number }[][] = [
     [{ x: 28, y: 64, r: 3.4 }, { x: 56, y: 70, r: 2.0 }, { x: 70, y: 58, r: 2.6 }, { x: 40, y: 76, r: 1.8 }],
 ];
 
-// ── Jelly Water-Bubble Sacred Portal ────────────────────────────────────────
+// ── Ultra-Transparent Prismatic Crystal Sacred Planet ───────────────────────
 function GeodeOrb({ item, sz, idx }: { item: OrbItem; sz: number; idx: number }) {
     const d = sz * 1.24;
     const bubbles = MICRO_BUBBLES[idx % MICRO_BUBBLES.length];
@@ -102,20 +112,28 @@ function GeodeOrb({ item, sz, idx }: { item: OrbItem; sz: number; idx: number })
             display: 'flex', flexDirection: 'column', alignItems: 'center',
             gap: sz * 0.09,
         }}>
-            {/* ════ THE JELLY BUBBLE ════ */}
+            {/* ════ ULTRA-TRANSPARENT CRYSTAL BUBBLE ════ */}
             <div style={{
                 width: d, height: d,
                 borderRadius: '50%',
                 position: 'relative',
-                background: `radial-gradient(circle at 36% 26%, rgba(255,255,255,0.30) 0%, ${item.color}22 26%, ${item.color}2a 52%, ${item.color}1a 76%, ${item.color}0c 100%)`,
-                backdropFilter: 'blur(20px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                border: '1.2px solid rgba(255,255,255,0.24)',
+                // Near-zero opacity base — pure glass effect
+                background: [
+                    `radial-gradient(circle at 30% 22%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 28%, transparent 60%)`,
+                    `radial-gradient(circle at 70% 75%, ${item.color}22 0%, ${item.color}08 40%, transparent 70%)`,
+                    `radial-gradient(circle at 50% 50%, rgba(255,255,255,0.04) 0%, transparent 80%)`,
+                ].join(','),
+                backdropFilter: 'blur(28px) saturate(220%) brightness(1.25)',
+                WebkitBackdropFilter: 'blur(28px) saturate(220%) brightness(1.25)',
+                // Crystal-clear border with prismatic shimmer
+                border: `1px solid rgba(255,255,255,0.30)`,
                 boxShadow: [
-                    `0 0 ${d * 0.38}px ${item.glow}22`,
-                    `0 ${d * 0.10}px ${d * 0.28}px rgba(0,0,0,0.32)`,
-                    `inset 0 ${d * 0.07}px ${d * 0.18}px rgba(255,255,255,0.24)`,
-                    `inset 0 -${d * 0.04}px ${d * 0.14}px ${item.color}18`,
+                    `0 0 ${d * 0.5}px ${item.color}28`,                       // soft colored outer halo
+                    `0 0 ${d * 0.18}px rgba(255,255,255,0.12)`,               // white rim glow
+                    `0 ${d * 0.08}px ${d * 0.28}px rgba(0,0,0,0.38)`,        // subtle depth shadow
+                    `inset 0 ${d * 0.06}px ${d * 0.22}px rgba(255,255,255,0.22)`,   // top inner light
+                    `inset 0 -${d * 0.04}px ${d * 0.14}px ${item.color}18`,          // color aurora base
+                    `inset 0 0 ${d * 0.40}px rgba(255,255,255,0.04)`,         // inner ambient
                 ].join(','),
                 display: 'flex',
                 flexDirection: 'column',
@@ -125,113 +143,206 @@ function GeodeOrb({ item, sz, idx }: { item: OrbItem; sz: number; idx: number })
                 overflow: 'hidden',
                 flexShrink: 0,
             }}>
-                {/* ── Primary specular crescent (top-left) ── */}
+                {/* ── Bright specular crescent (top-left) — hallmark of glass ── */}
                 <div style={{
                     position: 'absolute',
-                    top: '6%', left: '10%',
-                    width: '52%', height: '35%',
-                    background: 'radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0.22) 40%, transparent 100%)',
+                    top: '4%', left: '7%',
+                    width: '52%', height: '36%',
+                    background: 'radial-gradient(ellipse at 40% 40%, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.28) 38%, transparent 72%)',
                     borderRadius: '50%',
-                    transform: 'rotate(-25deg)',
-                    filter: 'blur(2.5px)',
+                    transform: 'rotate(-32deg)',
+                    filter: 'blur(2px)',
                     pointerEvents: 'none',
                 }} />
 
-                {/* ── Tiny bright specular dot ── */}
+                {/* ── Sharp white specular sparkle dot ── */}
                 <div style={{
                     position: 'absolute',
-                    top: '14%', right: '22%',
-                    width: '12%', height: '10%',
-                    background: 'radial-gradient(circle, rgba(255,255,255,0.78) 0%, transparent 100%)',
+                    top: '9%', left: '16%',
+                    width: '12%', height: '9%',
+                    background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.4) 40%, transparent 100%)',
                     borderRadius: '50%',
-                    filter: 'blur(0.8px)',
+                    filter: 'blur(0.5px)',
                     pointerEvents: 'none',
                 }} />
 
-                {/* ── Rim light at bottom ── */}
+                {/* ── Prismatic rainbow rim shimmer (thin arc along top edge) ── */}
                 <div style={{
                     position: 'absolute',
-                    bottom: '5%', left: '20%', right: '20%',
-                    height: '7%',
-                    background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.18), transparent)',
+                    top: '1%', left: '10%', right: '10%',
+                    height: '18%',
+                    background: `conic-gradient(from 180deg, ${item.color}55, rgba(255,180,255,0.25), rgba(100,220,255,0.30), rgba(255,240,100,0.20), ${item.color}55)`,
                     borderRadius: '50%',
-                    filter: 'blur(1.5px)',
+                    filter: 'blur(3px)',
+                    opacity: 0.7,
                     pointerEvents: 'none',
                 }} />
 
-                {/* ── Jelly color aurora — richer tint ── */}
+                {/* ── Item-color aurora pool at bottom ── */}
                 <div style={{
-                    position: 'absolute', bottom: 0, left: '5%', right: '5%',
+                    position: 'absolute', bottom: '-5%', left: '5%', right: '5%',
                     height: '55%',
-                    background: `radial-gradient(ellipse at center bottom, ${item.color}28 0%, ${item.color}12 40%, transparent 75%)`,
-                    filter: 'blur(8px)',
+                    background: `radial-gradient(ellipse at center bottom, ${item.color}30 0%, ${item.color}12 45%, transparent 80%)`,
+                    filter: 'blur(10px)',
                     pointerEvents: 'none',
                 }} />
 
-                {/* ── Trapped air micro-bubbles ── */}
+                {/* ── Secondary soft reflection (bottom right) ── */}
+                <div style={{
+                    position: 'absolute',
+                    bottom: '8%', right: '8%',
+                    width: '30%', height: '22%',
+                    background: 'radial-gradient(ellipse, rgba(255,255,255,0.14) 0%, transparent 80%)',
+                    borderRadius: '50%',
+                    filter: 'blur(3px)',
+                    pointerEvents: 'none',
+                }} />
+
+                {/* ── Translucent trapped air micro-bubbles (crystal-clear) ── */}
                 {bubbles.map((b, j) => (
                     <div key={j} style={{
                         position: 'absolute',
                         left: `${b.x}%`, top: `${b.y}%`,
                         width: b.r * 2, height: b.r * 2,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle at 35% 30%, rgba(255,255,255,0.58) 0%, rgba(255,255,255,0.12) 50%, transparent 100%)',
-                        border: '0.5px solid rgba(255,255,255,0.32)',
-                        boxShadow: `inset 0 0.5px 1px rgba(255,255,255,0.38), 0 0 ${b.r}px rgba(255,255,255,0.08)`,
+                        background: 'radial-gradient(circle at 30% 28%, rgba(255,255,255,0.70) 0%, rgba(255,255,255,0.12) 50%, transparent 100%)',
+                        border: '0.5px solid rgba(255,255,255,0.38)',
+                        boxShadow: `inset 0 0.5px 1.5px rgba(255,255,255,0.55), 0 0 ${b.r * 1.2}px rgba(255,255,255,0.10)`,
                         pointerEvents: 'none',
                     }} />
                 ))}
 
-                {/* ── Icon ── */}
-                <span style={{
-                    fontSize: sz * 0.44,
-                    position: 'relative', zIndex: 2,
-                    filter: `drop-shadow(0 2px 6px rgba(0,0,0,0.35)) drop-shadow(0 0 ${sz * 0.10}px ${item.color}55)`,
-                    lineHeight: 1,
-                }}>{item.icon}</span>
+                {/* ── Icon — premium SVGs for PranaVerse, AI Acharya, GuruKul; emoji for others ── */}
+                {item.icon === '✦' ? (
+                    /* ── PranaVerse: radiating orbit ── */
+                    <svg width={sz * 0.48} height={sz * 0.48} viewBox="0 0 48 48" fill="none"
+                        style={{ position: 'relative', zIndex: 2, filter: `drop-shadow(0 0 ${sz * 0.14}px ${item.color}) drop-shadow(0 0 ${sz * 0.07}px rgba(100,200,255,0.8))` }}>
+                        <circle cx="24" cy="24" r="21" stroke={item.color} strokeWidth="0.7" strokeOpacity="0.45" strokeDasharray="3 2" />
+                        <circle cx="24" cy="24" r="15" stroke={item.color} strokeWidth="1" strokeOpacity="0.65" />
+                        <circle cx="24" cy="24" r="6.5" fill={`${item.color}55`} />
+                        <circle cx="24" cy="24" r="4.5" fill={`${item.color}cc`} />
+                        {[0, 45, 90, 135, 180, 225, 270, 315].map((deg, k) => {
+                            const rad = deg * Math.PI / 180;
+                            const x1 = 24 + Math.cos(rad) * 8;
+                            const y1 = 24 + Math.sin(rad) * 8;
+                            const x2 = 24 + Math.cos(rad) * (k % 2 === 0 ? 19 : 14);
+                            const y2 = 24 + Math.sin(rad) * (k % 2 === 0 ? 19 : 14);
+                            return <line key={k} x1={x1} y1={y1} x2={x2} y2={y2}
+                                stroke={item.color} strokeWidth={k % 2 === 0 ? "1.6" : "0.9"} strokeOpacity={k % 2 === 0 ? 1.0 : 0.6}
+                                strokeLinecap="round" />;
+                        })}
+                        {[0, 90, 180, 270].map((deg, k) => {
+                            const rad = deg * Math.PI / 180;
+                            return <circle key={k} cx={24 + Math.cos(rad) * 22} cy={24 + Math.sin(rad) * 22} r="2" fill={item.color} fillOpacity="0.9" />;
+                        })}
+                        <circle cx="24" cy="24" r="2" fill="#fff" fillOpacity="1" />
+                    </svg>
+                ) : item.icon === '🌿✦' ? (
+                    /* ── AI Ayurvedacharya Pranav: lotus-leaf healing mandala ── */
+                    <svg width={sz * 0.50} height={sz * 0.50} viewBox="0 0 48 48" fill="none"
+                        style={{ position: 'relative', zIndex: 2, filter: `drop-shadow(0 0 ${sz * 0.14}px ${item.color}) drop-shadow(0 0 ${sz * 0.08}px rgba(100,255,180,0.7))` }}>
+                        <circle cx="24" cy="24" r="21" stroke={item.color} strokeWidth="0.7" strokeOpacity="0.45" strokeDasharray="2.5 2" />
+                        {[0, 60, 120, 180, 240, 300].map((deg, k) => {
+                            const rad = deg * Math.PI / 180;
+                            const cx2 = 24 + Math.cos(rad) * 11;
+                            const cy2 = 24 + Math.sin(rad) * 11;
+                            return (
+                                <ellipse key={k}
+                                    cx={cx2} cy={cy2}
+                                    rx="4.5" ry="7.5"
+                                    fill={`${item.color}35`}
+                                    stroke={item.color} strokeWidth="0.9" strokeOpacity="0.85"
+                                    transform={`rotate(${deg + 90}, ${cx2}, ${cy2})`}
+                                />
+                            );
+                        })}
+                        <circle cx="24" cy="24" r="6" fill={`${item.color}55`} />
+                        <circle cx="24" cy="24" r="4" fill={`${item.color}bb`} />
+                        <line x1="24" y1="20" x2="24" y2="28" stroke="#fff" strokeWidth="1.6" strokeOpacity="0.95" strokeLinecap="round" />
+                        <line x1="20" y1="24" x2="28" y2="24" stroke="#fff" strokeWidth="1.6" strokeOpacity="0.95" strokeLinecap="round" />
+                        {[30, 90, 150, 210, 270, 330].map((deg, k) => {
+                            const rad = deg * Math.PI / 180;
+                            return <circle key={k} cx={24 + Math.cos(rad) * 20} cy={24 + Math.sin(rad) * 20}
+                                r="1.4" fill={item.color} fillOpacity="0.88" />;
+                        })}
+                    </svg>
+                ) : item.icon === '🪔✦' ? (
+                    /* ── GuruKul: sacred lamp (diya) of knowledge ── */
+                    <svg width={sz * 0.48} height={sz * 0.48} viewBox="0 0 48 48" fill="none"
+                        style={{ position: 'relative', zIndex: 2, filter: `drop-shadow(0 0 ${sz * 0.14}px ${item.color}) drop-shadow(0 0 ${sz * 0.08}px rgba(255,210,80,0.7))` }}>
+                        <circle cx="24" cy="24" r="21" stroke={item.color} strokeWidth="0.7" strokeOpacity="0.5" strokeDasharray="3 2" />
+                        <path d="M14 29 Q14 34 24 34 Q34 34 34 29 Q34 24 24 24 Q14 24 14 29 Z"
+                            fill={`${item.color}40`} stroke={item.color} strokeWidth="1.2" strokeOpacity="0.9" />
+                        <line x1="24" y1="24" x2="24" y2="19" stroke={item.color} strokeWidth="1.4" strokeOpacity="1" strokeLinecap="round" />
+                        <path d="M24 18 Q21.5 14.5 24 11 Q26.5 14.5 24 18 Z"
+                            fill={`${item.color}ee`} />
+                        <path d="M24 17 Q22.5 14.5 24 12.5 Q25.5 14.5 24 17 Z"
+                            fill="#fff" fillOpacity="0.92" />
+                        {[270, 240, 300, 210, 330].map((deg, k) => {
+                            const rad = deg * Math.PI / 180;
+                            const r0 = 10, r1 = k === 0 ? 15 : 13;
+                            return <line key={k}
+                                x1={24 + Math.cos(rad) * r0} y1={24 + Math.sin(rad) * r0}
+                                x2={24 + Math.cos(rad) * r1} y2={24 + Math.sin(rad) * r1}
+                                stroke={item.color} strokeWidth={k === 0 ? '1.4' : '0.9'}
+                                strokeOpacity={k === 0 ? 1.0 : 0.65} strokeLinecap="round" />;
+                        })}
+                        {[0, 60, 120, 180, 240, 300].map((deg, k) => {
+                            const rad = deg * Math.PI / 180;
+                            return <circle key={k} cx={24 + Math.cos(rad) * 19} cy={24 + Math.sin(rad) * 19}
+                                r="1.3" fill={item.color} fillOpacity="0.7" />;
+                        })}
+                    </svg>
+                ) : (
+                    <span style={{
+                        fontSize: sz * 0.46,
+                        position: 'relative', zIndex: 2,
+                        filter: `drop-shadow(0 2px 8px rgba(0,0,0,0.5)) drop-shadow(0 0 ${sz * 0.12}px ${item.color}88)`,
+                        lineHeight: 1,
+                    }}>{item.icon}</span>
+                )}
 
-                {/* ── Subtitle inside — two lines, bigger, readable ── */}
+                {/* ── Subtitle inside — vibrant white text with strong glow ── */}
                 {item.subtitle && (
                     <div style={{
                         display: 'flex', flexDirection: 'column', alignItems: 'center',
                         gap: 1, position: 'relative', zIndex: 2, padding: '0 4px',
                     }}>
                         <span style={{
-                            fontSize: Math.max(7.8, sz * 0.136),
-                            fontWeight: 600,
+                            fontSize: Math.max(8.5, sz * 0.148),
+                            fontWeight: 700,
                             fontFamily: "'Outfit', sans-serif",
-                            color: 'rgba(255,255,255,0.65)',
+                            color: 'rgba(220,245,255,0.92)',
                             textAlign: 'center',
                             lineHeight: 1.18,
-                            letterSpacing: '0.02em',
-                            textShadow: '0 1px 4px rgba(0,0,0,0.6)',
+                            letterSpacing: '0.03em',
+                            textShadow: `0 0 8px rgba(100,200,255,0.9), 0 0 18px ${item.color}88, 0 1px 4px rgba(0,0,0,0.7)`,
                         }}>{line1}</span>
                         {line2 && (
                             <span style={{
-                                fontSize: Math.max(7.8, sz * 0.136),
-                                fontWeight: 600,
+                                fontSize: Math.max(8.5, sz * 0.148),
+                                fontWeight: 700,
                                 fontFamily: "'Outfit', sans-serif",
-                                color: 'rgba(255,255,255,0.55)',
+                                color: 'rgba(180,225,255,0.82)',
                                 textAlign: 'center',
                                 lineHeight: 1.18,
-                                letterSpacing: '0.02em',
-                                textShadow: '0 1px 4px rgba(0,0,0,0.6)',
+                                letterSpacing: '0.03em',
+                                textShadow: `0 0 6px rgba(80,180,255,0.8), 0 0 14px ${item.color}66, 0 1px 3px rgba(0,0,0,0.7)`,
                             }}>{line2}</span>
                         )}
                     </div>
                 )}
             </div>
 
-            {/* ════ TITLE — outside below the bubble ════ */}
+            {/* ════ TITLE — outside below the bubble — brighter with item-color glow ════ */}
             <span style={{
-                fontSize: Math.max(8, sz * 0.16),
-                fontWeight: 700,
+                fontSize: Math.max(8.5, sz * 0.165),
+                fontWeight: 800,
                 fontFamily: "'Outfit', sans-serif",
                 color: item.color,
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
                 textAlign: 'center',
-                textShadow: `0 0 14px ${item.color}55, 0 1px 4px rgba(0,0,0,0.8)`,
+                textShadow: `0 0 12px ${item.color}99, 0 0 28px ${item.color}44, 0 1px 5px rgba(0,0,0,0.9)`,
                 lineHeight: 1.15,
                 whiteSpace: 'nowrap',
             }}>{item.title}</span>
@@ -338,7 +449,7 @@ function FeatureDetail({ item, onClose, onNavigate }: { item: OrbItem; onClose: 
                     margin: 0, fontSize: '1.25rem', fontWeight: 700,
                     fontFamily: "'Outfit', sans-serif",
                     color: item.color,
-                    letterSpacing: '0.08em', textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
                     textShadow: `0 0 16px ${item.color}44`,
                     textAlign: 'center',
                 }}>{item.title}</h3>
@@ -433,13 +544,24 @@ export default function SacredPortalGrid() {
         return () => window.removeEventListener('resize', calc);
     }, []);
 
-    // Animation loop — friction-only, no auto-rotation (touch/drag controlled)
+    // Animation loop — auto-rotation + friction momentum after drag
+    // Touch/pointer down anywhere = full stop; release = resume medium auto-spin
     useEffect(() => {
+        const AUTO_SPEED = 0.18; // degrees per frame — medium speed spin
         const tick = () => {
-            if (!isDragging.current && !isPointerDown.current) {
-                vel.current *= 0.94; // momentum decays to zero after user lets go
+            if (isPointerDown.current) {
+                // Completely stop when user is touching
+                vel.current = 0;
+            } else if (!isDragging.current) {
+                if (Math.abs(vel.current) > 0.05) {
+                    // If user just released with momentum, decay it
+                    vel.current *= 0.94;
+                } else {
+                    // Otherwise apply gentle continuous auto-rotation
+                    vel.current = AUTO_SPEED;
+                }
             }
-            if (Math.abs(vel.current) > 0.0005) {
+            if (!isPointerDown.current && Math.abs(vel.current) > 0.001) {
                 setRotation(r => (r + vel.current + 360) % 360);
             }
             animRef.current = requestAnimationFrame(tick);
@@ -455,28 +577,28 @@ export default function SacredPortalGrid() {
     }, []);
 
     const onPD = useCallback((e: React.PointerEvent) => {
+        // Stop rotation on ANY touch anywhere in the orbit component
+        isPointerDown.current = true;
+        isDragging.current = false;
+        hasMoved.current = false;
+        vel.current = 0;
+
+        // Only initiate drag-rotation if touch is near the ring area
         const el = containerRef.current;
         if (!el) return;
         const rc = el.getBoundingClientRect();
         const dx = e.clientX - (rc.left + rc.width / 2);
         const dy = e.clientY - (rc.top + rc.height / 2);
         const dist = Math.hypot(dx, dy);
-
-        // Guard: only allow rotation when touch originates on/near the orbit ring.
-        // Block the central core area (inside the inner edge of the planet band).
         const currentOrbitR = rc.width * 0.43;
         const currentOrbSize = Math.max(56, rc.width * 0.16);
         const minDragDist = currentOrbitR - currentOrbSize * 0.6;
-        if (dist < minDragDist) return;
 
-        isPointerDown.current = true;
-        isDragging.current = false;
-        hasMoved.current = false;
-        vel.current = 0;
-        const ang = getAngle(e.clientX, e.clientY);
-        startAngle.current = ang;
-        lastAngle.current = ang;
-        // setPointerCapture removed to allow child clicks to fire properly
+        if (dist >= minDragDist) {
+            const ang = getAngle(e.clientX, e.clientY);
+            startAngle.current = ang;
+            lastAngle.current = ang;
+        }
     }, [getAngle]);
 
     const onPM = useCallback((e: React.PointerEvent) => {
@@ -526,7 +648,7 @@ export default function SacredPortalGrid() {
                     textShadow: '0 2px 15px rgba(251,191,36,0.3)',
                 }}>
                     <span style={{ marginRight: 6 }}>✦</span>
-                    Select any planet
+                    Click any Dimension
                 </h2>
                 <p style={{
                     margin: '0.4rem 0 0', fontSize: 'clamp(0.75rem, 3vw, 1.05rem)',
@@ -595,22 +717,38 @@ export default function SacredPortalGrid() {
                         />
                     </div>
 
-                    {/* Orbit track ring — transparent golden halo */}
+                    {/* Orbit track ring — glassy blue + golden halo fusion */}
                     <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 4 }}
                         viewBox={`0 0 ${orbitSize} ${orbitSize}`}>
                         <defs>
                             <filter id="ringGlow">
-                                <feGaussianBlur stdDeviation="5" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+                                <feGaussianBlur stdDeviation="6" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
                             </filter>
+                            <filter id="blueGlow">
+                                <feGaussianBlur stdDeviation="8" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+                            </filter>
+                            <linearGradient id="orbitTrackGrad" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stopColor="rgba(60,140,255,0.55)" />
+                                <stop offset="40%" stopColor="rgba(120,200,255,0.35)" />
+                                <stop offset="60%" stopColor="rgba(251,191,36,0.45)" />
+                                <stop offset="100%" stopColor="rgba(60,140,255,0.55)" />
+                            </linearGradient>
                         </defs>
+                        {/* Wide nebula track band */}
                         <circle cx={orbitSize / 2} cy={orbitSize / 2} r={orbitR} fill="none"
-                            stroke="rgba(251,191,36,0.22)" strokeWidth={orbSize * 0.85} />
+                            stroke="rgba(40,100,220,0.18)" strokeWidth={orbSize * 0.9} />
+                        {/* Main glowing orbit line */}
                         <circle cx={orbitSize / 2} cy={orbitSize / 2} r={orbitR} fill="none"
-                            stroke="rgba(251,191,36,0.88)" strokeWidth="1.8" filter="url(#ringGlow)" />
+                            stroke="url(#orbitTrackGrad)" strokeWidth="2.2" filter="url(#ringGlow)" />
+                        {/* Blue inner halo ring */}
+                        <circle cx={orbitSize / 2} cy={orbitSize / 2} r={orbitR} fill="none"
+                            stroke="rgba(80,160,255,0.55)" strokeWidth="1.0" filter="url(#blueGlow)" />
+                        {/* Dashed inner guide */}
                         <circle cx={orbitSize / 2} cy={orbitSize / 2} r={orbitR - orbSize * 0.43} fill="none"
-                            stroke="rgba(251,191,36,0.20)" strokeWidth="0.7" />
+                            stroke="rgba(80,160,255,0.25)" strokeWidth="0.8" strokeDasharray="4 3" />
+                        {/* Dashed outer guide */}
                         <circle cx={orbitSize / 2} cy={orbitSize / 2} r={orbitR + orbSize * 0.43} fill="none"
-                            stroke="rgba(251,191,36,0.20)" strokeWidth="0.7" />
+                            stroke="rgba(80,160,255,0.25)" strokeWidth="0.8" strokeDasharray="4 3" />
                     </svg>
 
                     {/* Gold tendril lines */}

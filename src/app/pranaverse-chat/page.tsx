@@ -31,7 +31,7 @@ const NATURE_BG: Record<TimeOfDay, string[]> = {
 interface ChatMsg { id: string; role: 'me' | 'them' | 'bodhi'; text: string; ts: number; }
 
 // ─── Avatar helpers ───────────────────────────────────────────────────────────
-const AVATAR_COLORS = ['#8b5cf6','#ec4899','#3b82f6','#14b8a6','#f97316','#22c55e','#a855f7','#f59e0b'];
+const AVATAR_COLORS = ['#8b5cf6', '#ec4899', '#3b82f6', '#14b8a6', '#f97316', '#22c55e', '#a855f7', '#f59e0b'];
 function getAvatarColor(uid: string) { return AVATAR_COLORS[uid.charCodeAt(0) % AVATAR_COLORS.length]; }
 function getInitials(name: string) { return name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase(); }
 
@@ -58,10 +58,10 @@ function BodhiCircle({ active, unread, onClick }: { active: boolean; unread: num
         <motion.div whileTap={{ scale: 0.90 }} onClick={onClick} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0, width: 58, cursor: 'pointer' }}>
             <div style={{ position: 'relative' }}>
                 <motion.div animate={{ rotate: 360 }} transition={{ duration: 7, repeat: Infinity, ease: 'linear' }} style={{ position: 'absolute', inset: -2, borderRadius: '50%', background: 'conic-gradient(#fbbf24,#a78bfa,#34d399,#f97316,#fbbf24)', opacity: 0.85 }} />
-                <motion.div animate={{ boxShadow: ['0 0 10px rgba(251,191,36,0.4)','0 0 22px rgba(251,191,36,0.80)','0 0 10px rgba(251,191,36,0.4)'] }} transition={{ duration: 2.5, repeat: Infinity }}
+                <motion.div animate={{ boxShadow: ['0 0 10px rgba(251,191,36,0.4)', '0 0 22px rgba(251,191,36,0.80)', '0 0 10px rgba(251,191,36,0.4)'] }} transition={{ duration: 2.5, repeat: Infinity }}
                     style={{ position: 'relative', zIndex: 1, width: 52, height: 52, borderRadius: '50%', background: 'radial-gradient(circle at 35% 28%,rgba(255,255,255,0.42) 0%,rgba(251,191,36,0.58) 42%,rgba(180,83,9,0.92) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', border: '2.5px solid #050216', margin: 2 }}>✦</motion.div>
-                {unread > 0 && <motion.div animate={{ scale: [1,1.2,1] }} transition={{ duration: 1.4, repeat: Infinity }} style={{ position: 'absolute', top: 0, right: 0, width: 16, height: 16, borderRadius: '50%', background: '#f97316', border: '2px solid #050216', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.40rem', color: '#fff', fontWeight: 800, zIndex: 2 }}>{unread}</motion.div>}
-                <motion.div animate={{ opacity: [0.7,1,0.7], scale: [1,1.2,1] }} transition={{ duration: 1.5, repeat: Infinity }} style={{ position: 'absolute', bottom: 3, right: 3, width: 11, height: 11, borderRadius: '50%', background: '#4ade80', border: '2px solid #050216', boxShadow: '0 0 6px rgba(74,222,128,0.85)', zIndex: 2 }} />
+                {unread > 0 && <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1.4, repeat: Infinity }} style={{ position: 'absolute', top: 0, right: 0, width: 16, height: 16, borderRadius: '50%', background: '#f97316', border: '2px solid #050216', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.40rem', color: '#fff', fontWeight: 800, zIndex: 2 }}>{unread}</motion.div>}
+                <motion.div animate={{ opacity: [0.7, 1, 0.7], scale: [1, 1.2, 1] }} transition={{ duration: 1.5, repeat: Infinity }} style={{ position: 'absolute', bottom: 3, right: 3, width: 11, height: 11, borderRadius: '50%', background: '#4ade80', border: '2px solid #050216', boxShadow: '0 0 6px rgba(74,222,128,0.85)', zIndex: 2 }} />
             </div>
             <span style={{ fontSize: '0.48rem', color: active ? '#fde68a' : 'rgba(255,255,255,0.55)', fontFamily: "'Outfit',sans-serif", fontWeight: active ? 800 : 500, letterSpacing: '0.03em' }}>Bodhi ✦</span>
         </motion.div>
@@ -79,7 +79,7 @@ function CircleAvatar({ u, active, onClick }: { u: SutraUser; active: boolean; o
                 <div style={{ position: 'relative', zIndex: 1, width: 52, height: 52, borderRadius: '50%', overflow: 'hidden', border: '2.5px solid #050216', margin: 2, background: u.photoURL ? undefined : `radial-gradient(circle at 35% 28%,rgba(255,255,255,0.22) 0%,${color}70 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.82rem', fontWeight: 700, color: '#fff', boxShadow: active ? `0 0 14px ${color}55` : 'none' }}>
                     {u.photoURL ? <img src={u.photoURL} alt={u.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initials}
                 </div>
-                {u.online && <motion.div animate={{ opacity: [0.6,1,0.6] }} transition={{ duration: 2.2, repeat: Infinity }} style={{ position: 'absolute', bottom: 3, right: 3, width: 10, height: 10, borderRadius: '50%', background: '#4ade80', border: '2px solid #050216', boxShadow: '0 0 5px rgba(74,222,128,0.75)', zIndex: 2 }} />}
+                {u.online && <motion.div animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 2.2, repeat: Infinity }} style={{ position: 'absolute', bottom: 3, right: 3, width: 10, height: 10, borderRadius: '50%', background: '#4ade80', border: '2px solid #050216', boxShadow: '0 0 5px rgba(74,222,128,0.75)', zIndex: 2 }} />}
             </div>
             <span style={{ fontSize: '0.48rem', color: active ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.50)', fontFamily: "'Outfit',sans-serif", fontWeight: active ? 700 : 400, maxWidth: 56, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center' }}>{u.name.split(' ')[0]}</span>
         </motion.div>
@@ -105,13 +105,13 @@ function SeekerCard({ u, status, isNature, onAdd, onAccept, onDecline, onChat }:
                 <div style={{ width: 46, height: 46, borderRadius: '50%', background: u.photoURL ? undefined : `radial-gradient(circle at 35% 28%,rgba(255,255,255,0.22) 0%,${color}65 100%)`, border: `2px solid ${color}35`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.88rem', fontWeight: 700, color: '#fff', overflow: 'hidden', boxShadow: `0 2px 14px ${color}22` }}>
                     {u.photoURL ? <img src={u.photoURL} alt={u.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initials}
                 </div>
-                {u.online && <motion.div animate={{ scale: [1,1.2,1] }} transition={{ duration: 2, repeat: Infinity }} style={{ position: 'absolute', bottom: 1, right: 1, width: 11, height: 11, borderRadius: '50%', background: '#4ade80', border: '2px solid rgba(5,2,22,0.85)', boxShadow: '0 0 6px rgba(74,222,128,0.8)' }} />}
+                {u.online && <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity }} style={{ position: 'absolute', bottom: 1, right: 1, width: 11, height: 11, borderRadius: '50%', background: '#4ade80', border: '2px solid rgba(5,2,22,0.85)', boxShadow: '0 0 6px rgba(74,222,128,0.8)' }} />}
             </div>
             {/* Info */}
             <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 2 }}>
                     <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'rgba(255,255,255,0.90)', fontFamily: "'Outfit',sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 118 }}>{u.name}</span>
-                    {status === 'received' && <motion.span animate={{ scale: [1,1.06,1] }} transition={{ duration: 1.8, repeat: Infinity }} style={{ padding: '1px 5px', borderRadius: 99, background: 'rgba(249,115,22,0.18)', border: '1px solid rgba(249,115,22,0.40)', fontSize: '0.38rem', fontWeight: 700, color: '#fb923c', letterSpacing: '0.10em', textTransform: 'uppercase', flexShrink: 0 }}>wants in</motion.span>}
+                    {status === 'received' && <motion.span animate={{ scale: [1, 1.06, 1] }} transition={{ duration: 1.8, repeat: Infinity }} style={{ padding: '1px 5px', borderRadius: 99, background: 'rgba(249,115,22,0.18)', border: '1px solid rgba(249,115,22,0.40)', fontSize: '0.38rem', fontWeight: 700, color: '#fb923c', letterSpacing: '0.10em', textTransform: 'uppercase', flexShrink: 0 }}>wants in</motion.span>}
                     {status === 'friends' && <span style={{ padding: '1px 5px', borderRadius: 99, background: `${color}22`, border: `1px solid ${color}40`, fontSize: '0.38rem', fontWeight: 700, color: color, letterSpacing: '0.08em', textTransform: 'uppercase', flexShrink: 0 }}>in circle</span>}
                 </div>
                 <span style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.32)', fontFamily: "'Outfit',sans-serif" }}>OneSuTra Seeker{u.online ? ' · ' : ''}{u.online ? <span style={{ color: '#4ade80' }}>online</span> : ''}</span>
@@ -238,7 +238,7 @@ export default function PranverseChatHub() {
         .filter(f => f.toUid === uid && f.status === 'pending')
         .map(f => ({ doc: f, user: allUsers.find(u => u.uid === f.fromUid) }))
         .filter((x): x is { doc: FriendDoc; user: SutraUser } => x.user != null),
-    [friendDocs, uid, allUsers]);
+        [friendDocs, uid, allUsers]);
     const sentRequestUids = useMemo(() => new Set(
         friendDocs.filter(f => f.fromUid === uid && f.status === 'pending').map(f => f.toUid)
     ), [friendDocs, uid]);
@@ -282,10 +282,10 @@ export default function PranverseChatHub() {
                 const { collection, query, where, onSnapshot } = await import('firebase/firestore');
                 const db = await getFirebaseFirestore();
                 u1 = onSnapshot(query(collection(db, 'resonance_friends'), where('fromUid', '==', uid)), snap => {
-                    fromMap.clear(); snap.docs.forEach(d => fromMap.set(d.id, { id: d.id, ...(d.data() as Omit<FriendDoc,'id'>) })); merge();
+                    fromMap.clear(); snap.docs.forEach(d => fromMap.set(d.id, { id: d.id, ...(d.data() as Omit<FriendDoc, 'id'>) })); merge();
                 });
                 u2 = onSnapshot(query(collection(db, 'resonance_friends'), where('toUid', '==', uid)), snap => {
-                    toMap.clear(); snap.docs.forEach(d => toMap.set(d.id, { id: d.id, ...(d.data() as Omit<FriendDoc,'id'>) })); merge();
+                    toMap.clear(); snap.docs.forEach(d => toMap.set(d.id, { id: d.id, ...(d.data() as Omit<FriendDoc, 'id'>) })); merge();
                 });
             } catch { /* offline */ }
         })();
@@ -469,43 +469,49 @@ export default function PranverseChatHub() {
                 </div>
             </div>
 
-            {/* ✨ MY SACRED CIRCLE — Snapchat-style story ring row */}
-            <div style={{ flexShrink: 0, padding: '0.75rem 1rem 0.65rem', borderBottom: isNature ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(255,255,255,0.06)', background: isNature ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.015)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                        <motion.div animate={{ opacity: [0.4,1,0.4] }} transition={{ duration: 2.4, repeat: Infinity }} style={{ width: 5, height: 5, borderRadius: '50%', background: '#fbbf24', boxShadow: '0 0 5px rgba(251,191,36,0.8)' }} />
-                        <span style={{ fontSize: '0.44rem', fontWeight: 800, color: 'rgba(255,255,255,0.40)', letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'monospace' }}>My Sacred Circle</span>
-                    </div>
-                    <span style={{ fontSize: '0.40rem', color: 'rgba(251,191,36,0.50)', fontFamily: 'monospace', letterSpacing: '0.05em' }}>{acceptedFriends.length + 1} member{acceptedFriends.length !== 0 ? 's' : ''}</span>
-                </div>
-                <div className="circlebar" style={{ display: 'flex', gap: '0.65rem', overflowX: 'auto', paddingBottom: 6, scrollbarWidth: 'none' }}>
-                    <BodhiCircle active={activeId === 'bodhi'} unread={bodhiUnread} onClick={() => handleSelect('bodhi')} />
-                    {acceptedFriends.map(u => (
-                        <CircleAvatar key={u.uid} u={u} active={activeId === u.uid} onClick={() => handleSelect(u.uid)} />
-                    ))}
-                    {acceptedFriends.length === 0 && (
-                        <div style={{ display: 'flex', alignItems: 'center', padding: '0.4rem 0.8rem', background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.09)', borderRadius: 12 }}>
-                            <span style={{ fontSize: '0.52rem', color: 'rgba(255,255,255,0.20)', fontFamily: "'Outfit',sans-serif" }}>Add seekers below ↓</span>
+
+            {/* ── ONE SINGLE SCROLL — everything below header unified ── */}
+            <div className="singlescroll" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none' }}>
+
+                {/* Story circles strip — horizontal swipe only */}
+                <div style={{ padding: '0.65rem 1rem 0.5rem', borderBottom: isNature ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.45rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                            <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2.4, repeat: Infinity }} style={{ width: 5, height: 5, borderRadius: '50%', background: '#fbbf24', boxShadow: '0 0 5px rgba(251,191,36,0.8)' }} />
+                            <span style={{ fontSize: '0.44rem', fontWeight: 800, color: 'rgba(255,255,255,0.40)', letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'monospace' }}>⚡ Energy Circle</span>
                         </div>
-                    )}
+                        <span style={{ fontSize: '0.40rem', color: 'rgba(251,191,36,0.50)', fontFamily: 'monospace', letterSpacing: '0.05em' }}>{acceptedFriends.length + 1} member{acceptedFriends.length !== 0 ? 's' : ''}</span>
+                    </div>
+                    <div className="circlebar" style={{ display: 'flex', gap: '0.65rem', overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+                        <BodhiCircle active={activeId === 'bodhi'} unread={bodhiUnread} onClick={() => handleSelect('bodhi')} />
+                        {acceptedFriends.map(u => (
+                            <CircleAvatar key={u.uid} u={u} active={activeId === u.uid} onClick={() => handleSelect(u.uid)} />
+                        ))}
+                        {acceptedFriends.length === 0 && (
+                            <div style={{ display: 'flex', alignItems: 'center', padding: '0.4rem 0.8rem', background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.09)', borderRadius: 12 }}>
+                                <span style={{ fontSize: '0.52rem', color: 'rgba(255,255,255,0.20)', fontFamily: "'Outfit',sans-serif" }}>Add seekers below ↓</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
-                {/* Circle member cards — Bodhi + accepted friends as chat-ready cards */}
-                <div style={{ marginTop: '0.5rem' }}>
-                    {/* Bodhi card */}
+
+                {/* ── Bodhi card — always first ── */}
+                <div style={{ padding: '0.5rem 0.75rem 0' }}>
                     <motion.div layout initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 340, damping: 26 }}
                         onClick={() => handleSelect('bodhi')}
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', padding: '0.55rem 0.9rem', margin: '0 0 0.28rem', borderRadius: 14, background: activeId === 'bodhi' ? 'rgba(251,191,36,0.08)' : 'rgba(255,255,255,0.03)', border: `1px solid ${activeId === 'bodhi' ? 'rgba(251,191,36,0.28)' : 'rgba(255,255,255,0.07)'}`, cursor: 'pointer', transition: 'all 0.2s' }}>
-                        <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'radial-gradient(circle at 35% 28%,rgba(255,255,255,0.38) 0%,rgba(251,191,36,0.50) 42%,rgba(217,119,6,0.85) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', border: '1.5px solid rgba(251,191,36,0.40)', flexShrink: 0 }}>✦</div>
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', padding: '0.6rem 0.85rem', marginBottom: '0.22rem', borderRadius: 16, background: activeId === 'bodhi' ? 'rgba(251,191,36,0.10)' : 'rgba(255,255,255,0.03)', border: `1px solid ${activeId === 'bodhi' ? 'rgba(251,191,36,0.30)' : 'rgba(255,255,255,0.07)'}`, cursor: 'pointer', transition: 'all 0.2s' }}>
+                        <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'radial-gradient(circle at 35% 28%,rgba(255,255,255,0.38) 0%,rgba(251,191,36,0.50) 42%,rgba(217,119,6,0.85) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', border: '1.5px solid rgba(251,191,36,0.40)', flexShrink: 0 }}>✦</div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                            <span style={{ fontSize: '0.80rem', fontWeight: 700, color: 'rgba(255,255,255,0.90)', fontFamily: "'Outfit',sans-serif", display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Sakha Bodhi</span>
-                            <span style={{ fontSize: '0.54rem', color: 'rgba(251,191,36,0.60)', fontFamily: "'Outfit',sans-serif" }}>AI Life Manager · Always here</span>
+                            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'rgba(255,255,255,0.92)', fontFamily: "'Outfit',sans-serif", display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Sakha Bodhi</span>
+                            <span style={{ fontSize: '0.54rem', color: 'rgba(251,191,36,0.60)', fontFamily: "'Outfit',sans-serif" }}>Your AI Sakha · Always here to enhance your life</span>
                         </div>
                         <motion.button whileTap={{ scale: 0.88 }} onClick={e => { e.stopPropagation(); handleSelect('bodhi'); }}
-                            style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4, padding: '0.30rem 0.65rem', borderRadius: 999, background: 'rgba(251,191,36,0.14)', border: '1px solid rgba(251,191,36,0.38)', cursor: 'pointer', color: '#fbbf24', fontSize: '0.58rem', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                            style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4, padding: '0.28rem 0.62rem', borderRadius: 999, background: 'rgba(251,191,36,0.14)', border: '1px solid rgba(251,191,36,0.38)', cursor: 'pointer', color: '#fbbf24', fontSize: '0.58rem', fontWeight: 700, whiteSpace: 'nowrap' }}>
                             💬 Chat
                         </motion.button>
                     </motion.div>
-                    {/* Accepted friend cards */}
+
+                    {/* Accepted friend cards — inline, no sub-scroll */}
                     <AnimatePresence>
                         {acceptedFriends.map(u => {
                             const c = getAvatarColor(u.uid);
@@ -513,19 +519,19 @@ export default function PranverseChatHub() {
                             return (
                                 <motion.div key={u.uid} layout initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ type: 'spring', stiffness: 340, damping: 26 }}
                                     onClick={() => handleSelect(u.uid)}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', padding: '0.55rem 0.9rem', margin: '0 0 0.28rem', borderRadius: 14, background: activeId === u.uid ? `${c}12` : 'rgba(255,255,255,0.03)', border: `1px solid ${activeId === u.uid ? `${c}30` : 'rgba(255,255,255,0.07)'}`, cursor: 'pointer', transition: 'all 0.2s' }}>
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', padding: '0.6rem 0.85rem', marginBottom: '0.22rem', borderRadius: 16, background: activeId === u.uid ? `${c}12` : 'rgba(255,255,255,0.03)', border: `1px solid ${activeId === u.uid ? `${c}30` : 'rgba(255,255,255,0.07)'}`, cursor: 'pointer', transition: 'all 0.2s' }}>
                                     <div style={{ position: 'relative', flexShrink: 0 }}>
-                                        <div style={{ width: 38, height: 38, borderRadius: '50%', background: u.photoURL ? undefined : `radial-gradient(circle at 35% 28%,rgba(255,255,255,0.22) 0%,${c}60 100%)`, border: `1.5px solid ${c}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.80rem', fontWeight: 700, color: '#fff', overflow: 'hidden' }}>
+                                        <div style={{ width: 42, height: 42, borderRadius: '50%', background: u.photoURL ? undefined : `radial-gradient(circle at 35% 28%,rgba(255,255,255,0.22) 0%,${c}60 100%)`, border: `1.5px solid ${c}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.80rem', fontWeight: 700, color: '#fff', overflow: 'hidden' }}>
                                             {u.photoURL ? <img src={u.photoURL} alt={u.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : ini}
                                         </div>
                                         {u.online && <motion.div animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 2, repeat: Infinity }} style={{ position: 'absolute', bottom: 0, right: 0, width: 10, height: 10, borderRadius: '50%', background: '#4ade80', border: '1.5px solid rgba(5,2,22,0.8)', boxShadow: '0 0 5px rgba(74,222,128,0.7)' }} />}
                                     </div>
                                     <div style={{ flex: 1, minWidth: 0 }}>
-                                        <span style={{ fontSize: '0.80rem', fontWeight: 700, color: 'rgba(255,255,255,0.90)', fontFamily: "'Outfit',sans-serif", display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.name}</span>
-                                        <span style={{ fontSize: '0.54rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit',sans-serif" }}>OneSUTRA member{u.online ? ' · ' : ''}{u.online ? <span style={{ color: '#4ade80' }}>online</span> : ''}</span>
+                                        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'rgba(255,255,255,0.90)', fontFamily: "'Outfit',sans-serif", display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.name}</span>
+                                        <span style={{ fontSize: '0.54rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit',sans-serif" }}>OneSUTRA member{u.online ? <span style={{ color: '#4ade80' }}> · online</span> : ''}</span>
                                     </div>
                                     <motion.button whileTap={{ scale: 0.88 }} onClick={e => { e.stopPropagation(); handleSelect(u.uid); }}
-                                        style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4, padding: '0.30rem 0.65rem', borderRadius: 999, background: `${c}18`, border: `1px solid ${c}40`, cursor: 'pointer', color: c, fontSize: '0.58rem', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                                        style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4, padding: '0.28rem 0.62rem', borderRadius: 999, background: `${c}18`, border: `1px solid ${c}40`, cursor: 'pointer', color: c, fontSize: '0.58rem', fontWeight: 700, whiteSpace: 'nowrap' }}>
                                         💬 Chat
                                     </motion.button>
                                 </motion.div>
@@ -533,39 +539,44 @@ export default function PranverseChatHub() {
                         })}
                     </AnimatePresence>
                 </div>
-            </div>
 
-            {/* 🔍 ALL SEEKERS — every OneSuTra user with status-aware action */}
-            <div className="seekerlist" style={{ flex: 1, overflowY: 'auto', padding: '0.5rem 0 1rem', scrollbarWidth: 'none' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.4rem 1.4rem 0.5rem' }}>
-                    <span style={{ fontSize: '0.42rem', fontWeight: 800, color: 'rgba(255,255,255,0.30)', letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'monospace' }}>Conscious Seekers</span>
-                    <span style={{ fontSize: '0.40rem', color: 'rgba(255,255,255,0.18)', fontFamily: 'monospace' }}>{allUsers.length} in the verse</span>
-                </div>
-                <AnimatePresence>
-                    {filteredUsers.map(u => {
-                        let status: SeekerStatus = 'none';
-                        if (acceptedFriendIds.has(u.uid)) status = 'friends';
-                        else if (sentRequestUids.has(u.uid)) status = 'sent';
-                        else if (pendingRequests.find(r => r.user.uid === u.uid)) status = 'received';
-                        const pr = pendingRequests.find(r => r.user.uid === u.uid);
-                        return (
-                            <SeekerCard key={u.uid} u={u} status={status} isNature={isNature}
-                                onAdd={() => sendFriendRequest(u.uid, u.name)}
-                                onAccept={() => pr && acceptRequest(pr.doc.id)}
-                                onDecline={() => pr && declineRequest(pr.doc.id)}
-                                onChat={() => handleSelect(u.uid)}
-                            />
-                        );
-                    })}
-                </AnimatePresence>
-                {filteredUsers.length === 0 && (
-                    <div style={{ padding: '2rem 1rem', textAlign: 'center' }}>
-                        <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.22)', fontFamily: "'Outfit',sans-serif" }}>No seekers found</p>
+                {/* ── Find Seekers ── */}
+                <div style={{ marginTop: '0.7rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 1.1rem 0.4rem' }}>
+                        <span style={{ fontSize: '0.70rem', fontWeight: 800, color: 'rgba(255,255,255,0.70)', fontFamily: "'Outfit',sans-serif" }}>Find Seekers</span>
+                        <span style={{ fontSize: '0.40rem', color: 'rgba(255,255,255,0.25)', fontFamily: 'monospace' }}>{allUsers.length} in the verse</span>
                     </div>
-                )}
+                    <AnimatePresence>
+                        {filteredUsers.map(u => {
+                            let status: SeekerStatus = 'none';
+                            if (acceptedFriendIds.has(u.uid)) status = 'friends';
+                            else if (sentRequestUids.has(u.uid)) status = 'sent';
+                            else if (pendingRequests.find(r => r.user.uid === u.uid)) status = 'received';
+                            const pr = pendingRequests.find(r => r.user.uid === u.uid);
+                            return (
+                                <SeekerCard key={u.uid} u={u} status={status} isNature={isNature}
+                                    onAdd={() => sendFriendRequest(u.uid, u.name)}
+                                    onAccept={() => pr && acceptRequest(pr.doc.id)}
+                                    onDecline={() => pr && declineRequest(pr.doc.id)}
+                                    onChat={() => handleSelect(u.uid)}
+                                />
+                            );
+                        })}
+                    </AnimatePresence>
+                    {filteredUsers.length === 0 && (
+                        <div style={{ padding: '2rem 1rem', textAlign: 'center' }}>
+                            <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.22)', fontFamily: "'Outfit',sans-serif" }}>No seekers found</p>
+                        </div>
+                    )}
+                </div>
+
+                <div style={{ height: '1.5rem' }} />
             </div>
         </div>
     );
+
+
+
 
     // ── RIGHT PANEL ───────────────────────────────────────────────────────────
     const rightPanel = (
@@ -620,7 +631,7 @@ export default function PranverseChatHub() {
                             {showEmoji && (
                                 <motion.div initial={{ opacity: 0, y: 8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.96 }} transition={{ duration: 0.18 }}
                                     style={{ marginBottom: '0.45rem', padding: '0.55rem 0.65rem', background: isNature ? 'rgba(255,255,255,0.10)' : 'rgba(12,6,30,0.96)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 16, backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', display: 'flex', flexWrap: 'wrap', gap: '0.3rem', maxHeight: 140, overflowY: 'auto' }}>
-                                    {['😊','😄','🙏','❤️','🔥','✨','💫','🌟','🌙','☀️','🎯','💡','⚡','🧘','🕉️','🪷','🌸','🌺','🍃','🌿','🌊','🏔️','🦋','🦚','💎','👑','🎵','🎶','🤩','😍','😂','😭','🥰','😎','🤔','🙌','👏','💪','🤝','🫂','🌈','🎊','🎉','🥳','💯','✅','🚀','🌏','🕊️','🐉','🦁'].map(em => (
+                                    {['😊', '😄', '🙏', '❤️', '🔥', '✨', '💫', '🌟', '🌙', '☀️', '🎯', '💡', '⚡', '🧘', '🕉️', '🪷', '🌸', '🌺', '🍃', '🌿', '🌊', '🏔️', '🦋', '🦚', '💎', '👑', '🎵', '🎶', '🤩', '😍', '😂', '😭', '🥰', '😎', '🤔', '🙌', '👏', '💪', '🤝', '🫂', '🌈', '🎊', '🎉', '🥳', '💯', '✅', '🚀', '🌏', '🕊️', '🐉', '🦁'].map(em => (
                                         <motion.button key={em} whileTap={{ scale: 0.80 }} onClick={() => { setInput(p => p + em); setShowEmoji(false); inputRef.current?.focus(); }}
                                             style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1rem' }}>
                                             {em}

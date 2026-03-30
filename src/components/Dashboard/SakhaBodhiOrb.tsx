@@ -24,23 +24,23 @@ const MOOD_EMOJIS_ORB = [
 // ─── Phase meta ───────────────────────────────────────────────────────────────
 
 const PHASE_CONFIG: Record<DayPhase, { label: string; emoji: string; wisdom: string }> = {
-    morning: { 
-        label: 'Brahma Muhurta · Morning', 
+    morning: {
+        label: 'Brahma Muhurta · Morning',
         emoji: '🌅',
         wisdom: 'The morning breeze carries the wisdom of a thousand sages. Begin with intention.'
     },
-    midday: { 
-        label: 'Deep Work · Mid-Day', 
+    midday: {
+        label: 'Deep Work · Mid-Day',
         emoji: '☀️',
         wisdom: 'Like the sun at its zenith, let your focus burn bright and true.'
     },
-    evening: { 
-        label: 'Sandhya · Evening', 
+    evening: {
+        label: 'Sandhya · Evening',
         emoji: '🪔',
         wisdom: 'As day surrenders to night, surrender your worries to the cosmic rhythm.'
     },
-    night: { 
-        label: 'Nisha · Late Night', 
+    night: {
+        label: 'Nisha · Late Night',
         emoji: '🌙',
         wisdom: 'In the silence of night, the universe whispers its deepest truths.'
     },
@@ -168,7 +168,7 @@ export default function SakhaBodhiOrb({
                         setDoc(doc(db, 'users', userId), { current_mood: { emoji, mood, updatedAt: Date.now() } }, { merge: true })
                     )
                 )
-            ).catch(() => {});
+            ).catch(() => { });
         }
 
         if (sakhaState === 'speaking') {
@@ -345,6 +345,23 @@ export default function SakhaBodhiOrb({
                                 <div className={styles.soundRing} />
                             </div>
 
+                            {/* ── Warm human-aura ambient glow — always visible, pulsing ── */}
+                            <div
+                                style={{
+                                    position: 'absolute',
+                                    width: '340px',
+                                    height: '340px',
+                                    borderRadius: '50%',
+                                    background: 'radial-gradient(circle, rgba(251,176,59,0.18) 0%, rgba(234,88,12,0.10) 45%, transparent 70%)',
+                                    top: '50%',
+                                    left: '50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    animation: 'none',
+                                    pointerEvents: 'none',
+                                    zIndex: 0,
+                                }}
+                            />
+
                             {/* ── Liquid "Goo" blob container ───────────────────────── */}
                             <motion.div
                                 className={styles.gooContainer}
@@ -432,23 +449,108 @@ export default function SakhaBodhiOrb({
                                 />
                             </motion.div>
 
-                            {/* ── Bindu + 4-point star overlay (above the goo filter) ── */}
-                            <div className={styles.bindusWrap}>
+                            {/* ── Human Avatar — glowing meditating AI buddy ── */}
+                            <div className={styles.bindusWrap} style={{ position: 'relative', zIndex: 10 }}>
+                                {/* Outer divine halo */}
+                                <motion.div
+                                    animate={sakhaState === 'thinking'
+                                        ? { rotate: 360 }
+                                        : { rotate: [0, 4, -4, 0] }
+                                    }
+                                    transition={sakhaState === 'thinking'
+                                        ? { duration: 5, repeat: Infinity, ease: 'linear' }
+                                        : { duration: 6, repeat: Infinity, ease: 'easeInOut' }
+                                    }
+                                    style={{
+                                        position: 'absolute', width: 92, height: 92, borderRadius: '50%',
+                                        border: sakhaState === 'speaking'
+                                            ? '2px solid rgba(251,176,59,0.90)'
+                                            : sakhaState === 'thinking'
+                                                ? '2px dashed rgba(251,176,59,0.65)'
+                                                : '1.5px solid rgba(251,176,59,0.38)',
+                                        boxShadow: sakhaState === 'speaking'
+                                            ? '0 0 28px rgba(251,191,36,0.55), inset 0 0 18px rgba(251,191,36,0.15)'
+                                            : '0 0 12px rgba(251,191,36,0.20)',
+                                        top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+                                        pointerEvents: 'none',
+                                    }}
+                                />
+                                {/* Inner warm ring */}
+                                <motion.div
+                                    animate={{ scale: sakhaState === 'speaking' ? [1, 1.12, 1] : [1, 1.04, 1], opacity: [0.5, 1, 0.5] }}
+                                    transition={{ duration: sakhaState === 'speaking' ? 1.1 : 3.5, repeat: Infinity, ease: 'easeInOut' }}
+                                    style={{
+                                        position: 'absolute', width: 70, height: 70, borderRadius: '50%',
+                                        background: 'radial-gradient(circle, rgba(251,191,36,0.20) 0%, rgba(234,88,12,0.08) 55%, transparent 80%)',
+                                        top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+                                        pointerEvents: 'none',
+                                    }}
+                                />
+                                {/* Human meditating figure SVG */}
                                 <motion.div
                                     animate={{
-                                        rotate: sakhaState === 'thinking' ? 360 : [0, 5, -5, 0],
+                                        scale: sakhaState === 'speaking' ? [1, 1.06, 1] : sakhaState === 'idle' ? [1, 1.02, 1] : 1,
+                                        filter: sakhaState === 'speaking'
+                                            ? [
+                                                'drop-shadow(0 0 10px rgba(251,191,36,0.8)) drop-shadow(0 0 22px rgba(251,176,59,0.5))',
+                                                'drop-shadow(0 0 20px rgba(251,191,36,1)) drop-shadow(0 0 36px rgba(251,176,59,0.7))',
+                                                'drop-shadow(0 0 10px rgba(251,191,36,0.8)) drop-shadow(0 0 22px rgba(251,176,59,0.5))',
+                                            ]
+                                            : ['drop-shadow(0 0 6px rgba(251,191,36,0.5))', 'drop-shadow(0 0 14px rgba(251,191,36,0.75))', 'drop-shadow(0 0 6px rgba(251,191,36,0.5))'],
                                     }}
-                                    transition={
-                                        sakhaState === 'thinking'
-                                            ? { duration: 6, repeat: Infinity, ease: 'linear' }
-                                            : { duration: 12, repeat: Infinity, ease: 'easeInOut' }
-                                    }
-                                    style={{ position: 'relative', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                    transition={{ duration: sakhaState === 'speaking' ? 1.1 : 3.5, repeat: Infinity, ease: 'easeInOut' }}
+                                    style={{ position: 'relative', zIndex: 2 }}
                                 >
-                                    <ClarityStar />
+                                    <svg width="64" height="72" viewBox="0 0 64 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <defs>
+                                            <radialGradient id="bg" cx="50%" cy="40%" r="55%">
+                                                <stop offset="0%" stopColor="#fde68a" stopOpacity="0.98" />
+                                                <stop offset="55%" stopColor="#fbbf24" stopOpacity="0.95" />
+                                                <stop offset="100%" stopColor="#d97706" stopOpacity="0.88" />
+                                            </radialGradient>
+                                        </defs>
+                                        {/* Aura glow */}
+                                        <ellipse cx="32" cy="45" rx="26" ry="20" fill="#fbbf24" fillOpacity="0.12" />
+                                        {/* Crown chakra dot */}
+                                        <circle cx="32" cy="4" r="2.2" fill="#fbbf24" opacity="0.9" />
+                                        {/* Head */}
+                                        <circle cx="32" cy="13" r="9" fill="url(#bg)" />
+                                        {/* Body */}
+                                        <path d="M32 22 C32 22 20 28 16 38 C14 43 14 50 14 52 L50 52 C50 50 50 43 48 38 C44 28 32 22 32 22Z" fill="url(#bg)" />
+                                        {/* Left arm */}
+                                        <path d="M20 32 C14 36 10 42 10 46 C10 48 12 49 14 48 C16 47 18 44 20 40Z" fill="#fbbf24" opacity="0.82" />
+                                        {/* Right arm */}
+                                        <path d="M44 32 C50 36 54 42 54 46 C54 48 52 49 50 48 C48 47 46 44 44 40Z" fill="#fbbf24" opacity="0.82" />
+                                        {/* Left mudra */}
+                                        <circle cx="10" cy="47" r="2.5" fill="#fde68a" opacity="0.95" />
+                                        {/* Right mudra */}
+                                        <circle cx="54" cy="47" r="2.5" fill="#fde68a" opacity="0.95" />
+                                        {/* Left leg */}
+                                        <path d="M14 52 C10 52 7 55 8 58 C9 61 14 62 20 60 L24 56Z" fill="url(#bg)" />
+                                        {/* Right leg */}
+                                        <path d="M50 52 C54 52 57 55 56 58 C55 61 50 62 44 60 L40 56Z" fill="url(#bg)" />
+                                        {/* Heart chakra */}
+                                        <circle cx="32" cy="34" r="3" fill="#fff7ed" opacity="0.95" />
+                                        {/* Base glow */}
+                                        <ellipse cx="32" cy="53" rx="14" ry="3" fill="#fbbf24" opacity="0.18" />
+                                    </svg>
                                 </motion.div>
-                                <div className={styles.bindu} />
+                                {/* Listening pulse ring */}
+                                {sakhaState === 'listening' && (
+                                    <motion.div
+                                        initial={{ scale: 0.8, opacity: 0 }}
+                                        animate={{ scale: [1, 1.5, 2], opacity: [0.6, 0.3, 0] }}
+                                        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut' }}
+                                        style={{
+                                            position: 'absolute', width: 80, height: 80, borderRadius: '50%',
+                                            border: '2px solid rgba(74,222,128,0.7)',
+                                            top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+                                            pointerEvents: 'none',
+                                        }}
+                                    />
+                                )}
                             </div>
+
                         </motion.div>
 
                         {/* ── Quick Action Buttons ─────────────────────────────────── */}
@@ -467,10 +569,10 @@ export default function SakhaBodhiOrb({
                             }}
                         >
                             {[
-                                { icon: Sparkles, label: 'Meditate', onClick: handleMeditate, color: '#c4b5fd' },
-                                { icon: Calendar, label: 'Plan', onClick: handlePlan, color: '#fbbf24' },
-                                { icon: Focus, label: 'Focus', onClick: handleFocus, color: '#4ade80' },
-                                { icon: Wind, label: 'Breathe', onClick: handleRest, color: '#2dd4bf' },
+                                { icon: Sparkles, label: 'Meditate', onClick: handleMeditate, color: '#fde68a' },
+                                { icon: Calendar, label: 'Plan', onClick: handlePlan, color: '#fdba74' },
+                                { icon: Focus, label: 'Focus', onClick: handleFocus, color: '#6ee7b7' },
+                                { icon: Wind, label: 'Breathe', onClick: handleRest, color: '#fcd34d' },
                             ].map((action, i) => (
                                 <motion.button
                                     key={action.label}

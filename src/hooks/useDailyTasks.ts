@@ -111,7 +111,10 @@ export function useDailyTasks() {
         setTasks(prev => {
             // Avoid duplicates if called multiple times for the same task id
             if (prev.some(t => t.id === task.id)) return prev;
-            return [task, ...prev];
+            const updated = [task, ...prev];
+            // Always keep localStorage in sync as a fast cache / offline fallback
+            try { localStorage.setItem('pranav_tasks_v3', JSON.stringify(updated)); } catch { /* ignore */ }
+            return updated;
         });
         if (uid) {
             try {
@@ -121,25 +124,22 @@ export function useDailyTasks() {
             } catch (error) {
                 console.error("Error adding task:", error);
             }
-        } else {
-            // localStorage fallback for unauthenticated users
-            setTasks(prev => {
-                const updated = prev.some(t => t.id === task.id) ? prev : [task, ...prev];
-                localStorage.setItem('pranav_tasks_v3', JSON.stringify(updated));
-                return updated;
-            });
         }
     }, [uid]);
 
     const updateTask = useCallback(async (taskId: string, updates: Partial<TaskItem>) => {
-        setTasks(prev => prev.map(t => {
-            if (t.id !== taskId) return t;
-            const merged = { ...t, ...updates } as Record<string, any>;
-            for (const [k, v] of Object.entries(updates)) {
-                if (v === undefined) delete merged[k];
-            }
-            return merged as TaskItem;
-        }));
+        setTasks(prev => {
+            const updated = prev.map(t => {
+                if (t.id !== taskId) return t;
+                const merged = { ...t, ...updates } as Record<string, any>;
+                for (const [k, v] of Object.entries(updates)) {
+                    if (v === undefined) delete merged[k];
+                }
+                return merged as TaskItem;
+            });
+            try { localStorage.setItem('pranav_tasks_v3', JSON.stringify(updated)); } catch { /* ignore */ }
+            return updated;
+        });
         if (uid) {
             try {
                 const db = await getFirebaseFirestore();
@@ -147,19 +147,6 @@ export function useDailyTasks() {
             } catch (error) {
                 console.error("Error updating task:", error);
             }
-        } else {
-            setTasks(prev => {
-                const updated = prev.map(t => {
-                    if (t.id !== taskId) return t;
-                    const merged = { ...t, ...updates } as Record<string, any>;
-                    for (const [k, v] of Object.entries(updates)) {
-                        if (v === undefined) delete merged[k];
-                    }
-                    return merged as TaskItem;
-                });
-                localStorage.setItem('pranav_tasks_v3', JSON.stringify(updated));
-                return updated;
-            });
         }
     }, [uid]);
 
@@ -170,7 +157,11 @@ export function useDailyTasks() {
         const task = tasksRef.current.find(t => t.id === taskId);
         if (!task) return;
         const newDone = !task.done;
-        setTasks(prev => prev.map(t => t.id === taskId ? { ...t, done: newDone } : t));
+        setTasks(prev => {
+            const updated = prev.map(t => t.id === taskId ? { ...t, done: newDone } : t);
+            try { localStorage.setItem('pranav_tasks_v3', JSON.stringify(updated)); } catch { /* ignore */ }
+            return updated;
+        });
         if (uid) {
             try {
                 const db = await getFirebaseFirestore();
@@ -178,17 +169,15 @@ export function useDailyTasks() {
             } catch (error) {
                 console.error("Error toggling task:", error);
             }
-        } else {
-            setTasks(prev => {
-                const updated = prev.map(t => t.id === taskId ? { ...t, done: newDone } : t);
-                localStorage.setItem('pranav_tasks_v3', JSON.stringify(updated));
-                return updated;
-            });
         }
     }, [uid]);
 
     const removeTask = useCallback(async (taskId: string) => {
-        setTasks(prev => prev.filter(t => t.id !== taskId));
+        setTasks(prev => {
+            const updated = prev.filter(t => t.id !== taskId);
+            try { localStorage.setItem('pranav_tasks_v3', JSON.stringify(updated)); } catch { /* ignore */ }
+            return updated;
+        });
         if (uid) {
             try {
                 const db = await getFirebaseFirestore();
@@ -196,12 +185,6 @@ export function useDailyTasks() {
             } catch (error) {
                 console.error("Error removing task:", error);
             }
-        } else {
-            setTasks(prev => {
-                const updated = prev.filter(t => t.id !== taskId);
-                localStorage.setItem('pranav_tasks_v3', JSON.stringify(updated));
-                return updated;
-            });
         }
     }, [uid]);
 

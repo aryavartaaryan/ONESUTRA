@@ -21,32 +21,45 @@ async function saveProfileToFirestore(profile: AyurvedicProfile): Promise<void> 
         const db = await getFirebaseFirestore();
 
         await new Promise<void>((resolve) => {
-            const unsub = onAuthStateChanged(auth, (user) => {
+            const unsub = onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     unsub();
-                    setDoc(doc(db, 'users', user.uid), {
-                        profile: {
-                            name: profile.name,
-                            age: profile.age,
-                            sex: profile.sex,
-                            occupation: profile.occupation,
-                            hobbies: profile.hobbies,
+                    const profilePayload = {
+                        name: profile.name,
+                        age: profile.age,
+                        sex: profile.sex,
+                        occupation: profile.occupation,
+                        hobbies: profile.hobbies,
+                        prakriti: profile.prakriti,
+                        vikriti: profile.vikriti,
+                        doshas: profile.doshas,
+                        diseases: profile.diseases,
+                        plan_lifestyle: profile.plan_lifestyle,
+                        plan_food: profile.plan_food,
+                        plan_herbs: profile.plan_herbs,
+                        plan_mantra: profile.plan_mantra,
+                        savedAt: serverTimestamp(),
+                    };
+
+                    try {
+                        // PRIMARY: Save full profile to users/{uid}
+                        await setDoc(doc(db, 'users', user.uid), {
+                            profile: profilePayload,
+                            hasCompletedOnboarding: true,
+                            onboardingCompleted: true,
+                        }, { merge: true });
+
+                        // SECONDARY: Sync key fields to onesutra_users/{uid} for profile page
+                        await setDoc(doc(db, 'onesutra_users', user.uid), {
                             prakriti: profile.prakriti,
-                            vikriti: profile.vikriti,
-                            doshas: profile.doshas,
-                            diseases: profile.diseases,
-                            plan_lifestyle: profile.plan_lifestyle,
-                            plan_food: profile.plan_food,
-                            plan_herbs: profile.plan_herbs,
-                            plan_mantra: profile.plan_mantra,
-                            savedAt: serverTimestamp(),
-                        },
-                        // Both flags for forward/backward compatibility
-                        hasCompletedOnboarding: true,
-                        onboardingCompleted: true,
-                    }, { merge: true })
-                        .then(() => resolve())
-                        .catch(() => resolve()); // always resolve — don't block navigation
+                            ayurvedicProfile: profilePayload,
+                            hasCompletedOnboarding: true,
+                            name: profile.name || user.displayName || 'Sadhaka',
+                            updatedAt: serverTimestamp(),
+                        }, { merge: true });
+                    } catch { /* silent */ }
+
+                    resolve();
                 } else {
                     unsub();
                     resolve();
@@ -83,10 +96,11 @@ export default function AcharyaSanctumPage() {
 
     // ── Firebase: if user already completed onboarding, redirect instantly ────
     useEffect(() => {
+        // Fast path: localStorage flag
         const done = localStorage.getItem('acharya_onboarding_done');
         if (done === 'true') { router.replace('/'); return; }
 
-        // Also check Firestore
+        // Slow path: check Firestore for any existing profile/flag
         (async () => {
             try {
                 const { getFirebaseAuth, getFirebaseFirestore } = await import('@/lib/firebase');
@@ -96,10 +110,20 @@ export default function AcharyaSanctumPage() {
                 const db = await getFirebaseFirestore();
                 onAuthStateChanged(auth, async (firebaseUser) => {
                     if (firebaseUser) {
-                        const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
-                        const data = snap.data();
-                        // Redirect if flag is true OR if profile already exists
-                        if (data?.hasCompletedOnboarding || data?.onboardingCompleted || data?.profile) {
+                        // Check both collections — either counts as completed
+                        const [usersSnap, onesutraSnap] = await Promise.all([
+                            getDoc(doc(db, 'users', firebaseUser.uid)),
+                            getDoc(doc(db, 'onesutra_users', firebaseUser.uid)),
+                        ]);
+                        const usersData = usersSnap.data();
+                        const onesutraData = onesutraSnap.data();
+                        const alreadyDone =
+                            usersData?.hasCompletedOnboarding ||
+                            usersData?.onboardingCompleted ||
+                            usersData?.profile?.prakriti ||
+                            onesutraData?.hasCompletedOnboarding ||
+                            onesutraData?.ayurvedicProfile?.prakriti;
+                        if (alreadyDone) {
                             localStorage.setItem('acharya_onboarding_done', 'true');
                             router.replace('/');
                         }
@@ -416,10 +440,11 @@ export default function AcharyaSanctumPage() {
 
                         {/* ── Status / Saving indicator ── */}
                         <AnimatePresence>
-                            {(phase === 'saving' || phase === 'complete') && (
+                            {phase === 'saving' && (
                                 <motion.div
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
                                     style={{
                                         padding: '0.8rem 1.8rem',
                                         borderRadius: 999,
@@ -431,9 +456,62 @@ export default function AcharyaSanctumPage() {
                                         textAlign: 'center',
                                     }}
                                 >
-                                    {phase === 'complete'
-                                        ? lang === 'hi' ? '✨ आपकी यात्रा तैयार हो रही है...' : '✨ Entering your sanctuary...'
-                                        : lang === 'hi' ? '🕉️ आपकी प्राकृति सुरक्षित की जा रही है...' : '🕉️ Saving your sacred profile...'}
+                                    {lang === 'hi' ? '🕉️ आपकी प्राकृति सुरक्षित की जा रही है...' : '🕉️ Saving your sacred profile...'}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* ── COMPLETION: Go Home Button ── */}
+                        <AnimatePresence>
+                            {phase === 'complete' && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
+                                    transition={{ delay: 0.5, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}
+                                >
+                                    {/* Success message */}
+                                    <motion.div
+                                        animate={{ opacity: [0.7, 1, 0.7] }}
+                                        transition={{ duration: 2, repeat: Infinity }}
+                                        style={{
+                                            padding: '0.8rem 1.8rem',
+                                            borderRadius: 999,
+                                            background: 'rgba(200,155,40,0.15)',
+                                            border: '1px solid rgba(200,155,40,0.4)',
+                                            backdropFilter: 'blur(12px)',
+                                            color: 'rgba(200,155,40,0.95)',
+                                            fontSize: '0.82rem', letterSpacing: '0.1em',
+                                            textAlign: 'center',
+                                        }}
+                                    >
+                                        {lang === 'hi'
+                                            ? '✨ आपकी प्रकृति सुरक्षित हो गई। आपकी यात्रा शुरू होती है।'
+                                            : '✨ Your sacred profile has been saved. Your journey begins now.'}
+                                    </motion.div>
+
+                                    {/* Go Home CTA Button */}
+                                    <motion.button
+                                        whileHover={{ scale: 1.04, y: -3 }}
+                                        whileTap={{ scale: 0.97 }}
+                                        onClick={() => router.push('/')}
+                                        style={{
+                                            padding: '1rem 3rem',
+                                            borderRadius: '2rem',
+                                            background: 'linear-gradient(135deg, rgba(200,155,40,0.9) 0%, rgba(251,191,36,0.85) 100%)',
+                                            border: '1px solid rgba(255,255,255,0.3)',
+                                            boxShadow: '0 0 40px rgba(200,155,40,0.5), 0 8px 32px rgba(0,0,0,0.3)',
+                                            color: '#1a1200',
+                                            fontSize: '1rem',
+                                            fontWeight: 700,
+                                            letterSpacing: '0.06em',
+                                            cursor: 'pointer',
+                                            fontFamily: "'Inter', system-ui, sans-serif",
+                                        }}
+                                    >
+                                        {lang === 'hi' ? '🕉️ OneSUTRA में प्रवेश करें' : '🕉️ Enter OneSUTRA'}
+                                    </motion.button>
                                 </motion.div>
                             )}
                         </AnimatePresence>

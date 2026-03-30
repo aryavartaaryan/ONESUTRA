@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, MessageCircle, BookOpen, Home } from 'lucide-react';
+import { MapPin, MessageCircle, Zap, Home } from 'lucide-react';
 import { Tab } from './ResonanceTypes';
 
 export default function ResonanceNavBar({ activeTab, setActiveTab, badgeCount = 0 }: {
@@ -14,7 +14,7 @@ export default function ResonanceNavBar({ activeTab, setActiveTab, badgeCount = 
         { id: 'home' as Tab, icon: Home, label: 'Home', color: '#f472b6' },
         { id: 'map' as Tab, icon: MapPin, label: 'Map', color: '#fbbf24' },
         { id: 'chat' as Tab, icon: MessageCircle, label: 'Chat', color: '#4ade80', badge: badgeCount },
-        { id: 'story' as Tab, icon: BookOpen, label: 'Story', color: '#a78bfa' },
+        { id: 'story' as Tab, icon: Zap, label: 'Energy Feeds', color: '#a78bfa' },
     ];
 
     return (

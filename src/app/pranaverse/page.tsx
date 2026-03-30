@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import HomeStoryBar from '@/components/PranaVerse/HomeStoryBar';
 import { Tab } from '@/components/Resonance/ResonanceTypes';
 import DharmaMap from '@/components/Resonance/DharmaMap';
@@ -21,16 +21,17 @@ import SakhaBodhiOrb from '@/components/Dashboard/SakhaBodhiOrb';
 //  SACRED PORTAL DATA  (from Home / SacredPortalGrid)
 // ════════════════════════════════════════════════════════
 const SACRED_PORTALS = [
-    { id: 'acharya', title: 'ACHARYA', subtitle: 'Awaken Guidance', icon: '🌿', color: '#a855f7', href: '/acharya-samvad' },
-    { id: 'dhyan', title: 'MEDITATE', subtitle: 'Sacred Mantras', icon: '🧘', color: '#3b82f6', href: '/dhyan-kshetra' },
-    { id: 'outplugs', title: 'INSHORTS', subtitle: 'Mindful News', icon: '📰', color: '#d946ef', href: '/outplugs' },
-    { id: 'raag', title: 'RAAG MUSIC', subtitle: 'Resonances', icon: '🎵', color: '#38bdf8', href: '/project-leela' },
-    { id: 'prancers', title: 'PRANCERS', subtitle: 'Urja Feed', icon: '⚡', color: '#06b6d4', href: '/pranaverse' },
-    { id: 'rituals', title: 'RITUALS', subtitle: 'Sacred Practices', icon: '🛕', color: '#6366f1', href: '/vedic-sangrah' },
-    { id: 'games', title: 'GAMES', subtitle: 'Mindful Play', icon: '🎲', color: '#ec4899', href: '/vedic-games' },
-    { id: 'bodhi', title: 'SAKHA', subtitle: 'AI Companion', icon: '✨', color: '#14b8a6', href: '/bodhi-chat' },
-    { id: 'journal', title: 'JOURNAL', subtitle: 'Sacred Diary', icon: '📓', color: '#f97316', href: '/journal' },
+    { id: 'ai-acharya', title: 'AyurHealth', subtitle: 'AyurHealth', icon: '🌿', color: '#10b981', href: '/acharya-samvad', importance: 'AI Ayurvedacharya Pranav — Personalized Vedic healing, Prakruti analysis & Ayurvedic remedies available 24/7. The future of conscious healthcare.' },
+    { id: 'gurukul', title: 'Gurukul', subtitle: 'World-Class Wisdom', icon: '🪔', color: '#f59e0b', href: '/vedic-sangrah', importance: "World's Premier Gurukul — AI, Mathematics & Modern Sciences blended with Bhagavat Gita, Upanishads, Sanskrit & Vedic wisdom. Plus Startup Support." },
+    { id: 'dhyan', title: 'Meditate', subtitle: 'Energy Mantras & Stotras', icon: '🧘', color: '#3b82f6', href: '/dhyan-kshetra', importance: 'Curated Energy Mantras & Stotras — find inner stillness with healing frequencies. Guided meditations for body, mind and soul transformation.' },
+    { id: 'outplugs', title: 'Inshorts', subtitle: 'Mindful News', icon: '📰', color: '#d946ef', href: '/outplugs', importance: 'Distraction-free mindful news through a conscious lens. Stay informed without noise or negativity polluting your mental space.' },
+    { id: 'raag', title: 'Raag Music', subtitle: 'Resonances', icon: '🎵', color: '#38bdf8', href: '/project-leela', importance: 'Ancient Indian classical ragas scientifically matched to time of day — healing frequencies that align your body clock with the cosmos.' },
+    { id: 'swadeshi', title: 'Swadeshi', subtitle: 'Pure Organics', icon: '🛍️', color: '#f97316', href: '/swadesi-product', importance: 'Pure Organics & sacred commerce — authentic Indian artisan products that honor tradition, empower craftsmen and support Bharat.' },
+    { id: 'skills', title: 'Skills', subtitle: 'Upgrade & Transform', icon: '🎯', color: '#22d3ee', href: '/skills', importance: 'Upgrade & Transform — curated skill tracks from ancient Vedic arts to modern tech. AI, coding, finance, Sanskrit, yoga & more.' },
+    { id: 'games', title: 'Games', subtitle: 'Productive Play', icon: '🎲', color: '#ec4899', href: '/vedic-games', importance: 'Productive Play — Vedic-inspired mindful games that sharpen your intellect while connecting your consciousness with ancient Indian wisdom.' },
+    { id: 'pranaverse', title: 'PranaVerse', subtitle: 'Resonance Feeds & Network', icon: '✦', color: '#a78bfa', href: '/pranaverse', importance: 'Resonance Feeds & Network — the sacred conscious social network. Share your Prana, discover wisdom reels & raise collective vibration worldwide.' },
 ];
+
 
 // ════════════════════════════════════════════════════════
 //  VEDIC MANTRAS — overlaid on Reel cards
@@ -87,11 +88,11 @@ const REEL_IMAGES = {
 // Story bar data
 const STORIES = [
     { id: 's1', label: 'Panchang', icon: '☀️', color: '#fbbf24', gradient: 'linear-gradient(135deg,#f59e0b,#d97706)' },
-    { id: 's2', label: 'Bodhi', icon: '✨', color: '#14b8a6', gradient: 'linear-gradient(135deg,#0d9488,#0f766e)' },
-    { id: 's3', label: 'Mantras', icon: '🪔', color: '#c084fc', gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)' },
-    { id: 's4', label: 'Nature', icon: '🌿', color: '#4ade80', gradient: 'linear-gradient(135deg,#22c55e,#16a34a)' },
-    { id: 's5', label: 'Cosmos', icon: '🌙', color: '#818cf8', gradient: 'linear-gradient(135deg,#6366f1,#4f46e5)' },
-    { id: 's6', label: 'Rituals', icon: '🛕', color: '#fb923c', gradient: 'linear-gradient(135deg,#f97316,#ea580c)' },
+    { id: 's2', label: 'Gurukul', icon: '🪔', color: '#f59e0b', gradient: 'linear-gradient(135deg,#f59e0b,#d97706)' },
+    { id: 's3', label: 'Bodhi', icon: '✨', color: '#14b8a6', gradient: 'linear-gradient(135deg,#0d9488,#0f766e)' },
+    { id: 's4', label: 'Mantras', icon: '🤔', color: '#c084fc', gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)' },
+    { id: 's5', label: 'Nature', icon: '🌿', color: '#4ade80', gradient: 'linear-gradient(135deg,#22c55e,#16a34a)' },
+    { id: 's6', label: 'Cosmos', icon: '🌙', color: '#818cf8', gradient: 'linear-gradient(135deg,#6366f1,#4f46e5)' },
     { id: 's7', label: 'Wisdom', icon: '📿', color: '#f472b6', gradient: 'linear-gradient(135deg,#ec4899,#be185d)' },
 ];
 
@@ -110,7 +111,15 @@ const RESONANCE_STORIES = [
     { id: 'asato', label: 'Asato Ma', sublabel: 'Shanti Mantra', color: '#c4b5fd', emoji: '✨', bg: 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ असतो मा सद्गमय' },
     { id: 'vedic', label: 'Vedic Wisdom', sublabel: 'Ancient Knowledge', color: '#d8b4fe', emoji: '\u{1F4DC}', bg: 'https://images.unsplash.com/photo-1510531704581-5b2870972060?w=600&h=1067&fit=crop&q=80', mantra: 'सर्वे भवन्तु सुखिनः' },
     { id: 'dhyan', label: 'Dhyan', sublabel: 'Meditation', color: '#22d3ee', emoji: '\u{1F9D8}', bg: 'https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=600&h=1067&fit=crop&q=80' },
-    { id: 'acharya', label: 'Acharya', sublabel: 'Free Consult', color: '#4ade80', emoji: '\u{1F33F}', bg: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=1067&fit=crop&q=80' },
+    { id: 'ai-acharya', label: 'AI Ayurvedacharya', sublabel: 'Pranav · Free Consult', color: '#4ade80', emoji: '\u{1F33F}', bg: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=1067&fit=crop&q=80' },
+    // ── Gurukul: World-Class Modern + Ancient Wisdom + Startup Support ──
+    { id: 'gurukul-vision', label: 'World Premier Gurukul', sublabel: 'Modern Skills • Ancient Wisdom • Startup Support', color: '#fbbf24', emoji: '\u{1F3DB}', bg: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=600&h=1067&fit=crop&q=80', mantra: 'ज्ञानं परमं बलम् — Knowledge is Supreme Power' },
+    { id: 'gurukul-modern', label: 'AI & Modern Sciences', sublabel: 'Vedic Mathematics • Coding • AI • Engineering', color: '#60a5fa', emoji: '\u{1F916}', bg: 'https://images.unsplash.com/photo-1535378917042-10a22c95931a?w=600&h=1067&fit=crop&q=80', mantra: 'आर्टिफिशियल इंटेलिजेन्स + वेदिक ज्ञान' },
+    { id: 'gurukul-startup', label: 'Startup Support', sublabel: 'Ideas • Product Dev • Launch • Scale', color: '#4ade80', emoji: '\u{1F680}', bg: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=600&h=1067&fit=crop&q=80', mantra: 'उद्यमेन हि सिध्यन्ति कार्याणि — Success by Effort' },
+    { id: 'gurukul-gita', label: 'Bhagavat Gita', sublabel: 'Divine Song of Eternal Dharma', color: '#fbbf24', emoji: '\u{1F4D6}', bg: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=1067&fit=crop&q=80', mantra: 'न त्वं शोचितुमर्हसि — Thou shalt not grieve' },
+    { id: 'gurukul-upanishad', label: 'Upanishads', sublabel: 'Supreme Vedantic Wisdom', color: '#f97316', emoji: '\u{1F549}', bg: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600&h=1067&fit=crop&q=80', mantra: 'तत् त्वमसि — Thou art That' },
+    { id: 'gurukul-sanskrit', label: 'Sanskrit Vyakaran', sublabel: 'Language of the Gods', color: '#c084fc', emoji: '\u{1FAB7}', bg: 'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?w=600&h=1067&fit=crop&q=80', mantra: 'अहं ब्रह्मास्मि — I am Brahman' },
+    { id: 'gurukul-darshan', label: 'Darshan Shastra', sublabel: 'Six Schools of Indian Philosophy', color: '#f472b6', emoji: '\u{1F52D}', bg: 'https://images.unsplash.com/photo-1475274047050-1d0c0975f9f1?w=600&h=1067&fit=crop&q=80', mantra: 'सत्चिदानन्द — Truth, Consciousness, Bliss' },
     { id: 'sunrise', label: 'Sunrise', sublabel: 'Pratah Kaal', color: '#fbbf24', emoji: '\u{1F304}', bg: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=1067&fit=crop&q=80' },
     { id: 'sunset', label: 'Sunset', sublabel: 'Sandhya', color: '#fb923c', emoji: '\u{1F305}', bg: 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=600&h=1067&fit=crop&q=80' },
     { id: 'himalaya', label: 'Himalaya', sublabel: 'Sacred Peaks', color: '#93c5fd', emoji: '\u{1F3D4}', bg: 'https://images.unsplash.com/photo-1455156218388-5e61b526818b?w=600&h=1067&fit=crop&q=80' },
@@ -542,7 +551,7 @@ function ReelGridCard({ item, onClick }: { item: ReelItem; onClick: () => void }
                             stroke={liked ? '#ed4956' : 'rgba(255,255,255,0.95)'}
                             strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
                             style={{ filter: liked ? 'drop-shadow(0 0 5px rgba(237,73,86,0.5))' : 'none', display: 'block' }}>
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                         </svg>
                     </motion.div>
                     <span style={{ fontSize: '0.47rem', color: liked ? '#ed4956' : 'rgba(255,255,255,0.82)', fontFamily: "'Inter', sans-serif", fontWeight: 700, textShadow: '0 1px 3px rgba(0,0,0,0.85)' }}>
@@ -552,7 +561,7 @@ function ReelGridCard({ item, onClick }: { item: ReelItem; onClick: () => void }
 
                 {/* Play indicator */}
                 <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.11)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1.5px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 3px 12px rgba(0,0,0,0.5)' }}>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="white" style={{ marginLeft: 2 }}><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="white" style={{ marginLeft: 2 }}><polygon points="5 3 19 12 5 21 5 3" /></svg>
                 </div>
 
                 {/* Bookmark / Save — glass encircled */}
@@ -575,7 +584,7 @@ function ReelGridCard({ item, onClick }: { item: ReelItem; onClick: () => void }
                             stroke={loved ? '#fbbf24' : 'rgba(255,255,255,0.95)'}
                             strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
                             style={{ filter: loved ? 'drop-shadow(0 0 5px rgba(251,191,36,0.5))' : 'none', display: 'block' }}>
-                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
                         </svg>
                     </motion.div>
                     <span style={{ fontSize: '0.47rem', color: loved ? '#fbbf24' : 'rgba(255,255,255,0.82)', fontFamily: "'Inter', sans-serif", fontWeight: 700, textShadow: '0 1px 3px rgba(0,0,0,0.85)' }}>
@@ -588,16 +597,14 @@ function ReelGridCard({ item, onClick }: { item: ReelItem; onClick: () => void }
 }
 
 // ════════════════════════════════════════════════════════
-//  PORTAL GRID CARD
+//  PORTAL GRID CARD — Elegant with Importance Text
 // ════════════════════════════════════════════════════════
 function PortalGridCard({ item }: { item: PortalItem }) {
-    const [hovered, setHovered] = useState(false);
+    const p = item.portal as typeof SACRED_PORTALS[0];
 
     return (
-        <Link href={item.portal.href} style={{ textDecoration: 'none', display: 'block' }}>
+        <Link href={p.href} style={{ textDecoration: 'none', display: 'block' }}>
             <motion.div
-                onHoverStart={() => setHovered(true)}
-                onHoverEnd={() => setHovered(false)}
                 whileTap={{ scale: 0.97 }}
                 style={{
                     position: 'relative',
@@ -608,22 +615,30 @@ function PortalGridCard({ item }: { item: PortalItem }) {
                     background: '#050505',
                 }}
             >
-                {/* Background image */}
+                {/* Background image with deep dim */}
                 <img
                     src={item.imageUrl}
-                    alt={item.portal.title}
+                    alt={p.title}
                     loading="lazy"
                     style={{
                         position: 'absolute', inset: 0, width: '100%', height: '100%',
                         objectFit: 'cover',
-                        filter: 'brightness(0.45) saturate(0.7)',
+                        filter: 'brightness(0.28) saturate(0.5)',
                     }}
                 />
 
-                {/* Portal color tint overlay */}
+                {/* Colour aurora overlay */}
                 <div style={{
                     position: 'absolute', inset: 0,
-                    background: `linear-gradient(to top, ${item.portal.color}88 0%, ${item.portal.color}22 50%, transparent 100%)`,
+                    background: `radial-gradient(ellipse at 50% 40%, ${p.color}30 0%, ${p.color}10 45%, transparent 75%)`,
+                    pointerEvents: 'none',
+                }} />
+
+                {/* Bottom gradient */}
+                <div style={{
+                    position: 'absolute', inset: 0,
+                    background: `linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.6) 45%, rgba(0,0,0,0.1) 100%)`,
+                    pointerEvents: 'none',
                 }} />
 
                 {/* Top portal tag */}
@@ -634,85 +649,110 @@ function PortalGridCard({ item }: { item: PortalItem }) {
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 }}>
                     <div style={{
-                        fontSize: '0.42rem', fontWeight: 700, color: item.portal.color,
+                        fontSize: '0.42rem', fontWeight: 700, color: p.color,
                         letterSpacing: '0.14em', textTransform: 'uppercase',
                         background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(8px)',
                         padding: '0.18rem 0.5rem', borderRadius: 99,
-                        border: `1px solid ${item.portal.color}44`,
+                        border: `1px solid ${p.color}44`,
                         fontFamily: "'Inter', sans-serif",
-                    }}>✦ Sacred Portal</div>
+                    }}>✦ OneSUTRA Portal</div>
                 </div>
 
-                {/* Center: professional glassmorphic icon */}
+                {/* Center: premium glassmorphic orb */}
                 <div style={{
-                    position: 'absolute', inset: 0,
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                    gap: '0.6rem',
+                    position: 'absolute', top: '22%', left: '50%', transform: 'translateX(-50%)',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem',
                 }}>
-                    {/* Outer ring */}
+                    {/* Outer pulsing ring */}
                     <motion.div
-                        animate={{ scale: hovered ? [1, 1.12, 1] : [1, 1.05, 1], opacity: [0.5, 0.85, 0.5] }}
+                        animate={{ scale: [1, 1.1, 1], opacity: [0.45, 0.8, 0.45] }}
                         transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
                         style={{
-                            width: 72, height: 72, borderRadius: '50%',
-                            background: 'transparent',
-                            border: `1.5px solid ${item.portal.color}44`,
-                            position: 'absolute',
-                            boxShadow: `0 0 28px ${item.portal.color}33`,
+                            width: 72, height: 72, borderRadius: '50%', position: 'absolute',
+                            border: `1.5px solid ${p.color}55`,
+                            boxShadow: `0 0 32px ${p.color}44`,
                         }}
                     />
                     {/* Inner glass orb */}
                     <motion.div
-                        animate={{ scale: hovered ? [1, 1.1, 1] : [1, 1.04, 1], opacity: [0.85, 1, 0.85] }}
+                        animate={{ scale: [1, 1.05, 1] }}
                         transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
                         style={{
-                            width: 54, height: 54, borderRadius: '50%',
-                            background: `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.22) 0%, ${item.portal.color}66 55%, ${item.portal.color}33 100%)`,
-                            backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-                            border: `1px solid ${item.portal.color}55`,
-                            boxShadow: `0 0 24px ${item.portal.color}55, 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.18)`,
+                            width: 60, height: 60, borderRadius: '50%',
+                            background: `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.28) 0%, ${p.color}77 55%, ${p.color}33 100%)`,
+                            backdropFilter: 'blur(16px)',
+                            border: `1px solid ${p.color}66`,
+                            boxShadow: `0 0 28px ${p.color}66, 0 8px 28px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.22)`,
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '1.55rem',
+                            fontSize: '1.7rem',
                         }}
-                    >{item.portal.icon}</motion.div>
+                    >
+                        {p.icon === '✦' ? (
+                            <span style={{ color: p.color, fontSize: '1.3rem', fontWeight: 900, filter: `drop-shadow(0 0 8px ${p.color})` }}>✦</span>
+                        ) : p.icon}
+                    </motion.div>
                 </div>
 
-                {/* Bottom: portal name + CTA */}
+                {/* Bottom content area: title + subtitle + importance + CTA */}
                 <div style={{
                     position: 'absolute', bottom: 0, left: 0, right: 0,
-                    padding: '0.7rem 0.6rem 0.65rem',
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem',
+                    padding: '0.75rem 0.65rem 0.8rem',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.28rem',
                 }}>
+                    {/* Title */}
                     <span style={{
-                        fontSize: 'clamp(0.65rem, 2vw, 0.8rem)',
-                        fontWeight: 800, letterSpacing: '0.1em',
-                        color: item.portal.color,
-                        textShadow: `0 0 16px ${item.portal.color}88`,
-                        textTransform: 'uppercase',
-                        fontFamily: "'Inter', sans-serif",
-                    }}>{item.portal.title}</span>
+                        fontSize: 'clamp(0.75rem, 2.5vw, 0.95rem)',
+                        fontWeight: 800, letterSpacing: '0.04em',
+                        color: p.color,
+                        textShadow: `0 0 20px ${p.color}99`,
+                        fontFamily: "'Outfit', sans-serif",
+                        textAlign: 'center',
+                    }}>{p.title}</span>
+
+                    {/* Subtitle pill */}
                     <span style={{
-                        fontSize: 'clamp(0.42rem, 1.4vw, 0.52rem)',
-                        color: 'rgba(255,255,255,0.6)',
-                        letterSpacing: '0.04em',
+                        fontSize: 'clamp(0.4rem, 1.2vw, 0.5rem)',
+                        color: `${p.color}cc`,
+                        letterSpacing: '0.06em',
                         fontFamily: "'Inter', sans-serif",
-                    }}>{item.portal.subtitle}</span>
-                    {/* Enter Portal CTA */}
+                        fontWeight: 600,
+                        background: `${p.color}18`,
+                        border: `1px solid ${p.color}33`,
+                        borderRadius: 99,
+                        padding: '0.12rem 0.5rem',
+                        textAlign: 'center',
+                    }}>{p.subtitle}</span>
+
+                    {/* Divider */}
+                    <div style={{ width: '60%', height: '0.5px', background: `linear-gradient(90deg, transparent, ${p.color}55, transparent)`, margin: '0.1rem 0' }} />
+
+                    {/* Importance text */}
+                    <p style={{
+                        fontSize: 'clamp(0.38rem, 1.1vw, 0.46rem)',
+                        color: 'rgba(255,255,255,0.65)',
+                        fontFamily: "'Inter', sans-serif",
+                        lineHeight: 1.55,
+                        textAlign: 'center',
+                        padding: '0 0.2rem',
+                        margin: 0,
+                        fontStyle: 'italic',
+                    }}>{(p as any).importance}</p>
+
+                    {/* Enter CTA */}
                     <motion.div
-                        animate={hovered ? { scale: 1.06 } : { scale: 1 }}
+                        whileTap={{ scale: 0.95 }}
                         style={{
                             marginTop: '0.2rem',
-                            padding: '0.22rem 0.7rem',
+                            padding: '0.28rem 0.85rem',
                             borderRadius: 99,
-                            background: `linear-gradient(135deg, ${item.portal.color}cc, ${item.portal.color})`,
+                            background: `linear-gradient(135deg, ${p.color}cc, ${p.color})`,
                             color: '#fff',
                             fontSize: '0.42rem',
                             fontWeight: 700,
                             letterSpacing: '0.08em',
                             textTransform: 'uppercase',
                             fontFamily: "'Inter', sans-serif",
-                            boxShadow: `0 4px 14px ${item.portal.color}55`,
+                            boxShadow: `0 4px 16px ${p.color}66`,
                         }}
                     >Enter Portal →</motion.div>
                 </div>
@@ -720,6 +760,8 @@ function PortalGridCard({ item }: { item: PortalItem }) {
         </Link>
     );
 }
+
+
 
 // ════════════════════════════════════════════════════════
 //  RESONANCE REEL CARD — exact Resonance page look & feel as a 9:16 reel
@@ -852,7 +894,7 @@ function ResonanceReelCard({ item, onClick }: { item: ResonanceItem; onClick: ()
                                 stroke={liked ? '#ed4956' : 'rgba(255,255,255,0.88)'}
                                 strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"
                                 style={{ filter: liked ? 'drop-shadow(0 0 5px rgba(237,73,86,0.55))' : 'none', display: 'block' }}>
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                             </svg>
                         </motion.div>
                         <span style={{ fontSize: '0.42rem', color: liked ? '#ed4956' : 'rgba(255,255,255,0.7)', fontFamily: "'Inter', sans-serif", fontWeight: 700 }}>
@@ -860,7 +902,7 @@ function ResonanceReelCard({ item, onClick }: { item: ResonanceItem; onClick: ()
                         </span>
                     </button>
                     <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svg width="9" height="9" viewBox="0 0 24 24" fill="white" style={{ marginLeft: 2 }}><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="white" style={{ marginLeft: 2 }}><polygon points="5 3 19 12 5 21 5 3" /></svg>
                     </div>
                     <button
                         onClick={e => { e.stopPropagation(); setLoved((l: boolean) => !l); setLoveCount((c: number) => loved ? c - 1 : c + 1); }}
@@ -872,7 +914,7 @@ function ResonanceReelCard({ item, onClick }: { item: ResonanceItem; onClick: ()
                                 stroke={loved ? '#fbbf24' : 'rgba(255,255,255,0.88)'}
                                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
                                 style={{ filter: loved ? 'drop-shadow(0 0 7px rgba(251,191,36,0.9))' : 'drop-shadow(0 1px 3px rgba(0,0,0,0.85))', display: 'block' }}>
-                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                             </svg>
                         </motion.div>
                         <span style={{ fontSize: '0.42rem', color: loved ? '#fbbf24' : 'rgba(255,255,255,0.7)', fontFamily: "'Inter', sans-serif", fontWeight: 700 }}>
@@ -1021,7 +1063,7 @@ function GayatriHeroCard({ onClick }: { onClick: () => void }) {
                             stroke={liked ? '#ed4956' : 'rgba(255,255,255,0.92)'}
                             strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"
                             style={{ filter: liked ? 'drop-shadow(0 0 6px rgba(237,73,86,0.55))' : 'none', display: 'block' }}>
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                         </svg>
                     </motion.div>
                     <span style={{ fontSize: '0.45rem', color: liked ? '#ed4956' : 'rgba(255,255,255,0.78)', fontFamily: "'Inter', sans-serif", fontWeight: 700, textShadow: '0 1px 4px rgba(0,0,0,0.85)' }}>
@@ -1045,7 +1087,7 @@ function GayatriHeroCard({ onClick }: { onClick: () => void }) {
                             stroke={loved ? '#fbbf24' : 'rgba(255,255,255,0.92)'}
                             strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
                             style={{ filter: loved ? 'drop-shadow(0 0 10px rgba(251,191,36,0.95))' : 'drop-shadow(0 1px 5px rgba(0,0,0,0.9))', display: 'block' }}>
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                         </svg>
                     </motion.div>
                     <span style={{ fontSize: '0.45rem', color: loved ? '#fbbf24' : 'rgba(255,255,255,0.78)', fontFamily: "'Inter', sans-serif", fontWeight: 700, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.85))' }}>
@@ -1062,34 +1104,37 @@ function FullscreenReelModal({
     items,
     initialIndex,
     onClose,
+    authorName = 'Mitra',
 }: {
     items: (ReelItem | ResonanceItem)[];
     initialIndex: number;
     onClose: () => void;
+    authorName?: string;
 }) {
-    const [current, setCurrent]         = useState(initialIndex);
-    const [muted, setMuted]             = useState(true);
-    const [liked, setLiked]             = useState<Set<string>>(new Set());
-    const [liveLikes, setLiveLikes]     = useState<Record<string, number>>({});
-    const [liveComments, setLiveCmts]   = useState<Record<string, number>>({});
-    const [showComments, setShowCmts]   = useState(false);
-    const [comments, setComments]       = useState<Array<{ id: string; text: string; author: string; ts: number }>>([]);
+    const currentAuthorName = authorName;
+    const [current, setCurrent] = useState(initialIndex);
+    const [muted, setMuted] = useState(true);
+    const [liked, setLiked] = useState<Set<string>>(new Set());
+    const [liveLikes, setLiveLikes] = useState<Record<string, number>>({});
+    const [liveComments, setLiveCmts] = useState<Record<string, number>>({});
+    const [showComments, setShowCmts] = useState(false);
+    const [comments, setComments] = useState<Array<{ id: string; text: string; author: string; ts: number }>>([]);
     const [commentText, setCommentText] = useState('');
-    const [posting, setPosting]         = useState(false);
-    const [heartFlash, setHeartFlash]   = useState(false);
+    const [posting, setPosting] = useState(false);
+    const [heartFlash, setHeartFlash] = useState(false);
 
-    const videoRef    = useRef<HTMLVideoElement | null>(null);
-    const dragStartY  = useRef(0);
-    const lastTap     = useRef(0);
-    const cmtUnsub    = useRef<(() => void) | null>(null);
-    const dragY       = useMotionValue(0);
-    const opacity     = useTransform(dragY, [-200, 0, 200], [0, 1, 0]);
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+    const dragStartY = useRef(0);
+    const lastTap = useRef(0);
+    const cmtUnsub = useRef<(() => void) | null>(null);
+    const dragY = useMotionValue(0);
+    const opacity = useTransform(dragY, [-200, 0, 200], [0, 1, 0]);
 
-    const item        = items[current];
-    const reelId      = item.id;
-    const isLiked     = liked.has(reelId);
-    const likes       = liveLikes[reelId] ?? 0;
-    const cmtCount    = liveComments[reelId] ?? 0;
+    const item = items[current];
+    const reelId = item.id;
+    const isLiked = liked.has(reelId);
+    const likes = liveLikes[reelId] ?? 0;
+    const cmtCount = liveComments[reelId] ?? 0;
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
     useEffect(() => { document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = ''; }; }, []);
@@ -1108,8 +1153,8 @@ function FullscreenReelModal({
         const v = videoRef.current;
         if (!v) return;
         v.muted = muted;
-        v.play().catch(() => {});
-        return () => { try { v.pause(); } catch {} };
+        v.play().catch(() => { });
+        return () => { try { v.pause(); } catch { } };
     }, [current, muted]);
 
     // ── Firebase: real-time likes ──────────────────────────────────────────────
@@ -1190,7 +1235,7 @@ function FullscreenReelModal({
             const { getFirebaseFirestore } = await import('@/lib/firebase');
             const { collection, addDoc } = await import('firebase/firestore');
             const db = await getFirebaseFirestore();
-            await addDoc(collection(db, 'pranaverse_reels', reelId, 'comments'), { text, author: 'Sadhak', ts: Date.now() });
+            await addDoc(collection(db, 'pranaverse_reels', reelId, 'comments'), { text, author: currentAuthorName, ts: Date.now() });
         } catch { /* offline */ }
         setPosting(false);
     }, [commentText, posting, reelId]);
@@ -1236,19 +1281,19 @@ function FullscreenReelModal({
 
                     {/* ── Top bar ── */}
                     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: 'max(env(safe-area-inset-top),1rem) 1rem 0.5rem', background: 'linear-gradient(180deg,rgba(0,0,0,0.72) 0%,transparent 100%)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 }}>
-                        <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '1.25rem', color: 'rgba(251,191,36,0.97)', fontWeight: 600, letterSpacing: '0.06em', filter: 'drop-shadow(0 1px 6px rgba(0,0,0,0.7))' }}>PranaVerse</span>
+                        <span style={{ fontFamily: "'Inter','Outfit',sans-serif", fontSize: '1.1rem', color: 'rgba(167,139,250,0.97)', fontWeight: 800, letterSpacing: '0.04em', filter: 'drop-shadow(0 1px 6px rgba(0,0,0,0.7))' }}>PranaVerse</span>
                         <div style={{ display: 'flex', gap: '0.25rem' }}>
                             <button onClick={e => { e.stopPropagation(); setMuted(m => !m); }}
                                 style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 6, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.8))' }}>
                                 {muted ? (
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" /></svg>
                                 ) : (
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" /></svg>
                                 )}
                             </button>
                             <button onClick={e => { e.stopPropagation(); onClose(); }}
                                 style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 6, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.8))' }}>
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                             </button>
                         </div>
                     </div>
@@ -1296,7 +1341,7 @@ function FullscreenReelModal({
                                     stroke={isLiked ? '#ed4956' : 'rgba(255,255,255,0.95)'}
                                     strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"
                                     style={{ filter: isLiked ? 'drop-shadow(0 0 6px rgba(237,73,86,0.55))' : 'none', display: 'block' }}>
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                                 </svg>
                             </motion.div>
                             <span style={{ fontSize: '0.68rem', color: isLiked ? '#ed4956' : 'rgba(255,255,255,0.92)', fontFamily: "'Inter',sans-serif", fontWeight: 700, letterSpacing: '0.01em', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
@@ -1327,7 +1372,7 @@ function FullscreenReelModal({
                                     stroke={showComments ? '#a78bfa' : 'rgba(255,255,255,0.95)'}
                                     strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"
                                     style={{ display: 'block' }}>
-                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                                 </svg>
                             </motion.div>
                             <span style={{ fontSize: '0.68rem', color: showComments ? '#a78bfa' : 'rgba(255,255,255,0.92)', fontFamily: "'Inter',sans-serif", fontWeight: 700, letterSpacing: '0.01em', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
@@ -1347,7 +1392,7 @@ function FullscreenReelModal({
                                 boxShadow: '0 4px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
                             }}>
                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.95)" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', transform: 'translateX(1px)' }}>
-                                    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                    <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
                                 </svg>
                             </div>
                             <span style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.92)', fontFamily: "'Inter',sans-serif", fontWeight: 700, letterSpacing: '0.01em', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>Share</span>
@@ -1363,7 +1408,7 @@ function FullscreenReelModal({
                                 transition={{ duration: 0.75, ease: 'easeOut' }}
                                 style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 35, pointerEvents: 'none' }}>
                                 <svg width="120" height="120" viewBox="0 0 24 24" fill="#ed4956" style={{ filter: 'drop-shadow(0 0 24px rgba(237,73,86,0.72)) drop-shadow(0 0 52px rgba(237,73,86,0.38))' }}>
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                                 </svg>
                             </motion.div>
                         )}
@@ -1476,16 +1521,29 @@ function FullscreenReelModal({
 }
 
 // ════════════════════════════════════════════════════════
-//  MAIN PAGE EXPORT
+//  MAIN PAGE EXPORT (wrapped in Suspense for useSearchParams)
 // ════════════════════════════════════════════════════════
+import { Suspense } from 'react';
 
-export default function PranaversePage() {
+function AuraSpaceInner() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { user: currentUser } = useOneSutraAuth();
+    const displayUserName = currentUser?.name || 'Mitra';
 
     const [activeTab, setActiveTab] = useState<Tab>('story');
     const [isSakhaActive, setIsSakhaActive] = useState(false);
+    const [isAwakening, setIsAwakening] = useState(false);
     const [isAudioUnlocked, setIsAudioUnlocked] = useState(false);
+
+    const handleBodhiAwaken = () => {
+        unlockAudio();
+        setIsAwakening(true);
+        setTimeout(() => {
+            setIsSakhaActive(true);
+            setIsAwakening(false);
+        }, 900);
+    };
 
     const unlockAudio = () => {
         if (isAudioUnlocked || typeof window === 'undefined') return;
@@ -1520,6 +1578,18 @@ export default function PranaversePage() {
         setModalOpen(true);
     }, [swipeableItems]);
 
+    // Deep-link: auto-open reel from shared URL (?post=reel-id or /reel/id)
+    useEffect(() => {
+        const postId = searchParams?.get('post') || searchParams?.get('reel');
+        if (!postId || swipeableItems.length === 0) return;
+        const idx = swipeableItems.findIndex(r => r.id === postId);
+        if (idx >= 0) {
+            setModalStartIdx(idx);
+            setModalOpen(true);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams, swipeableItems.length]);
+
     // Scroll-hide header
     useEffect(() => {
         const el = document.getElementById('pv-scroll-container');
@@ -1534,6 +1604,8 @@ export default function PranaversePage() {
     }, []);
 
     const timeLabel = { morning: '🌅 Morning Prana', day: '☀️ Midday Prana', evening: '🪔 Sandhya Prana', night: '🌙 Ratri Prana' }[timeSlot];
+    const timeColor = { morning: '#fbbf24', day: '#f97316', evening: '#c084fc', night: '#818cf8' }[timeSlot];
+    const timeSub = { morning: 'Rise · Align · Radiate', day: 'Focus · Flow · Create', evening: 'Reflect · Restore · Release', night: 'Rest · Dream · Dissolve' }[timeSlot];
 
     return (
         <>
@@ -1586,16 +1658,17 @@ export default function PranaversePage() {
                         }}>←</Link>
                         <div>
                             <div style={{
-                                fontFamily: "'Cormorant Garamond', serif",
-                                fontSize: '1.15rem', fontWeight: 600,
-                                background: 'linear-gradient(90deg, #fbbf24, #fde68a, #f59e0b, #fbbf24)',
+                                fontFamily: "'Inter', 'Outfit', sans-serif",
+                                fontSize: '1.15rem', fontWeight: 800,
+                                background: 'linear-gradient(90deg, #c4b5fd, #a78bfa, #818cf8, #c4b5fd)',
                                 backgroundSize: '200% auto',
                                 WebkitBackgroundClip: 'text',
                                 WebkitTextFillColor: 'transparent',
                                 animation: 'textShimmer 4s linear infinite',
+                                letterSpacing: '0.02em',
                             }}>PranaVerse</div>
-                            <div style={{ fontSize: '0.45rem', color: 'rgba(251,191,36,0.55)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-                                {timeLabel}
+                            <div style={{ fontSize: '0.45rem', color: 'rgba(167,139,250,0.65)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                                ⚡ Energy Circle
                             </div>
                         </div>
                     </div>
@@ -1631,6 +1704,47 @@ export default function PranaversePage() {
                         >
                             {/* ── STORY BAR ── */}
                             <HomeStoryBar />
+
+                            {/* ── MORNING PRANA BANNER ── */}
+                            <div style={{
+                                margin: '0.55rem 1rem 0.2rem',
+                                borderRadius: 16,
+                                background: `linear-gradient(120deg, ${timeColor}12 0%, rgba(0,0,0,0) 60%)`,
+                                border: `1px solid ${timeColor}28`,
+                                padding: '0.55rem 0.9rem',
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                backdropFilter: 'blur(12px)',
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <div style={{
+                                        width: 6, height: 6, borderRadius: '50%',
+                                        background: timeColor,
+                                        boxShadow: `0 0 8px ${timeColor}`,
+                                        flexShrink: 0,
+                                        animation: 'pranaFloat 2s ease-in-out infinite',
+                                    }} />
+                                    <div>
+                                        <div style={{
+                                            fontSize: '0.62rem', fontWeight: 800, color: timeColor,
+                                            letterSpacing: '0.08em', textTransform: 'uppercase',
+                                            fontFamily: "'Outfit', sans-serif",
+                                            textShadow: `0 0 12px ${timeColor}60`,
+                                        }}>{timeLabel}</div>
+                                        <div style={{
+                                            fontSize: '0.40rem', color: `${timeColor}80`,
+                                            letterSpacing: '0.10em', textTransform: 'uppercase',
+                                            fontFamily: "'Inter', sans-serif", marginTop: 1,
+                                        }}>{timeSub}</div>
+                                    </div>
+                                </div>
+                                <div style={{
+                                    fontSize: '0.38rem', fontWeight: 700,
+                                    color: `${timeColor}60`, letterSpacing: '0.1em',
+                                    textTransform: 'uppercase', fontFamily: "'Inter', sans-serif",
+                                    background: `${timeColor}10`, border: `1px solid ${timeColor}22`,
+                                    borderRadius: 99, padding: '0.18rem 0.55rem',
+                                }}>LIVE ✦</div>
+                            </div>
 
                             {/* ── SECTION LABEL ── */}
                             <div style={{
@@ -1781,7 +1895,7 @@ export default function PranaversePage() {
                             <motion.button
                                 animate={{ scale: [1, 1.05, 1] }}
                                 transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut' }}
-                                onClick={() => { unlockAudio(); setIsSakhaActive(true); }}
+                                onClick={() => handleBodhiAwaken()}
                                 aria-label="Awaken Sakha Bodhi"
                                 title="Awaken Sakha Bodhi — Your Cosmic Companion"
                                 style={{
@@ -1798,44 +1912,85 @@ export default function PranaversePage() {
                                     overflow: 'hidden',
                                 }}
                             >
+                                {/* Burst rings on awakening */}
+                                {isAwakening && [0, 1, 2].map((i) => (
+                                    <motion.div
+                                        key={i}
+                                        initial={{ scale: 0.6, opacity: 0.9 }}
+                                        animate={{ scale: 2.6 + i * 0.8, opacity: 0 }}
+                                        transition={{ duration: 0.7 + i * 0.15, ease: 'easeOut', delay: i * 0.10 }}
+                                        style={{
+                                            position: 'absolute', inset: 0,
+                                            borderRadius: '50%',
+                                            border: `${2 - i * 0.4}px solid ${i === 0 ? '#fbbf24' : i === 1 ? '#22d3ee' : '#a78bfa'}`,
+                                            pointerEvents: 'none',
+                                        }}
+                                    />
+                                ))}
                                 {/* Inner radiance pulse */}
                                 <motion.div
-                                    animate={{ opacity: [0.3, 0.6, 0.3], scale: [0.7, 1.1, 0.7] }}
-                                    transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+                                    animate={isAwakening
+                                        ? { opacity: [0.3, 1, 0.8], scale: [0.7, 1.4, 1.2] }
+                                        : { opacity: [0.3, 0.6, 0.3], scale: [0.7, 1.1, 0.7] }
+                                    }
+                                    transition={isAwakening
+                                        ? { duration: 0.8, ease: 'easeOut' }
+                                        : { duration: 3.2, repeat: Infinity, ease: 'easeInOut' }
+                                    }
                                     style={{
                                         position: 'absolute', inset: 0, borderRadius: '50%',
-                                        background: 'radial-gradient(circle at center, rgba(139,92,246,0.45) 0%, rgba(34,211,238,0.18) 55%, transparent 80%)',
+                                        background: isAwakening
+                                            ? 'radial-gradient(circle at center, rgba(251,191,36,0.8) 0%, rgba(34,211,238,0.4) 55%, transparent 80%)'
+                                            : 'radial-gradient(circle at center, rgba(139,92,246,0.45) 0%, rgba(34,211,238,0.18) 55%, transparent 80%)',
                                         pointerEvents: 'none',
                                     }}
                                 />
-                                {/* Meditating Sakha Bodhi — SVG yogi figure */}
+                                {/* Meditating Sakha Bodhi — eyes closed (calm) or open (awakening) */}
                                 <svg width="38" height="42" viewBox="0 0 40 44" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ position: 'relative', zIndex: 2 }}>
-                                    {/* Divine halo */}
-                                    <circle cx="20" cy="12" r="9.5" fill="rgba(255,215,0,0.07)" />
-                                    <circle cx="20" cy="12" r="7.5" fill="none" stroke="rgba(255,215,0,0.38)" strokeWidth="0.7" strokeDasharray="2.5 1.5" />
+                                    {/* Divine halo — blazing on awakening */}
+                                    <circle cx="20" cy="12" r="9.5" fill={isAwakening ? 'rgba(255,215,0,0.25)' : 'rgba(255,215,0,0.07)'} />
+                                    <circle cx="20" cy="12" r="7.5" fill="none" stroke={isAwakening ? 'rgba(255,215,0,0.9)' : 'rgba(255,215,0,0.38)'} strokeWidth={isAwakening ? '1.2' : '0.7'} strokeDasharray={isAwakening ? '3 1' : '2.5 1.5'} />
                                     {/* Head */}
-                                    <circle cx="20" cy="12" r="5" fill="rgba(220,245,255,0.95)" />
-                                    {/* Ajna — third eye chakra */}
-                                    <ellipse cx="20" cy="10.8" rx="1.5" ry="0.9" fill="#FFD700" />
-                                    <circle cx="20" cy="10.8" r="0.55" fill="rgba(255,255,255,0.95)" />
+                                    <circle cx="20" cy="12" r="5" fill={isAwakening ? 'rgba(255,255,255,1)' : 'rgba(220,245,255,0.95)'} />
+                                    {/* Eyes — closed when calm, open and luminous when awakening */}
+                                    {isAwakening ? (
+                                        <>
+                                            {/* Open eyes — radiant */}
+                                            <ellipse cx="18" cy="11.8" rx="1.3" ry="1.1" fill="#0f172a" />
+                                            <circle cx="18" cy="11.8" r="0.5" fill="#22d3ee" />
+                                            <ellipse cx="22" cy="11.8" rx="1.3" ry="1.1" fill="#0f172a" />
+                                            <circle cx="22" cy="11.8" r="0.5" fill="#22d3ee" />
+                                            {/* Third-eye blazing */}
+                                            <ellipse cx="20" cy="10.2" rx="1.8" ry="1.1" fill="#FFD700" opacity="0.95" />
+                                            <circle cx="20" cy="10.2" r="0.7" fill="#fff" />
+                                        </>
+                                    ) : (
+                                        <>
+                                            {/* Closed eyes — meditative */}
+                                            <path d="M17 12 Q18 11 19 12" stroke="rgba(80,120,160,0.7)" strokeWidth="0.7" fill="none" strokeLinecap="round" />
+                                            <path d="M21 12 Q22 11 23 12" stroke="rgba(80,120,160,0.7)" strokeWidth="0.7" fill="none" strokeLinecap="round" />
+                                            {/* Ajna — third eye chakra */}
+                                            <ellipse cx="20" cy="10.8" rx="1.5" ry="0.9" fill="#FFD700" />
+                                            <circle cx="20" cy="10.8" r="0.55" fill="rgba(255,255,255,0.95)" />
+                                        </>
+                                    )}
                                     {/* Neck */}
                                     <rect x="17.8" y="17" width="4.4" height="2.8" rx="1.5" fill="rgba(210,240,255,0.88)" />
-                                    {/* Torso — upright meditative posture */}
-                                    <path d="M 14 30 L 15.5 20 Q 20 18.5 24.5 20 L 26 30 Z" fill="rgba(190,230,255,0.88)" />
-                                    {/* Left arm to knee */}
+                                    {/* Torso */}
+                                    <path d="M 14 30 L 15.5 20 Q 20 18.5 24.5 20 L 26 30 Z" fill={isAwakening ? 'rgba(220,245,255,1)' : 'rgba(190,230,255,0.88)'} />
+                                    {/* Arms */}
                                     <path d="M 15.5 24 Q 12 26.5 11 30" stroke="rgba(190,230,255,0.88)" strokeWidth="2.8" strokeLinecap="round" fill="none" />
                                     <circle cx="11" cy="30" r="2.3" fill="rgba(190,230,255,0.78)" />
-                                    {/* Right arm to knee */}
                                     <path d="M 24.5 24 Q 28 26.5 29 30" stroke="rgba(190,230,255,0.88)" strokeWidth="2.8" strokeLinecap="round" fill="none" />
                                     <circle cx="29" cy="30" r="2.3" fill="rgba(190,230,255,0.78)" />
-                                    {/* Lotus seated legs */}
+                                    {/* Lotus legs */}
                                     <path d="M 7 37 Q 13 32.5 20 33.5 Q 27 32.5 33 37 Q 30 41.5 20 42 Q 10 41.5 7 37 Z" fill="rgba(170,220,255,0.82)" />
-                                    {/* Sushumna nadi — spine channel */}
-                                    <line x1="20" y1="19.5" x2="20" y2="30" stroke="rgba(100,220,255,0.45)" strokeWidth="0.7" />
-                                    {/* Anahata — heart chakra */}
-                                    <circle cx="20" cy="23.5" r="1.1" fill="rgba(100,220,255,0.9)" />
-                                    {/* Sahasrara — crown glow */}
-                                    <circle cx="20" cy="7" r="1.8" fill="rgba(167,139,250,0.55)" />
+                                    {/* Sushumna nadi */}
+                                    <line x1="20" y1="19.5" x2="20" y2="30" stroke={isAwakening ? 'rgba(251,191,36,0.9)' : 'rgba(100,220,255,0.45)'} strokeWidth={isAwakening ? '1.2' : '0.7'} />
+                                    {/* Anahata */}
+                                    <circle cx="20" cy="23.5" r="1.1" fill={isAwakening ? '#fbbf24' : 'rgba(100,220,255,0.9)'} />
+                                    {/* Sahasrara — crown */}
+                                    <circle cx="20" cy="7" r={isAwakening ? '2.5' : '1.8'} fill={isAwakening ? 'rgba(251,191,36,0.9)' : 'rgba(167,139,250,0.55)'} />
                                 </svg>
                             </motion.button>
                         </motion.div>
@@ -1847,10 +2002,10 @@ export default function PranaversePage() {
                     {isSakhaActive && (
                         <SakhaBodhiOrb
                             key="pv-sakha-orb"
-                            userName={currentUser?.name || 'Sadhak'}
+                            userName={currentUser?.name || 'Mitra'}
                             userId={null}
                             sankalpaItems={[]}
-                            onSankalpaUpdate={() => {}}
+                            onSankalpaUpdate={() => { }}
                             onDismiss={() => setIsSakhaActive(false)}
                         />
                     )}
@@ -1863,10 +2018,19 @@ export default function PranaversePage() {
                             items={swipeableItems}
                             initialIndex={modalStartIdx}
                             onClose={() => setModalOpen(false)}
+                            authorName={displayUserName}
                         />
                     )}
                 </AnimatePresence>
             </div>
         </>
+    );
+}
+
+export default function PranaversePage() {
+    return (
+        <Suspense fallback={<div style={{ background: '#000', minHeight: '100dvh' }} />}>
+            <AuraSpaceInner />
+        </Suspense>
     );
 }
