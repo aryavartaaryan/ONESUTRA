@@ -431,7 +431,7 @@ export default function GurkulVedicSangrah() {
                                 whileTap={{ scale: 0.96 }}
                                 onClick={() => setActiveTab(tab.id)}
                                 style={{
-                                    flex: 1, padding: '0.65rem 0.5rem', border: 'none', borderRadius: '12px', cursor: 'pointer',
+                                    flex: 1, padding: '0.65rem 0.5rem', borderRadius: '12px', cursor: 'pointer',
                                     background: activeTab === tab.id
                                         ? `linear-gradient(135deg, ${tab.color}22, ${tab.color}11)`
                                         : 'transparent',
