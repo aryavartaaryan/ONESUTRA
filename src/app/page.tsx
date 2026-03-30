@@ -406,7 +406,7 @@ export default function Home() {
               style={{
                 position: 'absolute', inset: -20, borderRadius: '50%',
                 background: 'radial-gradient(circle, rgba(34,211,238,0.38) 0%, rgba(139,92,246,0.20) 50%, transparent 78%)',
-                filter: 'blur(12px)', pointerEvents: 'none',
+                filter: 'blur(12px)', pointerEvents: 'none', willChange: 'transform, opacity',
               }}
             />
 
@@ -416,7 +416,7 @@ export default function Home() {
               transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
               style={{
                 position: 'absolute', inset: -7, borderRadius: '50%',
-                border: '1px dashed rgba(251,191,36,0.5)', pointerEvents: 'none',
+                border: '1px dashed rgba(251,191,36,0.5)', pointerEvents: 'none', willChange: 'transform',
               }}
             />
 
@@ -427,7 +427,7 @@ export default function Home() {
               style={{
                 position: 'absolute', inset: -4, borderRadius: '50%',
                 background: 'radial-gradient(circle, rgba(139,92,246,0.30) 0%, rgba(34,211,238,0.22) 60%, transparent 85%)',
-                filter: 'blur(5px)', pointerEvents: 'none',
+                filter: 'blur(5px)', pointerEvents: 'none', willChange: 'transform, opacity',
               }}
             />
 
@@ -437,7 +437,7 @@ export default function Home() {
                 key={i}
                 animate={{ rotate: [deg, deg + 360] }}
                 transition={{ duration: 5 + i * 0.7, repeat: Infinity, ease: 'linear' }}
-                style={{ position: 'absolute', inset: -14, borderRadius: '50%', pointerEvents: 'none' }}
+                style={{ position: 'absolute', inset: -14, borderRadius: '50%', pointerEvents: 'none', willChange: 'transform' }}
               >
                 <div style={{
                   position: 'absolute', top: '50%', left: '50%',

@@ -404,13 +404,13 @@ function UserStoryBubble({ story, onClick, index = 0 }: { story: UserStory; onCl
 
             {/* ── Animated glow ring ── */}
             <motion.div
-                animate={{ opacity: [0.65, 1, 0.65], scale: [1, 1.02, 1] }}
+                animate={{ opacity: [0.65, 1, 0.65] }}
                 transition={{ duration: 2.5 + index * 0.3, repeat: Infinity, ease: 'easeInOut' }}
                 style={{
                     position: 'absolute', inset: 0,
                     borderRadius: 20,
                     boxShadow: `inset 0 0 0 2px rgba(255,255,255,0.55), 0 0 0 2.5px ${story.color}60, 0 10px 35px ${story.color}50, 0 4px 16px rgba(0,0,0,0.5)`,
-                    pointerEvents: 'none',
+                    pointerEvents: 'none', willChange: 'opacity',
                 }}
             />
 
@@ -514,25 +514,25 @@ function CategoryGroupBubble({ category, stories, onOpen, index = 0 }: {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 280, damping: 22, delay: index * 0.09 }}
             style={{
-                flexShrink: 0, width: 82, height: 112,
+                flexShrink: 0, width: 65, height: 90,
                 background: 'none', border: 'none',
                 padding: 0, cursor: 'pointer',
-                position: 'relative', borderRadius: 20,
+                position: 'relative', borderRadius: 16,
                 overflow: 'hidden',
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
             }}
         >
-            <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${bgImg})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: 20 }} />
-            <div style={{ position: 'absolute', inset: 0, borderRadius: 20, background: 'linear-gradient(180deg,rgba(0,0,0,0.08) 0%,rgba(0,0,0,0.06) 35%,rgba(0,0,0,0.22) 55%,rgba(0,0,0,0.68) 75%,rgba(0,0,0,0.82) 100%)' }} />
-            <div style={{ position: 'absolute', inset: 0, borderRadius: 20, background: `linear-gradient(160deg,${meta.color}22 0%,transparent 60%)`, mixBlendMode: 'overlay' }} />
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${bgImg})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: 16 }} />
+            <div style={{ position: 'absolute', inset: 0, borderRadius: 16, background: 'linear-gradient(180deg,rgba(0,0,0,0.08) 0%,rgba(0,0,0,0.06) 35%,rgba(0,0,0,0.22) 55%,rgba(0,0,0,0.68) 75%,rgba(0,0,0,0.82) 100%)' }} />
+            <div style={{ position: 'absolute', inset: 0, borderRadius: 16, background: `linear-gradient(160deg,${meta.color}22 0%,transparent 60%)`, mixBlendMode: 'overlay' }} />
             <motion.div
-                animate={{ opacity: [0.65, 1, 0.65], scale: [1, 1.03, 1] }}
+                animate={{ opacity: [0.65, 1, 0.65] }}
                 transition={{ duration: 2.5 + index * 0.3, repeat: Infinity, ease: 'easeInOut' }}
-                style={{ position: 'absolute', inset: 0, borderRadius: 20, boxShadow: `inset 0 0 0 2px rgba(255,255,255,0.60),0 0 0 2.5px ${meta.color}70,0 10px 36px ${meta.color}55,0 4px 16px rgba(0,0,0,0.5)`, pointerEvents: 'none' }}
+                style={{ position: 'absolute', inset: 0, borderRadius: 16, boxShadow: `inset 0 0 0 2px rgba(255,255,255,0.60),0 0 0 2.5px ${meta.color}70,0 8px 24px ${meta.color}55,0 3px 12px rgba(0,0,0,0.5)`, pointerEvents: 'none', willChange: 'opacity' }}
             />
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '30%', borderRadius: '20px 20px 50% 50%', background: 'linear-gradient(180deg,rgba(255,255,255,0.28) 0%,rgba(255,255,255,0.06) 60%,transparent 100%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '30%', borderRadius: '16px 16px 50% 50%', background: 'linear-gradient(180deg,rgba(255,255,255,0.28) 0%,rgba(255,255,255,0.06) 60%,transparent 100%)', pointerEvents: 'none' }} />
             {/* Emoji holoball */}
-            <div style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', width: 34, height: 34, borderRadius: '50%', background: `radial-gradient(circle at 35% 30%,rgba(255,255,255,0.55) 0%,${meta.color}50 60%,rgba(0,0,0,0.1) 100%)`, backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 3px 12px rgba(0,0,0,0.4),inset 0 1px 2px rgba(255,255,255,0.55),0 0 14px ${meta.color}70`, border: '1.5px solid rgba(255,255,255,0.45)', fontSize: 15, zIndex: 2 }}>
+            <div style={{ position: 'absolute', top: 7, left: '50%', transform: 'translateX(-50%)', width: 26, height: 26, borderRadius: '50%', background: `radial-gradient(circle at 35% 30%,rgba(255,255,255,0.55) 0%,${meta.color}50 60%,rgba(0,0,0,0.1) 100%)`, backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 3px 10px rgba(0,0,0,0.4),inset 0 1px 2px rgba(255,255,255,0.55),0 0 12px ${meta.color}70`, border: '1.5px solid rgba(255,255,255,0.45)', fontSize: 12, zIndex: 2 }}>
                 {meta.emoji}
             </div>
             {/* Count badge */}
@@ -874,7 +874,7 @@ function StoryBubble({ story, onClick, index = 0 }: { story: typeof STORIES[numb
                 position: 'absolute', inset: 0,
                 backgroundImage: `url(${bgImg})`,
                 backgroundSize: 'cover', backgroundPosition: 'center',
-                borderRadius: 20,
+                borderRadius: 16,
             }} />
 
             {/* ── Video layer on top (muted thumbnail frame) ── */}
@@ -894,25 +894,25 @@ function StoryBubble({ story, onClick, index = 0 }: { story: typeof STORIES[numb
 
             {/* ── Gradient overlay ── */}
             <div style={{
-                position: 'absolute', inset: 0, borderRadius: 20,
+                position: 'absolute', inset: 0, borderRadius: 16,
                 background: 'linear-gradient(180deg, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.04) 35%, rgba(0,0,0,0.18) 55%, rgba(0,0,0,0.58) 80%, rgba(0,0,0,0.74) 100%)',
             }} />
 
             {/* ── Glow ring ── */}
             <motion.div
-                animate={{ opacity: [0.6, 1, 0.6], scale: [1, 1.02, 1] }}
+                animate={{ opacity: [0.6, 1, 0.6] }}
                 transition={{ duration: 2.8 + index * 0.3, repeat: Infinity, ease: 'easeInOut' }}
                 style={{
-                    position: 'absolute', inset: 0, borderRadius: 20,
-                    boxShadow: `inset 0 0 0 2px rgba(255,255,255,0.50), 0 0 0 2.5px ${story.color}55, 0 10px 32px ${story.color}40, 0 4px 16px rgba(0,0,0,0.45)`,
-                    pointerEvents: 'none',
+                    position: 'absolute', inset: 0, borderRadius: 16,
+                    boxShadow: `inset 0 0 0 2px rgba(255,255,255,0.50), 0 0 0 2.5px ${story.color}55, 0 8px 24px ${story.color}40, 0 3px 12px rgba(0,0,0,0.45)`,
+                    pointerEvents: 'none', willChange: 'opacity',
                 }}
             />
 
             {/* ── Top glass glare ── */}
             <div style={{
                 position: 'absolute', top: 0, left: 0, right: 0,
-                height: '30%', borderRadius: '20px 20px 50% 50%',
+                height: '30%', borderRadius: '16px 16px 50% 50%',
                 background: 'linear-gradient(180deg, rgba(255,255,255,0.24) 0%, rgba(255,255,255,0.06) 60%, transparent 100%)',
                 pointerEvents: 'none',
             }} />
@@ -920,8 +920,8 @@ function StoryBubble({ story, onClick, index = 0 }: { story: typeof STORIES[numb
             {/* ── Play badge only for video ── */}
             {isVideo && (
                 <div style={{
-                    position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)',
-                    width: 30, height: 30, borderRadius: '50%',
+                    position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)',
+                    width: 24, height: 24, borderRadius: '50%',
                     background: 'rgba(0,0,0,0.35)',
                     backdropFilter: 'blur(8px)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -936,7 +936,7 @@ function StoryBubble({ story, onClick, index = 0 }: { story: typeof STORIES[numb
             {/* ── Bottom frosted text panel ── */}
             <div style={{
                 position: 'absolute', bottom: 0, left: 0, right: 0,
-                padding: '6px 7px 8px',
+                padding: '4px 5px 6px',
                 background: 'rgba(0,0,0,0.30)',
                 backdropFilter: 'blur(10px)',
                 WebkitBackdropFilter: 'blur(10px)',
@@ -944,15 +944,15 @@ function StoryBubble({ story, onClick, index = 0 }: { story: typeof STORIES[numb
                 zIndex: 3,
             }}>
                 <div style={{
-                    fontSize: '0.42rem', fontWeight: 700,
-                    letterSpacing: '0.14em', textTransform: 'uppercase',
+                    fontSize: '0.38rem', fontWeight: 700,
+                    letterSpacing: '0.12em', textTransform: 'uppercase',
                     color: story.color,
                     fontFamily: "'Inter', system-ui, sans-serif",
                     textShadow: `0 0 8px ${story.color}80`,
-                    lineHeight: 1.2, marginBottom: 2,
+                    lineHeight: 1.2, marginBottom: 1,
                 }}>{story.sublabel}</div>
                 <div style={{
-                    fontSize: '0.48rem', fontWeight: 600,
+                    fontSize: '0.43rem', fontWeight: 600,
                     color: 'rgba(255,255,255,0.90)',
                     fontFamily: "'Inter', system-ui, sans-serif",
                     textShadow: '0 1px 4px rgba(0,0,0,0.8)',
@@ -1581,75 +1581,64 @@ export default function StickyTopNav() {
                     background: 'radial-gradient(ellipse at 50% 0%, rgba(251, 191, 36, 0.12) 0%, transparent 60%)',
                 }} />
 
-                {/* Logo + wordmark */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, willChange: 'transform', transform: 'translateZ(0)' }}>
-                    {/* Sacred geometry badge */}
-                    <div style={{
-                        width: 40, height: 40, borderRadius: '50%',
-                        background: 'linear-gradient(145deg, #080d1f, #111827)',
-                        border: '2px solid rgba(251,191,36,0.70)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        flexShrink: 0,
-                        animation: 'logo-pulse 3.5s ease-in-out infinite',
-                    }}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <circle cx="12" cy="12" r="10" stroke="rgba(251,191,36,0.55)" strokeWidth="0.8" />
-                            <circle cx="12" cy="12" r="6.5" stroke="rgba(251,191,36,0.35)" strokeWidth="0.7" />
-                            <path d="M12 3 L12 21 M3 12 L21 12 M5.6 5.6 L18.4 18.4 M18.4 5.6 L5.6 18.4"
-                                stroke="rgba(251,191,36,0.22)" strokeWidth="0.6" />
-                            <path d="M 8 9.5 Q 12 7, 16 9.5 T 16 14 Q 13 16.5, 10 15 T 8 12 Q 9.5 11, 12 11"
-                                stroke="rgba(255,255,255,0.92)" strokeWidth="1.4" strokeLinecap="round" fill="none" />
-                            <circle cx="12" cy="12" r="1.6" fill="#fbbf24" />
-                        </svg>
-                    </div>
-                    {/* Wordmark + tagline */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        <span style={{
-                            fontFamily: "'Inter', system-ui, sans-serif",
-                            fontSize: '1.15rem', fontWeight: 800,
-                            letterSpacing: '0.10em', textTransform: 'uppercase',
-                            background: 'linear-gradient(120deg, #ffffff 0%, #fde68a 40%, #bae6fd 100%)',
-                            WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
-                            lineHeight: 1,
-                        }}>OneSUTRA</span>
-                        <span style={{
-                            fontSize: '8px', fontWeight: 600,
-                            letterSpacing: '0.22em', textTransform: 'uppercase',
-                            color: 'rgba(251,191,36,0.55)',
-                            fontFamily: "'Inter', system-ui, sans-serif",
-                            lineHeight: 1,
-                        }}>Conscious OS</span>
-                    </div>
-                </div>
-
-                {/* Right: story colour dots + PranaVibes & Games icons */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                        {[STORIES[0].color, STORIES[2].color, STORIES[4].color, STORIES[6].color].map((c, i) => (
-                            <div key={i} style={{
-                                width: 5, height: 5, borderRadius: '50%',
-                                background: c, opacity: 0.45,
-                            }} />
-                        ))}
+                {/* ── Top row: Logo (left) + nav icons (right) ── */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.45rem 0.85rem 0.2rem', willChange: 'transform', transform: 'translateZ(0)' }}>
+                    {/* Logo + wordmark */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{
+                            width: 32, height: 32, borderRadius: '50%',
+                            background: 'linear-gradient(145deg, #080d1f, #111827)',
+                            border: '2px solid rgba(251,191,36,0.70)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            flexShrink: 0,
+                            animation: 'logo-pulse 3.5s ease-in-out infinite',
+                        }}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="10" stroke="rgba(251,191,36,0.55)" strokeWidth="0.8" />
+                                <circle cx="12" cy="12" r="6.5" stroke="rgba(251,191,36,0.35)" strokeWidth="0.7" />
+                                <path d="M12 3 L12 21 M3 12 L21 12 M5.6 5.6 L18.4 18.4 M18.4 5.6 L5.6 18.4"
+                                    stroke="rgba(251,191,36,0.22)" strokeWidth="0.6" />
+                                <path d="M 8 9.5 Q 12 7, 16 9.5 T 16 14 Q 13 16.5, 10 15 T 8 12 Q 9.5 11, 12 11"
+                                    stroke="rgba(255,255,255,0.92)" strokeWidth="1.4" strokeLinecap="round" fill="none" />
+                                <circle cx="12" cy="12" r="1.6" fill="#fbbf24" />
+                            </svg>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <span style={{
+                                fontFamily: "'Inter', system-ui, sans-serif",
+                                fontSize: '1rem', fontWeight: 800,
+                                letterSpacing: '0.10em', textTransform: 'uppercase',
+                                background: 'linear-gradient(120deg, #ffffff 0%, #fde68a 40%, #bae6fd 100%)',
+                                WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
+                                lineHeight: 1,
+                            }}>OneSUTRA</span>
+                            <span style={{
+                                fontSize: '7px', fontWeight: 600,
+                                letterSpacing: '0.20em', textTransform: 'uppercase',
+                                color: 'rgba(251,191,36,0.55)',
+                                fontFamily: "'Inter', system-ui, sans-serif",
+                                lineHeight: 1,
+                            }}>Conscious OS</span>
+                        </div>
                     </div>
 
-                    {/* Interactive Icons — 4 destinations with labels — matching Orbit Portal icons */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: 12 }}>
+                    {/* Nav icons */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         {[
                             { href: '/pranaverse', emoji: '✦', color: '#a78bfa', label: 'PranaVerse' },
                             { href: '/project-leela', emoji: '🎵', color: '#fbbf24', label: 'Raag' },
                             { href: '/vedic-games', emoji: '🎲', color: '#4ade80', label: 'Games' },
                             { href: '/vedic-sangrah', emoji: '🪔', color: '#22d3ee', label: 'Gurukul' },
                         ].map(({ href, emoji, color, label }) => (
-                            <Link key={href} href={href} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, textDecoration: 'none' }}>
+                            <Link key={href} href={href} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, textDecoration: 'none' }}>
                                 <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.90 }}
                                     style={{
-                                        width: 40, height: 40, borderRadius: '50%',
+                                        width: 32, height: 32, borderRadius: '50%',
                                         background: `radial-gradient(circle at 36% 26%, rgba(255,255,255,0.30) 0%, ${color}22 26%, ${color}2a 52%, ${color}1a 76%, ${color}0c 100%)`,
                                         backdropFilter: 'blur(10px) saturate(180%)',
                                         WebkitBackdropFilter: 'blur(10px) saturate(180%)',
                                         border: '1.2px solid rgba(255,255,255,0.24)',
-                                        boxShadow: `0 0 16px ${color}44, 0 3px 10px rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.24), inset 0 -2px 6px ${color}18`,
+                                        boxShadow: `0 0 12px ${color}44, 0 2px 8px rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.24), inset 0 -2px 6px ${color}18`,
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         position: 'relative', overflow: 'hidden',
                                     }}>
@@ -1659,15 +1648,14 @@ export default function StickyTopNav() {
                                         borderRadius: '50%', transform: 'rotate(-25deg)', filter: 'blur(2px)',
                                     }} />
                                     <span style={{
-                                        fontSize: emoji === '✦' ? '1rem' : '1.1rem',
+                                        fontSize: emoji === '✦' ? '0.85rem' : '0.95rem',
                                         position: 'relative', zIndex: 2,
-                                        filter: `drop-shadow(0 0 6px ${color}88)`,
+                                        filter: `drop-shadow(0 0 5px ${color}88)`,
                                         color: emoji === '✦' ? color : 'inherit',
-                                        fontWeight: 900,
-                                        lineHeight: 1,
+                                        fontWeight: 900, lineHeight: 1,
                                     }}>{emoji}</span>
                                 </motion.div>
-                                <span style={{ fontSize: '7px', fontWeight: 600, color: `${color}99`, letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: "'Inter', system-ui, sans-serif", lineHeight: 1 }}>{label}</span>
+                                <span style={{ fontSize: '6px', fontWeight: 600, color: `${color}99`, letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: "'Inter', system-ui, sans-serif", lineHeight: 1 }}>{label}</span>
                             </Link>
                         ))}
                     </div>
@@ -1680,13 +1668,13 @@ export default function StickyTopNav() {
                     const colors: Record<string, string> = { morning: '#fbbf24', day: '#f97316', evening: '#c084fc', night: '#818cf8' };
                     const col = colors[slot];
                     return (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '0 14px 4px', flexShrink: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '0 0.85rem 0.15rem', flexShrink: 0 }}>
                             <span style={{
-                                fontSize: '0.42rem', fontWeight: 700, letterSpacing: '0.12em',
+                                fontSize: '0.38rem', fontWeight: 700, letterSpacing: '0.12em',
                                 textTransform: 'uppercase', color: col,
                                 fontFamily: "'Inter', system-ui, sans-serif",
                                 background: `${col}18`, border: `1px solid ${col}33`,
-                                borderRadius: 99, padding: '0.18rem 0.55rem',
+                                borderRadius: 99, padding: '0.14rem 0.45rem',
                                 whiteSpace: 'nowrap',
                             }}>{label}</span>
                             <div style={{ flex: 1, height: '0.5px', background: `linear-gradient(90deg, ${col}44, transparent)` }} />
@@ -1700,8 +1688,8 @@ export default function StickyTopNav() {
                         display: 'flex',
                         flexDirection: 'row',
                         alignItems: 'flex-start',
-                        gap: 8,
-                        padding: '2px 14px 12px',
+                        gap: 6,
+                        padding: '2px 0.85rem 8px',
                         overflowX: 'auto',
                         overflowY: 'hidden',
                         scrollbarWidth: 'none',

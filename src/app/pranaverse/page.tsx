@@ -11,11 +11,10 @@ import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-mo
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import HomeStoryBar from '@/components/PranaVerse/HomeStoryBar';
-import { Tab } from '@/components/Resonance/ResonanceTypes';
-import DharmaMap from '@/components/Resonance/DharmaMap';
-import ResonanceNavBar from '@/components/Resonance/ResonanceNavBar';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import SakhaBodhiOrb from '@/components/Dashboard/SakhaBodhiOrb';
+
+type Tab = 'story' | 'map' | 'chat' | 'home';
 
 // ════════════════════════════════════════════════════════
 //  SACRED PORTAL DATA  (from Home / SacredPortalGrid)
@@ -1798,14 +1797,22 @@ function AuraSpaceInner() {
                     )}
 
                     {activeTab === 'map' && (
-                        <motion.div key="map-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                            <DharmaMap />
+                        <motion.div key="map-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: '4rem', gap: '1rem' }}>
+                            <div style={{ fontSize: '3rem' }}>🗺️</div>
+                            <p style={{ color: 'rgba(255,255,255,0.55)', fontFamily: "'Outfit',sans-serif", fontSize: '0.88rem' }}>Dharma Map — Coming Soon</p>
                         </motion.div>
                     )}
                 </AnimatePresence>
 
-                {/* ══ RESONANCE NAV BAR ══ */}
-                <ResonanceNavBar activeTab={activeTab} setActiveTab={(tab) => { if (tab === 'chat') { router.push('/pranaverse-chat'); } else if (tab === 'home') { router.push('/'); } else { setActiveTab(tab); } }} badgeCount={0} />
+                {/* ══ PRANAVERSE BOTTOM NAV ══ */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '0.55rem 0.5rem calc(0.55rem + env(safe-area-inset-bottom))', background: 'rgba(6,3,18,0.92)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderTop: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}>
+                    {([{ id: 'home', emoji: '⌂', label: 'Home', action: () => router.push('/') }, { id: 'story', emoji: '✦', label: 'Feed', action: () => setActiveTab('story') }, { id: 'map', emoji: '🗺️', label: 'Map', action: () => setActiveTab('map') }, { id: 'chat', emoji: '💬', label: 'Chat', action: () => router.push('/pranaverse-chat') }] as const).map(item => (
+                        <button key={item.id} onClick={item.action} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', padding: '0.3rem 0.8rem' }}>
+                            <span style={{ fontSize: '1.15rem', filter: activeTab === item.id ? 'drop-shadow(0 0 6px #a78bfa)' : 'none', opacity: activeTab === item.id ? 1 : 0.45 }}>{item.emoji}</span>
+                            <span style={{ fontSize: '0.42rem', fontWeight: 700, color: activeTab === item.id ? '#a78bfa' : 'rgba(255,255,255,0.35)', fontFamily: "'Outfit',sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' }}>{item.label}</span>
+                        </button>
+                    ))}
+                </div>
 
                 {/* ══ FLOATING SAKHA BODHI — Elegant Cosmic Companion ══ */}
                 <AnimatePresence>

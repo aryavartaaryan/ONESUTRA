@@ -9,7 +9,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useDailyTasks } from '@/hooks/useDailyTasks';
 import { useUsers, SutraUser } from '@/hooks/useUsers';
 import { useMessages, getChatId } from '@/hooks/useMessages';
-import { FriendDoc } from '@/components/Resonance/ResonanceTypes';
+interface FriendDoc { id: string; fromUid: string; toUid: string; fromName: string; fromPhoto: string | null; toName: string; status: 'pending' | 'accepted' | 'declined'; createdAt: number; }
 
 // ─── Energy Circle Types ───────────────────────────────────────────────────────
 interface EnergyCircle { id: string; name: string; icon: string; color: string; description: string; memberCount: number; }
@@ -80,11 +80,11 @@ function buildBodhiGreeting(): ChatMsg[] {
 // Snapchat-style story ring for Bodhi (always first in circle)
 function BodhiCircle({ active, unread, onClick }: { active: boolean; unread: number; onClick: () => void }) {
     return (
-        <motion.div whileTap={{ scale: 0.90 }} onClick={onClick} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0, width: 58, cursor: 'pointer' }}>
+        <motion.div whileTap={{ scale: 0.90 }} onClick={onClick} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, flexShrink: 0, width: 46, cursor: 'pointer' }}>
             <div style={{ position: 'relative' }}>
                 <motion.div animate={{ rotate: 360 }} transition={{ duration: 7, repeat: Infinity, ease: 'linear' }} style={{ position: 'absolute', inset: -2, borderRadius: '50%', background: 'conic-gradient(#fbbf24,#a78bfa,#34d399,#f97316,#fbbf24)', opacity: 0.85 }} />
-                <motion.div animate={{ boxShadow: ['0 0 10px rgba(251,191,36,0.4)', '0 0 22px rgba(251,191,36,0.80)', '0 0 10px rgba(251,191,36,0.4)'] }} transition={{ duration: 2.5, repeat: Infinity }}
-                    style={{ position: 'relative', zIndex: 1, width: 52, height: 52, borderRadius: '50%', background: 'radial-gradient(circle at 35% 28%,rgba(255,255,255,0.42) 0%,rgba(251,191,36,0.58) 42%,rgba(180,83,9,0.92) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', border: '2.5px solid #050216', margin: 2 }}>✦</motion.div>
+                <motion.div animate={{ boxShadow: ['0 0 8px rgba(251,191,36,0.4)', '0 0 18px rgba(251,191,36,0.80)', '0 0 8px rgba(251,191,36,0.4)'] }} transition={{ duration: 2.5, repeat: Infinity }}
+                    style={{ position: 'relative', zIndex: 1, width: 40, height: 40, borderRadius: '50%', background: 'radial-gradient(circle at 35% 28%,rgba(255,255,255,0.42) 0%,rgba(251,191,36,0.58) 42%,rgba(180,83,9,0.92) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', border: '2px solid #050216', margin: 1.5 }}>✦</motion.div>
                 {unread > 0 && <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1.4, repeat: Infinity }} style={{ position: 'absolute', top: 0, right: 0, width: 16, height: 16, borderRadius: '50%', background: '#f97316', border: '2px solid #050216', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.40rem', color: '#fff', fontWeight: 800, zIndex: 2 }}>{unread}</motion.div>}
                 <motion.div animate={{ opacity: [0.7, 1, 0.7], scale: [1, 1.2, 1] }} transition={{ duration: 1.5, repeat: Infinity }} style={{ position: 'absolute', bottom: 3, right: 3, width: 11, height: 11, borderRadius: '50%', background: '#4ade80', border: '2px solid #050216', boxShadow: '0 0 6px rgba(74,222,128,0.85)', zIndex: 2 }} />
             </div>
@@ -98,10 +98,10 @@ function CircleAvatar({ u, active, onClick }: { u: SutraUser; active: boolean; o
     const color = getAvatarColor(u.uid);
     const initials = getInitials(u.name);
     return (
-        <motion.div whileTap={{ scale: 0.90 }} onClick={onClick} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0, width: 58, cursor: 'pointer' }}>
+        <motion.div whileTap={{ scale: 0.90 }} onClick={onClick} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, flexShrink: 0, width: 46, cursor: 'pointer' }}>
             <div style={{ position: 'relative' }}>
                 <div style={{ position: 'absolute', inset: -2, borderRadius: '50%', background: active ? `conic-gradient(${color},#c4b5fd,${color})` : `conic-gradient(${color}88,${color}33,${color}88)`, opacity: active ? 1 : 0.7 }} />
-                <div style={{ position: 'relative', zIndex: 1, width: 52, height: 52, borderRadius: '50%', overflow: 'hidden', border: '2.5px solid #050216', margin: 2, background: u.photoURL ? undefined : `radial-gradient(circle at 35% 28%,rgba(255,255,255,0.22) 0%,${color}70 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.82rem', fontWeight: 700, color: '#fff', boxShadow: active ? `0 0 14px ${color}55` : 'none' }}>
+                <div style={{ position: 'relative', zIndex: 1, width: 40, height: 40, borderRadius: '50%', overflow: 'hidden', border: '2px solid #050216', margin: 1.5, background: u.photoURL ? undefined : `radial-gradient(circle at 35% 28%,rgba(255,255,255,0.22) 0%,${color}70 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.82rem', fontWeight: 700, color: '#fff', boxShadow: active ? `0 0 14px ${color}55` : 'none' }}>
                     {u.photoURL ? <img src={u.photoURL} alt={u.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initials}
                 </div>
                 {u.online && <motion.div animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 2.2, repeat: Infinity }} style={{ position: 'absolute', bottom: 3, right: 3, width: 10, height: 10, borderRadius: '50%', background: '#4ade80', border: '2px solid #050216', boxShadow: '0 0 5px rgba(74,222,128,0.75)', zIndex: 2 }} />}
@@ -476,6 +476,26 @@ export default function PranverseChatHub() {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [bodhiMsgs, realMsgs, isBodhiThinking]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Scroll to bottom when entering chat view on mobile
+    useEffect(() => {
+        if (mobileView === 'chat' && activeId) {
+            const t = setTimeout(() => {
+                chatEndRef.current?.scrollIntoView({ behavior: 'instant' as ScrollBehavior });
+            }, 100);
+            return () => clearTimeout(t);
+        }
+    }, [mobileView, activeId]);
+
+    // Back button intercept — pressing system back from mobile chat view returns to list
+    useEffect(() => {
+        if (mobileView === 'chat') {
+            window.history.pushState({ chatView: true }, '');
+        }
+        const handlePop = () => { setMobileView('list'); };
+        window.addEventListener('popstate', handlePop);
+        return () => window.removeEventListener('popstate', handlePop);
+    }, [mobileView]);
+
     const handleSelect = useCallback((id: string) => {
         setActiveId(id);
         if (isMobile) setMobileView('chat');
@@ -585,8 +605,8 @@ export default function PranverseChatHub() {
             <div className="singlescroll" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none' }}>
 
                 {/* Story circles strip — horizontal only, does NOT create a vertical scroll */}
-                <div style={{ padding: '0.7rem 1rem 0.5rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <div style={{ padding: '0.4rem 0.85rem 0.3rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                             <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2.4, repeat: Infinity }} style={{ width: 5, height: 5, borderRadius: '50%', background: '#fbbf24', boxShadow: '0 0 5px rgba(251,191,36,0.8)' }} />
                             <span style={{ fontSize: '0.44rem', fontWeight: 800, color: 'rgba(255,255,255,0.40)', letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'monospace' }}>⚡ Energy Circle</span>
@@ -603,10 +623,10 @@ export default function PranverseChatHub() {
                         </div>
                     </div>
                     {/* Horizontal-only story circles — won't cause vertical scroll */}
-                    <div className="circlebar" style={{ display: 'flex', gap: '0.65rem', overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
-                        <motion.div whileTap={{ scale: 0.90 }} onClick={() => setShowAddStory(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0, width: 58, cursor: 'pointer' }}>
+                    <div className="circlebar" style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: 3, scrollbarWidth: 'none' }}>
+                        <motion.div whileTap={{ scale: 0.90 }} onClick={() => setShowAddStory(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, flexShrink: 0, width: 46, cursor: 'pointer' }}>
                             <div style={{ position: 'relative' }}>
-                                <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1.5px dashed rgba(255,255,255,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', margin: 2 }}>+</div>
+                                <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1.5px dashed rgba(255,255,255,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', margin: 1.5 }}>+</div>
                             </div>
                             <span style={{ fontSize: '0.44rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Outfit',sans-serif", textAlign: 'center' }}>My Story</span>
                         </motion.div>
@@ -663,7 +683,7 @@ export default function PranverseChatHub() {
                 </div>
 
                 {/* ── Live community activity banner ── */}
-                <div style={{ margin: '0.5rem 0.75rem 0', borderRadius: 14, background: 'linear-gradient(135deg, rgba(167,139,250,0.10) 0%, rgba(99,102,241,0.06) 100%)', border: '1px solid rgba(167,139,250,0.20)', padding: '0.55rem 0.9rem', display: 'flex', alignItems: 'center', gap: 9, backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)' }}>
+                <div style={{ margin: '0.35rem 0.75rem 0', borderRadius: 12, background: 'linear-gradient(135deg, rgba(167,139,250,0.10) 0%, rgba(99,102,241,0.06) 100%)', border: '1px solid rgba(167,139,250,0.20)', padding: '0.38rem 0.75rem', display: 'flex', alignItems: 'center', gap: 8, backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)' }}>
                     <div style={{ display: 'flex', flexShrink: 0 }}>
                         {AVATAR_COLORS.slice(0, 4).map((ac, i) => (
                             <div key={i} style={{ width: 22, height: 22, borderRadius: '50%', background: `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.3) 0%, ${ac}99 100%)`, border: '1.5px solid rgba(5,2,22,0.9)', marginLeft: i === 0 ? 0 : -8, position: 'relative', zIndex: 4 - i, flexShrink: 0 }} />
@@ -680,14 +700,14 @@ export default function PranverseChatHub() {
 
                 {/* ── Invite your Sangha banner ── */}
                 <motion.div whileTap={{ scale: 0.96 }} onClick={() => setShowInviteModal(true)}
-                    style={{ margin: '0.5rem 0.75rem 0', borderRadius: 18, background: 'linear-gradient(135deg,rgba(251,191,36,0.18) 0%,rgba(232,121,249,0.12) 50%,rgba(99,102,241,0.14) 100%)', border: '1px solid rgba(251,191,36,0.32)', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', position: 'relative', overflow: 'hidden', boxShadow: '0 4px 24px rgba(251,191,36,0.10), inset 0 1px 0 rgba(255,255,255,0.10)' }}>
+                    style={{ margin: '0.35rem 0.75rem 0', borderRadius: 14, background: 'linear-gradient(135deg,rgba(251,191,36,0.18) 0%,rgba(232,121,249,0.12) 50%,rgba(99,102,241,0.14) 100%)', border: '1px solid rgba(251,191,36,0.32)', padding: '0.46rem 0.75rem', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', position: 'relative', overflow: 'hidden', boxShadow: '0 4px 24px rgba(251,191,36,0.10), inset 0 1px 0 rgba(255,255,255,0.10)' }}>
                     <motion.div animate={{ opacity: [0.3,0.7,0.3], scale: [1,1.4,1] }} transition={{ duration: 3, repeat: Infinity }} style={{ position: 'absolute', top: -18, right: -18, width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle,rgba(251,191,36,0.22) 0%,transparent 70%)', pointerEvents: 'none' }} />
-                    <motion.div animate={{ rotate: [0,15,0,-15,0] }} transition={{ duration: 4, repeat: Infinity }} style={{ width: 36, height: 36, borderRadius: 12, background: 'linear-gradient(135deg,rgba(251,191,36,0.25),rgba(217,119,6,0.18))', border: '1.5px solid rgba(251,191,36,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.05rem', flexShrink: 0, boxShadow: '0 0 12px rgba(251,191,36,0.30)' }}>🙏</motion.div>
+                    <motion.div animate={{ rotate: [0,15,0,-15,0] }} transition={{ duration: 4, repeat: Infinity }} style={{ width: 28, height: 28, borderRadius: 10, background: 'linear-gradient(135deg,rgba(251,191,36,0.25),rgba(217,119,6,0.18))', border: '1.5px solid rgba(251,191,36,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.88rem', flexShrink: 0, boxShadow: '0 0 10px rgba(251,191,36,0.28)' }}>🙏</motion.div>
                     <div style={{ flex: 1 }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#fde68a', fontFamily: "'Outfit',sans-serif", display: 'block', letterSpacing: '0.01em' }}>Invite your Sangha ✦</span>
-                        <span style={{ fontSize: '0.50rem', color: 'rgba(251,191,36,0.60)', fontFamily: "'Outfit',sans-serif" }}>Send a sacred link to your circle</span>
+                        <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#fde68a', fontFamily: "'Outfit',sans-serif", display: 'block', letterSpacing: '0.01em' }}>Invite your Sangha ✦</span>
+                        <span style={{ fontSize: '0.44rem', color: 'rgba(251,191,36,0.60)', fontFamily: "'Outfit',sans-serif" }}>Send a sacred link to your circle</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '0.30rem 0.65rem', borderRadius: 999, background: 'linear-gradient(135deg,rgba(251,191,36,0.22),rgba(217,119,6,0.16))', border: '1px solid rgba(251,191,36,0.42)', color: '#fbbf24', fontSize: '0.55rem', fontWeight: 800, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0.22rem 0.52rem', borderRadius: 999, background: 'linear-gradient(135deg,rgba(251,191,36,0.22),rgba(217,119,6,0.16))', border: '1px solid rgba(251,191,36,0.42)', color: '#fbbf24', fontSize: '0.48rem', fontWeight: 800, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
                         🔗 Invite
                     </div>
                 </motion.div>
@@ -840,7 +860,7 @@ const rightPanel = (
                         </motion.button>
                         <motion.button whileTap={{ scale: 0.88 }} onClick={handleSend}
                             disabled={!input.trim() || (activeId === 'bodhi' && isBodhiThinking)}
-                            style={{ flexShrink: 0, width: 38, height: 38, borderRadius: '50%', background: input.trim() ? 'linear-gradient(135deg,rgba(251,191,36,0.32),rgba(217,119,6,0.22))' : 'rgba(255,255,255,0.05)', border: `1px solid ${input.trim() ? 'rgba(251,191,36,0.42)' : 'rgba(255,255,255,0.08)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: input.trim() ? 'pointer' : 'default', color: input.trim() ? '#fbbf24' : 'rgba(255,255,255,0.18)', transition: 'all 0.25s' }}>
+                            style={{ flexShrink: 0, width: 38, height: 38, borderRadius: '50%', background: input.trim() ? 'linear-gradient(135deg,rgba(251,191,36,0.32),rgba(217,119,6,0.22))' : 'rgba(255,255,255,0.09)', border: `1px solid ${input.trim() ? 'rgba(251,191,36,0.42)' : 'rgba(255,255,255,0.20)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: input.trim() ? 'pointer' : 'default', color: input.trim() ? '#fbbf24' : 'rgba(255,255,255,0.50)', transition: 'all 0.25s' }}>
                             <Send size={14} />
                         </motion.button>
                     </div>

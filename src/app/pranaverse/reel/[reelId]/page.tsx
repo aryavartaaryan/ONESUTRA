@@ -285,9 +285,17 @@ export default function SharedReelPage({ params }: { params: { reelId: string } 
 
     // ESC to go back
     useEffect(() => {
-        const h = (e: KeyboardEvent) => { if (e.key === 'Escape') router.back(); };
+        const h = (e: KeyboardEvent) => { if (e.key === 'Escape') router.push('/pranaverse'); };
         window.addEventListener('keydown', h);
         return () => window.removeEventListener('keydown', h);
+    }, [router]);
+
+    // Device back button — always return to PranaVerse, not unknown history entry
+    useEffect(() => {
+        window.history.pushState({ reelView: true }, '');
+        const handlePop = () => { router.push('/pranaverse'); };
+        window.addEventListener('popstate', handlePop);
+        return () => window.removeEventListener('popstate', handlePop);
     }, [router]);
 
     // Firebase: real-time likes (only when logged in)
