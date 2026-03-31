@@ -897,55 +897,59 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
         }, 700);
     }, [router, setPendingMessage]);
 
-    // ── Mood Check Component — fixed left-side vertical strip
+    // ── Mood Check Component — horizontal top bar, NOT sticky
     const MoodCheck = () => (
         <AnimatePresence>
             {showMoodCheck && !mood && (
                 <motion.div
-                    initial={{ opacity: 0, x: -24 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -24 }}
+                    initial={{ opacity: 0, y: -12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -12 }}
                     transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                     style={{
-                        position: 'fixed',
-                        left: 8,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'rgba(8,6,22,0.82)',
+                        width: '100%',
+                        maxWidth: 360,
+                        margin: '0 auto 0.6rem',
+                        background: 'rgba(8,6,22,0.75)',
                         backdropFilter: 'blur(20px)',
                         WebkitBackdropFilter: 'blur(20px)',
-                        border: '1px solid rgba(255,255,255,0.09)',
-                        borderRadius: 20,
-                        padding: '10px 7px',
+                        border: '1px solid rgba(255,255,255,0.10)',
+                        borderRadius: 999,
+                        padding: '8px 12px',
                         display: 'flex',
-                        flexDirection: 'column',
                         alignItems: 'center',
-                        gap: 5,
-                        zIndex: 500,
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
+                        justifyContent: 'center',
+                        gap: 8,
+                        zIndex: 10,
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.35)',
                     }}
                 >
-                    <span style={{ fontSize: '0.36rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Inter', system-ui, sans-serif", textTransform: 'uppercase', letterSpacing: '0.10em', writingMode: 'vertical-rl', transform: 'rotate(180deg)', marginBottom: 3, lineHeight: 1 }}>Mood</span>
+                    <span style={{ fontSize: '0.50rem', color: 'rgba(255,255,255,0.45)', fontFamily: "'Inter', system-ui, sans-serif", textTransform: 'uppercase', letterSpacing: '0.08em', marginRight: 4, whiteSpace: 'nowrap' }}>How are you feeling?</span>
                     {[
                         { emoji: '😔', label: 'low', color: '#f87171' },
                         { emoji: '😌', label: 'calm', color: '#2dd4bf' },
                         { emoji: '🙂', label: 'good', color: '#4ade80' },
                         { emoji: '⚡', label: 'energetic', color: '#fbbf24' },
+                        { emoji: '🧘', label: 'mindful', color: '#c4b5fd' },
                     ].map((m) => (
                         <motion.button
                             key={m.label}
-                            whileHover={{ scale: 1.22 }}
+                            whileHover={{ scale: 1.15 }}
                             whileTap={{ scale: 0.88 }}
                             onClick={() => { setMood(m.label); setShowMoodCheck(false); }}
                             style={{
-                                background: 'transparent',
-                                border: 'none',
+                                background: mood === m.label ? `${m.color}25` : 'transparent',
+                                border: mood === m.label ? `1px solid ${m.color}` : '1px solid rgba(255,255,255,0.08)',
+                                borderRadius: '50%',
                                 cursor: 'pointer',
-                                fontSize: '1.15rem',
-                                filter: mood === m.label ? `drop-shadow(0 0 8px ${m.color})` : 'none',
-                                transition: 'filter 0.2s',
-                                padding: '1px 0',
-                                lineHeight: 1,
+                                fontSize: '1.1rem',
+                                width: 32,
+                                height: 32,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.2s',
+                                padding: 0,
                             }}
                             title={m.label}
                         >
@@ -956,8 +960,8 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                         onClick={() => setShowMoodCheck(false)}
                         style={{
                             background: 'none', border: 'none',
-                            color: 'rgba(255,255,255,0.22)', cursor: 'pointer',
-                            fontSize: '0.65rem', marginTop: 1, padding: 0, lineHeight: 1,
+                            color: 'rgba(255,255,255,0.35)', cursor: 'pointer',
+                            fontSize: '0.8rem', marginLeft: 2, padding: '0 4px', lineHeight: 1,
                         }}
                     >×</button>
                 </motion.div>

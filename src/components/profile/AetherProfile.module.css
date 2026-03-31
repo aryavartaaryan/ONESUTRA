@@ -1800,10 +1800,6 @@
 /* ══════════════════════════════════════════════════════════════════
    HERO SECTION — ensure z-index for ring stack
    ══════════════════════════════════════════════════════════════════ */
-.heroSection>* {
-  position: relative;
-  z-index: 1;
-}
 
 /* Wider screens: center content nicely */
 @media (min-width: 768px) {

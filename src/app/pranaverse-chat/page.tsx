@@ -992,12 +992,16 @@ const handlePostStory = useCallback(async () => {
 // ── Share / Invite handler ────────────────────────────────────────────────
 const handleShareInvite = useCallback(async () => {
     const inviteUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://onesutra.app'}/join?ref=${uid ?? 'friend'}`;
-    const shareText = `✦ Join me on PranaVerse — a sacred space for seekers, meditation & community. Click to join:\n${inviteUrl}`;
+    const shareData = {
+        title: 'Join me on OneSUTRA ✦',
+        text: 'OneSUTRA is the world\'s most modern wellness-based social network. AI-powered focus tools, sleep optimization, meditation, and conscious community. Join my sacred circle! 🙏✨',
+        url: inviteUrl,
+    };
     try {
         if (navigator.share) {
-            await navigator.share({ title: 'Join PranaVerse ✦', text: shareText, url: inviteUrl });
+            await navigator.share(shareData);
         } else {
-            await navigator.clipboard.writeText(inviteUrl);
+            await navigator.clipboard.writeText(`${shareData.text}\n${inviteUrl}`);
             setInviteLinkCopied(true);
             setTimeout(() => setInviteLinkCopied(false), 2500);
         }
@@ -1196,21 +1200,91 @@ return (
                                 {inviteLinkCopied ? '✓ Copied!' : '🔗 Copy'}
                             </motion.button>
                         </div>
-                        {/* Share via row */}
-                        <div>
-                            <p style={{ margin: '0 0 0.65rem', fontSize: '0.48rem', color: 'rgba(255,255,255,0.30)', fontFamily: 'monospace', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Share via</p>
-                            <div style={{ display: 'flex', gap: '0.6rem' }}>
-                                {[
-                                    { label: 'WhatsApp', emoji: '💬', color: '#25d366', bg: 'rgba(37,211,102,0.12)', border: 'rgba(37,211,102,0.30)', action: () => { const url = `https://wa.me/?text=${encodeURIComponent(`✦ Join me on PranaVerse — a sacred space for seekers & meditation. ${typeof window !== 'undefined' ? window.location.origin : 'https://onesutra.app'}/join?ref=${uid ?? 'friend'}`)}` ; window.open(url, '_blank'); }},
-                                    { label: 'Telegram', emoji: '✈️', color: '#0088cc', bg: 'rgba(0,136,204,0.12)', border: 'rgba(0,136,204,0.30)', action: () => { const url = `https://t.me/share/url?url=${encodeURIComponent(`${typeof window !== 'undefined' ? window.location.origin : 'https://onesutra.app'}/join?ref=${uid ?? 'friend'}`)}&text=${encodeURIComponent('✦ Join me on PranaVerse — a sacred space for seekers')}` ; window.open(url, '_blank'); }},
-                                    { label: 'Native', emoji: '📤', color: '#a78bfa', bg: 'rgba(167,139,250,0.12)', border: 'rgba(167,139,250,0.30)', action: handleShareInvite },
-                                ].map(s => (
-                                    <motion.button key={s.label} whileTap={{ scale: 0.88 }} onClick={s.action}
-                                        style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '0.65rem 0.5rem', borderRadius: 14, background: s.bg, border: `1px solid ${s.border}`, cursor: 'pointer', color: s.color }}>
-                                        <span style={{ fontSize: '1.3rem' }}>{s.emoji}</span>
-                                        <span style={{ fontSize: '0.50rem', fontWeight: 700, fontFamily: "'Outfit',sans-serif", color: s.color }}>{s.label}</span>
-                                    </motion.button>
-                                ))}
+                        {/* Share Actions - Modern native approach */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {/* Main Share Button */}
+                            <motion.button
+                                whileTap={{ scale: 0.96 }}
+                                onClick={handleShareInvite}
+                                style={{
+                                    width: '100%',
+                                    padding: '1rem',
+                                    borderRadius: 16,
+                                    background: 'linear-gradient(135deg, rgba(251,191,36,0.25), rgba(167,139,250,0.2))',
+                                    border: '1px solid rgba(251,191,36,0.35)',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: 10,
+                                }}
+                            >
+                                <span style={{ fontSize: '1.3rem' }}>📤</span>
+                                <span style={{
+                                    fontFamily: "'Outfit',sans-serif",
+                                    fontWeight: 700,
+                                    fontSize: '0.92rem',
+                                    color: '#fbbf24',
+                                }}>Share to Apps</span>
+                            </motion.button>
+
+                            {/* Secondary Actions */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+                                <motion.button
+                                    whileTap={{ scale: 0.94 }}
+                                    onClick={() => {
+                                        const url = `${typeof window !== 'undefined' ? window.location.origin : 'https://onesutra.app'}/join?ref=${uid ?? 'friend'}`;
+                                        navigator.clipboard.writeText(url);
+                                        setInviteLinkCopied(true);
+                                        setTimeout(() => setInviteLinkCopied(false), 2000);
+                                    }}
+                                    style={{
+                                        padding: '0.75rem',
+                                        borderRadius: 12,
+                                        background: inviteLinkCopied ? 'rgba(74,222,128,0.15)' : 'rgba(255,255,255,0.05)',
+                                        border: `1px solid ${inviteLinkCopied ? 'rgba(74,222,128,0.35)' : 'rgba(255,255,255,0.1)'}`,
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 6,
+                                    }}
+                                >
+                                    <span style={{ fontSize: '1rem' }}>{inviteLinkCopied ? '✓' : '🔗'}</span>
+                                    <span style={{
+                                        fontFamily: "'Outfit',sans-serif",
+                                        fontWeight: 600,
+                                        fontSize: '0.72rem',
+                                        color: inviteLinkCopied ? '#4ade80' : 'rgba(255,255,255,0.7)',
+                                    }}>{inviteLinkCopied ? 'Copied!' : 'Copy Link'}</span>
+                                </motion.button>
+
+                                <motion.button
+                                    whileTap={{ scale: 0.94 }}
+                                    onClick={() => {
+                                        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${typeof window !== 'undefined' ? window.location.origin : 'https://onesutra.app'}/join?ref=${uid ?? 'friend'}`)}`;
+                                        window.open(qrUrl, '_blank');
+                                    }}
+                                    style={{
+                                        padding: '0.75rem',
+                                        borderRadius: 12,
+                                        background: 'rgba(167,139,250,0.1)',
+                                        border: '1px solid rgba(167,139,250,0.25)',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 6,
+                                    }}
+                                >
+                                    <span style={{ fontSize: '1rem' }}>▦</span>
+                                    <span style={{
+                                        fontFamily: "'Outfit',sans-serif",
+                                        fontWeight: 600,
+                                        fontSize: '0.72rem',
+                                        color: '#c4b5fd',
+                                    }}>QR Code</span>
+                                </motion.button>
                             </div>
                         </div>
                         {/* Inspirational footer */}

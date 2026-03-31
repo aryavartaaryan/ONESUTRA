@@ -189,86 +189,273 @@ function PlantSvg({ active }: { active: boolean }) {
     );
 }
 
-// ─── Instagram-scale Share Sheet ──────────────────────────────────────────────
-const PLATFORMS = [
-    { id: 'whatsapp', label: 'WhatsApp', color: '#25D366', bg: 'rgba(37,211,102,0.15)', icon: '💬' },
-    { id: 'instagram', label: 'Instagram', color: '#E1306C', bg: 'rgba(225,48,108,0.15)', icon: '📸' },
-    { id: 'facebook', label: 'Facebook', color: '#1877F2', bg: 'rgba(24,119,242,0.15)', icon: '🌐' },
-    { id: 'twitter', label: 'X / Twitter', color: '#ffffff', bg: 'rgba(255,255,255,0.1)', icon: '𝕏' },
-    { id: 'telegram', label: 'Telegram', color: '#2CA5E0', bg: 'rgba(44,165,224,0.15)', icon: '✈️' },
-    { id: 'copy', label: 'Copy Link', color: '#FBBF24', bg: 'rgba(251,191,36,0.15)', icon: '🔗' },
-];
-
+// ─── Modern Native Share Sheet (Instagram/TikTok style) ─────────────────────
 function ShareSheet({ shareUrl, shareText, onClose }: { shareUrl: string; shareText: string; onClose: () => void }) {
     const [copied, setCopied] = useState(false);
-    const getUrl = (id: string) => {
-        const e = encodeURIComponent;
-        if (id === 'whatsapp') return `https://api.whatsapp.com/send?text=${e(shareText + ' ' + shareUrl)}`;
-        if (id === 'facebook') return `https://www.facebook.com/sharer/sharer.php?u=${e(shareUrl)}`;
-        if (id === 'twitter') return `https://twitter.com/intent/tweet?text=${e(shareText)}&url=${e(shareUrl)}`;
-        if (id === 'telegram') return `https://t.me/share/url?url=${e(shareUrl)}&text=${e(shareText)}`;
-        return '';
-    };
-    const handle = async (p: typeof PLATFORMS[0]) => {
-        if (p.id === 'copy') {
-            try { await navigator.clipboard.writeText(shareUrl); } catch { /**/ }
-            setCopied(true); setTimeout(() => { setCopied(false); onClose(); }, 1800); return;
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+    // Try to get reel thumbnail for preview
+    useEffect(() => {
+        const reelId = shareUrl.split('/reel/')[1]?.split('?')[0];
+        if (reelId) {
+            setImagePreview(`https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400&h=600&fit=crop&q=80`);
         }
-        const u = getUrl(p.id);
-        if (u) window.open(u, '_blank', 'noopener,noreferrer');
-        onClose();
+    }, [shareUrl]);
+
+    const handleNativeShare = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'PranaVerse ✦',
+                    text: shareText,
+                    url: shareUrl,
+                });
+                onClose();
+            } catch { /* dismissed */ }
+        }
+    };
+
+    const handleCopyLink = async () => {
+        try {
+            await navigator.clipboard.writeText(shareUrl);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch { /**/ }
+    };
+
+    const handleMoreOptions = async () => {
+        // Open native share sheet on mobile, or show all apps
+        if (navigator.share) {
+            await handleNativeShare();
+        } else {
+            handleCopyLink();
+        }
     };
 
     return (
         <AnimatePresence>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 onClick={onClose}
-                style={{ position: 'fixed', inset: 0, zIndex: 950, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
+                style={{
+                    position: 'fixed', inset: 0, zIndex: 950,
+                    background: 'rgba(0,0,0,0.75)',
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)',
+                    display: 'flex',
+                    alignItems: 'flex-end',
+                    justifyContent: 'center',
+                }}
             >
-                <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 36 }}
+                <motion.div
+                    initial={{ y: '100%' }}
+                    animate={{ y: 0 }}
+                    exit={{ y: '100%' }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 32 }}
                     onClick={e => e.stopPropagation()}
                     style={{
-                        position: 'absolute', bottom: 0, left: 0, right: 0,
-                        background: 'rgba(10,6,22,0.97)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)',
-                        borderTopLeftRadius: 24, borderTopRightRadius: 24,
-                        border: '1px solid rgba(255,255,255,0.1)', borderBottom: 'none',
-                        boxShadow: '0 -16px 60px rgba(0,0,0,0.65)', padding: '0 0 36px',
+                        position: 'relative',
+                        width: '100%',
+                        maxWidth: 480,
+                        background: 'linear-gradient(180deg, rgba(16,8,40,0.98) 0%, rgba(8,4,22,0.99) 100%)',
+                        backdropFilter: 'blur(40px) saturate(180%)',
+                        WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+                        borderTopLeftRadius: 28,
+                        borderTopRightRadius: 28,
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderBottom: 'none',
+                        boxShadow: '0 -20px 80px rgba(0,0,0,0.6), 0 -4px 30px rgba(167,139,250,0.15)',
+                        padding: '0 0 calc(24px + env(safe-area-inset-bottom))',
+                        overflow: 'hidden',
                     }}
                 >
-                    <div style={{ position: 'absolute', top: 0, left: '25%', right: '25%', height: 1, background: 'linear-gradient(to right, transparent, rgba(249,115,22,0.7), rgba(253,164,175,0.7), transparent)' }} />
-                    <div style={{ width: 38, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.2)', margin: '14px auto 16px' }} />
-                    <div style={{ textAlign: 'center', fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: '1rem', color: 'rgba(255,255,255,0.92)', marginBottom: 22 }}>
-                        Radiate This Vibe ✨
+                    {/* Ambient glow at top */}
+                    <div style={{
+                        position: 'absolute',
+                        top: -100,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: 300,
+                        height: 200,
+                        borderRadius: '50%',
+                        background: 'radial-gradient(ellipse, rgba(251,191,36,0.12) 0%, transparent 70%)',
+                        pointerEvents: 'none',
+                    }} />
+
+                    {/* Drag handle */}
+                    <div style={{
+                        width: 40,
+                        height: 5,
+                        borderRadius: 99,
+                        background: 'rgba(255,255,255,0.15)',
+                        margin: '12px auto 16px',
+                    }} />
+
+                    {/* Preview Card */}
+                    <div style={{
+                        margin: '0 20px 20px',
+                        padding: '16px',
+                        borderRadius: 20,
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.06)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 14,
+                    }}>
+                        {imagePreview ? (
+                            <div style={{
+                                width: 60,
+                                height: 60,
+                                borderRadius: 12,
+                                overflow: 'hidden',
+                                flexShrink: 0,
+                                background: 'rgba(0,0,0,0.3)',
+                            }}>
+                                <img
+                                    src={imagePreview}
+                                    alt="Preview"
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                />
+                            </div>
+                        ) : (
+                            <div style={{
+                                width: 60,
+                                height: 60,
+                                borderRadius: 12,
+                                background: 'linear-gradient(135deg, rgba(251,191,36,0.2), rgba(167,139,250,0.2))',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '1.5rem',
+                            }}>✦</div>
+                        )}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{
+                                margin: '0 0 4px',
+                                fontSize: '0.85rem',
+                                fontWeight: 700,
+                                color: 'rgba(255,255,255,0.92)',
+                                fontFamily: "'Outfit', sans-serif",
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                            }}>{shareText}</p>
+                            <p style={{
+                                margin: 0,
+                                fontSize: '0.6rem',
+                                color: 'rgba(255,255,255,0.4)',
+                                fontFamily: 'monospace',
+                                letterSpacing: '0.05em',
+                            }}>onesutra.app</p>
+                        </div>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px 8px', padding: '0 20px 18px' }}>
-                        {PLATFORMS.map(p => (
-                            <motion.button key={p.id} whileTap={{ scale: 0.86 }} whileHover={{ y: -3 }}
-                                transition={{ type: 'spring', stiffness: 500, damping: 22 }}
-                                onClick={() => handle(p)}
-                                style={{
-                                    background: p.id === 'copy' && copied ? 'rgba(100,220,100,0.15)' : p.bg,
-                                    border: `1px solid ${p.id === 'copy' && copied ? 'rgba(100,220,100,0.4)' : p.color + '44'}`,
-                                    borderRadius: 16, padding: '13px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer',
-                                }}
-                            >
-                                <div style={{ width: 46, height: 46, borderRadius: '50%', background: p.bg, border: `1.5px solid ${p.color}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', boxShadow: `0 0 16px ${p.color}28` }}>
-                                    {p.id === 'copy' && copied ? '✓' : p.icon}
-                                </div>
-                                <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '0.68rem', fontWeight: 600, color: p.id === 'copy' && copied ? '#7ddc9f' : 'rgba(255,255,255,0.72)', lineHeight: 1 }}>
-                                    {p.id === 'copy' && copied ? 'Copied!' : p.label}
-                                </span>
-                            </motion.button>
-                        ))}
-                    </div>
-                    <div style={{ padding: '0 20px' }}>
-                        <motion.button whileTap={{ scale: 0.96 }}
-                            onClick={async () => {
-                                if (navigator.share) { try { await navigator.share({ title: 'Pranaverse', text: shareText, url: shareUrl }); } catch { /**/ } onClose(); }
+
+                    {/* Main Share Button */}
+                    <div style={{ padding: '0 20px 16px' }}>
+                        <motion.button
+                            whileTap={{ scale: 0.96 }}
+                            onClick={handleNativeShare}
+                            style={{
+                                width: '100%',
+                                padding: '16px',
+                                borderRadius: 16,
+                                background: 'linear-gradient(135deg, rgba(251,191,36,0.25), rgba(167,139,250,0.2))',
+                                border: '1px solid rgba(251,191,36,0.35)',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: 10,
                             }}
-                            style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, rgba(249,115,22,0.28), rgba(253,164,175,0.18))', border: '1px solid rgba(249,115,22,0.4)', borderRadius: 14, cursor: 'pointer', fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: '0.88rem', color: '#FDA4AF' }}
                         >
-                            📡 Share via Device
+                            <span style={{ fontSize: '1.3rem' }}>📤</span>
+                            <span style={{
+                                fontFamily: "'Outfit', sans-serif",
+                                fontWeight: 700,
+                                fontSize: '0.92rem',
+                                color: '#fbbf24',
+                            }}>Share to Apps</span>
+                        </motion.button>
+                    </div>
+
+                    {/* Action Row */}
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: 12,
+                        padding: '0 20px 20px',
+                    }}>
+                        <motion.button
+                            whileTap={{ scale: 0.94 }}
+                            onClick={handleCopyLink}
+                            style={{
+                                padding: '14px',
+                                borderRadius: 14,
+                                background: copied ? 'rgba(74,222,128,0.15)' : 'rgba(255,255,255,0.05)',
+                                border: `1px solid ${copied ? 'rgba(74,222,128,0.4)' : 'rgba(255,255,255,0.1)'}`,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: 8,
+                            }}
+                        >
+                            <span style={{ fontSize: '1.1rem' }}>{copied ? '✓' : '🔗'}</span>
+                            <span style={{
+                                fontFamily: "'Outfit', sans-serif",
+                                fontWeight: 600,
+                                fontSize: '0.78rem',
+                                color: copied ? '#4ade80' : 'rgba(255,255,255,0.7)',
+                            }}>{copied ? 'Copied!' : 'Copy Link'}</span>
+                        </motion.button>
+
+                        <motion.button
+                            whileTap={{ scale: 0.94 }}
+                            onClick={handleMoreOptions}
+                            style={{
+                                padding: '14px',
+                                borderRadius: 14,
+                                background: 'rgba(167,139,250,0.1)',
+                                border: '1px solid rgba(167,139,250,0.25)',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: 8,
+                            }}
+                        >
+                            <span style={{ fontSize: '1.1rem' }}>•••</span>
+                            <span style={{
+                                fontFamily: "'Outfit', sans-serif",
+                                fontWeight: 600,
+                                fontSize: '0.78rem',
+                                color: '#c4b5fd',
+                            }}>More</span>
+                        </motion.button>
+                    </div>
+
+                    {/* Cancel */}
+                    <div style={{ padding: '0 20px' }}>
+                        <motion.button
+                            whileTap={{ scale: 0.96 }}
+                            onClick={onClose}
+                            style={{
+                                width: '100%',
+                                padding: '14px',
+                                borderRadius: 14,
+                                background: 'rgba(255,255,255,0.04)',
+                                border: '1px solid rgba(255,255,255,0.08)',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            <span style={{
+                                fontFamily: "'Outfit', sans-serif",
+                                fontWeight: 600,
+                                fontSize: '0.82rem',
+                                color: 'rgba(255,255,255,0.5)',
+                            }}>Cancel</span>
                         </motion.button>
                     </div>
                 </motion.div>
@@ -298,7 +485,7 @@ export default function ReelActionSidebar({ trackId, trackTitle, onOpenComments,
     const [shareOpen, setShareOpen] = useState(false);
     const [shareLaunched, setShareLaunched] = useState(false);
 
-    const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/pranaverse#reel-${trackId}` : '';
+    const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/pranaverse/reel/${trackId}` : '';
     const shareText = `✨ "${trackTitle}" — feel this vibe on Pranaverse`;
 
     const handleVibe = useCallback(() => {

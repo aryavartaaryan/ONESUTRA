@@ -791,7 +791,98 @@ function BodhiEnquiryModal({ targetName, targetProfile, targetUid, senderUid, se
   const [loading, setLoading] = useState(false);
   const [frSending, setFrSending] = useState(false);
   const [frSent, setFrSent] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const voiceEnabledRef = useRef(true);
+  const speakRef = useRef<((text: string) => void) | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // keep voiceEnabledRef in sync
+  useEffect(() => { voiceEnabledRef.current = voiceEnabled; }, [voiceEnabled]);
+
+  // ── 1. stopSpeech — defined first so all other callbacks can depend on it ──
+  const stopSpeech = useCallback(() => {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    setIsSpeaking(false);
+  }, []);
+
+  // ── 2. speak — TTS via Web Speech API ──────────────────────────────────────
+  const speak = useCallback((text: string) => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const clean = text.replace(/✦/g, '').replace(/🙏|🌟|🤝|👀|🌱|🕊️/g, '').trim();
+    if (!clean) return;
+    const utt = new SpeechSynthesisUtterance(clean);
+    utt.rate = 0.92;
+    utt.pitch = 1.05;
+    utt.volume = 1;
+    const voices = window.speechSynthesis.getVoices();
+    const preferred = voices.find(v => /google.*english|samantha|karen|moira|daniel|ava/i.test(v.name))
+      || voices.find(v => v.lang.startsWith('en'));
+    if (preferred) utt.voice = preferred;
+    utt.onstart = () => setIsSpeaking(true);
+    utt.onend = () => setIsSpeaking(false);
+    utt.onerror = () => setIsSpeaking(false);
+    window.speechSynthesis.speak(utt);
+  }, []);
+
+  // keep speakRef in sync so closures (onresult) always call latest speak
+  useEffect(() => { speakRef.current = speak; }, [speak]);
+
+  // stop speech when modal unmounts
+  useEffect(() => { return () => stopSpeech(); }, [stopSpeech]);
+
+  // ── 3. startListening / stopListening — SpeechRecognition mic input ─────────
+  const startListening = useCallback(() => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+    stopSpeech();
+    const rec = new SR();
+    recognitionRef.current = rec;
+    rec.lang = 'en-IN';
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.onstart = () => setIsListening(true);
+    rec.onresult = (e: any) => {
+      const transcript = e.results[0][0].transcript;
+      setIsListening(false);
+      setInput('');
+      if (transcript.trim()) {
+        setMessages(prev => [...prev, { role: 'user', text: transcript.trim() }]);
+        setLoading(true);
+        fetch('/api/bodhi-enquiry', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: transcript.trim(), targetName, targetProfile, history: [], mode }),
+        })
+          .then(r => r.json())
+          .then(data => {
+            const replyText = data.reply || 'I am here with you ✦';
+            setMessages(prev => [...prev, { role: 'bodhi', text: replyText }]);
+            if (voiceEnabledRef.current) speakRef.current?.(replyText);
+          })
+          .catch(() => {
+            setMessages(prev => [...prev, { role: 'bodhi', text: 'Bodhi is reflecting… please try again 🙏 ✦' }]);
+          })
+          .finally(() => setLoading(false));
+      }
+    };
+    rec.onerror = () => setIsListening(false);
+    rec.onend = () => setIsListening(false);
+    rec.start();
+  }, [stopSpeech, targetName, targetProfile, mode]);
+
+  const stopListening = useCallback(() => {
+    recognitionRef.current?.stop();
+    setIsListening(false);
+  }, []);
+
+  // cleanup mic + speech on unmount
+  useEffect(() => { return () => { recognitionRef.current?.abort(); stopSpeech(); }; }, [stopSpeech]);
 
   const quickQuestions = mode === 'add_friend'
     ? [`What's ${targetName} like?`, 'Common interests?', 'Their vibe?', 'Should I add them?']
@@ -799,6 +890,7 @@ function BodhiEnquiryModal({ targetName, targetProfile, targetUid, senderUid, se
 
   const send = useCallback(async (messageText: string) => {
     if (!messageText.trim() || loading) return;
+    stopSpeech();
     const userMsg = messageText.trim();
     setInput('');
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
@@ -816,23 +908,19 @@ function BodhiEnquiryModal({ targetName, targetProfile, targetUid, senderUid, se
         }),
       });
 
-      if (!resp.ok) throw new Error('Failed to connect');
       const data = await resp.json();
-
-      setMessages(prev => [...prev, {
-        role: 'bodhi',
-        text: data.reply || "I am here with you. What would you like to know? ✦"
-      }]);
+      const replyText = data.reply || "I am here with you. What would you like to know? ✦";
+      setMessages(prev => [...prev, { role: 'bodhi', text: replyText }]);
+      if (voiceEnabled) speak(replyText);
     } catch (error) {
       console.error('[BodhiEnquiry] Error:', error);
-      setMessages(prev => [...prev, {
-        role: 'bodhi',
-        text: "I'm having a bit of trouble connecting to the cosmic flow right now. Please try asking me again in a moment 🙏 ✦"
-      }]);
+      const fallback = "I'm having a bit of trouble connecting to the cosmic flow right now. Please try asking me again in a moment 🙏 ✦";
+      setMessages(prev => [...prev, { role: 'bodhi', text: fallback }]);
+      if (voiceEnabled) speak(fallback);
     } finally {
       setLoading(false);
     }
-  }, [loading, messages, targetName, targetProfile, mode]);
+  }, [loading, messages, targetName, targetProfile, mode, voiceEnabled, speak, stopSpeech]);
 
   const handleFriendRequest = async () => {
     if (!senderUid || !targetUid || frSending || frSent) return;
@@ -887,12 +975,29 @@ function BodhiEnquiryModal({ targetName, targetProfile, targetUid, senderUid, se
         <div style={{ position: 'absolute', top: -60, left: '50%', transform: 'translateX(-50%)', width: 280, height: 120, borderRadius: '50%', background: `radial-gradient(ellipse,${mode === 'add_friend' ? 'rgba(52,211,153,0.18)' : 'rgba(167,139,250,0.18)'} 0%,transparent 70%)`, pointerEvents: 'none' }} />
         {/* Header */}
         <div style={{ padding: '1rem 1.2rem 0.8rem', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '0.8rem', position: 'relative', zIndex: 1 }}>
-          <div style={{ width: 40, height: 40, borderRadius: '50%', background: accentBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0, boxShadow: `0 0 18px ${accentGlow}` }}>✦</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '0.90rem', fontWeight: 800, color: accentColor, fontFamily: "'Outfit',sans-serif" }}>{mode === 'add_friend' ? `Add ${targetName} as Friend?` : `Ask Bodhi about ${targetName}`}</div>
-            <div style={{ fontSize: '0.46rem', color: 'rgba(255,255,255,0.28)', fontFamily: 'monospace', letterSpacing: '0.10em', textTransform: 'uppercase' }}>{mode === 'add_friend' ? 'BODHI · FRIEND CONNECT · AI INTRO' : 'SAKHA BODHI · AI COMPANION · SACRED INSIGHTS'}</div>
+          {/* Bodhi avatar with speaking pulse ring */}
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            {isSpeaking && (
+              <motion.div
+                animate={{ scale: [1, 1.35, 1], opacity: [0.7, 0, 0.7] }}
+                transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+                style={{ position: 'absolute', inset: -5, borderRadius: '50%', border: `2px solid ${accentColor}`, pointerEvents: 'none' }}
+              />
+            )}
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: accentBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', boxShadow: isSpeaking ? `0 0 22px ${accentGlow}` : `0 0 18px ${accentGlow}` }}>✦</div>
           </div>
-          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.45)', cursor: 'pointer', fontSize: '1rem', flexShrink: 0 }}>✕</button>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: '0.90rem', fontWeight: 800, color: accentColor, fontFamily: "'Outfit',sans-serif", whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{mode === 'add_friend' ? `Add ${targetName} as Friend?` : `Ask Bodhi about ${targetName}`}</div>
+            <div style={{ fontSize: '0.46rem', color: isSpeaking ? accentColor : 'rgba(255,255,255,0.28)', fontFamily: 'monospace', letterSpacing: '0.10em', textTransform: 'uppercase', transition: 'color 0.3s' }}>{isSpeaking ? '🔊 BODHI IS SPEAKING…' : mode === 'add_friend' ? 'BODHI · FRIEND CONNECT · AI INTRO' : 'SAKHA BODHI · AI COMPANION · SACRED INSIGHTS'}</div>
+          </div>
+          {/* Voice toggle */}
+          <motion.button
+            whileTap={{ scale: 0.85 }}
+            onClick={() => { if (voiceEnabled) { stopSpeech(); setVoiceEnabled(false); } else { setVoiceEnabled(true); } }}
+            title={voiceEnabled ? 'Mute Bodhi voice' : 'Unmute Bodhi voice'}
+            style={{ background: voiceEnabled ? `rgba(167,139,250,0.14)` : 'rgba(255,255,255,0.05)', border: `1px solid ${voiceEnabled ? 'rgba(167,139,250,0.34)' : 'rgba(255,255,255,0.10)'}`, borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '0.85rem', flexShrink: 0, transition: 'all 0.2s' }}
+          >{voiceEnabled ? '🔊' : '🔇'}</motion.button>
+          <button onClick={() => { stopSpeech(); onClose(); }} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.45)', cursor: 'pointer', fontSize: '1rem', flexShrink: 0 }}>✕</button>
         </div>
         {/* Messages */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
@@ -926,19 +1031,28 @@ function BodhiEnquiryModal({ targetName, targetProfile, targetUid, senderUid, se
           ))}
         </div>
         {/* Input */}
-        <div style={{ padding: '0.5rem 1rem 0.4rem', display: 'flex', gap: '0.6rem', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
+        <div style={{ padding: '0.5rem 1rem 0.4rem', display: 'flex', gap: '0.5rem', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
+          {/* Mic button */}
+          <motion.button
+            whileTap={{ scale: 0.88 }}
+            onClick={isListening ? stopListening : startListening}
+            disabled={loading}
+            animate={isListening ? { scale: [1, 1.08, 1], boxShadow: ['0 0 0 0 rgba(248,113,113,0.4)', '0 0 0 7px rgba(248,113,113,0)', '0 0 0 0 rgba(248,113,113,0)'] } : {}}
+            transition={isListening ? { duration: 1.1, repeat: Infinity } : {}}
+            style={{ width: 36, height: 36, borderRadius: '50%', background: isListening ? 'linear-gradient(135deg,rgba(248,113,113,0.35),rgba(239,68,68,0.25))' : 'rgba(255,255,255,0.06)', border: isListening ? '1px solid rgba(248,113,113,0.55)' : '1px solid rgba(255,255,255,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: loading ? 'default' : 'pointer', color: isListening ? '#f87171' : 'rgba(255,255,255,0.45)', flexShrink: 0, fontSize: '0.85rem' }}
+          >{isListening ? '🔴' : '🎙️'}</motion.button>
           <input
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && send(input)}
-            placeholder={`Ask about ${targetName}…`}
-            style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 99, padding: '0.60rem 1.1rem', color: '#fff', fontSize: '0.82rem', fontFamily: "'Outfit',sans-serif", outline: 'none' }}
+            value={isListening ? '🎙️ Listening…' : input}
+            onChange={e => !isListening && setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && !isListening && send(input)}
+            placeholder={`Ask about ${targetName}… or tap 🎙️`}
+            style={{ flex: 1, background: isListening ? 'rgba(248,113,113,0.08)' : 'rgba(255,255,255,0.06)', border: isListening ? '1px solid rgba(248,113,113,0.28)' : '1px solid rgba(255,255,255,0.12)', borderRadius: 99, padding: '0.60rem 1.1rem', color: isListening ? '#f87171' : '#fff', fontSize: '0.82rem', fontFamily: "'Outfit',sans-serif", outline: 'none', transition: 'all 0.2s' }}
           />
           <motion.button
             whileTap={{ scale: 0.88 }}
             onClick={() => send(input)}
-            disabled={!input.trim() || loading}
-            style={{ width: 38, height: 38, borderRadius: '50%', background: input.trim() ? `linear-gradient(135deg,${accentColor},${mode === 'add_friend' ? '#059669' : '#7c3aed'})` : 'rgba(255,255,255,0.06)', border: 'none', cursor: input.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.95rem', flexShrink: 0, boxShadow: input.trim() ? `0 0 12px ${accentGlow}` : 'none', transition: 'all 0.2s' }}>
+            disabled={!input.trim() || loading || isListening}
+            style={{ width: 38, height: 38, borderRadius: '50%', background: input.trim() && !isListening ? `linear-gradient(135deg,${accentColor},${mode === 'add_friend' ? '#059669' : '#7c3aed'})` : 'rgba(255,255,255,0.06)', border: 'none', cursor: input.trim() && !isListening ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.95rem', flexShrink: 0, boxShadow: input.trim() && !isListening ? `0 0 12px ${accentGlow}` : 'none', transition: 'all 0.2s' }}>
             ➤
           </motion.button>
         </div>

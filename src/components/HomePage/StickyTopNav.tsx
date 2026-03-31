@@ -600,10 +600,10 @@ function UserStoryViewer({
 
     return (
         <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.07 }}
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30, duration: 0.35 }}
             onClick={e => e.stopPropagation()}
             style={{
                 position: 'relative',
@@ -815,6 +815,10 @@ function UserStoryViewer({
             {/* Tap zones: prev / next */}
             <div onClick={e => { e.stopPropagation(); onPrev(); }} style={{
                 position: 'absolute', left: 0, top: 60, bottom: 60,
+                width: '28%', zIndex: 15, cursor: 'pointer',
+            }} />
+            <div onClick={e => { e.stopPropagation(); onNext(); }} style={{
+                position: 'absolute', right: 0, top: 60, bottom: 60,
                 width: '28%', zIndex: 15, cursor: 'pointer',
             }} />
         </motion.div>
@@ -1108,8 +1112,14 @@ function CosmicDateViewer({ totalStoryCount, globalIndex, onClose, onNext, onPre
     const festival = panchang.festival !== 'None' ? panchang.festival : null;
 
     return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.07 }} onClick={e => e.stopPropagation()}
-            style={{ position: 'relative', width: '100%', height: '100dvh', maxWidth: 430, overflow: 'hidden', background: '#050010' }}>
+        <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30, duration: 0.35 }}
+            onClick={e => e.stopPropagation()}
+            style={{ position: 'relative', width: '100%', height: '100dvh', maxWidth: 430, overflow: 'hidden', background: '#050010' }}
+        >
             {/* Starfield bg */}
             <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${COSMIC_BG})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.4) saturate(1.4)', opacity: 0.7 }} />
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(10,0,50,0.7) 0%,rgba(5,0,25,0.5) 40%,rgba(0,0,0,0.6) 100%)' }} />
@@ -1250,10 +1260,10 @@ function StoryViewer({ story, totalStoryCount, globalIndex, onClose, onPrev, onN
         >
             <motion.div
                 onClick={e => e.stopPropagation()}
-                initial={{ scale: 0.94 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.94 }}
-                transition={{ type: 'spring', stiffness: 340, damping: 30 }}
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30, duration: 0.35 }}
                 style={{
                     position: 'relative',
                     width: '100%', height: '100dvh',
@@ -1745,14 +1755,14 @@ export default function StickyTopNav() {
             {
                 /* ── UNIFIED STORY OVERLAY — single persistent backdrop, content crossfades ── */
             }
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
                 {(cosmicOpen || activeUserIdx !== null || activeIdx !== null) && (
                     <motion.div
                         key="story-overlay"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
+                        transition={{ duration: 0.25, ease: 'easeInOut' }}
                         style={{
                             position: 'fixed', inset: 0, zIndex: 99999,
                             background: '#000',
@@ -1761,7 +1771,7 @@ export default function StickyTopNav() {
                         onClick={closeAll}
                     >
                         {/* Inner content crossfades without backdrop flicker */}
-                        <AnimatePresence mode="sync">
+                        <AnimatePresence mode="wait">
                             {cosmicOpen && (
                                 <CosmicDateViewer
                                     key="cosmic"
