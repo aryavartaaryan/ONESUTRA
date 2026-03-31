@@ -10,7 +10,7 @@
  * All counts start at 0 and increment globally in Firebase for every user.
  * ─────────────────────────────────────────────────────────────────────────────
  */
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePostReactions } from '@/hooks/usePostReactions';
 import CommentSheet from '@/components/PranaVerse/CommentSheet';
@@ -203,7 +203,7 @@ function ShareSheet({ shareUrl, shareText, onClose }: { shareUrl: string; shareT
     }, [shareUrl]);
 
     const handleNativeShare = async () => {
-        if (navigator.share) {
+        if (typeof navigator.share === 'function') {
             try {
                 await navigator.share({
                     title: 'PranaVerse ✦',
@@ -225,7 +225,7 @@ function ShareSheet({ shareUrl, shareText, onClose }: { shareUrl: string; shareT
 
     const handleMoreOptions = async () => {
         // Open native share sheet on mobile, or show all apps
-        if (navigator.share) {
+        if (typeof navigator.share === 'function') {
             await handleNativeShare();
         } else {
             handleCopyLink();
