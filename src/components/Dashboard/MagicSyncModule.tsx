@@ -681,79 +681,6 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
     const [showMoodCheck, setShowMoodCheck] = useState(true);
     const [dropHighlight, setDropHighlight] = useState(false);
     const [filterDate, setFilterDate] = useState<string | null>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
-
-    // ── Mood Check Component ────────────────────────────────────────────────
-    const MoodCheck = () => (
-        <AnimatePresence>
-            {showMoodCheck && !mood && (
-                <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    style={{
-                        position: 'absolute',
-                        top: -50,
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        background: 'rgba(255,255,255,0.06)',
-                        backdropFilter: 'blur(16px)',
-                        border: '1px solid rgba(255,255,255,0.12)',
-                        borderRadius: 999,
-                        padding: '8px 16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 12,
-                        zIndex: 10,
-                    }}
-                >
-                    <span style={{ fontSize: '0.60rem', color: 'rgba(255,255,255,0.60)', fontFamily: "'Inter', system-ui, sans-serif" }}>
-                        How are you feeling?
-                    </span>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                        {[
-                            { emoji: '😔', label: 'low', color: '#f87171' },
-                            { emoji: '😌', label: 'calm', color: '#2dd4bf' },
-                            { emoji: '🙂', label: 'good', color: '#4ade80' },
-                            { emoji: '⚡', label: 'energetic', color: '#fbbf24' },
-                        ].map((m) => (
-                            <motion.button
-                                key={m.label}
-                                whileHover={{ scale: 1.2 }}
-                                whileTap={{ scale: 0.9 }}
-                                onClick={() => { setMood(m.label); setShowMoodCheck(false); }}
-                                style={{
-                                    background: 'transparent',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    fontSize: '1.2rem',
-                                    filter: mood === m.label ? `drop-shadow(0 0 8px ${m.color})` : 'none',
-                                    transition: 'filter 0.2s',
-                                }}
-                                title={m.label}
-                            >
-                                {m.emoji}
-                            </motion.button>
-                        ))}
-                    </div>
-                    <button
-                        onClick={() => setShowMoodCheck(false)}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'rgba(255,255,255,0.30)',
-                            cursor: 'pointer',
-                            fontSize: '0.70rem',
-                            marginLeft: 4,
-                        }}
-                    >
-                        ×
-                    </button>
-                </motion.div>
-            )}
-        </AnimatePresence>
-    );
-
     // ── Mini Task Summary ───────────────────────────────────────────────────
     const TaskSummary = () => {
         const pending = tasks.filter(t => !t.done);
@@ -802,6 +729,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
     };
     const dropZoneRef = useRef<HTMLDivElement>(null);
     const moduleRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     // ── Bodhi Conversation State ──────────────────────────────────────────────
     const [bodhiState, setBodhiState] = useState<BodhiChatState>('idle');
@@ -969,6 +897,74 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
         }, 700);
     }, [router, setPendingMessage]);
 
+    // ── Mood Check Component — fixed left-side vertical strip
+    const MoodCheck = () => (
+        <AnimatePresence>
+            {showMoodCheck && !mood && (
+                <motion.div
+                    initial={{ opacity: 0, x: -24 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -24 }}
+                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                    style={{
+                        position: 'fixed',
+                        left: 8,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'rgba(8,6,22,0.82)',
+                        backdropFilter: 'blur(20px)',
+                        WebkitBackdropFilter: 'blur(20px)',
+                        border: '1px solid rgba(255,255,255,0.09)',
+                        borderRadius: 20,
+                        padding: '10px 7px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 5,
+                        zIndex: 500,
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
+                    }}
+                >
+                    <span style={{ fontSize: '0.36rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Inter', system-ui, sans-serif", textTransform: 'uppercase', letterSpacing: '0.10em', writingMode: 'vertical-rl', transform: 'rotate(180deg)', marginBottom: 3, lineHeight: 1 }}>Mood</span>
+                    {[
+                        { emoji: '😔', label: 'low', color: '#f87171' },
+                        { emoji: '😌', label: 'calm', color: '#2dd4bf' },
+                        { emoji: '🙂', label: 'good', color: '#4ade80' },
+                        { emoji: '⚡', label: 'energetic', color: '#fbbf24' },
+                    ].map((m) => (
+                        <motion.button
+                            key={m.label}
+                            whileHover={{ scale: 1.22 }}
+                            whileTap={{ scale: 0.88 }}
+                            onClick={() => { setMood(m.label); setShowMoodCheck(false); }}
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontSize: '1.15rem',
+                                filter: mood === m.label ? `drop-shadow(0 0 8px ${m.color})` : 'none',
+                                transition: 'filter 0.2s',
+                                padding: '1px 0',
+                                lineHeight: 1,
+                            }}
+                            title={m.label}
+                        >
+                            {m.emoji}
+                        </motion.button>
+                    ))}
+                    <button
+                        onClick={() => setShowMoodCheck(false)}
+                        style={{
+                            background: 'none', border: 'none',
+                            color: 'rgba(255,255,255,0.22)', cursor: 'pointer',
+                            fontSize: '0.65rem', marginTop: 1, padding: 0, lineHeight: 1,
+                        }}
+                    >×</button>
+                </motion.div>
+            )}
+        </AnimatePresence>
+    );
+
     return (
         <div ref={moduleRef} style={{
             width: '100%',
@@ -985,7 +981,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                 style={{
                     position: 'relative',
                     borderRadius: 28,
-                    padding: '1.25rem 1.1rem 1rem',
+                    padding: '0.8rem 0.95rem 0.65rem',
                     background: 'rgba(0, 0, 0, 0.08)',
                     backdropFilter: 'blur(2px) saturate(110%)',
                     WebkitBackdropFilter: 'blur(2px) saturate(110%)',
@@ -1002,27 +998,27 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                 }} />
 
                 {/* ── SMART MANAGER HEADER ── */}
-                <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.9rem' }}>
+                <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.55rem' }}>
                     <div style={{ flex: 1 }}>
                         <h2 style={{
-                            margin: 0, fontSize: 'clamp(0.58rem, 2.3vw, 0.74rem)',
-                            fontWeight: 700, lineHeight: 1.3, letterSpacing: '0.14em',
+                            margin: 0, fontSize: '0.60rem',
+                            fontWeight: 700, lineHeight: 1.2, letterSpacing: '0.12em',
                             color: '#fbbf24',
                             fontFamily: "'Inter', system-ui, sans-serif",
                             textTransform: 'uppercase',
                         }}>
-                            <span style={{ marginRight: 6 }}>✦</span>
-                            Add your tasks, Challenges &amp; ideas
+                            <span style={{ marginRight: 5 }}>✦</span>
+                            Smart Life Planner
                         </h2>
                         <p style={{
-                            margin: '0.4rem 0 0', fontSize: 'clamp(0.64rem, 2.7vw, 0.76rem)',
-                            color: 'rgba(255, 255, 255, 0.65)',
-                            fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
-                            letterSpacing: '0.02em',
+                            margin: '0.18rem 0 0', fontSize: '0.54rem',
+                            color: 'rgba(255, 255, 255, 0.45)',
+                            fontFamily: "'Inter', system-ui, sans-serif",
+                            letterSpacing: '0.01em',
                             fontWeight: 400,
                             fontStyle: 'italic',
                         }}>
-                            Calm your mind · Your AI Sakha <span style={{ color: '#fbbf24', fontWeight: 500 }}>Bodhi</span> will advise and schedule it
+                            AI Sakha <span style={{ color: '#fbbf24', fontWeight: 600 }}>Bodhi</span> advises &amp; schedules
                         </p>
                     </div>
                     {/* CAL Button */}
@@ -1031,22 +1027,22 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                         whileHover={{ scale: 1.05 }}
                         onClick={() => setShowCalendar(!showCalendar)}
                         style={{
-                            background: 'rgba(255, 255, 255, 0.08)',
+                            background: 'rgba(255, 255, 255, 0.06)',
                             backdropFilter: 'blur(12px)',
-                            border: '1px solid rgba(255, 255, 255, 0.20)',
-                            borderRadius: 12,
-                            padding: '0.5rem 0.9rem',
-                            display: 'flex', alignItems: 'center', gap: 6,
+                            border: '1px solid rgba(255, 255, 255, 0.14)',
+                            borderRadius: 10,
+                            padding: '0.34rem 0.72rem',
+                            display: 'flex', alignItems: 'center', gap: 5,
                             cursor: 'pointer',
-                            color: 'rgba(255, 255, 255, 0.70)',
-                            fontSize: '0.65rem',
+                            color: 'rgba(255, 255, 255, 0.50)',
+                            fontSize: '0.54rem',
                             fontWeight: 500,
                             fontFamily: "'Inter', system-ui, sans-serif",
                             letterSpacing: '0.08em',
                             flexShrink: 0,
                         }}
                     >
-                        <Calendar size={14} />
+                        <Calendar size={12} />
                         CAL
                     </motion.button>
                 </div>
@@ -1070,13 +1066,13 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.9, duration: 0.5 }}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: '0.3rem', position: 'relative', zIndex: 3 }}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginBottom: '0.18rem', position: 'relative', zIndex: 3 }}
                 >
-                    <motion.span animate={{ x: [0, 5, 0] }} transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }} style={{ fontSize: '0.8rem' }}>👇</motion.span>
-                    <span style={{ fontSize: '0.56rem', color: 'rgba(255,255,255,0.50)', fontStyle: 'italic', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.05em' }}>
-                        Drag any bubble into the bar — Sakha Bodhi will help
+                    <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }} style={{ fontSize: '0.7rem' }}>👇</motion.span>
+                    <span style={{ fontSize: '0.46rem', color: 'rgba(255,255,255,0.35)', fontStyle: 'italic', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.04em' }}>
+                        Drag bubble → bar — Bodhi guides
                     </span>
-                    <motion.span animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }} style={{ fontSize: '0.8rem' }}>✨</motion.span>
+                    <motion.span animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }} style={{ fontSize: '0.7rem' }}>✨</motion.span>
                 </motion.div>
 
                 {/* ── Arc orbit container ── */}
@@ -1102,7 +1098,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                             { key: 'Challenge', label: 'CHALLENGE', emoji: '⚡', count: categoryStats.find(c => c.key === 'Challenge')?.count ?? 0, color: '#fb923c', bg: 'rgba(251,146,60,0.32)', glare: 'rgba(251,146,60,0.65)', anim: 'msFloat1', dur: 4.3, size: 58, arcY: 10 },
                             { key: 'Idea', label: 'IDEA', emoji: '💡', count: categoryStats.find(c => c.key === 'Idea')?.count ?? 0, color: '#fbbf24', bg: 'rgba(251,191,36,0.32)', glare: 'rgba(251,191,36,0.70)', anim: 'msFloat2', dur: 3.5, size: 74, arcY: -14 },
                             { key: 'Issue', label: 'ISSUE', emoji: '🔥', count: categoryStats.find(c => c.key === 'Issue')?.count ?? 0, color: '#f87171', bg: 'rgba(248,113,113,0.32)', glare: 'rgba(248,113,113,0.65)', anim: 'msFloat3', dur: 4.7, size: 56, arcY: 8 },
-                            { key: 'Planner', label: 'SMART', emoji: '🗓️', count: 0, color: '#a78bfa', bg: 'rgba(167,139,250,0.32)', glare: 'rgba(167,139,250,0.70)', anim: 'msFloat4', dur: 4.0, size: 62, arcY: -4, isPlanner: true },
+                            { key: 'Planner', label: 'SMART', emoji: '🗓️', count: 0, color: '#a78bfa', bg: 'rgba(167,139,250,0.40)', glare: 'rgba(167,139,250,0.85)', anim: 'msFloat4', dur: 4.0, size: 80, arcY: -20, isPlanner: true },
                         ].map((b, i) => (
                             <InlineBubble 
                                 key={b.key} b={b} index={i} 

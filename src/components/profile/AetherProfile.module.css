@@ -1,0 +1,1832 @@
+/* ══════════════════════════════════════════════════════════════════
+   ONESUTRA PROFILE — Vitality-Glass · Twilight Aether · World-Class
+   Glassmorphism · Responsive Desktop+Mobile · Gen Z Energy
+   ══════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* ══ NEW: Vitality-Glass Keyframes ══ */
+@keyframes auraBreath {
+
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  50% {
+    opacity: 0.85;
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+}
+
+@keyframes chakraPulse {
+
+  0%,
+  100% {
+    opacity: 0.65;
+    r: 4;
+  }
+
+  50% {
+    opacity: 1;
+    r: 5.5;
+  }
+}
+
+@keyframes shimmerBorder {
+  0% {
+    background-position: -200% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes floatParticle {
+  0% {
+    transform: translateY(0px) translateX(0px) scale(1);
+    opacity: 0.9;
+  }
+
+  33% {
+    transform: translateY(-8px) translateX(5px) scale(1.1);
+    opacity: 0.5;
+  }
+
+  66% {
+    transform: translateY(-4px) translateX(-4px) scale(0.95);
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: translateY(0px) translateX(0px) scale(1);
+    opacity: 0.9;
+  }
+}
+
+@keyframes tileGlowPulse {
+
+  0%,
+  100% {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  50% {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(251, 191, 36, 0.10);
+  }
+}
+
+@keyframes identityGlow {
+  0% {
+    box-shadow: 0 0 0px rgba(251, 191, 36, 0);
+  }
+
+  50% {
+    box-shadow: 0 0 28px rgba(251, 191, 36, 0.12), 0 0 60px rgba(52, 211, 153, 0.06);
+  }
+
+  100% {
+    box-shadow: 0 0 0px rgba(251, 191, 36, 0);
+  }
+}
+
+@keyframes energyRingPulse {
+
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.18;
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.22);
+    opacity: 0.06;
+  }
+}
+
+/* ── Page Layout ── */
+.page {
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(170deg, #040712 0%, #080520 35%, #060918 65%, #02040E 100%);
+  overflow-x: hidden;
+  overflow-y: clip;
+  padding-top: 0;
+  padding-bottom: 100px;
+  color: #F1F5F9;
+}
+
+/* Twilight ambient aura — energy glow across the page */
+.page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 65% 40% at 18% 0%, rgba(251, 191, 36, 0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 45% at 82% 18%, rgba(52, 211, 153, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 45% 35% at 50% 85%, rgba(96, 165, 250, 0.09) 0%, transparent 60%),
+    radial-gradient(ellipse 30% 25% at 65% 45%, rgba(167, 139, 250, 0.05) 0%, transparent 55%);
+  pointer-events: none;
+  z-index: 0;
+  animation: identityGlow 8s ease-in-out infinite;
+}
+
+.pageInner {
+  position: relative;
+  z-index: 1;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   LOADING
+   ══════════════════════════════════════════════════════════════════ */
+.loadingWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 16px;
+}
+
+
+.loadingSpinner {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 3px solid rgba(251, 191, 36, 0.15);
+  border-top-color: #F59E0B;
+  animation: spin 0.9s linear infinite;
+}
+
+.loadingText {
+  font-size: 0.80rem;
+  color: #F59E0B;
+  letter-spacing: 0.06em;
+  opacity: 0.75;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   HEADER
+   ══════════════════════════════════════════════════════════════════ */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px 8px;
+  padding-top: max(10px, calc(env(safe-area-inset-top) + 6px));
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(5, 9, 22, 0.82);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.headerCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.headerBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.headerBtn:hover {
+  background: rgba(251, 191, 36, 0.12);
+  border-color: rgba(251, 191, 36, 0.30);
+  color: #FBBF24;
+}
+
+.headerBrand {
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: linear-gradient(120deg, #c4b5fd, #a78bfa, #818cf8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: 0.02em;
+}
+
+.headerSub {
+  font-size: 0.38rem;
+  color: rgba(255, 255, 255, 0.25);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-family: monospace;
+}
+
+.shareBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: rgba(251, 191, 36, 0.10);
+  border: 1px solid rgba(251, 191, 36, 0.24);
+  border-radius: 999px;
+  color: #FBBF24;
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.shareBtn:hover {
+  background: rgba(251, 191, 36, 0.18);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   HERO — Avatar + Identity — Compact
+   ══════════════════════════════════════════════════════════════════ */
+.heroSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 16px 24px;
+  position: relative;
+  gap: 0;
+  overflow: hidden;
+  margin-top: 0;
+}
+
+/* Energy Aura ring — behind avatar, breathing */
+.energyAuraRing {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1.5px solid rgba(52, 211, 153, 0.18);
+  pointer-events: none;
+  z-index: 0;
+  animation: energyRingPulse 4s ease-in-out infinite;
+}
+
+.energyAuraRing2 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 258px;
+  height: 258px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid rgba(96, 165, 250, 0.10);
+  pointer-events: none;
+  z-index: 0;
+  animation: energyRingPulse 5.5s ease-in-out infinite 0.8s;
+}
+
+/* Particle orb dots around avatar */
+.particleOrb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.particleOrb1 {
+  width: 7px;
+  height: 7px;
+  background: radial-gradient(circle, #F59E0B, #FBBF24);
+  top: 14px;
+  left: 50%;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.80);
+  animation: floatParticle 3.8s ease-in-out infinite;
+}
+
+.particleOrb2 {
+  width: 5px;
+  height: 5px;
+  background: radial-gradient(circle, #34D399, #10B981);
+  top: 40%;
+  right: 12px;
+  box-shadow: 0 0 7px rgba(52, 211, 153, 0.80);
+  animation: floatParticle 4.5s ease-in-out infinite 1.2s;
+}
+
+.particleOrb3 {
+  width: 6px;
+  height: 6px;
+  background: radial-gradient(circle, #60A5FA, #3B82F6);
+  bottom: 18px;
+  left: 20%;
+  box-shadow: 0 0 7px rgba(96, 165, 250, 0.80);
+  animation: floatParticle 5.2s ease-in-out infinite 0.5s;
+}
+
+.particleOrb4 {
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, #A78BFA, #8B5CF6);
+  top: 30%;
+  left: 10px;
+  box-shadow: 0 0 6px rgba(167, 139, 250, 0.80);
+  animation: floatParticle 3.2s ease-in-out infinite 2s;
+}
+
+/* Ring + Avatar Stack */
+.avatarRingWrap {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-bottom: 14px;
+}
+
+.vitalityRingAbsolute {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.avatarCircle {
+  width: 126px;
+  height: 126px;
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(145deg, #1E1608, #0C0820);
+  border: 3px solid rgba(251, 191, 36, 0.20);
+  box-shadow: 0 0 30px rgba(251, 191, 36, 0.15), 0 0 60px rgba(52, 211, 153, 0.08), inset 0 0 20px rgba(0, 0, 0, 0.40);
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.avatarPhoto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.avatarSvg {
+  width: 100%;
+  height: 100%;
+}
+
+.vitalityChip {
+  position: absolute;
+  bottom: 4px;
+  right: -2px;
+  z-index: 3;
+  background: linear-gradient(135deg, #F59E0B, #FBBF24);
+  border-radius: 20px;
+  padding: 3px 8px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.58rem;
+  font-weight: 800;
+  color: #000;
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.55);
+}
+
+/* Identity */
+.identitySection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.userName {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: -0.03em;
+  text-align: center;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.userHandle {
+  font-size: 0.70rem;
+  color: rgba(255, 255, 255, 0.38);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.userBio {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.45);
+  text-align: center;
+  line-height: 1.55;
+  font-style: italic;
+  margin: 4px 20px 0;
+}
+
+/* Lifestyle tags */
+.lifestyleTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.lifestyleTag {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.60rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* CTA Buttons */
+.ctaRow {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  width: 100%;
+  max-width: 380px;
+}
+
+.ctaPrimary {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.22), rgba(109, 40, 217, 0.16));
+  border: 1.5px solid rgba(167, 139, 250, 0.50);
+  border-radius: 999px;
+  color: #c4b5fd;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(10px);
+}
+
+.ctaPrimary:hover {
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.32), rgba(109, 40, 217, 0.24));
+}
+
+.ctaSecondary {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1.5px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(10px);
+}
+
+.ctaSecondary:hover {
+  border-color: rgba(251, 191, 36, 0.35);
+  color: #FBBF24;
+}
+
+/* Stats Strip */
+.statsStrip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-top: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 380px;
+}
+
+.statCell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 8px;
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.statCell:last-child {
+  border-right: none;
+}
+
+.statNumLabel {
+  font-size: 1.0rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  line-height: 1;
+}
+
+.statCellLabel {
+  font-size: 0.45rem;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   DASHBOARD TILES GRID
+   ══════════════════════════════════════════════════════════════════ */
+.tilesSection {
+  padding: 16px;
+}
+
+.tilesSectionTitle {
+  font-size: 0.52rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.25);
+  font-family: monospace;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tilesGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 480px) {
+  .tilesGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 640px) {
+  .page {
+    padding-bottom: 60px;
+  }
+
+  .pageInner {
+    max-width: 860px;
+  }
+
+  .tilesGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+}
+
+/* The glass tile */
+.glassTile {
+  background: rgba(255, 255, 255, 0.040);
+  backdrop-filter: blur(24px) saturate(170%);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+  border: 1px solid rgba(251, 191, 36, 0.14);
+  border-radius: 22px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+  animation: tileGlowPulse 6s ease-in-out infinite;
+}
+
+.glassTile:hover {
+  border-color: rgba(251, 191, 36, 0.30);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(251, 191, 36, 0.12), 0 0 40px rgba(251, 191, 36, 0.06);
+  transform: translateY(-1px);
+}
+
+/* Tile inner shimmer */
+.glassTile::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.12) 50%, transparent 100%);
+}
+
+/* Tile spanning full width */
+.glassTileWide {
+  grid-column: 1 / -1;
+}
+
+.tileHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.tileTitle {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.90);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.tileIconWrap {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.tileSub {
+  font-size: 0.58rem;
+  color: rgba(255, 255, 255, 0.32);
+  margin-top: 1px;
+}
+
+.privateBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.10);
+  border: 1px solid rgba(251, 191, 36, 0.22);
+  color: #FBBF24;
+  font-size: 0.42rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+/* Tag chips inside tiles */
+.tagChipsWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.tagChip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Ritual icon grid */
+.ritualGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.ritualItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.ritualItem:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.ritualIcon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.ritualLabel {
+  font-size: 0.48rem;
+  color: rgba(255, 255, 255, 0.45);
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+
+/* Activity feed */
+.activityFeed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.activityItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.activityDot {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.activityText {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.45;
+  flex: 1;
+}
+
+.activityTime {
+  font-size: 0.48rem;
+  color: rgba(255, 255, 255, 0.28);
+  display: block;
+  margin-top: 1px;
+  font-family: monospace;
+  letter-spacing: 0.06em;
+}
+
+/* Vitality ring row */
+.vitalityRingRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.vitalityRingInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vitalityRingValue {
+  font-size: 1.6rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #F59E0B, #FBBF24);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  line-height: 1;
+}
+
+.vitalityRingLabel {
+  font-size: 0.55rem;
+  color: rgba(255, 255, 255, 0.38);
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+}
+
+/* Mini progress rings */
+.miniRingsRow {
+  display: flex;
+  gap: 10px;
+  justify-content: space-around;
+}
+
+.miniRingItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.miniRingLabel {
+  font-size: 0.48rem;
+  color: rgba(255, 255, 255, 0.38);
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+
+/* Score bars */
+.scoreBarRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.scoreBarLabel {
+  font-size: 0.60rem;
+  color: rgba(255, 255, 255, 0.50);
+  width: 62px;
+  flex-shrink: 0;
+}
+
+.scoreBarTrack {
+  flex: 1;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.scoreBarFill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.scoreBarValue {
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.65);
+  width: 22px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.moodChartContainer {
+  height: 86px;
+  margin: 2px 0;
+}
+
+.sleepWaveContainer {
+  height: 50px;
+  margin: 4px 0;
+}
+
+.sleepMetrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.sleepMetric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sleepMetricValue {
+  font-size: 1.0rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #60A5FA, #818CF8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.sleepMetricLabel {
+  font-size: 0.45rem;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  text-align: center;
+}
+
+.metricsInsight {
+  font-size: 0.65rem;
+  color: rgba(207, 250, 254, 0.72);
+  line-height: 1.55;
+  padding: 8px 10px;
+  background: rgba(6, 182, 212, 0.06);
+  border: 1px solid rgba(6, 182, 212, 0.12);
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.moodTrend {
+  font-size: 0.58rem;
+  font-weight: 600;
+  color: rgba(74, 222, 128, 0.9);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   SECTIONS — Sangha, Post Channels etc.
+   ══════════════════════════════════════════════════════════════════ */
+.sectionBlock {
+  margin: 0 16px 18px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.sectionTitle {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.88);
+  letter-spacing: -0.01em;
+}
+
+/* Sangha */
+.sanghaList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sanghaItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  transition: all 0.18s;
+}
+
+.sanghaItem:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.sanghaAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.sanghaInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.sanghaName {
+  font-size: 0.80rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.90);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sanghaTag {
+  font-size: 0.58rem;
+  letter-spacing: 0.04em;
+}
+
+.sanghaConnectBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  transition: all 0.18s;
+  flex-shrink: 0;
+}
+
+.sanghaConnectBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.addSanghaBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  background: rgba(52, 211, 153, 0.10);
+  border: 1px solid rgba(52, 211, 153, 0.22);
+  border-radius: 999px;
+  color: #34D399;
+  font-size: 0.65rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.viewAllBtn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 9px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.68rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.18s;
+}
+
+.viewAllBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* Post channels */
+.channelList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.postChannelRow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: inherit;
+  text-align: left;
+}
+
+.postChannelRow:last-child {
+  border-bottom: none;
+}
+
+.postChannelRow:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.postChannelIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.postChannelInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.postChannelTitle {
+  font-size: 0.80rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.90);
+}
+
+.postChannelSub {
+  font-size: 0.62rem;
+  color: rgba(255, 255, 255, 0.36);
+}
+
+.postChannelBadge {
+  font-size: 0.55rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border-width: 1px;
+  border-style: solid;
+  flex-shrink: 0;
+}
+
+.postChannelArrow {
+  font-size: 1.2rem;
+  font-weight: 300;
+  opacity: 0.50;
+  flex-shrink: 0;
+}
+
+/* Lifestyle habits */
+.habitsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.habitChip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: default;
+  transition: transform 0.15s;
+}
+
+.habitChip:hover {
+  transform: scale(1.04);
+}
+
+/* Bodhi Card */
+.bodhiCard {
+  margin: 0 16px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(10, 12, 26, 0.85) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.28);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.bodhiCard::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.35), transparent);
+}
+
+.bodhiCard:hover {
+  border-color: rgba(139, 92, 246, 0.45);
+}
+
+.bodhiLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.bodhiIconWrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(139, 92, 246, 0.14);
+  border: 1px solid rgba(139, 92, 246, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bodhiInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.bodhiTitle {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.bodhiSub {
+  font-size: 0.62rem;
+  color: rgba(255, 255, 255, 0.40);
+  line-height: 1.4;
+}
+
+.bodhiActive {
+  font-size: 0.60rem;
+  font-weight: 700;
+  color: #34D399;
+  background: rgba(52, 211, 153, 0.10);
+  border: 1px solid rgba(52, 211, 153, 0.22);
+  border-radius: 999px;
+  padding: 4px 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+/* Vitality Replay */
+.replayCard {
+  margin: 0 16px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(245, 158, 11, 0.16);
+  border-radius: 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.replayCard:hover {
+  border-color: rgba(245, 158, 11, 0.30);
+  background: rgba(245, 158, 11, 0.04);
+}
+
+.replayLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.replayIconWrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.20);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.replayInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.replayTitle {
+  font-size: 0.80rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.replaySub {
+  font-size: 0.62rem;
+  color: rgba(255, 255, 255, 0.38);
+  line-height: 1.4;
+}
+
+.replayArrow {
+  font-size: 1.3rem;
+  color: rgba(245, 158, 11, 0.55);
+  flex-shrink: 0;
+}
+
+/* New Post btn */
+.newPostBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.26);
+  border-radius: 999px;
+  color: #FBBF24;
+  font-size: 0.65rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Radar wrap */
+.radarWrap {
+  display: flex;
+  justify-content: center;
+  margin: 4px 0 8px;
+}
+
+/* Sleep badge */
+.sleepBadge {
+  font-size: 0.55rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(129, 140, 248, 0.12);
+  color: #818CF8;
+  border: 1px solid rgba(129, 140, 248, 0.20);
+  margin-left: auto;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Privacy badge in tiles */
+.privacyBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.16);
+  border-radius: 999px;
+  font-size: 0.55rem;
+  font-weight: 600;
+  color: rgba(147, 197, 253, 0.85);
+  letter-spacing: 0.05em;
+  width: fit-content;
+  margin-bottom: 10px;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   AMBIENT AURA ORBS — fixed decorative energy blobs
+   ══════════════════════════════════════════════════════════════════ */
+.auraOrb1 {
+  position: fixed;
+  top: -40px;
+  left: -60px;
+  width: 340px;
+  height: 340px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: orbFloat1 8s ease-in-out infinite;
+}
+
+.auraOrb2 {
+  position: fixed;
+  top: 30%;
+  right: -80px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(52, 211, 153, 0.10) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: orbFloat2 10s ease-in-out infinite;
+}
+
+.auraOrb3 {
+  position: fixed;
+  bottom: 10%;
+  left: 20%;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(96, 165, 250, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: orbFloat3 12s ease-in-out infinite;
+}
+
+
+
+@keyframes orbFloat1 {
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(18px, 22px) scale(1.04);
+  }
+}
+
+@keyframes orbFloat2 {
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(-14px, 16px) scale(0.97);
+  }
+}
+
+@keyframes orbFloat3 {
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(10px, -18px) scale(1.02);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   SAFFRON / GOLD AURA — hero background glow
+   ══════════════════════════════════════════════════════════════════ */
+.saffronAura {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.18) 0%, rgba(245, 158, 11, 0.09) 35%, rgba(52, 211, 153, 0.05) 55%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: auraBreath 5s ease-in-out infinite;
+}
+
+.goldAuraPulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1.5px solid rgba(251, 191, 36, 0.14);
+  pointer-events: none;
+  z-index: 0;
+  animation: goldPulse 3.2s ease-in-out infinite;
+}
+
+@keyframes goldPulse {
+
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.18);
+    opacity: 0.15;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   IDENTITY CARD — Glassmorphism wrapper
+   ══════════════════════════════════════════════════════════════════ */
+.identityCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin: 0 14px 14px;
+  padding: 20px 18px 16px;
+  background: rgba(255, 255, 255, 0.042);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(251, 191, 36, 0.18);
+  border-radius: 28px;
+  position: relative;
+  overflow: hidden;
+  animation: identityGlow 7s ease-in-out infinite;
+}
+
+/* Animated shimmer top bar */
+.identityCard::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent 0%, rgba(251, 191, 36, 0.55) 30%, rgba(52, 211, 153, 0.45) 60%, transparent 100%);
+  background-size: 200% auto;
+  animation: shimmerBorder 3.5s linear infinite;
+}
+
+/* Bottom ambient edge */
+.identityCard::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(96, 165, 250, 0.20) 50%, transparent 100%);
+}
+
+/* Pranic Intelligence badge */
+.pranicBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.15), rgba(20, 184, 166, 0.10));
+  border: 1px solid rgba(167, 139, 250, 0.30);
+  color: #c4b5fd;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 8px;
+  margin-bottom: 2px;
+}
+
+/* Dosha breakdown bar */
+.doshaBars {
+  width: 100%;
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.doshaBarVata {
+  background: linear-gradient(90deg, #60A5FA, #818CF8);
+  height: 100%;
+  border-radius: 999px 0 0 999px;
+  transition: width 1.2s ease;
+}
+
+.doshaBarPitta {
+  background: linear-gradient(90deg, #F59E0B, #F97316);
+  height: 100%;
+  transition: width 1.2s ease;
+}
+
+.doshaBarKapha {
+  background: linear-gradient(90deg, #34D399, #10B981);
+  height: 100%;
+  border-radius: 0 999px 999px 0;
+  transition: width 1.2s ease;
+}
+
+.doshaBarLabels {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.doshaBarLabel {
+  font-size: 0.42rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.40);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   METRICS PANEL + CARDS — expanded account view
+   ══════════════════════════════════════════════════════════════════ */
+.metricsPanel {
+  overflow: hidden;
+  padding: 0 14px;
+  margin-bottom: 4px;
+}
+
+.metricsCard {
+  background: rgba(255, 255, 255, 0.038);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+
+.metricsCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.metricsCardIcon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.metricsCardTitle {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.90);
+}
+
+.metricsCardSub {
+  font-size: 0.58rem;
+  color: rgba(255, 255, 255, 0.35);
+  margin-top: 1px;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   TILE EDIT BUTTON
+   ══════════════════════════════════════════════════════════════════ */
+.tileEditBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: all 0.18s;
+  flex-shrink: 0;
+}
+
+.tileEditBtn:hover {
+  background: rgba(251, 191, 36, 0.12);
+  border-color: rgba(251, 191, 36, 0.28);
+  color: #FBBF24;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   TILES DIVIDER LINE
+   ══════════════════════════════════════════════════════════════════ */
+.tilesDivider {
+  display: inline-block;
+  width: 28px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
+  vertical-align: middle;
+}
+
+/* ══ Chakra dot styles used in VitalityRing ══ */
+.chakraDot {
+  animation: chakraPulse 2.2s ease-in-out infinite;
+}
+
+/* ══ Vata/Pitta/Kapha breakdown in Ayurvedic blueprint tile ══ */
+.doshaBreakdownRow {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  align-items: center;
+}
+
+.doshaBreakdownItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+}
+
+.doshaBreakdownBar {
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.doshaBreakdownFill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.doshaBreakdownLabel {
+  font-size: 0.42rem;
+  font-weight: 800;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.doshaBreakdownValue {
+  font-size: 0.60rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   BOTTOM NAV — minimalist line icons
+   ══════════════════════════════════════════════════════════════════ */
+.bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 10px 0 max(14px, calc(env(safe-area-inset-bottom) + 8px));
+  background: rgba(5, 9, 22, 0.90);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  z-index: 200;
+}
+
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 18px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.48rem;
+  font-family: inherit;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.18s;
+}
+
+.navItem:hover {
+  color: rgba(255, 255, 255, 0.70);
+}
+
+.navItemActive {
+  color: #FBBF24 !important;
+}
+
+.navItemActive svg {
+  filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.55));
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   HERO SECTION — ensure z-index for ring stack
+   ══════════════════════════════════════════════════════════════════ */
+.heroSection>* {
+  position: relative;
+  z-index: 1;
+}
+
+/* Wider screens: center content nicely */
+@media (min-width: 768px) {
+  .identityCard {
+    margin: 0 auto 14px;
+    max-width: 520px;
+  }
+
+  .tilesSection {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .sectionBlock {
+    max-width: 860px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .bodhiCard,
+  .replayCard {
+    max-width: 860px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

@@ -8,18 +8,20 @@
     position: fixed;
     inset: 0;
     z-index: 9999;
-    /* Warm translucent overlay — NOT cloudy, just a gentle amber tint */
     background:
         radial-gradient(ellipse 70% 55% at 50% 42%, rgba(251, 176, 59, 0.13) 0%, transparent 70%),
         radial-gradient(ellipse 100% 80% at 50% 100%, rgba(234, 88, 12, 0.08) 0%, transparent 60%),
         rgba(10, 5, 0, 0.72);
-    /* Near-zero blur so the content behind stays visible and crisp */
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
+    /* Remove backdrop-filter — it forces a full-page repaint on every child animation */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    /* Prevent repaints from propagating outside this element */
+    contain: layout style;
+    /* Promote to own GPU layer once, keeps compositing stable */
+    will-change: opacity;
+    transform: translateZ(0);
 }
 
 /* ── Aura stage — holds the goo filter ───────────────────────────────── */
@@ -31,6 +33,8 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    /* Isolate compositing so goo filter doesn't leak outside */
+    isolation: isolate;
 }
 
 /* The goo-filter wrapper — all blobs go inside this */
@@ -41,12 +45,18 @@
     align-items: center;
     justify-content: center;
     filter: url(#sakha-goo);
+    /* GPU layer for the filter — prevents CPU re-rasterisation on each frame */
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 /* Individual fluid blobs */
 .blob {
     position: absolute;
     border-radius: 50%;
+    /* Each blob on its own layer — no repaint spill to siblings */
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 /* Human Activated Mode — warm amber/gold/coral human-aura blobs */

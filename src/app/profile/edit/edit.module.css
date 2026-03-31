@@ -1,0 +1,545 @@
+/* ══════════════════════════════════════════════════════════════════
+   PROFILE EDIT — Aether Identity Edit Page
+   Dark glassmorphism · Gen-Z spiritual aesthetics
+   ══════════════════════════════════════════════════════════════════ */
+
+.page {
+  min-height: 100vh;
+  background: linear-gradient(170deg, #040712 0%, #080520 35%, #060918 65%, #02040E 100%);
+  overflow-x: clip;
+  padding-bottom: 7rem;
+  position: relative;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ── Ambient Aura Orbs ── */
+.auraOrb1 {
+  position: fixed;
+  top: -80px;
+  left: -60px;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(167,139,250,0.10) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.auraOrb2 {
+  position: fixed;
+  bottom: 20%;
+  right: -60px;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(52,211,153,0.07) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Loading ── */
+.loadingWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid rgba(251,191,36,0.12);
+  border-top-color: #F59E0B;
+  animation: spin 0.85s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Header ── */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(10px, calc(env(safe-area-inset-top) + 6px)) 14px 10px;
+  background: rgba(5, 9, 22, 0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.headerBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.headerBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.headerCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.headerBrand {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: -0.01em;
+}
+
+.headerSub {
+  font-size: 0.56rem;
+  color: rgba(251,191,36,0.65);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.saveBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(167,139,250,0.14);
+  border: 1px solid rgba(167,139,250,0.30);
+  color: #C4B5FD;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: 'Outfit', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.saveBtn:hover {
+  background: rgba(167,139,250,0.22);
+}
+
+.saveBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ── Section Tabs ── */
+.tabs {
+  display: flex;
+  gap: 6px;
+  padding: 12px 14px 0;
+  position: relative;
+  z-index: 1;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.42);
+  font-size: 0.70rem;
+  font-weight: 600;
+  font-family: 'Outfit', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
+}
+
+.tab:hover {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.65);
+}
+
+.tabActive {
+  background: rgba(167,139,250,0.16);
+  border-color: rgba(167,139,250,0.35);
+  color: #C4B5FD;
+}
+
+/* ── Content Area ── */
+.content {
+  padding: 14px 14px 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Glass Tile ── */
+.glassTile {
+  background: rgba(255,255,255,0.038);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.glassTile::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(167,139,250,0.35) 40%, rgba(52,211,153,0.25) 70%, transparent);
+}
+
+/* ── Tile Labels ── */
+.tileLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.70);
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.tileLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.tileLabelRow .tileLabel {
+  margin-bottom: 0;
+}
+
+.tileDesc {
+  font-size: 0.62rem;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 10px;
+  font-family: 'Outfit', sans-serif;
+  line-height: 1.5;
+}
+
+.selectedCount {
+  font-size: 0.58rem;
+  color: rgba(167,139,250,0.75);
+  font-weight: 700;
+  font-family: 'Outfit', sans-serif;
+  background: rgba(167,139,250,0.10);
+  border: 1px solid rgba(167,139,250,0.18);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+/* ── Inputs ── */
+.input {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: #FFFFFF;
+  font-size: 0.80rem;
+  font-family: 'Outfit', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.input::placeholder {
+  color: rgba(255,255,255,0.22);
+}
+
+.input:focus {
+  border-color: rgba(167,139,250,0.45);
+  background: rgba(167,139,250,0.06);
+}
+
+.textarea {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: #FFFFFF;
+  font-size: 0.80rem;
+  font-family: 'Outfit', sans-serif;
+  outline: none;
+  resize: none;
+  line-height: 1.55;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.textarea::placeholder {
+  color: rgba(255,255,255,0.22);
+}
+
+.textarea:focus {
+  border-color: rgba(96,165,250,0.45);
+  background: rgba(96,165,250,0.05);
+}
+
+.charCount {
+  font-size: 0.52rem;
+  color: rgba(255,255,255,0.25);
+  text-align: right;
+  margin-top: 4px;
+  font-family: 'Outfit', sans-serif;
+}
+
+.hint {
+  font-size: 0.58rem;
+  color: rgba(255,255,255,0.28);
+  margin-top: 5px;
+  font-family: 'Outfit', sans-serif;
+}
+
+/* ── Hobby / Tag Grid ── */
+.hobbyGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.hobbyChip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.09);
+  color: rgba(255,255,255,0.55);
+  font-size: 0.65rem;
+  font-weight: 500;
+  font-family: 'Outfit', sans-serif;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.hobbyChip:hover {
+  background: rgba(167,139,250,0.10);
+  border-color: rgba(167,139,250,0.22);
+  color: rgba(255,255,255,0.80);
+}
+
+.hobbyChipActive {
+  background: rgba(167,139,250,0.16);
+  border-color: rgba(167,139,250,0.40);
+  color: #C4B5FD;
+}
+
+.hobbyIcon {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.hobbyLabel {
+  font-size: 0.65rem;
+}
+
+.hobbyCheck {
+  color: #A78BFA;
+  flex-shrink: 0;
+}
+
+/* ── Custom Hobby ── */
+.customWrap {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.customRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.customRow .input {
+  flex: 1;
+}
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(52,211,153,0.14);
+  border: 1px solid rgba(52,211,153,0.28);
+  color: #34D399;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.18s;
+}
+
+.addBtn:hover {
+  background: rgba(52,211,153,0.22);
+}
+
+.customChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.customChip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(52,211,153,0.10);
+  border: 1px solid rgba(52,211,153,0.22);
+  color: #6EE7B7;
+  font-size: 0.65rem;
+  font-weight: 500;
+  font-family: 'Outfit', sans-serif;
+}
+
+.removeChipBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.10);
+  border: none;
+  color: rgba(255,255,255,0.55);
+  cursor: pointer;
+  transition: background 0.15s;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.removeChipBtn:hover {
+  background: rgba(239,68,68,0.25);
+  color: #FCA5A5;
+}
+
+/* ── Prakriti Grid ── */
+.prakritiGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-top: 4px;
+}
+
+.prakritiBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.09);
+  color: rgba(255,255,255,0.50);
+  font-size: 0.70rem;
+  font-weight: 600;
+  font-family: 'Outfit', sans-serif;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-align: center;
+}
+
+.prakritiBtn:hover {
+  background: rgba(245,158,11,0.10);
+  border-color: rgba(245,158,11,0.22);
+  color: rgba(255,255,255,0.75);
+}
+
+.prakritiBtnActive {
+  background: rgba(245,158,11,0.14);
+  border-color: rgba(245,158,11,0.40);
+  color: #FCD34D;
+}
+
+/* ── Dosha Info Card ── */
+.doshaInfo {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.doshaEmoji {
+  font-size: 2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.doshaName {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #FCD34D;
+  font-family: 'Outfit', sans-serif;
+  margin-bottom: 4px;
+}
+
+.doshaDesc {
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.48);
+  font-family: 'Outfit', sans-serif;
+  line-height: 1.55;
+}
+
+/* ── Floating Save Button ── */
+.floatSaveBtn {
+  position: fixed;
+  bottom: calc(1.2rem + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 13px 32px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(167,139,250,0.22), rgba(99,102,241,0.18));
+  border: 1px solid rgba(167,139,250,0.40);
+  color: #C4B5FD;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: 'Outfit', sans-serif;
+  cursor: pointer;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.40), 0 0 24px rgba(167,139,250,0.18);
+  z-index: 200;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.floatSaveBtn:hover {
+  background: linear-gradient(135deg, rgba(167,139,250,0.30), rgba(99,102,241,0.26));
+  box-shadow: 0 10px 36px rgba(0,0,0,0.45), 0 0 32px rgba(167,139,250,0.28);
+}
+
+.floatSaveBtn:disabled {
+  opacity: 0.65;
+  cursor: default;
+}

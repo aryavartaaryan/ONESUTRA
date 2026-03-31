@@ -20,101 +20,47 @@ export default function BrahmastraFocusCard({
     const [localActive, setLocalActive] = useState(false);
     const active = remoteActive || localActive;
 
-    // ── INACTIVE: compact one-line strip ─────────────────────────────────────────
+    // ── INACTIVE: sleek minimal smart button ─────────────────────────────────────
     if (!active) {
         return (
-            <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                style={{
-                    width: '100%',
-                    maxWidth: 700,
-                    margin: '0 auto',
-                    padding: '0 0.8rem',
-                }}
-            >
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    background: 'rgba(0, 0, 0, 0.08)',
-                    backdropFilter: 'blur(2px) saturate(110%)',
-                    WebkitBackdropFilter: 'blur(2px) saturate(110%)',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    boxShadow: '0 4px 24px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
-                    borderRadius: 20,
-                    padding: '0.85rem 1.1rem',
-                }}>
-                    {/* Left: label */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <motion.div
-                            animate={{ opacity: [0.7, 1, 0.7], scale: [1, 1.05, 1] }}
-                            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-                            style={{
-                                fontSize: '1rem',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                width: 32, height: 32,
-                                background: 'linear-gradient(135deg, rgba(255,119,34,0.15), rgba(255,80,10,0.05))',
-                                border: '1px solid rgba(255,119,34,0.3)',
-                                borderRadius: '50%',
-                                boxShadow: '0 0 12px rgba(255,119,34,0.15)',
-                            }}
-                        >
-                            ⚡
-                        </motion.div>
-                        <div>
-                            <span style={{
-                                display: 'block',
-                                fontSize: 'clamp(0.7rem, 2.5vw, 0.85rem)',
-                                fontWeight: 700,
-                                letterSpacing: '0.14em',
-                                textTransform: 'uppercase',
-                                fontFamily: "'Inter', system-ui, sans-serif",
-                                color: '#fbbf24',
-                                marginBottom: '2px',
-                            }}>
-                                Advanced Protocol
-                            </span>
-                            <span style={{
-                                display: 'block',
-                                fontSize: 'clamp(0.55rem, 2vw, 0.65rem)',
-                                color: 'rgba(255,255,255,0.65)',
-                                fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
-                                fontStyle: 'italic',
-                                letterSpacing: '0.02em',
-                            }}>
-                                Deep Focus · Interruption Shield
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Right: Activate button */}
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => setLocalActive(true)}
-                        style={{
-                            display: 'flex', alignItems: 'center', gap: '0.3rem',
-                            padding: '0.45rem 1.1rem',
-                            background: 'rgba(255, 255, 255, 0.08)',
-                            backdropFilter: 'blur(12px)',
-                            border: '1px solid rgba(255, 255, 255, 0.20)',
-                            borderRadius: 12,
-                            cursor: 'pointer',
-                            color: 'rgba(255, 255, 255, 0.85)',
-                            fontSize: '0.65rem',
-                            fontWeight: 600,
-                            letterSpacing: '0.08em',
-                            fontFamily: "'Inter', system-ui, sans-serif",
-                            textTransform: 'uppercase',
-                        }}
-                    >
-                        ⚡ ACTIVATE
-                    </motion.button>
-                </div>
-            </motion.div>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '0 0.8rem' }}>
+                <motion.button
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    whileHover={{ scale: 1.04, boxShadow: '0 0 28px rgba(255,119,34,0.22), 0 4px 20px rgba(0,0,0,0.35)' }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setLocalActive(true)}
+                    style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 9,
+                        padding: '0.52rem 1.5rem',
+                        background: 'rgba(0,0,0,0.12)',
+                        backdropFilter: 'blur(18px)',
+                        WebkitBackdropFilter: 'blur(18px)',
+                        border: '1px solid rgba(255,119,34,0.26)',
+                        borderRadius: 999,
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 18px rgba(255,119,34,0.08), inset 0 1px 0 rgba(255,255,255,0.07)',
+                        transition: 'all 0.22s ease',
+                    }}
+                >
+                    <motion.span
+                        animate={{ opacity: [0.65, 1, 0.65], scale: [1, 1.12, 1] }}
+                        transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
+                        style={{ fontSize: '0.82rem', lineHeight: 1 }}
+                    >⚡</motion.span>
+                    <span style={{
+                        fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.12em',
+                        textTransform: 'uppercase', color: '#fbbf24',
+                        fontFamily: "'Inter', system-ui, sans-serif",
+                    }}>Advanced Protocol</span>
+                    <span style={{
+                        fontSize: '0.50rem', color: 'rgba(255,255,255,0.32)',
+                        fontWeight: 500, letterSpacing: '0.05em',
+                        fontFamily: "'Inter', system-ui, sans-serif",
+                    }}>· Activate</span>
+                </motion.button>
+            </div>
         );
     }
 

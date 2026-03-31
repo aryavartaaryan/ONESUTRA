@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2, VolumeX, X, Play, Pause } from 'lucide-react';
+import { Volume2, VolumeX, X, Play, Pause, User } from 'lucide-react';
 import { useDailyTasks, type TaskItem } from '@/hooks/useDailyTasks';
 
 // ── Default Bodhi stories (shown when user has no tasks/ideas/etc.) ──────────
@@ -121,6 +121,21 @@ const PRANA_LABEL: Record<string, string> = {
 // ── Story data ────────────────────────────────────────────────────────────────
 const STORIES = [
     {
+        id: 'task-planner',
+        type: 'awareness' as const,
+        label: 'Smart',
+        sublabel: 'Planner',
+        preview: '🗓️',
+        ring: 'conic-gradient(from 0deg, #a78bfa, #c4b5fd, #7c3aed, #a78bfa)',
+        color: '#a78bfa',
+        headline: 'Smart Task Planner',
+        description: "OneSUTRA's AI-powered planner aligns your tasks with your body's energy cycles — Dosha-aware scheduling that actually works.",
+        cta: 'Open Planner →',
+        destination: '/vedic-planner',
+        bgGradient: 'linear-gradient(160deg, #080010 0%, #180038 45%, #040010 100%)',
+        accentColor: '#a78bfa',
+    },
+    {
         id: 'sunset',
         type: 'video' as const,
         label: 'Sunset',
@@ -176,21 +191,6 @@ const STORIES = [
         videoSrc: videoUrl('Dhyan11.mp4'),
         ring: 'conic-gradient(from 0deg, #0ea5e9, #38bdf8, #7dd3fc, #0ea5e9)',
         color: '#34d399',
-    },
-    {
-        id: 'task-planner',
-        type: 'awareness' as const,
-        label: 'Task',
-        sublabel: 'Planner',
-        preview: '📋',
-        ring: 'conic-gradient(from 0deg, #38bdf8, #0ea5e9, #7dd3fc, #38bdf8)',
-        color: '#8b5cf6',
-        headline: 'Advanced Task Planner',
-        description: "Stop losing the battle against your own to-do list. OneSUTRA's research-backed planner aligns your tasks with your body's natural energy cycles — Dosha-aware scheduling that actually works.",
-        cta: 'Open Planner →',
-        destination: '/vedic-planner',
-        bgGradient: 'linear-gradient(160deg, #080010 0%, #180038 45%, #040010 100%)',
-        accentColor: '#8b5cf6',
     },
     {
         id: 'sandhya-mantra',
@@ -603,7 +603,7 @@ function UserStoryViewer({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            transition={{ duration: 0.07 }}
             onClick={e => e.stopPropagation()}
             style={{
                 position: 'relative',
@@ -994,7 +994,7 @@ function CosmicDateBubble({ onClick }: { onClick: () => void }) {
             </div>
             {/* Bottom frosted panel */}
             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '5px 6px 7px', background: 'rgba(10,0,30,0.42)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', borderTop: '1px solid rgba(255,215,0,0.22)', zIndex: 2 }}>
-                <div style={{ fontSize: '0.43rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: '#fbbf24', fontFamily: "'Inter',system-ui,sans-serif", textShadow: '0 0 8px #fbbf2480', lineHeight: 1.2, marginBottom: 2 }}>Panchang</div>
+                <div style={{ fontSize: '0.43rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: '#fbbf24', fontFamily: "'Inter',system-ui,sans-serif", textShadow: '0 0 8px #fbbf2480', lineHeight: 1.2, marginBottom: 2 }}>Cosmic Date</div>
                 <div style={{ fontSize: '0.56rem', fontWeight: 800, color: '#fff', fontFamily: "'Inter',system-ui,sans-serif", lineHeight: 1.2 }}>{day} {month}</div>
                 <div style={{ fontSize: '0.36rem', color: 'rgba(255,215,0,0.75)', fontFamily: "'Inter',system-ui,sans-serif" }}>Cosmic Date ✦</div>
             </div>
@@ -1108,7 +1108,7 @@ function CosmicDateViewer({ totalStoryCount, globalIndex, onClose, onNext, onPre
     const festival = panchang.festival !== 'None' ? panchang.festival : null;
 
     return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} onClick={e => e.stopPropagation()}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.07 }} onClick={e => e.stopPropagation()}
             style={{ position: 'relative', width: '100%', height: '100dvh', maxWidth: 430, overflow: 'hidden', background: '#050010' }}>
             {/* Starfield bg */}
             <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${COSMIC_BG})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.4) saturate(1.4)', opacity: 0.7 }} />
@@ -1240,7 +1240,7 @@ function StoryViewer({ story, totalStoryCount, globalIndex, onClose, onPrev, onN
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
+            transition={{ duration: 0.07 }}
             onClick={onClose}
             style={{
                 position: 'fixed', inset: 0, zIndex: 99999,
@@ -1625,7 +1625,6 @@ export default function StickyTopNav() {
                     {/* Nav icons */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         {[
-                            { href: '/pranaverse', emoji: '✦', color: '#a78bfa', label: 'PranaVerse' },
                             { href: '/project-leela', emoji: '🎵', color: '#fbbf24', label: 'Raag' },
                             { href: '/vedic-games', emoji: '🎲', color: '#4ade80', label: 'Games' },
                             { href: '/vedic-sangrah', emoji: '🪔', color: '#22d3ee', label: 'Gurukul' },
@@ -1648,16 +1647,37 @@ export default function StickyTopNav() {
                                         borderRadius: '50%', transform: 'rotate(-25deg)', filter: 'blur(2px)',
                                     }} />
                                     <span style={{
-                                        fontSize: emoji === '✦' ? '0.85rem' : '0.95rem',
+                                        fontSize: '0.95rem',
                                         position: 'relative', zIndex: 2,
                                         filter: `drop-shadow(0 0 5px ${color}88)`,
-                                        color: emoji === '✦' ? color : 'inherit',
                                         fontWeight: 900, lineHeight: 1,
                                     }}>{emoji}</span>
                                 </motion.div>
                                 <span style={{ fontSize: '6px', fontWeight: 600, color: `${color}99`, letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: "'Inter', system-ui, sans-serif", lineHeight: 1 }}>{label}</span>
                             </Link>
                         ))}
+                        {/* Profile button — navigates to /profile page */}
+                        <Link href="/profile" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, textDecoration: 'none' }}>
+                            <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.90 }}
+                                style={{
+                                    width: 32, height: 32, borderRadius: '50%',
+                                    background: 'radial-gradient(circle at 36% 26%, rgba(255,255,255,0.30) 0%, rgba(167,139,250,0.22) 52%, rgba(167,139,250,0.08) 100%)',
+                                    backdropFilter: 'blur(10px) saturate(180%)',
+                                    WebkitBackdropFilter: 'blur(10px) saturate(180%)',
+                                    border: '1.2px solid rgba(255,255,255,0.24)',
+                                    boxShadow: '0 0 12px rgba(167,139,250,0.44), 0 2px 8px rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.24)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    position: 'relative', overflow: 'hidden',
+                                }}>
+                                <div style={{
+                                    position: 'absolute', top: '6%', left: '10%', width: '52%', height: '35%',
+                                    background: 'radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0.22) 40%, transparent 100%)',
+                                    borderRadius: '50%', transform: 'rotate(-25deg)', filter: 'blur(2px)',
+                                }} />
+                                <User size={15} style={{ position: 'relative', zIndex: 2, color: '#a78bfa', filter: 'drop-shadow(0 0 5px rgba(167,139,250,0.88))' }} />
+                            </motion.div>
+                            <span style={{ fontSize: '6px', fontWeight: 600, color: 'rgba(167,139,250,0.60)', letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: "'Inter', system-ui, sans-serif", lineHeight: 1 }}>Profile</span>
+                        </Link>
                     </div>
                 </div>
 
@@ -1741,7 +1761,7 @@ export default function StickyTopNav() {
                         onClick={closeAll}
                     >
                         {/* Inner content crossfades without backdrop flicker */}
-                        <AnimatePresence mode="wait">
+                        <AnimatePresence mode="sync">
                             {cosmicOpen && (
                                 <CosmicDateViewer
                                     key="cosmic"

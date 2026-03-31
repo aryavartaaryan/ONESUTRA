@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Briefcase, User } from 'lucide-react';
+import { Home, Briefcase, User, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -73,9 +73,9 @@ export default function VahanaBar() {
             icon: 'pranaverse' as const,
         },
         {
-            id: 'profile', href: '/profile',
-            label: 'Profile',
-            icon: 'user' as const,
+            id: 'chat', href: '/pranaverse-chat',
+            label: 'Chat',
+            icon: 'chat' as const,
         },
     ] as const;
 
@@ -136,17 +136,26 @@ export default function VahanaBar() {
                             >
                                 {/* PranaVerse — elevated floated circle */}
                                 {isPrana && isActive ? (
-                                    <div style={{
-                                        width: 50, height: 50,
-                                        borderRadius: '50%',
-                                        background: 'linear-gradient(145deg, #0f0a1e, #1a0f2e)',
-                                        border: '1.8px solid rgba(167,139,250,0.78)',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        animation: 'vahana-prana-pulse 2.8s ease-in-out infinite',
-                                        marginTop: '-20px',
-                                        position: 'relative', zIndex: 2,
-                                    }}>
-                                        <PranaVerseIcon size={22} active />
+                                    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                        {/* Faint gold top line above the active icon */}
+                                        <div style={{
+                                            position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)',
+                                            width: 32, height: 2,
+                                            background: 'linear-gradient(90deg, transparent, rgba(251,191,36,0.72) 30%, rgba(251,191,36,0.85) 50%, rgba(251,191,36,0.72) 70%, transparent)',
+                                            borderRadius: 99,
+                                        }} />
+                                        <div style={{
+                                            width: 50, height: 50,
+                                            borderRadius: '50%',
+                                            background: 'linear-gradient(145deg, #0f0a1e, #1a0f2e)',
+                                            border: '1.8px solid rgba(167,139,250,0.78)',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            animation: 'vahana-prana-pulse 2.8s ease-in-out infinite',
+                                            marginTop: '-20px',
+                                            position: 'relative', zIndex: 2,
+                                        }}>
+                                            <PranaVerseIcon size={22} active />
+                                        </div>
                                     </div>
                                 ) : isHome && isActive ? (
                                     <div style={{
@@ -179,6 +188,9 @@ export default function VahanaBar() {
                                         ) : icon === 'briefcase' ? (
                                             <Briefcase size={17} strokeWidth={isActive ? 2.1 : 1.6}
                                                 style={{ color: isActive ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.38)', transition: 'all 0.25s ease' }} />
+                                        ) : icon === 'chat' ? (
+                                            <MessageCircle size={17} strokeWidth={isActive ? 2.1 : 1.6}
+                                                style={{ color: isActive ? '#a78bfa' : 'rgba(255,255,255,0.38)', transition: 'all 0.25s ease' }} />
                                         ) : (
                                             <User size={17} strokeWidth={isActive ? 2.1 : 1.6}
                                                 style={{ color: isActive ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.38)', transition: 'all 0.25s ease' }} />

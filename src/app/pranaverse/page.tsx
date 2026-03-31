@@ -419,25 +419,9 @@ function _StoryBar_REMOVED() {
 }
 
 // ════════════════════════════════════════════════════════
-//  REEL GRID CARD
+//  REEL GRID CARD — Clean YouTube-style
 // ════════════════════════════════════════════════════════
 function ReelGridCard({ item, onClick }: { item: ReelItem; onClick: () => void }) {
-    const [liked, setLiked] = useState(false);
-    const [loved, setLoved] = useState(false);
-    const [likeCount, setLikeCount] = useState(item.likes);
-    const [loveCount, setLoveCount] = useState(Math.floor(item.likes * 0.42));
-
-    const handleLike = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setLiked(l => !l);
-        setLikeCount(c => liked ? c - 1 : c + 1);
-    };
-    const handleLove = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setLoved(l => !l);
-        setLoveCount(c => loved ? c - 1 : c + 1);
-    };
-
     return (
         <motion.div
             onClick={onClick}
@@ -466,131 +450,58 @@ function ReelGridCard({ item, onClick }: { item: ReelItem; onClick: () => void }
                     src={item.imageUrl}
                     alt="Sacred nature"
                     loading="lazy"
-                    style={{
-                        position: 'absolute', inset: 0, width: '100%', height: '100%',
-                        objectFit: 'cover', objectPosition: 'center',
-                    }}
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
                 />
             )}
 
-            {/* Gradient overlay — bottom → top dark */}
+            {/* Bottom gradient scrim */}
             <div style={{
                 position: 'absolute', inset: 0,
-                background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.08) 100%)',
+                background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.18) 50%, transparent 100%)',
                 pointerEvents: 'none',
             }} />
 
-            {/* Top status bar */}
+            {/* Views badge — top right only */}
             <div style={{
-                position: 'absolute', top: 0, left: 0, right: 0,
-                padding: '0.5rem 0.6rem 0.3rem',
-                background: 'linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 100%)',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            }}>
-                <div style={{
-                    fontSize: '0.45rem', fontWeight: 700, letterSpacing: '0.12em',
-                    color: 'rgba(251,191,36,0.9)', textTransform: 'uppercase',
-                    fontFamily: "'Inter', sans-serif",
-                    background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)',
-                    padding: '0.18rem 0.5rem', borderRadius: 99,
-                    border: '1px solid rgba(251,191,36,0.25)',
-                }}>▶ PranaVerse</div>
-                <div style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.5)' }}>{item.views} views</div>
-            </div>
+                position: 'absolute', top: 8, right: 8,
+                fontSize: '0.40rem', color: 'rgba(255,255,255,0.72)',
+                background: 'rgba(0,0,0,0.52)', backdropFilter: 'blur(8px)',
+                padding: '0.14rem 0.42rem', borderRadius: 4,
+                fontFamily: "'Inter', sans-serif", fontWeight: 600,
+            }}>{item.views}</div>
 
-            {/* Mantra overlay — center */}
+            {/* Bottom text — mantra title + meaning */}
             <div style={{
-                position: 'absolute', bottom: '22%', left: '0.6rem', right: '0.6rem',
-                textAlign: 'center',
+                position: 'absolute', bottom: 0, left: 0, right: 0,
+                padding: '0.7rem 0.65rem 0.6rem',
                 pointerEvents: 'none',
             }}>
                 <p style={{
                     fontFamily: "'Cormorant Garamond', 'Noto Serif Devanagari', serif",
-                    fontSize: 'clamp(0.9rem, 3vw, 1.15rem)',
+                    fontSize: 'clamp(0.85rem, 2.8vw, 1.05rem)',
                     fontWeight: 600,
-                    color: item.mantra.color,
-                    textShadow: `0 0 20px ${item.mantra.color}88, 0 2px 8px rgba(0,0,0,0.9)`,
+                    color: '#fff',
+                    textShadow: '0 1px 8px rgba(0,0,0,0.95)',
                     lineHeight: 1.3,
-                    marginBottom: '0.2rem',
+                    margin: '0 0 0.18rem',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical' as any,
+                    overflow: 'hidden',
                 }}>{item.mantra.sanskrit}</p>
                 <p style={{
                     fontFamily: "'Inter', sans-serif",
-                    fontSize: 'clamp(0.45rem, 1.5vw, 0.58rem)',
-                    color: 'rgba(255,255,255,0.75)',
-                    letterSpacing: '0.06em',
-                    textShadow: '0 1px 6px rgba(0,0,0,0.9)',
-                    fontStyle: 'italic',
+                    fontSize: 'clamp(0.42rem, 1.4vw, 0.54rem)',
+                    color: 'rgba(255,255,255,0.55)',
+                    letterSpacing: '0.04em',
+                    margin: 0,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 1,
+                    WebkitBoxOrient: 'vertical' as any,
+                    overflow: 'hidden',
                 }}>{item.mantra.meaning}</p>
             </div>
 
-            {/* Bottom action strip — glass-encircled icons */}
-            <div style={{
-                position: 'absolute', bottom: 0, left: 0, right: 0,
-                padding: '0.55rem 0.9rem 0.75rem',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%)',
-            }}>
-                {/* Heart — glass encircled */}
-                <button onClick={handleLike} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem', padding: 0 }}>
-                    <motion.div
-                        animate={liked ? { scale: [1, 1.38, 0.9, 1.08, 1], rotate: [0, -6, 4, -2, 0] } : { scale: 1 }}
-                        transition={{ duration: 0.44, ease: [0.22, 1, 0.36, 1] }}
-                        style={{
-                            width: 36, height: 36, borderRadius: '50%',
-                            background: liked ? 'rgba(237,73,86,0.18)' : 'rgba(255,255,255,0.11)',
-                            backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-                            border: liked ? '1px solid rgba(237,73,86,0.45)' : '1px solid rgba(255,255,255,0.2)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: liked ? '0 3px 14px rgba(237,73,86,0.3)' : '0 3px 12px rgba(0,0,0,0.4)',
-                            transition: 'all 0.25s',
-                        }}
-                    >
-                        <svg width="17" height="17" viewBox="0 0 24 24"
-                            fill={liked ? '#ed4956' : 'none'}
-                            stroke={liked ? '#ed4956' : 'rgba(255,255,255,0.95)'}
-                            strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-                            style={{ filter: liked ? 'drop-shadow(0 0 5px rgba(237,73,86,0.5))' : 'none', display: 'block' }}>
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                        </svg>
-                    </motion.div>
-                    <span style={{ fontSize: '0.47rem', color: liked ? '#ed4956' : 'rgba(255,255,255,0.82)', fontFamily: "'Inter', sans-serif", fontWeight: 700, textShadow: '0 1px 3px rgba(0,0,0,0.85)' }}>
-                        {likeCount > 999 ? `${(likeCount / 1000).toFixed(1)}K` : likeCount}
-                    </span>
-                </button>
-
-                {/* Play indicator */}
-                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.11)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1.5px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 3px 12px rgba(0,0,0,0.5)' }}>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="white" style={{ marginLeft: 2 }}><polygon points="5 3 19 12 5 21 5 3" /></svg>
-                </div>
-
-                {/* Bookmark / Save — glass encircled */}
-                <button onClick={handleLove} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem', padding: 0 }}>
-                    <motion.div
-                        animate={loved ? { scale: [1, 1.38, 0.9, 1.08, 1], rotate: [0, 18, -10, 5, 0] } : { scale: 1 }}
-                        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                        style={{
-                            width: 36, height: 36, borderRadius: '50%',
-                            background: loved ? 'rgba(251,191,36,0.18)' : 'rgba(255,255,255,0.11)',
-                            backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-                            border: loved ? '1px solid rgba(251,191,36,0.45)' : '1px solid rgba(255,255,255,0.2)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: loved ? '0 3px 14px rgba(251,191,36,0.3)' : '0 3px 12px rgba(0,0,0,0.4)',
-                            transition: 'all 0.25s',
-                        }}
-                    >
-                        <svg width="15" height="15" viewBox="0 0 24 24"
-                            fill={loved ? '#fbbf24' : 'none'}
-                            stroke={loved ? '#fbbf24' : 'rgba(255,255,255,0.95)'}
-                            strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-                            style={{ filter: loved ? 'drop-shadow(0 0 5px rgba(251,191,36,0.5))' : 'none', display: 'block' }}>
-                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                        </svg>
-                    </motion.div>
-                    <span style={{ fontSize: '0.47rem', color: loved ? '#fbbf24' : 'rgba(255,255,255,0.82)', fontFamily: "'Inter', sans-serif", fontWeight: 700, textShadow: '0 1px 3px rgba(0,0,0,0.85)' }}>
-                        {loveCount > 999 ? `${(loveCount / 1000).toFixed(1)}K` : loveCount}
-                    </span>
-                </button>
-            </div>
         </motion.div>
     );
 }
@@ -767,10 +678,6 @@ function PortalGridCard({ item }: { item: PortalItem }) {
 // ════════════════════════════════════════════════════════
 function ResonanceReelCard({ item, onClick }: { item: ResonanceItem; onClick: () => void }) {
     const s = item.story;
-    const [liked, setLiked] = React.useState(false);
-    const [loved, setLoved] = React.useState(false);
-    const [likeCount, setLikeCount] = React.useState(item.likes);
-    const [loveCount, setLoveCount] = React.useState(Math.floor(item.likes * 0.38));
     const hasMantras = !!(s as any).mantra;
 
     return (
@@ -878,49 +785,8 @@ function ResonanceReelCard({ item, onClick }: { item: ResonanceItem; onClick: ()
                     }}>{(s as any).mantra}</div>
                 )}
 
-                {/* Action row — polished SVG icons */}
-                <div style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    marginTop: '0.4rem',
-                }}>
-                    <button
-                        onClick={e => { e.stopPropagation(); setLiked(l => !l); setLikeCount(c => liked ? c - 1 : c + 1); }}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', padding: 0 }}
-                    >
-                        <motion.div animate={liked ? { scale: [1, 1.42, 0.9, 1.08, 1] } : { scale: 1 }} transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}>
-                            <svg width="18" height="18" viewBox="0 0 24 24"
-                                fill={liked ? '#ed4956' : 'none'}
-                                stroke={liked ? '#ed4956' : 'rgba(255,255,255,0.88)'}
-                                strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"
-                                style={{ filter: liked ? 'drop-shadow(0 0 5px rgba(237,73,86,0.55))' : 'none', display: 'block' }}>
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                            </svg>
-                        </motion.div>
-                        <span style={{ fontSize: '0.42rem', color: liked ? '#ed4956' : 'rgba(255,255,255,0.7)', fontFamily: "'Inter', sans-serif", fontWeight: 700 }}>
-                            {likeCount > 999 ? `${(likeCount / 1000).toFixed(1)}K` : likeCount}
-                        </span>
-                    </button>
-                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svg width="9" height="9" viewBox="0 0 24 24" fill="white" style={{ marginLeft: 2 }}><polygon points="5 3 19 12 5 21 5 3" /></svg>
-                    </div>
-                    <button
-                        onClick={e => { e.stopPropagation(); setLoved((l: boolean) => !l); setLoveCount((c: number) => loved ? c - 1 : c + 1); }}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', padding: 0 }}
-                    >
-                        <motion.div animate={loved ? { scale: [1, 1.42, 0.9, 1.08, 1], rotate: [0, 15, -8, 4, 0] } : { scale: 1 }} transition={{ duration: 0.46, ease: [0.22, 1, 0.36, 1] }}>
-                            <svg width="18" height="18" viewBox="0 0 24 24"
-                                fill={loved ? '#fbbf24' : 'none'}
-                                stroke={loved ? '#fbbf24' : 'rgba(255,255,255,0.88)'}
-                                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                                style={{ filter: loved ? 'drop-shadow(0 0 7px rgba(251,191,36,0.9))' : 'drop-shadow(0 1px 3px rgba(0,0,0,0.85))', display: 'block' }}>
-                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                            </svg>
-                        </motion.div>
-                        <span style={{ fontSize: '0.42rem', color: loved ? '#fbbf24' : 'rgba(255,255,255,0.7)', fontFamily: "'Inter', sans-serif", fontWeight: 700 }}>
-                            {loveCount > 999 ? `${(loveCount / 1000).toFixed(1)}K` : loveCount}
-                        </span>
-                    </button>
-                </div>
+                {/* View count — minimal */}
+                <div style={{ marginTop: '0.3rem', fontSize: '0.40rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Inter', sans-serif" }}>{item.views} views</div>
             </div>
         </motion.div>
     );
@@ -1112,7 +978,9 @@ function FullscreenReelModal({
 }) {
     const currentAuthorName = authorName;
     const [current, setCurrent] = useState(initialIndex);
+    const [direction, setDirection] = useState(1);
     const [muted, setMuted] = useState(true);
+    const [showMuteHint, setShowMuteHint] = useState(true);
     const [liked, setLiked] = useState<Set<string>>(new Set());
     const [liveLikes, setLiveLikes] = useState<Record<string, number>>({});
     const [liveComments, setLiveCmts] = useState<Record<string, number>>({});
@@ -1125,6 +993,7 @@ function FullscreenReelModal({
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const dragStartY = useRef(0);
     const lastTap = useRef(0);
+    const audioUnlocked = useRef(false);
     const cmtUnsub = useRef<(() => void) | null>(null);
     const dragY = useMotionValue(0);
     const opacity = useTransform(dragY, [-200, 0, 200], [0, 1, 0]);
@@ -1141,8 +1010,8 @@ function FullscreenReelModal({
     useEffect(() => {
         const h = (e: KeyboardEvent) => {
             if (e.key === 'Escape') onClose();
-            if (e.key === 'ArrowUp') setCurrent(c => Math.max(0, c - 1));
-            if (e.key === 'ArrowDown') setCurrent(c => Math.min(items.length - 1, c + 1));
+            if (e.key === 'ArrowUp') { setDirection(-1); setCurrent(c => Math.max(0, c - 1)); }
+            if (e.key === 'ArrowDown') { setDirection(1); setCurrent(c => Math.min(items.length - 1, c + 1)); }
         };
         window.addEventListener('keydown', h);
         return () => window.removeEventListener('keydown', h);
@@ -1152,9 +1021,22 @@ function FullscreenReelModal({
         const v = videoRef.current;
         if (!v) return;
         v.muted = muted;
-        v.play().catch(() => { });
+        const p = v.play();
+        if (p !== undefined) {
+            p.catch(() => {
+                v.muted = true;
+                setMuted(true);
+                v.play().catch(() => {});
+            });
+        }
         return () => { try { v.pause(); } catch { } };
     }, [current, muted]);
+
+    useEffect(() => {
+        if (!showMuteHint) return;
+        const t = setTimeout(() => setShowMuteHint(false), 3000);
+        return () => clearTimeout(t);
+    }, [showMuteHint]);
 
     // ── Firebase: real-time likes ──────────────────────────────────────────────
     useEffect(() => {
@@ -1194,8 +1076,8 @@ function FullscreenReelModal({
     }, [showComments, reelId]);
 
     // ── Navigation ────────────────────────────────────────────────────────────
-    const goNext = useCallback(() => { setShowCmts(false); setCurrent(c => Math.min(items.length - 1, c + 1)); }, [items.length]);
-    const goPrev = useCallback(() => { setShowCmts(false); setCurrent(c => Math.max(0, c - 1)); }, []);
+    const goNext = useCallback(() => { setDirection(1); setShowCmts(false); setCurrent(c => Math.min(items.length - 1, c + 1)); }, [items.length]);
+    const goPrev = useCallback(() => { setDirection(-1); setShowCmts(false); setCurrent(c => Math.max(0, c - 1)); }, []);
     const handleWheel = useCallback((e: React.WheelEvent) => { if (e.deltaY > 40) goNext(); else if (e.deltaY < -40) goPrev(); }, [goNext, goPrev]);
     const handleTouchStart = useCallback((e: React.TouchEvent) => { dragStartY.current = e.touches[0].clientY; }, []);
     const handleTouchEnd = useCallback((e: React.TouchEvent) => {
@@ -1217,10 +1099,18 @@ function FullscreenReelModal({
         } catch { /* offline */ }
     }, [reelId, liked]);
 
-    // ── Double-tap detect ─────────────────────────────────────────────────────
+    // ── Single-tap unmute / Double-tap like ──────────────────────────────────
     const handleScreenTap = useCallback(() => {
         const now = Date.now();
-        if (now - lastTap.current < 300) triggerLike();
+        if (now - lastTap.current < 300) {
+            triggerLike();
+        } else {
+            if (!audioUnlocked.current) {
+                audioUnlocked.current = true;
+                setMuted(false);
+                setShowMuteHint(false);
+            }
+        }
         lastTap.current = now;
     }, [triggerLike]);
 
@@ -1252,17 +1142,20 @@ function FullscreenReelModal({
 
     return (
         <motion.div
-            style={{ position: 'fixed', inset: 0, zIndex: 9998, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity }}
+            style={{ position: 'fixed', inset: 0, zIndex: 9998, background: '#000', opacity }}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onWheel={handleWheel} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}
             onClick={handleScreenTap}
         >
-            <AnimatePresence mode="wait">
+            <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+            <AnimatePresence initial={false} mode="sync">
                 <motion.div
                     key={current}
-                    initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -80, opacity: 0 }}
-                    transition={{ duration: 0.28, ease: [0.25, 0.8, 0.25, 1] }}
-                    style={{ width: '100%', height: '100dvh', position: 'relative', overflow: 'hidden' }}
+                    initial={{ y: direction >= 0 ? '100%' : '-100%' }}
+                    animate={{ y: 0 }}
+                    exit={{ y: direction >= 0 ? '-100%' : '100%' }}
+                    transition={{ duration: 0.32, ease: [0.25, 0.8, 0.25, 1] }}
+                    style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}
                 >
                     {/* ── Media background ── */}
                     {item.type === 'reel' && item.localVideoSrc ? (
@@ -1282,14 +1175,6 @@ function FullscreenReelModal({
                     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: 'max(env(safe-area-inset-top),1rem) 1rem 0.5rem', background: 'linear-gradient(180deg,rgba(0,0,0,0.72) 0%,transparent 100%)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 }}>
                         <span style={{ fontFamily: "'Inter','Outfit',sans-serif", fontSize: '1.1rem', color: 'rgba(167,139,250,0.97)', fontWeight: 800, letterSpacing: '0.04em', filter: 'drop-shadow(0 1px 6px rgba(0,0,0,0.7))' }}>PranaVerse</span>
                         <div style={{ display: 'flex', gap: '0.25rem' }}>
-                            <button onClick={e => { e.stopPropagation(); setMuted(m => !m); }}
-                                style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 6, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.8))' }}>
-                                {muted ? (
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" /></svg>
-                                ) : (
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" /></svg>
-                                )}
-                            </button>
                             <button onClick={e => { e.stopPropagation(); onClose(); }}
                                 style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 6, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.8))' }}>
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
@@ -1457,6 +1342,14 @@ function FullscreenReelModal({
                         )}
                     </AnimatePresence>
 
+                    {/* ── Tap-to-unmute hint ── */}
+                    {showMuteHint && muted && (
+                        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderRadius: 999, padding: '0.5rem 1.3rem', color: '#fff', fontSize: '0.78rem', fontFamily: "'Inter',sans-serif", fontWeight: 600, letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 7, pointerEvents: 'none', zIndex: 30, border: '1px solid rgba(255,255,255,0.18)' }}>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" /></svg>
+                            <span>Tap to unmute</span>
+                        </div>
+                    )}
+
                     {/* Swipe hint */}
                     <motion.div
                         animate={{ y: [0, -8, 0] }}
@@ -1489,6 +1382,7 @@ function FullscreenReelModal({
                     </div>
                 </motion.div>
             </AnimatePresence>
+            </div>
 
             {/* Prev / Next nav buttons (desktop) */}
             <button

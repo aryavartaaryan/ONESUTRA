@@ -113,9 +113,10 @@ function CircleAvatar({ u, active, onClick }: { u: SutraUser; active: boolean; o
 
 // Ultra Snapchat-style seeker card
 type SeekerStatus = 'none' | 'sent' | 'received' | 'friends';
-function SeekerCard({ u, status, isNature, onAdd, onAccept, onDecline, onChat }: {
+function SeekerCard({ u, status, isNature, onAdd, onAccept, onDecline, onChat, onViewProfile }: {
     u: SutraUser; status: SeekerStatus; isNature: boolean;
     onAdd: () => void; onAccept: () => void; onDecline: () => void; onChat: () => void;
+    onViewProfile?: () => void;
 }) {
     const color = getAvatarColor(u.uid);
     const initials = getInitials(u.name);
@@ -149,7 +150,7 @@ function SeekerCard({ u, status, isNature, onAdd, onAccept, onDecline, onChat }:
             onClick={status === 'friends' ? onChat : undefined}>
 
             {/* Avatar with ring */}
-            <div style={{ position: 'relative', flexShrink: 0 }}>
+            <div style={{ position: 'relative', flexShrink: 0 }} onClick={e => { e.stopPropagation(); onViewProfile?.(); }}>
                 {status === 'received' && (
                     <motion.div animate={{ rotate: 360 }} transition={{ duration: 5, repeat: Infinity, ease: 'linear' }}
                         style={{ position: 'absolute', inset: -2.5, borderRadius: '50%', background: 'conic-gradient(#fb923c,#fbbf24,#fb923c)', opacity: 0.85 }} />
@@ -301,6 +302,8 @@ export default function PranverseChatHub() {
     // Invite feature state
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [inviteLinkCopied, setInviteLinkCopied] = useState(false);
+    // Profile sheet
+    const [profileUser, setProfileUser] = useState<SutraUser | null>(null);
 
     // ── Real users from Firebase ──────────────────────────────────────────────
     const { users: allUsers } = useUsers(uid);
@@ -571,33 +574,29 @@ export default function PranverseChatHub() {
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.55rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <motion.button whileTap={{ scale: 0.9 }} onClick={() => router.push('/pranaverse')} style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.7)' }}><ArrowLeft size={14} /></motion.button>
-                        <div>
-                            <p style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", background: 'linear-gradient(120deg,#c4b5fd 0%,#a78bfa 50%,#818cf8 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>PranaVerse Chat</p>
-                            <p style={{ margin: 0, fontSize: '0.46rem', color: 'rgba(167,139,250,0.45)', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'monospace' }}>✦ Energy Community</p>
-                        </div>
+                {/* Single-line header: back | title | search | live | toggle */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                    <motion.button whileTap={{ scale: 0.9 }} onClick={() => router.push('/pranaverse')} style={{ flexShrink: 0, width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.11)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.65)' }}><ArrowLeft size={13} /></motion.button>
+                    <p style={{ flexShrink: 0, margin: 0, fontSize: '0.90rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", background: 'linear-gradient(120deg,#c4b5fd 0%,#a78bfa 50%,#818cf8 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', letterSpacing: '-0.01em' }}>PranaVerse Chat</p>
+                    {/* Search — fills available space */}
+                    <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
+                        <Search size={11} style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.28)', pointerEvents: 'none' }} />
+                        <input value={seekerSearch} onChange={e => setSeekerSearch(e.target.value)} placeholder="Search seekers…" style={{ width: '100%', boxSizing: 'border-box', background: isNature ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 999, padding: '0.36rem 0.65rem 0.36rem 1.8rem', color: 'rgba(255,255,255,0.80)', fontSize: '0.68rem', outline: 'none', fontFamily: "'Outfit',sans-serif", transition: 'border-color 0.2s' }} />
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(74,222,128,0.14)', border: '1px solid rgba(74,222,128,0.32)', borderRadius: 999, padding: '0.25rem 0.65rem' }}>
-                            <motion.div animate={{ scale: [1, 1.45, 1], opacity: [0.6, 1, 0.6] }} transition={{ duration: 1.4, repeat: Infinity }} style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 8px rgba(74,222,128,0.95)' }} />
-                            <span style={{ fontSize: '0.50rem', color: '#4ade80', fontWeight: 800, letterSpacing: '0.04em' }}>{allUsers.filter(u => u.online).length + 1} live</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: isNature ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.06)', border: `1px solid ${isNature ? 'rgba(255,255,255,0.20)' : 'rgba(255,255,255,0.09)'}`, borderRadius: 999, padding: '0.30rem 0.70rem', cursor: 'pointer', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }} onClick={() => setIsNature(n => !n)}>
-                            <AnimatePresence mode="wait">
-                                <motion.span key={isNature ? 'n' : 'd'} initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.6, opacity: 0 }} transition={{ duration: 0.18 }}>
-                                    {isNature ? <Leaf size={11} color="#4ade80" /> : <Moon size={11} color="#818cf8" />}
-                                </motion.span>
-                            </AnimatePresence>
-                            <span style={{ fontSize: '0.50rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: isNature ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.48)' }}>{isNature ? 'Nature' : 'Dark'}</span>
-                        </div>
+                    {/* Live badge */}
+                    <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 3, background: 'rgba(74,222,128,0.13)', border: '1px solid rgba(74,222,128,0.30)', borderRadius: 999, padding: '0.22rem 0.52rem' }}>
+                        <motion.div animate={{ scale: [1, 1.45, 1], opacity: [0.6, 1, 0.6] }} transition={{ duration: 1.4, repeat: Infinity }} style={{ width: 5, height: 5, borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 6px rgba(74,222,128,0.9)' }} />
+                        <span style={{ fontSize: '0.46rem', color: '#4ade80', fontWeight: 800, letterSpacing: '0.04em' }}>{allUsers.filter(u => u.online).length + 1} live</span>
                     </div>
-                </div>
-                {/* Search bar */}
-                <div style={{ position: 'relative' }}>
-                    <Search size={12} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.32)' }} />
-                    <input value={seekerSearch} onChange={e => setSeekerSearch(e.target.value)} placeholder="Search Resonating people and make friends & community" style={{ width: '100%', boxSizing: 'border-box', background: isNature ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 999, padding: '0.42rem 0.75rem 0.42rem 2rem', color: 'rgba(255,255,255,0.80)', fontSize: '0.75rem', outline: 'none', fontFamily: "'Outfit',sans-serif" }} />
+                    {/* Dark / Nature toggle */}
+                    <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5, background: isNature ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.06)', border: `1px solid ${isNature ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.09)'}`, borderRadius: 999, padding: '0.24rem 0.58rem', cursor: 'pointer', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }} onClick={() => setIsNature(n => !n)}>
+                        <AnimatePresence mode="wait">
+                            <motion.span key={isNature ? 'n' : 'd'} initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.6, opacity: 0 }} transition={{ duration: 0.18 }}>
+                                {isNature ? <Leaf size={10} color="#4ade80" /> : <Moon size={10} color="#818cf8" />}
+                            </motion.span>
+                        </AnimatePresence>
+                        <span style={{ fontSize: '0.46rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: isNature ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.45)' }}>{isNature ? 'Nature' : 'Dark'}</span>
+                    </div>
                 </div>
             </div>
 
@@ -609,7 +608,7 @@ export default function PranverseChatHub() {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                             <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2.4, repeat: Infinity }} style={{ width: 5, height: 5, borderRadius: '50%', background: '#fbbf24', boxShadow: '0 0 5px rgba(251,191,36,0.8)' }} />
-                            <span style={{ fontSize: '0.44rem', fontWeight: 800, color: 'rgba(255,255,255,0.40)', letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'monospace' }}>⚡ Energy Circle</span>
+                            <span style={{ fontSize: '0.44rem', fontWeight: 800, color: 'rgba(255,255,255,0.40)', letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'monospace' }}>✦ Your Circle</span>
                         </div>
                         <div style={{ display: 'flex', gap: 4 }}>
                             <motion.button whileTap={{ scale: 0.88 }} onClick={() => setShowAddStory(true)}
@@ -621,19 +620,6 @@ export default function PranverseChatHub() {
                                 <Plus size={9} /> Circle
                             </motion.button>
                         </div>
-                    </div>
-                    {/* Horizontal-only story circles — won't cause vertical scroll */}
-                    <div className="circlebar" style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: 3, scrollbarWidth: 'none' }}>
-                        <motion.div whileTap={{ scale: 0.90 }} onClick={() => setShowAddStory(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, flexShrink: 0, width: 46, cursor: 'pointer' }}>
-                            <div style={{ position: 'relative' }}>
-                                <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1.5px dashed rgba(255,255,255,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', margin: 1.5 }}>+</div>
-                            </div>
-                            <span style={{ fontSize: '0.44rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Outfit',sans-serif", textAlign: 'center' }}>My Story</span>
-                        </motion.div>
-                        <BodhiCircle active={activeId === 'bodhi'} unread={bodhiUnread} onClick={() => handleSelect('bodhi')} />
-                        {acceptedFriends.map(u => (
-                            <CircleAvatar key={u.uid} u={u} active={activeId === u.uid} onClick={() => handleSelect(u.uid)} />
-                        ))}
                     </div>
                 </div>
 
@@ -653,7 +639,7 @@ export default function PranverseChatHub() {
                         </motion.button>
                     </motion.div>
 
-                    {/* ── Accepted friends — inline, no sub-scroll ── */}
+                    {/* ── Accepted friends — Snapchat-style with camera + story ring ── */}
                     <AnimatePresence>
                         {acceptedFriends.map(u => {
                             const c = getAvatarColor(u.uid);
@@ -661,21 +647,31 @@ export default function PranverseChatHub() {
                             return (
                                 <motion.div key={u.uid} layout initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ type: 'spring', stiffness: 340, damping: 26 }}
                                     onClick={() => handleSelect(u.uid)}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', padding: '0.6rem 0.85rem', marginBottom: '0.22rem', borderRadius: 16, background: activeId === u.uid ? `${c}12` : 'rgba(255,255,255,0.03)', border: `1px solid ${activeId === u.uid ? `${c}30` : 'rgba(255,255,255,0.07)'}`, cursor: 'pointer', transition: 'all 0.2s' }}>
-                                    <div style={{ position: 'relative', flexShrink: 0 }}>
-                                        <div style={{ width: 42, height: 42, borderRadius: '50%', background: u.photoURL ? undefined : `radial-gradient(circle at 35% 28%,rgba(255,255,255,0.22) 0%,${c}60 100%)`, border: `1.5px solid ${c}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.80rem', fontWeight: 700, color: '#fff', overflow: 'hidden' }}>
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', padding: '0.55rem 0.85rem', marginBottom: '0.18rem', borderRadius: 18, background: activeId === u.uid ? `${c}14` : 'rgba(255,255,255,0.03)', border: `1px solid ${activeId === u.uid ? `${c}35` : 'rgba(255,255,255,0.07)'}`, cursor: 'pointer', transition: 'all 0.18s', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
+                                    {/* Story ring avatar */}
+                                    <div style={{ position: 'relative', flexShrink: 0 }} onClick={e => { e.stopPropagation(); setProfileUser(u); }}>
+                                        <div style={{ position: 'absolute', inset: -2, borderRadius: '50%', background: `conic-gradient(${c},${c}55,${c})`, opacity: 0.75 }} />
+                                        <div style={{ position: 'relative', zIndex: 1, width: 42, height: 42, borderRadius: '50%', background: u.photoURL ? undefined : `radial-gradient(circle at 35% 28%,rgba(255,255,255,0.22) 0%,${c}70 100%)`, border: `2px solid #050216`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.80rem', fontWeight: 700, color: '#fff', overflow: 'hidden', margin: 2 }}>
                                             {u.photoURL ? <img src={u.photoURL} alt={u.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : ini}
                                         </div>
-                                        {u.online && <motion.div animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 2, repeat: Infinity }} style={{ position: 'absolute', bottom: 0, right: 0, width: 10, height: 10, borderRadius: '50%', background: '#4ade80', border: '1.5px solid rgba(5,2,22,0.8)', boxShadow: '0 0 5px rgba(74,222,128,0.7)' }} />}
+                                        {u.online && <motion.div animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 2, repeat: Infinity }} style={{ position: 'absolute', bottom: 2, right: 2, width: 10, height: 10, borderRadius: '50%', background: '#4ade80', border: '1.5px solid rgba(5,2,22,0.9)', boxShadow: '0 0 6px rgba(74,222,128,0.8)', zIndex: 2 }} />}
                                     </div>
                                     <div style={{ flex: 1, minWidth: 0 }}>
-                                        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'rgba(255,255,255,0.90)', fontFamily: "'Outfit',sans-serif", display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.name}</span>
-                                        <span style={{ fontSize: '0.54rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit',sans-serif" }}>OneSUTRA member{u.online ? <span style={{ color: '#4ade80' }}> · online</span> : ''}</span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 2 }}>
+                                            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'rgba(255,255,255,0.92)', fontFamily: "'Outfit',sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 110 }}>{u.name}</span>
+                                            <span style={{ padding: '1px 6px', borderRadius: 99, background: `${c}18`, border: `1px solid ${c}38`, fontSize: '0.37rem', fontWeight: 800, color: c, letterSpacing: '0.10em', textTransform: 'uppercase', flexShrink: 0 }}>CIRCLE</span>
+                                        </div>
+                                        <span style={{ fontSize: '0.52rem', color: u.online ? '#4ade80' : 'rgba(255,255,255,0.30)', fontFamily: 'monospace', letterSpacing: '0.07em', textTransform: 'uppercase', fontWeight: 600 }}>{u.online ? '● ONLINE' : 'TAP TO CHAT'}</span>
                                     </div>
-                                    <motion.button whileTap={{ scale: 0.88 }} onClick={e => { e.stopPropagation(); handleSelect(u.uid); }}
-                                        style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4, padding: '0.28rem 0.62rem', borderRadius: 999, background: `${c}18`, border: `1px solid ${c}40`, cursor: 'pointer', color: c, fontSize: '0.58rem', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                                        💬 Chat
-                                    </motion.button>
+                                    {/* Chat + Camera buttons */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+                                        <motion.button whileTap={{ scale: 0.84 }} onClick={e => { e.stopPropagation(); handleSelect(u.uid); }}
+                                            style={{ width: 36, height: 36, borderRadius: '50%', background: `rgba(167,139,250,0.18)`, border: '1.5px solid rgba(167,139,250,0.40)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '0.95rem', boxShadow: '0 2px 10px rgba(167,139,250,0.22)' }}>💬</motion.button>
+                                        <motion.button whileTap={{ scale: 0.84 }} onClick={e => e.stopPropagation()}
+                                            style={{ width: 36, height: 36, borderRadius: '50%', background: `${c}18`, border: `1.5px solid ${c}38`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: c, boxShadow: `0 2px 10px ${c}22` }}>
+                                            <Camera size={14} />
+                                        </motion.button>
+                                    </div>
                                 </motion.div>
                             );
                         })}
@@ -698,18 +694,25 @@ export default function PranverseChatHub() {
                     <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.6, repeat: Infinity }} style={{ width: 7, height: 7, borderRadius: '50%', background: '#a78bfa', boxShadow: '0 0 8px rgba(167,139,250,0.9)', flexShrink: 0 }} />
                 </div>
 
-                {/* ── Invite your Sangha banner ── */}
-                <motion.div whileTap={{ scale: 0.96 }} onClick={() => setShowInviteModal(true)}
-                    style={{ margin: '0.35rem 0.75rem 0', borderRadius: 14, background: 'linear-gradient(135deg,rgba(251,191,36,0.18) 0%,rgba(232,121,249,0.12) 50%,rgba(99,102,241,0.14) 100%)', border: '1px solid rgba(251,191,36,0.32)', padding: '0.46rem 0.75rem', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', position: 'relative', overflow: 'hidden', boxShadow: '0 4px 24px rgba(251,191,36,0.10), inset 0 1px 0 rgba(255,255,255,0.10)' }}>
-                    <motion.div animate={{ opacity: [0.3,0.7,0.3], scale: [1,1.4,1] }} transition={{ duration: 3, repeat: Infinity }} style={{ position: 'absolute', top: -18, right: -18, width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle,rgba(251,191,36,0.22) 0%,transparent 70%)', pointerEvents: 'none' }} />
-                    <motion.div animate={{ rotate: [0,15,0,-15,0] }} transition={{ duration: 4, repeat: Infinity }} style={{ width: 28, height: 28, borderRadius: 10, background: 'linear-gradient(135deg,rgba(251,191,36,0.25),rgba(217,119,6,0.18))', border: '1.5px solid rgba(251,191,36,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.88rem', flexShrink: 0, boxShadow: '0 0 10px rgba(251,191,36,0.28)' }}>🙏</motion.div>
-                    <div style={{ flex: 1 }}>
-                        <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#fde68a', fontFamily: "'Outfit',sans-serif", display: 'block', letterSpacing: '0.01em' }}>Invite your Sangha ✦</span>
-                        <span style={{ fontSize: '0.44rem', color: 'rgba(251,191,36,0.60)', fontFamily: "'Outfit',sans-serif" }}>Send a sacred link to your circle</span>
+                {/* ── Invite banner — premium redesign ── */}
+                <motion.div whileTap={{ scale: 0.975 }} onClick={() => setShowInviteModal(true)}
+                    style={{ margin: '0.4rem 0.75rem 0', borderRadius: 16, background: 'linear-gradient(130deg,rgba(12,6,32,0.96) 0%,rgba(18,8,44,0.95) 100%)', border: '1px solid rgba(167,139,250,0.22)', padding: '0.7rem 0.85rem', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', position: 'relative', overflow: 'hidden', boxShadow: '0 2px 20px rgba(167,139,250,0.08), inset 0 1px 0 rgba(255,255,255,0.07)' }}>
+                    {/* Ambient glow */}
+                    <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 80% 50%,rgba(232,121,249,0.07) 0%,transparent 65%)', pointerEvents: 'none' }} />
+                    <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 10% 50%,rgba(251,191,36,0.06) 0%,transparent 55%)', pointerEvents: 'none' }} />
+                    {/* Icon */}
+                    <motion.div animate={{ boxShadow: ['0 0 0 0 rgba(167,139,250,0.0)','0 0 0 5px rgba(167,139,250,0.12)','0 0 0 0 rgba(167,139,250,0.0)'] }} transition={{ duration: 2.8, repeat: Infinity }}
+                        style={{ flexShrink: 0, width: 34, height: 34, borderRadius: 11, background: 'linear-gradient(135deg,rgba(167,139,250,0.18),rgba(232,121,249,0.12))', border: '1px solid rgba(167,139,250,0.32)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>✦</motion.div>
+                    {/* Text */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", background: 'linear-gradient(110deg,#e9d5ff 0%,#c4b5fd 45%,#e879f9 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', letterSpacing: '0.01em', marginBottom: 2 }}>Invite &amp; Transform Your Friends</span>
+                        <span style={{ display: 'block', fontSize: '0.46rem', color: 'rgba(196,181,253,0.52)', fontFamily: "'Outfit',sans-serif", letterSpacing: '0.02em' }}>Invite souls who resonate with your frequency</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0.22rem 0.52rem', borderRadius: 999, background: 'linear-gradient(135deg,rgba(251,191,36,0.22),rgba(217,119,6,0.16))', border: '1px solid rgba(251,191,36,0.42)', color: '#fbbf24', fontSize: '0.48rem', fontWeight: 800, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
-                        🔗 Invite
-                    </div>
+                    {/* CTA pill */}
+                    <motion.div animate={{ opacity: [0.75, 1, 0.75] }} transition={{ duration: 2.2, repeat: Infinity }}
+                        style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4, padding: '0.26rem 0.6rem', borderRadius: 999, background: 'linear-gradient(135deg,rgba(167,139,250,0.20),rgba(232,121,249,0.14))', border: '1px solid rgba(167,139,250,0.38)', color: '#c4b5fd', fontSize: '0.48rem', fontWeight: 800, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+                        Invite <span style={{ fontSize: '0.6rem' }}>›</span>
+                    </motion.div>
                 </motion.div>
 
                 {/* ── ADDED ME section (pending requests) ── */}
@@ -752,9 +755,9 @@ export default function PranverseChatHub() {
                     <AnimatePresence>
                         {filteredUsers.map(u => {
                             if (pendingRequests.find(r => r.user.uid === u.uid)) return null;
+                            if (acceptedFriendIds.has(u.uid)) return null;
                             let status: SeekerStatus = 'none';
-                            if (acceptedFriendIds.has(u.uid)) status = 'friends';
-                            else if (sentRequestUids.has(u.uid)) status = 'sent';
+                            if (sentRequestUids.has(u.uid)) status = 'sent';
                             const pr = pendingRequests.find(r => r.user.uid === u.uid);
                             return (
                                 <SeekerCard key={u.uid} u={u} status={status} isNature={isNature}
@@ -762,6 +765,7 @@ export default function PranverseChatHub() {
                                     onAccept={() => pr && acceptRequest(pr.doc.id)}
                                     onDecline={() => pr && declineRequest(pr.doc.id)}
                                     onChat={() => handleSelect(u.uid)}
+                                    onViewProfile={() => setProfileUser(u)}
                                 />
                             );
                         })}
@@ -828,7 +832,7 @@ const rightPanel = (
 
                 {/* Floating Input */}
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-                    style={{ flexShrink: 0, padding: `0.55rem 0.85rem calc(0.75rem + env(safe-area-inset-bottom))`, background: isNature ? 'rgba(0,0,0,0.06)' : 'linear-gradient(0deg,rgba(4,2,16,0.96) 0%,rgba(6,3,18,0.70) 100%)', backdropFilter: isNature ? 'blur(4px)' : 'blur(24px)', WebkitBackdropFilter: isNature ? 'blur(4px)' : 'blur(24px)' }}>
+                    style={{ flexShrink: 0, padding: `0.55rem 0.85rem calc(0.8rem + env(safe-area-inset-bottom))`, width: '100%', boxSizing: 'border-box' as const, background: isNature ? 'rgba(0,0,0,0.06)' : 'linear-gradient(0deg,rgba(4,2,16,0.96) 0%,rgba(6,3,18,0.70) 100%)', backdropFilter: isNature ? 'blur(4px)' : 'blur(24px)', WebkitBackdropFilter: isNature ? 'blur(4px)' : 'blur(24px)' }}>
                     {/* Emoji picker panel */}
                     <AnimatePresence>
                         {showEmoji && (
@@ -1026,11 +1030,11 @@ return (
                 <>
                     <AnimatePresence mode="wait">
                         {mobileView === 'list' ? (
-                            <motion.div key="list" initial={{ x: -40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -40, opacity: 0 }} transition={{ duration: 0.25 }} style={{ width: '100%', height: '100%', overflow: 'hidden', ...panelGlass }}>
+                            <motion.div key="list" initial={{ x: -28, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -28, opacity: 0 }} transition={{ duration: 0.18, ease: [0.22,1,0.36,1] }} style={{ width: '100%', height: '100%', overflow: 'hidden', ...panelGlass }}>
                                 {leftPanel}
                             </motion.div>
                         ) : (
-                            <motion.div key="chat" initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 40, opacity: 0 }} transition={{ duration: 0.25 }} style={{ width: '100%', height: '100%', overflow: 'hidden', ...panelGlass }}>
+                            <motion.div key="chat" initial={{ x: 28, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 28, opacity: 0 }} transition={{ duration: 0.18, ease: [0.22,1,0.36,1] }} style={{ width: '100%', height: '100%', overflow: 'hidden', ...panelGlass }}>
                                 {rightPanel}
                             </motion.div>
                         )}
@@ -1050,23 +1054,24 @@ return (
             )}
         </div>
         {/* ══ BOTTOM NAV BAR — PranaVerse-style ══ */}
-        <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50, background: 'rgba(5,8,16,0.95)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderTop: '1px solid rgba(139,92,246,0.15)', display: 'flex', paddingBottom: 'env(safe-area-inset-bottom,0px)' }}>
-            {chatNavItems.map(({ id, icon: Icon, label, color }) => {
-                const active = id === 'chat';
+        <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '0.55rem 0.5rem calc(0.55rem + env(safe-area-inset-bottom))', background: 'rgba(6,3,18,0.92)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+            {([
+                { id: 'home', emoji: '⌂', label: 'Home' },
+                { id: 'feed', emoji: '✦', label: 'Feed' },
+                { id: 'map', emoji: '🗺️', label: 'Map' },
+                { id: 'chat', emoji: '💬', label: 'Chat' },
+            ] as const).map(item => {
+                const active = item.id === 'chat';
                 return (
-                    <motion.button key={id} whileTap={{ scale: 0.9 }}
+                    <motion.button key={item.id} whileTap={{ scale: 0.9 }}
                         onClick={() => {
-                            if (id === 'home') router.push('/');
-                            else if (id === 'map') router.push('/pranaverse?tab=map');
-                            else if (id === 'story') router.push('/pranaverse');
-                            // 'chat' stays here
+                            if (item.id === 'home') router.push('/');
+                            else if (item.id === 'feed') router.push('/pranaverse');
+                            else if (item.id === 'map') router.push('/pranaverse?tab=map');
                         }}
-                        style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, padding: '0.75rem 0', background: 'none', border: 'none', cursor: 'pointer', position: 'relative' }}>
-                        {active && <motion.div layoutId="chat-nav-pill" style={{ position: 'absolute', inset: '4px 10px', borderRadius: 12, background: `${color}10`, border: `1px solid ${color}22` }} transition={{ type: 'spring', stiffness: 420, damping: 32 }} />}
-                        <div style={{ position: 'relative', zIndex: 1 }}>
-                            <Icon size={21} style={{ color: active ? color : 'rgba(255,255,255,0.28)', filter: active ? `drop-shadow(0 0 6px ${color}80)` : 'none', transition: 'all 0.18s' }} />
-                        </div>
-                        <span style={{ fontSize: '0.55rem', fontWeight: active ? 700 : 500, color: active ? color : 'rgba(255,255,255,0.28)', letterSpacing: '0.05em', transition: 'all 0.18s', zIndex: 1 }}>{label}</span>
+                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', padding: '0.3rem 0.8rem' }}>
+                        <span style={{ fontSize: '1.15rem', filter: active ? 'drop-shadow(0 0 6px #a78bfa)' : 'none', opacity: active ? 1 : 0.45 }}>{item.emoji}</span>
+                        <span style={{ fontSize: '0.42rem', fontWeight: 700, color: active ? '#a78bfa' : 'rgba(255,255,255,0.35)', fontFamily: "'Outfit',sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' }}>{item.label}</span>
                     </motion.button>
                 );
             })}
@@ -1217,6 +1222,122 @@ return (
                     </motion.div>
                 </motion.div>
             )}
+        </AnimatePresence>
+
+        {/* ── USER PROFILE SHEET ── */}
+        <AnimatePresence>
+            {profileUser && (() => {
+                const pu = profileUser;
+                const pc = getAvatarColor(pu.uid);
+                const pi = getInitials(pu.name);
+                const isFriend = acceptedFriendIds.has(pu.uid);
+                const isSentToThem = sentRequestUids.has(pu.uid);
+                const pendingFromThem = pendingRequests.find(r => r.user.uid === pu.uid);
+                return (
+                    <motion.div key="profile-sheet-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        onClick={() => setProfileUser(null)}
+                        style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+                        <motion.div key="profile-sheet" initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                            transition={{ type: 'spring', stiffness: 340, damping: 34 }}
+                            onClick={e => e.stopPropagation()}
+                            style={{ width: '100%', maxWidth: 480, background: 'linear-gradient(160deg,rgba(8,4,24,0.98) 0%,rgba(12,6,32,0.98) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: `1px solid ${pc}28`, borderRadius: '28px 28px 0 0', padding: '0 0 calc(1.8rem + env(safe-area-inset-bottom))', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
+                            {/* Ambient glow */}
+                            <div style={{ position: 'absolute', top: -80, left: '50%', transform: 'translateX(-50%)', width: 320, height: 160, borderRadius: '50%', background: `radial-gradient(ellipse,${pc}22 0%,transparent 70%)`, pointerEvents: 'none' }} />
+                            {/* Drag handle */}
+                            <div style={{ width: 40, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.15)', margin: '0.85rem auto 0' }} />
+                            {/* Close button */}
+                            <button onClick={() => setProfileUser(null)} style={{ position: 'absolute', top: 14, right: 18, width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.50)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', zIndex: 2 }}>✕</button>
+
+                            {/* Avatar */}
+                            <div style={{ position: 'relative', marginTop: '1.4rem', marginBottom: '0.8rem' }}>
+                                <motion.div animate={{ rotate: 360 }} transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+                                    style={{ position: 'absolute', inset: -3, borderRadius: '50%', background: `conic-gradient(${pc},${pc}44,#a78bfa,${pc})`, opacity: 0.80 }} />
+                                <div style={{ position: 'relative', zIndex: 1, width: 80, height: 80, borderRadius: '50%', background: pu.photoURL ? undefined : `radial-gradient(circle at 35% 28%,rgba(255,255,255,0.25) 0%,${pc}80 100%)`, border: '3px solid #080418', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.55rem', fontWeight: 800, color: '#fff', overflow: 'hidden', margin: 3, boxShadow: `0 0 28px ${pc}40` }}>
+                                    {pu.photoURL ? <img src={pu.photoURL} alt={pu.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : pi}
+                                </div>
+                                {pu.online && <motion.div animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 1.8, repeat: Infinity }}
+                                    style={{ position: 'absolute', bottom: 5, right: 5, width: 14, height: 14, borderRadius: '50%', background: '#4ade80', border: '2.5px solid #080418', boxShadow: '0 0 8px rgba(74,222,128,0.9)', zIndex: 2 }} />}
+                            </div>
+
+                            {/* Name + badge */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4 }}>
+                                <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'rgba(255,255,255,0.95)', fontFamily: "'Outfit',sans-serif" }}>{pu.name}</span>
+                                {isFriend && <span style={{ padding: '2px 8px', borderRadius: 99, background: `${pc}20`, border: `1px solid ${pc}45`, fontSize: '0.40rem', fontWeight: 800, color: pc, letterSpacing: '0.12em', textTransform: 'uppercase' }}>IN YOUR CIRCLE</span>}
+                            </div>
+
+                            {/* Online status */}
+                            <span style={{ fontSize: '0.58rem', color: pu.online ? '#4ade80' : 'rgba(255,255,255,0.30)', fontFamily: 'monospace', letterSpacing: '0.10em', textTransform: 'uppercase', fontWeight: 600, marginBottom: '0.6rem' }}>
+                                {pu.online ? '● ONLINE NOW' : '○ OFFLINE'}
+                            </span>
+
+                            {/* Bio */}
+                            <p style={{ margin: '0 0 1.2rem', fontSize: '0.72rem', color: 'rgba(255,255,255,0.50)', fontFamily: "'Outfit',sans-serif", textAlign: 'center', lineHeight: 1.55, padding: '0 2rem', fontStyle: 'italic' }}>
+                                {(pu as any).bio || 'OneSUTRA Seeker · Walking the conscious path 🙏'}
+                            </p>
+
+                            {/* Stats row */}
+                            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.2rem', padding: '0 1.4rem', width: '100%', boxSizing: 'border-box' }}>
+                                {[{ label: 'Community', value: 'OneSUTRA', color: pc }, { label: 'Status', value: isFriend ? 'Circle Friend' : 'Seeker', color: isFriend ? '#4ade80' : '#fbbf24' }, { label: 'Prana', value: 'Active', color: '#a78bfa' }].map((s, i) => (
+                                    <div key={i} style={{ flex: 1, padding: '0.55rem 0.4rem', borderRadius: 14, background: `${s.color}08`, border: `1px solid ${s.color}18`, textAlign: 'center' }}>
+                                        <div style={{ fontSize: '0.62rem', fontWeight: 700, color: s.color, fontFamily: "'Outfit',sans-serif", marginBottom: 2 }}>{s.value}</div>
+                                        <div style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.28)', fontFamily: 'monospace', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{s.label}</div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* View Profile + Ask Bodhi */}
+                            <div style={{ display: 'flex', gap: '0.55rem', padding: '0 1.4rem', width: '100%', boxSizing: 'border-box', marginBottom: '0.65rem' }}>
+                                <motion.button whileTap={{ scale: 0.94 }}
+                                    onClick={() => { setProfileUser(null); router.push(`/profile/${pu.uid}`); }}
+                                    style={{ flex: 1, padding: '0.62rem 0.5rem', borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.11)', color: 'rgba(255,255,255,0.60)', fontSize: '0.75rem', fontWeight: 700, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                                    👤 View Profile
+                                </motion.button>
+                                <motion.button whileTap={{ scale: 0.94 }}
+                                    onClick={() => { setProfileUser(null); router.push(`/profile/${pu.uid}?enquire=true`); }}
+                                    style={{ flex: 1, padding: '0.62rem 0.5rem', borderRadius: 12, background: 'rgba(167,139,250,0.10)', border: '1px solid rgba(167,139,250,0.28)', color: '#c4b5fd', fontSize: '0.75rem', fontWeight: 700, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                                    ✦ Ask Bodhi
+                                </motion.button>
+                            </div>
+
+                            {/* Action buttons */}
+                            <div style={{ display: 'flex', gap: '0.65rem', padding: '0 1.4rem', width: '100%', boxSizing: 'border-box' }}>
+                                {isFriend ? (
+                                    <>
+                                        <motion.button whileTap={{ scale: 0.94 }} onClick={() => { setProfileUser(null); handleSelect(pu.uid); }}
+                                            style={{ flex: 2, padding: '0.80rem', borderRadius: 14, background: 'linear-gradient(135deg,rgba(167,139,250,0.28),rgba(139,92,246,0.20))', border: '1.5px solid rgba(167,139,250,0.45)', color: '#c4b5fd', fontSize: '0.82rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+                                            💬 Message
+                                        </motion.button>
+                                        <motion.button whileTap={{ scale: 0.94 }}
+                                            style={{ flex: 1, padding: '0.80rem', borderRadius: 14, background: `${pc}16`, border: `1.5px solid ${pc}38`, color: pc, fontSize: '0.82rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                            <Camera size={15} /> Snap
+                                        </motion.button>
+                                    </>
+                                ) : pendingFromThem ? (
+                                    <>
+                                        <motion.button whileTap={{ scale: 0.94 }} onClick={() => { acceptRequest(pendingFromThem.doc.id); setProfileUser(null); }}
+                                            style={{ flex: 1, padding: '0.80rem', borderRadius: 14, background: 'linear-gradient(135deg,rgba(74,222,128,0.24),rgba(52,211,153,0.16))', border: '1.5px solid rgba(74,222,128,0.45)', color: '#4ade80', fontSize: '0.80rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                            <Check size={14} /> Accept
+                                        </motion.button>
+                                        <motion.button whileTap={{ scale: 0.94 }} onClick={() => { declineRequest(pendingFromThem.doc.id); setProfileUser(null); }}
+                                            style={{ flex: 1, padding: '0.80rem', borderRadius: 14, background: 'rgba(248,113,113,0.10)', border: '1.5px solid rgba(248,113,113,0.32)', color: '#f87171', fontSize: '0.80rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                            <X size={14} /> Decline
+                                        </motion.button>
+                                    </>
+                                ) : isSentToThem ? (
+                                    <div style={{ flex: 1, padding: '0.80rem', borderRadius: 14, background: 'rgba(74,222,128,0.08)', border: '1.5px solid rgba(74,222,128,0.22)', color: 'rgba(74,222,128,0.65)', fontSize: '0.80rem', fontWeight: 700, fontFamily: "'Outfit',sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                        ✓ Request Sent
+                                    </div>
+                                ) : (
+                                    <motion.button whileTap={{ scale: 0.94 }} onClick={() => { sendFriendRequest(pu.uid, pu.name); setProfileUser(null); }}
+                                        style={{ flex: 1, padding: '0.80rem', borderRadius: 14, background: 'linear-gradient(135deg,rgba(251,191,36,0.26),rgba(217,119,6,0.18))', border: '1.5px solid rgba(251,191,36,0.48)', color: '#fbbf24', fontSize: '0.82rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+                                        ✦ Add to Circle
+                                    </motion.button>
+                                )}
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                );
+            })()}
         </AnimatePresence>
     </>
 );

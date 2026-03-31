@@ -1021,6 +1021,7 @@ function VideoStoryViewer({ story, allVideoStories, startIdx, onClose, onFinishe
     onFinished?: () => void; // called after last video — to chain into image stories
 }) {
     const [currentIdx, setCurrentIdx] = useState(startIdx);
+    const [direction, setDirection] = useState(1);
     const [progress, setProgress] = useState(0);
     const [muted, setMuted] = useState(false);
     const [heartActive, setHeartActive] = useState(false);
@@ -1038,7 +1039,7 @@ function VideoStoryViewer({ story, allVideoStories, startIdx, onClose, onFinishe
     const clearTimer = () => { if (timerRef.current) clearInterval(timerRef.current); };
 
     const goNext = useCallback(() => {
-        clearTimer(); setProgress(0); progressRef.current = 0;
+        clearTimer(); setProgress(0); progressRef.current = 0; setDirection(1);
         if (currentIdx < allVideoStories.length - 1) {
             setCurrentIdx(i => i + 1);
         } else {
@@ -1049,7 +1050,7 @@ function VideoStoryViewer({ story, allVideoStories, startIdx, onClose, onFinishe
     }, [currentIdx, allVideoStories.length, onClose, onFinished]);
 
     const goPrev = useCallback(() => {
-        clearTimer(); setProgress(0); progressRef.current = 0;
+        clearTimer(); setProgress(0); progressRef.current = 0; setDirection(-1);
         if (currentIdx > 0) setCurrentIdx(i => i - 1);
     }, [currentIdx]);
 
@@ -1111,11 +1112,15 @@ function VideoStoryViewer({ story, allVideoStories, startIdx, onClose, onFinishe
                 @keyframes shimmerRing{0%{filter:hue-rotate(0deg) brightness(1.1)}100%{filter:hue-rotate(30deg) brightness(1.3)}}
                 @keyframes reactionPop{0%{transform:scale(1)}40%{transform:scale(1.45)}70%{transform:scale(0.9)}100%{transform:scale(1)}}
             `}</style>
+            <div style={{ position: 'relative', width: '100%', maxWidth: 480, height: '100vh', overflow: 'hidden' }}>
+            <AnimatePresence initial={false} mode="sync">
             <motion.div
                 key={currentIdx}
-                initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }}
-                transition={{ duration: 0.3 }}
-                style={{ position: 'relative', width: '100%', maxWidth: 480, height: '100vh', overflow: 'hidden' }}
+                initial={{ y: direction >= 0 ? '100%' : '-100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: direction >= 0 ? '-100%' : '100%' }}
+                transition={{ duration: 0.32, ease: [0.25, 0.8, 0.25, 1] }}
+                style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}
             >
                 <video
                     ref={videoRef}
@@ -1239,6 +1244,8 @@ function VideoStoryViewer({ story, allVideoStories, startIdx, onClose, onFinishe
                     })}
                 </div>
             </motion.div>
+            </AnimatePresence>
+            </div>
         </motion.div>
     );
 }
@@ -1248,6 +1255,7 @@ const SLIDE_DURATION = 7000;
 function StoryViewer({ groups, startGroupIdx, onClose, onFinished }: { groups: StoryGroup[]; startGroupIdx: number; onClose: () => void; onFinished?: () => void }) {
     const [gIdx, setGIdx] = useState(startGroupIdx);
     const [sIdx, setSIdx] = useState(0);
+    const [direction, setDirection] = useState(1);
     const [progress, setProgress] = useState(0);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const progressRef = useRef(0);
@@ -1257,13 +1265,13 @@ function StoryViewer({ groups, startGroupIdx, onClose, onFinished }: { groups: S
 
     const clearTimer = () => { if (timerRef.current) clearInterval(timerRef.current); };
     const goNext = useCallback(() => {
-        clearTimer(); setProgress(0); progressRef.current = 0;
+        clearTimer(); setProgress(0); progressRef.current = 0; setDirection(1);
         if (sIdx < totalSlides - 1) setSIdx(s => s + 1);
         else if (gIdx < groups.length - 1) { setGIdx(g => g + 1); setSIdx(0); }
         else { if (onFinished) onFinished(); else onClose(); }
     }, [sIdx, totalSlides, gIdx, groups.length, onClose]);
     const goPrev = useCallback(() => {
-        clearTimer(); setProgress(0); progressRef.current = 0;
+        clearTimer(); setProgress(0); progressRef.current = 0; setDirection(-1);
         if (sIdx > 0) setSIdx(s => s - 1);
         else if (gIdx > 0) { setGIdx(g => g - 1); setSIdx(0); }
     }, [sIdx, gIdx]);
@@ -1296,10 +1304,14 @@ function StoryViewer({ groups, startGroupIdx, onClose, onFinished }: { groups: S
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             style={{ position: 'fixed', inset: 0, zIndex: 10000, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AnimatePresence mode="wait">
-                <motion.div key={`${gIdx}-${sIdx}`} initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.96 }} transition={{ duration: 0.3 }}
-                    style={{ position: 'relative', width: '100%', maxWidth: 480, height: '100vh', overflow: 'hidden' }}>
+            <div style={{ position: 'relative', width: '100%', maxWidth: 480, height: '100vh', overflow: 'hidden' }}>
+            <AnimatePresence initial={false} mode="sync">
+                <motion.div key={`${gIdx}-${sIdx}`}
+                    initial={{ x: direction >= 0 ? '100%' : '-100%' }}
+                    animate={{ x: 0 }}
+                    exit={{ x: direction >= 0 ? '-100%' : '100%' }}
+                    transition={{ duration: 0.28, ease: [0.25, 0.8, 0.25, 1] }}
+                    style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
                     <img src={slide.bg} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.3) 30%, rgba(0,0,0,0.45) 70%, rgba(0,0,0,0.88) 100%)' }} />
                     <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at center 65%, ${slide.accent}22 0%, transparent 65%)` }} />
@@ -1324,11 +1336,9 @@ function StoryViewer({ groups, startGroupIdx, onClose, onFinished }: { groups: S
                     </div>
                     {/* Content */}
                     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
-                        <AnimatePresence mode="wait">
-                            <motion.div key={`c-${gIdx}-${sIdx}`} initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -24, opacity: 0 }} transition={{ duration: 0.32 }} style={{ width: '100%', marginTop: '3rem' }}>
-                                {slide.content}
-                            </motion.div>
-                        </AnimatePresence>
+                        <div style={{ width: '100%', marginTop: '3rem' }}>
+                            {slide.content}
+                        </div>
                     </div>
                     {/* Group dots */}
                     <div style={{ position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 6, zIndex: 20 }}>
@@ -1336,10 +1346,11 @@ function StoryViewer({ groups, startGroupIdx, onClose, onFinished }: { groups: S
                             <button key={g.id} onClick={() => { setGIdx(i); setSIdx(0); }} style={{ width: i === gIdx ? 20 : 6, height: 6, borderRadius: 3, background: i === gIdx ? '#fff' : 'rgba(255,255,255,0.35)', border: 'none', cursor: 'pointer', transition: 'all 0.25s', padding: 0 }} />
                         ))}
                     </div>
-                    <div onClick={goPrev} style={{ position: 'absolute', left: 0, top: 0, width: '40%', height: '100%', zIndex: 15, cursor: 'pointer' }} />
-                    <div onClick={goNext} style={{ position: 'absolute', right: 0, top: 0, width: '40%', height: '100%', zIndex: 15, cursor: 'pointer' }} />
+                    <div onClick={e => { e.stopPropagation(); goPrev(); }} style={{ position: 'absolute', left: 0, top: 0, width: '40%', height: '100%', zIndex: 15, cursor: 'pointer' }} />
+                    <div onClick={e => { e.stopPropagation(); goNext(); }} style={{ position: 'absolute', right: 0, top: 0, width: '40%', height: '100%', zIndex: 15, cursor: 'pointer' }} />
                 </motion.div>
             </AnimatePresence>
+            </div>
         </motion.div>
     );
 }

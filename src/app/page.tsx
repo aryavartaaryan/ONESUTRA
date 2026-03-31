@@ -537,85 +537,20 @@ export default function Home() {
       <StickyFeedbackButton />
 
       {/* ══ HOME BOTTOM NAV BAR ══ */}
-      <nav style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 900,
-        background: 'rgba(5,8,16,0.92)',
-        backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-        borderTop: '1px solid rgba(251,191,36,0.12)',
-        display: 'flex',
-        paddingBottom: 'env(safe-area-inset-bottom,0px)',
-      }}>
-        {[
-          { id: 'home', label: 'Home', color: '#f472b6', href: null },
-          { id: 'pranaverse', label: 'PranaVerse', color: '#a78bfa', href: '/pranaverse' },
-          { id: 'chat', label: 'Chat', color: '#4ade80', href: '/pranaverse-chat' },
-          { id: 'maps', label: 'Maps', color: '#fbbf24', href: '/pranaverse?tab=map' },
-        ].map(({ id, label, color, href }) => {
-          const active = id === 'home';
-          // Elegant PranaVerse SVG icon — radiating sacred portal
-          const PranaVerseIcon = ({ c }: { c: string }) => (
-            <svg width="22" height="22" viewBox="0 0 44 44" fill="none" style={{ filter: `drop-shadow(0 0 5px ${c}88)` }}>
-              {/* Outer dashed ring */}
-              <circle cx="22" cy="22" r="20" stroke={c} strokeWidth="0.8" strokeOpacity="0.35" strokeDasharray="3 2" />
-              {/* Mid ring */}
-              <circle cx="22" cy="22" r="14" stroke={c} strokeWidth="1" strokeOpacity="0.6" />
-              {/* 8 spokes */}
-              {[0, 45, 90, 135, 180, 225, 270, 315].map((deg, k) => {
-                const r = deg * Math.PI / 180;
-                return <line key={k}
-                  x1={22 + Math.cos(r) * 7} y1={22 + Math.sin(r) * 7}
-                  x2={22 + Math.cos(r) * (k % 2 === 0 ? 18 : 13)} y2={22 + Math.sin(r) * (k % 2 === 0 ? 18 : 13)}
-                  stroke={c} strokeWidth={k % 2 === 0 ? '1.4' : '0.8'}
-                  strokeOpacity={k % 2 === 0 ? 0.95 : 0.55} strokeLinecap="round" />;
-              })}
-              {/* 4 cardinal dots */}
-              {[0, 90, 180, 270].map((deg, k) => {
-                const r = deg * Math.PI / 180;
-                return <circle key={k} cx={22 + Math.cos(r) * 20} cy={22 + Math.sin(r) * 20} r="1.6" fill={c} fillOpacity="0.75" />;
-              })}
-              {/* Inner glow core */}
-              <circle cx="22" cy="22" r="6" fill={`${c}44`} />
-              <circle cx="22" cy="22" r="4" fill={`${c}bb`} />
-              <circle cx="22" cy="22" r="1.8" fill="#fff" fillOpacity="0.95" />
-            </svg>
-          );
-          const iconEl = id === 'pranaverse'
-            ? <PranaVerseIcon c={color} />
-            : <span style={{ fontSize: '1.15rem' }}>{
-              id === 'home' ? '🏠' : id === 'chat' ? '💬' : '🗺️'
-            }</span>;
+      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 900, display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '0.55rem 0.5rem calc(0.55rem + env(safe-area-inset-bottom))', background: 'rgba(6,3,18,0.92)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+        {([
+          { id: 'home', emoji: '⌂', label: 'Home', href: null },
+          { id: 'feed', emoji: '✦', label: 'Feed', href: '/pranaverse' },
+          { id: 'map', emoji: '🗺️', label: 'Map', href: '/pranaverse?tab=map' },
+          { id: 'chat', emoji: '💬', label: 'Chat', href: '/pranaverse-chat' },
+        ] as const).map(item => {
+          const active = item.id === 'home';
           return (
-            <motion.button
-              key={id}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => { if (href) window.location.href = href; }}
-              style={{
-                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-                justifyContent: 'center', gap: 3, padding: '0.7rem 0',
-                background: 'none', border: 'none', cursor: href ? 'pointer' : 'default',
-                position: 'relative',
-              }}
-            >
-              {active && (
-                <motion.div
-                  layoutId="home-nav-pill"
-                  style={{
-                    position: 'absolute', inset: '4px 10px', borderRadius: 12,
-                    background: `${color}10`, border: `1px solid ${color}22`,
-                  }}
-                  transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-                />
-              )}
-              <span style={{
-                filter: active ? `drop-shadow(0 0 6px ${color}80)` : 'none',
-                transition: 'filter 0.18s', position: 'relative', zIndex: 1,
-              }}>{iconEl}</span>
-              <span style={{
-                fontSize: '0.55rem', fontWeight: active ? 700 : 500,
-                color: active ? color : id === 'pranaverse' ? `${color}88` : 'rgba(255,255,255,0.32)',
-                letterSpacing: '0.05em', transition: 'color 0.18s', zIndex: 1,
-                fontFamily: "'Outfit',sans-serif",
-              }}>{label}</span>
+            <motion.button key={item.id} whileTap={{ scale: 0.9 }}
+              onClick={() => { if (item.href) window.location.href = item.href; }}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: item.href ? 'pointer' : 'default', padding: '0.3rem 0.8rem' }}>
+              <span style={{ fontSize: '1.15rem', filter: active ? 'drop-shadow(0 0 6px #a78bfa)' : 'none', opacity: active ? 1 : 0.45 }}>{item.emoji}</span>
+              <span style={{ fontSize: '0.42rem', fontWeight: 700, color: active ? '#a78bfa' : 'rgba(255,255,255,0.35)', fontFamily: "'Outfit',sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' }}>{item.label}</span>
             </motion.button>
           );
         })}
