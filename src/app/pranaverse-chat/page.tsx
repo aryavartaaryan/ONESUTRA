@@ -9,6 +9,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useDailyTasks } from '@/hooks/useDailyTasks';
 import { useUsers, SutraUser } from '@/hooks/useUsers';
 import { useMessages, getChatId } from '@/hooks/useMessages';
+import InviteCard from '@/components/PranaVerse/InviteCard';
 interface FriendDoc { id: string; fromUid: string; toUid: string; fromName: string; fromPhoto: string | null; toName: string; status: 'pending' | 'accepted' | 'declined'; createdAt: number; }
 
 // ─── Energy Circle Types ───────────────────────────────────────────────────────
@@ -562,6 +563,25 @@ export default function PranverseChatHub() {
         return q ? allUsers.filter(u => u.name.toLowerCase().includes(q)) : allUsers;
     }, [allUsers, seekerSearch]);
 
+    // ── Share / Invite handler ────────────────────────────────────────────────
+    const handleShareInvite = useCallback(async () => {
+        const inviteUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://onesutra.app'}/join?ref=${uid ?? 'friend'}`;
+        const shareData = {
+            title: 'Join me on OneSUTRA ✦',
+            text: 'OneSUTRA is the world\'s most modern wellness-based social network. AI-powered focus tools, sleep optimization, meditation, and conscious community. Join my sacred circle! 🙏✨',
+            url: inviteUrl,
+        };
+        try {
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else {
+                await navigator.clipboard.writeText(`${shareData.text}\n${inviteUrl}`);
+                setInviteLinkCopied(true);
+                setTimeout(() => setInviteLinkCopied(false), 2500);
+            }
+        } catch { /* dismissed */ }
+    }, [uid]);
+
     // ── LEFT PANEL — single-scroll, Snapchat-style ────────────────────────────
     const leftPanel = (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
@@ -694,26 +714,8 @@ export default function PranverseChatHub() {
                     <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.6, repeat: Infinity }} style={{ width: 7, height: 7, borderRadius: '50%', background: '#a78bfa', boxShadow: '0 0 8px rgba(167,139,250,0.9)', flexShrink: 0 }} />
                 </div>
 
-                {/* ── Invite banner — premium redesign ── */}
-                <motion.div whileTap={{ scale: 0.975 }} onClick={() => setShowInviteModal(true)}
-                    style={{ margin: '0.4rem 0.75rem 0', borderRadius: 16, background: 'linear-gradient(130deg,rgba(12,6,32,0.96) 0%,rgba(18,8,44,0.95) 100%)', border: '1px solid rgba(167,139,250,0.22)', padding: '0.7rem 0.85rem', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', position: 'relative', overflow: 'hidden', boxShadow: '0 2px 20px rgba(167,139,250,0.08), inset 0 1px 0 rgba(255,255,255,0.07)' }}>
-                    {/* Ambient glow */}
-                    <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 80% 50%,rgba(232,121,249,0.07) 0%,transparent 65%)', pointerEvents: 'none' }} />
-                    <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 10% 50%,rgba(251,191,36,0.06) 0%,transparent 55%)', pointerEvents: 'none' }} />
-                    {/* Icon */}
-                    <motion.div animate={{ boxShadow: ['0 0 0 0 rgba(167,139,250,0.0)', '0 0 0 5px rgba(167,139,250,0.12)', '0 0 0 0 rgba(167,139,250,0.0)'] }} transition={{ duration: 2.8, repeat: Infinity }}
-                        style={{ flexShrink: 0, width: 34, height: 34, borderRadius: 11, background: 'linear-gradient(135deg,rgba(167,139,250,0.18),rgba(232,121,249,0.12))', border: '1px solid rgba(167,139,250,0.32)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>✦</motion.div>
-                    {/* Text */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", background: 'linear-gradient(110deg,#e9d5ff 0%,#c4b5fd 45%,#e879f9 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', letterSpacing: '0.01em', marginBottom: 2 }}>Invite Your Circle</span>
-                        <span style={{ display: 'block', fontSize: '0.46rem', color: 'rgba(196,181,253,0.52)', fontFamily: "'Outfit',sans-serif", letterSpacing: '0.02em' }}>Invite souls who resonate with your frequency</span>
-                    </div>
-                    {/* CTA pill */}
-                    <motion.div animate={{ opacity: [0.75, 1, 0.75] }} transition={{ duration: 2.2, repeat: Infinity }}
-                        style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4, padding: '0.26rem 0.6rem', borderRadius: 999, background: 'linear-gradient(135deg,rgba(167,139,250,0.20),rgba(232,121,249,0.14))', border: '1px solid rgba(167,139,250,0.38)', color: '#c4b5fd', fontSize: '0.48rem', fontWeight: 800, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
-                        Invite <span style={{ fontSize: '0.6rem' }}>›</span>
-                    </motion.div>
-                </motion.div>
+                {/* ── INVITE CARD — Aether-Glass viral growth engine ── */}
+                <InviteCard userName={user?.name} style={{ margin: '0.4rem 0.35rem 0' }} />
 
                 {/* ── ADDED ME section (pending requests) ── */}
                 {pendingRequests.length > 0 && (
@@ -932,8 +934,8 @@ export default function PranverseChatHub() {
                         style={{ margin: '0.8rem 1rem 1.5rem', borderRadius: 16, background: 'linear-gradient(135deg,rgba(251,191,36,0.10) 0%,rgba(217,119,6,0.07) 100%)', border: '1px solid rgba(251,191,36,0.22)', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
                         <div style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(251,191,36,0.15)', border: '1.5px solid rgba(251,191,36,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', flexShrink: 0 }}>🙏</div>
                         <div style={{ flex: 1 }}>
-                            <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#fde68a', fontFamily: "'Outfit',sans-serif", display: 'block' }}>Invite your Sangha!</span>
-                            <span style={{ fontSize: '0.50rem', color: 'rgba(251,191,36,0.52)', fontFamily: "'Outfit',sans-serif" }}>Grow the PranaVerse community</span>
+                            <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#fde68a', fontFamily: "'Outfit',sans-serif", display: 'block' }}>🚀 Social Media Is Broken. We Fix It.</span>
+                            <span style={{ fontSize: '0.50rem', color: 'rgba(251,191,36,0.52)', fontFamily: "'Outfit',sans-serif" }}>Join PranaVerse — your complete Life Management System</span>
                         </div>
                         <motion.div animate={{ x: [0, 3, 0] }} transition={{ duration: 1.5, repeat: Infinity }} style={{ color: 'rgba(251,191,36,0.55)', fontSize: '1rem' }}>›</motion.div>
                     </motion.div>
@@ -996,25 +998,6 @@ export default function PranverseChatHub() {
         setStoryCaption('');
         setTimeout(() => { setStoryPosted(false); setShowAddStory(false); }, 1800);
     }, [uid, displayName, storyActivity, storyCaption]);
-
-    // ── Share / Invite handler ────────────────────────────────────────────────
-    const handleShareInvite = useCallback(async () => {
-        const inviteUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://onesutra.app'}/join?ref=${uid ?? 'friend'}`;
-        const shareData = {
-            title: 'Join me on OneSUTRA ✦',
-            text: 'OneSUTRA is the world\'s most modern wellness-based social network. AI-powered focus tools, sleep optimization, meditation, and conscious community. Join my sacred circle! 🙏✨',
-            url: inviteUrl,
-        };
-        try {
-            if (navigator.share) {
-                await navigator.share(shareData);
-            } else {
-                await navigator.clipboard.writeText(`${shareData.text}\n${inviteUrl}`);
-                setInviteLinkCopied(true);
-                setTimeout(() => setInviteLinkCopied(false), 2500);
-            }
-        } catch { /* dismissed */ }
-    }, [uid]);
 
     // ── LAYOUT ────────────────────────────────────────────────────────────────
     return (
@@ -1190,8 +1173,8 @@ export default function PranverseChatHub() {
                             {/* Header */}
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <div>
-                                    <span style={{ fontSize: '1.05rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", background: 'linear-gradient(120deg,#fde68a 0%,#fbbf24 45%,#e879f9 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', display: 'block' }}>✦ Invite your Sangha</span>
-                                    <span style={{ fontSize: '0.52rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit',sans-serif" }}>Share PranaVerse with your sacred circle</span>
+                                    <span style={{ fontSize: '1.05rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", background: 'linear-gradient(120deg,#fde68a 0%,#fbbf24 45%,#e879f9 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', display: 'block' }}>🚀 Free Your Circle from the Scroll Trap</span>
+                                    <span style={{ fontSize: '0.52rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit',sans-serif" }}>Invite friends to PranaVerse — healthy feeds, AI automation & real connections</span>
                                 </div>
                                 <button onClick={() => setShowInviteModal(false)} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.50)', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
                             </div>

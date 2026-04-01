@@ -812,6 +812,9 @@ function UserStoryViewer({
                 )}
             </div>
 
+            {/* ── Emoji Reaction Bar ── */}
+            <FloatingReactionBar />
+
             {/* Tap zones: prev / next */}
             <div onClick={e => { e.stopPropagation(); onPrev(); }} style={{
                 position: 'absolute', left: 0, top: 60, bottom: 60,
@@ -838,6 +841,116 @@ const VIDEO_THUMBS: Record<string, string> = {
     'dhyan11': 'https://images.unsplash.com/photo-1501630834273-4b5604d2ee31?w=400&h=600&fit=crop&q=80',
     'sandhya-mantra': 'https://images.unsplash.com/photo-1484627147104-f5197bcd6651?w=400&h=600&fit=crop&q=80',
 };
+
+// ── Floating Emoji Reaction Bar (Facebook-style — tap for burst) ─────────────
+interface FloatingEmoji {
+    id: number; emoji: string; x: number;
+}
+const REACTION_EMOJIS = ['❤️', '👍', '😂', '😮', '🔥', '🙏'];
+
+function FloatingReactionBar() {
+    const [floaters, setFloaters] = useState<FloatingEmoji[]>([]);
+    const [counts, setCounts] = useState<Record<string, number>>({});
+    const uidRef = useRef(0);
+
+    const handleReact = useCallback((emoji: string) => {
+        const id = ++uidRef.current;
+        const x = Math.random() * 40 - 20; // ±20px horizontal drift
+        setFloaters(f => [...f, { id, emoji, x }]);
+        setCounts(c => ({ ...c, [emoji]: (c[emoji] || 0) + 1 }));
+        setTimeout(() => setFloaters(f => f.filter(e => e.id !== id)), 1200);
+    }, []);
+
+    return (
+        <div style={{
+            position: 'absolute',
+            bottom: 'calc(env(safe-area-inset-bottom) + 28px)',
+            left: 0, right: 0,
+            zIndex: 25,
+            pointerEvents: 'none',
+        }}>
+            {/* Floating burst emojis */}
+            <AnimatePresence>
+                {floaters.map(f => (
+                    <motion.div
+                        key={f.id}
+                        initial={{ opacity: 1, y: 0, scale: 0.6, x: f.x }}
+                        animate={{ opacity: 0, y: -120, scale: 1.4, x: f.x + (Math.random() * 20 - 10) }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 1.1, ease: 'easeOut' }}
+                        style={{
+                            position: 'absolute',
+                            bottom: 54,
+                            left: '50%',
+                            fontSize: '2rem',
+                            pointerEvents: 'none',
+                            userSelect: 'none',
+                        }}
+                    >
+                        {f.emoji}
+                    </motion.div>
+                ))}
+            </AnimatePresence>
+
+            {/* Reaction pill bar */}
+            <div style={{
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                pointerEvents: 'all',
+            }}>
+                <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, type: 'spring', stiffness: 340, damping: 26 }}
+                    style={{
+                        display: 'flex', gap: 6,
+                        background: 'rgba(0,0,0,0.52)',
+                        backdropFilter: 'blur(18px)',
+                        WebkitBackdropFilter: 'blur(18px)',
+                        borderRadius: 999,
+                        padding: '0.38rem 0.75rem',
+                        border: '1px solid rgba(255,255,255,0.14)',
+                        boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+                    }}
+                >
+                    {REACTION_EMOJIS.map(emoji => (
+                        <motion.button
+                            key={emoji}
+                            onClick={() => handleReact(emoji)}
+                            whileTap={{ scale: 1.5, rotate: [0, -10, 10, 0] }}
+                            whileHover={{ scale: 1.3 }}
+                            transition={{ type: 'spring', stiffness: 500, damping: 18 }}
+                            style={{
+                                background: 'none', border: 'none', cursor: 'pointer',
+                                fontSize: '1.35rem', lineHeight: 1,
+                                padding: '0.1rem 0.15rem',
+                                position: 'relative',
+                            }}
+                        >
+                            {emoji}
+                            {counts[emoji] > 0 && (
+                                <span style={{
+                                    position: 'absolute', top: -6, right: -4,
+                                    fontSize: '0.36rem', fontWeight: 800,
+                                    color: '#fff',
+                                    background: 'rgba(139,92,246,0.85)',
+                                    borderRadius: 999,
+                                    padding: '0.05rem 0.22rem',
+                                    pointerEvents: 'none',
+                                    lineHeight: 1.4,
+                                    fontFamily: "'Inter',system-ui,sans-serif",
+                                }}>{counts[emoji] > 99 ? '99+' : counts[emoji]}</span>
+                            )}
+                        </motion.button>
+                    ))}
+                </motion.div>
+            </div>
+        </div>
+    );
+}
 
 // ── Story Bubble — Rectangular Card (unified with UserStoryBubble) ───────────
 function StoryBubble({ story, onClick, index = 0 }: { story: typeof STORIES[number]; onClick: () => void; index?: number }) {
@@ -1154,6 +1267,8 @@ function CosmicDateViewer({ totalStoryCount, globalIndex, onClose, onNext, onPre
                 </motion.div>
                 {/* Divider */}
                 <div style={{ width: 48, height: 1.5, background: 'linear-gradient(90deg,transparent,#fbbf24,transparent)', marginBottom: '1.4rem', boxShadow: '0 0 10px #fbbf2480' }} />
+                {/* ── Emoji Reaction Bar ── */}
+                <FloatingReactionBar />
                 {/* Festival Banner */}
                 {festival && (
                     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}
@@ -1475,6 +1590,9 @@ function StoryViewer({ story, totalStoryCount, globalIndex, onClose, onPrev, onN
                     )}
                 </AnimatePresence>
 
+                {/* ── Emoji Reaction Bar ── */}
+                <FloatingReactionBar />
+
                 {/* ── Tap zones: prev (left) / next (right) ── */}
                 <div onClick={e => { e.stopPropagation(); onPrev(); }} style={{
                     position: 'absolute', left: 0, top: 60, bottom: 60,
@@ -1637,7 +1755,6 @@ export default function StickyTopNav() {
                         {[
                             { href: '/project-leela', emoji: '🎵', color: '#fbbf24', label: 'Raag' },
                             { href: '/vedic-games', emoji: '🎲', color: '#4ade80', label: 'Games' },
-                            { href: '/vedic-sangrah', emoji: '🪔', color: '#22d3ee', label: 'Gurukul' },
                         ].map(({ href, emoji, color, label }) => (
                             <Link key={href} href={href} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, textDecoration: 'none' }}>
                                 <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.90 }}

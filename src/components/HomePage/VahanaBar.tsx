@@ -58,8 +58,8 @@ export default function VahanaBar() {
 
     const NAV = [
         {
-            id: 'jobs', href: '/jobs-skills',
-            label: 'Skills',
+            id: 'gurukul', href: '/vedic-sangrah',
+            label: 'Ultra Gurukul',
             icon: 'briefcase' as const,
         },
         {

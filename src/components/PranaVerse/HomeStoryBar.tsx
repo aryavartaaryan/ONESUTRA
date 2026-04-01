@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { X } from 'lucide-react';
 import { useDailyTasks, type TaskItem } from '@/hooks/useDailyTasks';
 import { BODHI_DEFAULT_STORIES } from '@/components/HomePage/StickyTopNav';
+import { MANTRA_REELS } from '@/components/PranaVerse/MantraReelFeed';
 
 // ── User story types (mirroring StickyTopNav) ─────────────────────────
 type UserStoryCategory = 'task' | 'challenge' | 'idea' | 'issue' | 'wellness';
@@ -1020,15 +1021,15 @@ function VideoStoryViewer({ story, allVideoStories, startIdx, onClose, onFinishe
     onClose: () => void;
     onFinished?: () => void; // called after last video — to chain into image stories
 }) {
+    const scrollerRef = useRef<HTMLDivElement>(null);
     const [currentIdx, setCurrentIdx] = useState(startIdx);
-    const [direction, setDirection] = useState(1);
     const [progress, setProgress] = useState(0);
     const [muted, setMuted] = useState(false);
     const [heartActive, setHeartActive] = useState(false);
     const [loveActive, setLoveActive] = useState(false);
     const [heartCount, setHeartCount] = useState(842);
     const [loveCount, setLoveCount] = useState(315);
-    const videoRef = useRef<HTMLVideoElement>(null);
+    const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const progressRef = useRef(0);
     const VIDEO_DURATION = 30000;
@@ -1038,33 +1039,44 @@ function VideoStoryViewer({ story, allVideoStories, startIdx, onClose, onFinishe
 
     const clearTimer = () => { if (timerRef.current) clearInterval(timerRef.current); };
 
+    // Initialize scroll position on mount safely after render
+    useEffect(() => {
+        if (scrollerRef.current && startIdx > 0) {
+            scrollerRef.current.scrollTop = startIdx * scrollerRef.current.clientHeight;
+        }
+    }, [startIdx]);
+
+    const handleScroll = () => {
+        if (!scrollerRef.current) return;
+        const center = scrollerRef.current.scrollTop + scrollerRef.current.clientHeight / 2;
+        const idx = Math.floor(center / scrollerRef.current.clientHeight);
+        if (idx !== currentIdx && idx >= 0 && idx < allVideoStories.length) {
+            setCurrentIdx(idx);
+        }
+    };
+
     const goNext = useCallback(() => {
-        clearTimer(); setProgress(0); progressRef.current = 0; setDirection(1);
         if (currentIdx < allVideoStories.length - 1) {
-            setCurrentIdx(i => i + 1);
+            if (scrollerRef.current) scrollerRef.current.scrollTo({ top: (currentIdx + 1) * scrollerRef.current.clientHeight, behavior: 'instant' as ScrollBehavior });
         } else {
-            // After last video — chain into image stories if handler provided, else close
-            if (onFinished) onFinished();
-            else onClose();
+            if (onFinished) onFinished(); else onClose();
         }
     }, [currentIdx, allVideoStories.length, onClose, onFinished]);
 
     const goPrev = useCallback(() => {
-        clearTimer(); setProgress(0); progressRef.current = 0; setDirection(-1);
-        if (currentIdx > 0) setCurrentIdx(i => i - 1);
+        if (currentIdx > 0) {
+            if (scrollerRef.current) scrollerRef.current.scrollTo({ top: (currentIdx - 1) * scrollerRef.current.clientHeight, behavior: 'instant' as ScrollBehavior });
+        }
     }, [currentIdx]);
 
     useEffect(() => {
-        clearTimer();
-        progressRef.current = 0;
-        setProgress(0);
+        clearTimer(); progressRef.current = 0; setProgress(0);
         const tick = 100;
         timerRef.current = setInterval(() => {
-            const v = videoRef.current;
+            const v = videoRefs.current[currentIdx];
             if (v && v.duration) {
                 const pct = (v.currentTime / v.duration) * 100;
-                progressRef.current = pct;
-                setProgress(pct);
+                progressRef.current = pct; setProgress(pct);
                 if (pct >= 99) goNext();
             } else {
                 progressRef.current += (tick / VIDEO_DURATION) * 100;
@@ -1076,11 +1088,12 @@ function VideoStoryViewer({ story, allVideoStories, startIdx, onClose, onFinishe
     }, [currentIdx, goNext]);
 
     useEffect(() => {
-        const v = videoRef.current;
-        if (!v) return;
-        v.muted = muted;
-        v.currentTime = 0;
-        v.play().catch(() => { });
+        videoRefs.current.forEach((v, i) => {
+            if (!v) return;
+            v.muted = muted;
+            if (i === currentIdx) { v.currentTime = 0; v.play().catch(() => { }); }
+            else { v.pause(); v.currentTime = 0; }
+        });
     }, [currentIdx, muted]);
 
     useEffect(() => {
@@ -1091,160 +1104,122 @@ function VideoStoryViewer({ story, allVideoStories, startIdx, onClose, onFinishe
     useEffect(() => {
         const h = (e: KeyboardEvent) => {
             if (e.key === 'Escape') onClose();
-            if (e.key === 'ArrowRight') goNext();
-            if (e.key === 'ArrowLeft') goPrev();
+            if (e.key === 'ArrowDown' || e.key === 'ArrowRight') goNext();
+            if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') goPrev();
         };
         window.addEventListener('keydown', h);
         return () => window.removeEventListener('keydown', h);
     }, [onClose, goNext, goPrev]);
 
     if (!current) return null;
-
     const fmtCount = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(1).replace('.0', '')}k` : String(n);
 
     return (
-        <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ position: 'fixed', inset: 0, zIndex: 10001, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 10001, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <style>{`
                 @keyframes goldPulse{0%,100%{opacity:0.7}50%{opacity:1}}
                 @keyframes shimmerRing{0%{filter:hue-rotate(0deg) brightness(1.1)}100%{filter:hue-rotate(30deg) brightness(1.3)}}
                 @keyframes reactionPop{0%{transform:scale(1)}40%{transform:scale(1.45)}70%{transform:scale(0.9)}100%{transform:scale(1)}}
             `}</style>
-            <div style={{ position: 'relative', width: '100%', maxWidth: 480, height: '100vh', overflow: 'hidden' }}>
-                <AnimatePresence initial={false} mode="sync">
-                    <motion.div
-                        key={currentIdx}
-                        initial={{ y: direction >= 0 ? '100%' : '-100%' }}
-                        animate={{ y: 0 }}
-                        exit={{ y: direction >= 0 ? '-100%' : '100%' }}
-                        transition={{ duration: 0.32, ease: [0.25, 0.8, 0.25, 1] }}
-                        style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}
-                    >
-                        <video
-                            ref={videoRef}
-                            src={current.videoSrc}
-                            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                            muted={muted} playsInline autoPlay loop
-                        />
-                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.75) 0%, transparent 28%, transparent 60%, rgba(0,0,0,0.82) 100%)', pointerEvents: 'none' }} />
-                        <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at center 65%, ${current.color}18 0%, transparent 65%)`, pointerEvents: 'none' }} />
 
-                        {/* ── Progress bars ── */}
-                        <div style={{ position: 'absolute', top: 14, left: 12, right: 12, display: 'flex', gap: 3, zIndex: 20 }}>
-                            {allVideoStories.map((_, i) => (
-                                <div key={i} style={{ flex: 1, height: 2.5, background: 'rgba(255,255,255,0.22)', borderRadius: 2, overflow: 'hidden' }}>
-                                    <motion.div style={{
-                                        height: '100%',
-                                        background: `linear-gradient(90deg, ${current.color}, #fbbf24)`,
-                                        width: i < currentIdx ? '100%' : i === currentIdx ? `${Math.min(progress, 100)}%` : '0%',
-                                        borderRadius: 2,
-                                    }} />
-                                </div>
-                            ))}
-                        </div>
+            <div ref={scrollerRef} onScroll={handleScroll} style={{ position: 'absolute', inset: 0, width: '100vw', height: '100svh', overflowY: 'scroll', scrollSnapType: 'y mandatory', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', display: 'flex', flexDirection: 'column' }}>
+                {allVideoStories.map((s, idx) => {
+                    const isActiveOrNear = Math.abs(idx - currentIdx) <= 1;
+                    return (
+                        <div key={s.id} style={{ position: 'relative', width: '100%', height: '100svh', flexShrink: 0, scrollSnapAlign: 'start', scrollSnapStop: 'always', display: 'flex', justifyContent: 'center', background: '#000', transform: 'translateZ(0)', willChange: 'transform' }}>
+                            <div style={{ position: 'relative', width: '100%', maxWidth: 480, height: '100%' }}>
+                                {/* Skeleton placeholder — always rendered to preserve scroll width */}
+                                {!isActiveOrNear && (
+                                    <div style={{ position: 'absolute', inset: 0, background: s.gradient }} />
+                                )}
+                                {isActiveOrNear && (
+                                    <>
+                                        {/* ── Video: active=auto, adjacent=metadata for fast preload ── */}
+                                        <video
+                                            ref={el => { videoRefs.current[idx] = el; }}
+                                            src={s.videoSrc}
+                                            preload={idx === currentIdx ? 'auto' : 'metadata'}
+                                            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', transform: 'translateZ(0)', willChange: 'transform' }}
+                                            muted={muted}
+                                            playsInline
+                                            loop
+                                        />
+                                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.75) 0%, transparent 28%, transparent 60%, rgba(0,0,0,0.82) 100%)', pointerEvents: 'none' }} />
+                                        <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at center 65%, ${s.color}18 0%, transparent 65%)`, pointerEvents: 'none' }} />
 
-                        {/* ── Header ── */}
-                        <div style={{ position: 'absolute', top: 26, left: 14, right: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                <div style={{
-                                    width: 42, height: 42, borderRadius: '50%',
-                                    background: current.gradient,
-                                    border: `2px solid ${current.color}88`,
-                                    boxShadow: `0 0 16px ${current.color}88`,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    fontSize: '1.2rem', overflow: 'hidden', position: 'relative',
-                                }}>
-                                    <video src={current.videoSrc} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 }} muted playsInline autoPlay loop />
-                                    <span style={{ position: 'relative', zIndex: 1 }}>{current.icon}</span>
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', fontFamily: "'Inter',sans-serif", textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>{current.label}</div>
-                                    <div style={{ fontSize: '0.58rem', color: `${current.color}cc`, letterSpacing: '0.06em', fontFamily: "'Inter',sans-serif" }}>{current.description} · PranaVerse</div>
-                                </div>
-                            </div>
-                            <div style={{ display: 'flex', gap: 8 }}>
-                                <button onClick={() => setMuted(m => !m)} style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 36, height: 36, color: '#fff', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{muted ? '🔇' : '🔊'}</button>
-                                <button onClick={onClose} style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 36, height: 36, color: '#fff', cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
-                            </div>
-                        </div>
+                                        {/* ── Overlay UI (only on active slide to avoid multiple overlapping UIs) ── */}
+                                        {idx === currentIdx && (
+                                            <>
+                                                <div style={{ position: 'absolute', top: 26, left: 14, right: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                                        <div style={{ width: 42, height: 42, borderRadius: '50%', background: s.gradient, border: `2px solid ${s.color}88`, boxShadow: `0 0 16px ${s.color}88`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', overflow: 'hidden', position: 'relative' }}>
+                                                            <span style={{ position: 'relative', zIndex: 1 }}>{s.icon}</span>
+                                                        </div>
+                                                        <div>
+                                                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', fontFamily: "'Inter',sans-serif", textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>{s.label}</div>
+                                                            <div style={{ fontSize: '0.58rem', color: `${s.color}cc`, letterSpacing: '0.06em', fontFamily: "'Inter',sans-serif" }}>{s.description} · PranaVerse</div>
+                                                        </div>
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: 8 }}>
+                                                        <button onClick={() => setMuted(m => !m)} style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 36, height: 36, color: '#fff', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{muted ? '🔇' : '🔊'}</button>
+                                                        <button onClick={onClose} style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 36, height: 36, color: '#fff', cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                                                    </div>
+                                                </div>
 
-                        {/* ── Bottom info overlay ── */}
-                        <div style={{ position: 'absolute', bottom: '10%', left: '1rem', right: '5.5rem', zIndex: 20 }}>
-                            <motion.div key={`info-${currentIdx}`} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
-                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', border: `1px solid ${current.color}44`, borderRadius: 99, padding: '0.2rem 0.7rem', marginBottom: '0.6rem' }}>
-                                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: current.color, boxShadow: `0 0 8px ${current.color}` }} />
-                                    <span style={{ fontSize: '0.52rem', color: current.color, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: "'Inter',sans-serif" }}>⚡ {pranaLabel} · PranaVerse</span>
-                                </div>
-                                <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 'clamp(1.6rem,6vw,2.2rem)', fontWeight: 600, color: '#fff', textShadow: '0 2px 20px rgba(0,0,0,0.8)', marginBottom: '0.3rem', lineHeight: 1.2 }}>{current.label}</h2>
-                                <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.72)', fontStyle: 'italic', letterSpacing: '0.03em' }}>{current.description}</p>
-                            </motion.div>
-                        </div>
+                                                <div style={{ position: 'absolute', bottom: '10%', left: '1rem', right: '5.5rem', zIndex: 20, pointerEvents: 'none' }}>
+                                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', border: `1px solid ${s.color}44`, borderRadius: 99, padding: '0.2rem 0.7rem', marginBottom: '0.6rem' }}>
+                                                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: s.color, boxShadow: `0 0 8px ${s.color}` }} />
+                                                        <span style={{ fontSize: '0.52rem', color: s.color, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: "'Inter',sans-serif" }}>⚡ {pranaLabel} · PranaVerse</span>
+                                                    </div>
+                                                    <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 'clamp(1.6rem,6vw,2.2rem)', fontWeight: 600, color: '#fff', textShadow: '0 2px 20px rgba(0,0,0,0.8)', marginBottom: '0.3rem', lineHeight: 1.2 }}>{s.label}</h2>
+                                                    <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.72)', fontStyle: 'italic', letterSpacing: '0.03em' }}>{s.description}</p>
+                                                </div>
 
-                        {/* ── Right action bar — ❤️ and 😍 only ── */}
-                        <div style={{ position: 'absolute', right: '0.75rem', bottom: '14%', display: 'flex', flexDirection: 'column', gap: '1.1rem', alignItems: 'center', zIndex: 20 }}>
-                            {/* Heart reaction */}
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                                <motion.button
-                                    whileTap={{ scale: 0.82 }}
-                                    onClick={() => {
-                                        setHeartActive(a => !a);
-                                        setHeartCount(c => heartActive ? c - 1 : c + 1);
-                                    }}
-                                    style={{
-                                        background: heartActive ? 'rgba(239,68,68,0.25)' : 'rgba(0,0,0,0.45)',
-                                        backdropFilter: 'blur(12px)',
-                                        border: heartActive ? '1px solid rgba(239,68,68,0.5)' : '1px solid rgba(255,255,255,0.15)',
-                                        borderRadius: 16, width: 48, height: 48,
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        cursor: 'pointer', fontSize: '1.35rem',
-                                        animation: heartActive ? 'reactionPop 0.4s ease' : 'none',
-                                    }}
-                                >
-                                    {heartActive ? '❤️' : '🤍'}
-                                </motion.button>
-                                <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.65)', fontFamily: "'Inter',sans-serif", fontWeight: 600 }}>{fmtCount(heartCount)}</span>
-                            </div>
-                            {/* Love / Adore reaction */}
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                                <motion.button
-                                    whileTap={{ scale: 0.82 }}
-                                    onClick={() => {
-                                        setLoveActive(a => !a);
-                                        setLoveCount(c => loveActive ? c - 1 : c + 1);
-                                    }}
-                                    style={{
-                                        background: loveActive ? 'rgba(251,191,36,0.22)' : 'rgba(0,0,0,0.45)',
-                                        backdropFilter: 'blur(12px)',
-                                        border: loveActive ? '1px solid rgba(251,191,36,0.55)' : '1px solid rgba(255,255,255,0.15)',
-                                        borderRadius: 16, width: 48, height: 48,
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        cursor: 'pointer', fontSize: '1.35rem',
-                                        animation: loveActive ? 'reactionPop 0.4s ease' : 'none',
-                                    }}
-                                >
-                                    {loveActive ? '😍' : '🤩'}
-                                </motion.button>
-                                <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.65)', fontFamily: "'Inter',sans-serif", fontWeight: 600 }}>{fmtCount(loveCount)}</span>
+                                                <div style={{ position: 'absolute', right: '0.75rem', bottom: '14%', display: 'flex', flexDirection: 'column', gap: '1.1rem', alignItems: 'center', zIndex: 20 }}>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                                                        <motion.button whileTap={{ scale: 0.82 }} onClick={() => { setHeartActive(a => !a); setHeartCount(c => heartActive ? c - 1 : c + 1); }} style={{ background: heartActive ? 'rgba(239,68,68,0.25)' : 'rgba(0,0,0,0.45)', backdropFilter: 'blur(12px)', border: heartActive ? '1px solid rgba(239,68,68,0.5)' : '1px solid rgba(255,255,255,0.15)', borderRadius: 16, width: 48, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.35rem', animation: heartActive ? 'reactionPop 0.4s ease' : 'none' }}>{heartActive ? '❤️' : '🤍'}</motion.button>
+                                                        <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.65)', fontFamily: "'Inter',sans-serif", fontWeight: 600 }}>{fmtCount(heartCount)}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                                                        <motion.button whileTap={{ scale: 0.82 }} onClick={() => { setLoveActive(a => !a); setLoveCount(c => loveActive ? c - 1 : c + 1); }} style={{ background: loveActive ? 'rgba(251,191,36,0.22)' : 'rgba(0,0,0,0.45)', backdropFilter: 'blur(12px)', border: loveActive ? '1px solid rgba(251,191,36,0.55)' : '1px solid rgba(255,255,255,0.15)', borderRadius: 16, width: 48, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.35rem', animation: loveActive ? 'reactionPop 0.4s ease' : 'none' }}>{loveActive ? '😍' : '🤩'}</motion.button>
+                                                        <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.65)', fontFamily: "'Inter',sans-serif", fontWeight: 600 }}>{fmtCount(loveCount)}</span>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </>
+                                )}
+                                {/* ── Tap zones: left=prev, right=next (mirrors image StoryViewer) ── */}
+                                <div onClick={(e) => { e.stopPropagation(); goPrev(); }} style={{ position: 'absolute', left: 0, top: 60, bottom: 80, width: '30%', zIndex: 19, cursor: 'pointer' }} />
+                                <div onClick={(e) => { e.stopPropagation(); goNext(); }} style={{ position: 'absolute', right: 0, top: 60, bottom: 80, width: '30%', zIndex: 19, cursor: 'pointer' }} />
                             </div>
                         </div>
+                    );
+                })}
+            </div>
 
-                        {/* ── Tap zones ── */}
-                        <div onClick={goPrev} style={{ position: 'absolute', left: 0, top: 0, width: '38%', height: '100%', zIndex: 15, cursor: 'pointer' }} />
-                        <div onClick={goNext} style={{ position: 'absolute', right: 0, top: 0, width: '38%', height: '100%', zIndex: 15, cursor: 'pointer' }} />
+            {/* ── Global Top Progress Bar outside scroll container ── */}
+            <div style={{ position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 480, display: 'flex', gap: 3, zIndex: 100, padding: '0 12px', boxSizing: 'border-box', pointerEvents: 'none' }}>
+                {allVideoStories.map((_, i) => (
+                    <div key={i} style={{ flex: 1, height: 2.5, background: 'rgba(255,255,255,0.22)', borderRadius: 2, overflow: 'hidden' }}>
+                        <div style={{
+                            height: '100%',
+                            background: `linear-gradient(90deg, ${current.color}, #fbbf24)`,
+                            width: i < currentIdx ? '100%' : i === currentIdx ? `${Math.min(progress, 100)}%` : '0%',
+                            borderRadius: 2,
+                            transition: i === currentIdx ? 'none' : undefined,
+                        }} />
+                    </div>
+                ))}
+            </div>
 
-                        {/* ── Story dots ── */}
-                        <div style={{ position: 'absolute', bottom: '5%', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 4, zIndex: 20, maxWidth: '80vw', flexWrap: 'nowrap', overflow: 'hidden' }}>
-                            {allVideoStories.slice(Math.max(0, currentIdx - 4), currentIdx + 5).map((s, i) => {
-                                const realIdx = i + Math.max(0, currentIdx - 4);
-                                return (
-                                    <button key={s.id} onClick={() => { setCurrentIdx(realIdx); setProgress(0); progressRef.current = 0; }} style={{ width: realIdx === currentIdx ? 18 : 5, height: 5, borderRadius: 3, background: realIdx === currentIdx ? '#fbbf24' : 'rgba(255,255,255,0.3)', border: 'none', cursor: 'pointer', transition: 'all 0.25s', padding: 0, flexShrink: 0 }} />
-                                );
-                            })}
-                        </div>
-                    </motion.div>
-                </AnimatePresence>
+            <div style={{ position: 'absolute', bottom: '5%', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 4, zIndex: 100, maxWidth: '80vw', flexWrap: 'nowrap', overflow: 'hidden' }}>
+                {allVideoStories.slice(Math.max(0, currentIdx - 4), currentIdx + 5).map((s, i) => {
+                    const realIdx = i + Math.max(0, currentIdx - 4);
+                    return (
+                        <button key={s.id} onClick={() => { if (scrollerRef.current) scrollerRef.current.scrollTo({ top: realIdx * scrollerRef.current.clientHeight, behavior: 'smooth' }); }} style={{ width: realIdx === currentIdx ? 18 : 5, height: 5, borderRadius: 3, background: realIdx === currentIdx ? '#fbbf24' : 'rgba(255,255,255,0.3)', border: 'none', cursor: 'pointer', transition: 'all 0.25s', padding: 0, flexShrink: 0 }} />
+                    );
+                })}
             </div>
         </motion.div>
     );
@@ -1253,28 +1228,67 @@ function VideoStoryViewer({ story, allVideoStories, startIdx, onClose, onFinishe
 // ── Full-Screen IMAGE Story Viewer (existing groups) ──────────────────────────
 const SLIDE_DURATION = 7000;
 function StoryViewer({ groups, startGroupIdx, onClose, onFinished }: { groups: StoryGroup[]; startGroupIdx: number; onClose: () => void; onFinished?: () => void }) {
-    const [gIdx, setGIdx] = useState(startGroupIdx);
-    const [sIdx, setSIdx] = useState(0);
-    const [direction, setDirection] = useState(1);
+    const scrollerRef = useRef<HTMLDivElement>(null);
+    const flatSlides = useMemo(() => {
+        const arr: { group: StoryGroup, slide: typeof groups[0]['slides'][0], gIdx: number, sIdx: number }[] = [];
+        groups.forEach((g, gIdx) => g.slides.forEach((s, sIdx) => arr.push({ group: g, slide: s, gIdx, sIdx })));
+        return arr;
+    }, [groups]);
+
+    const initialIdx = useMemo(() => flatSlides.findIndex(f => f.gIdx === startGroupIdx && f.sIdx === 0), [flatSlides, startGroupIdx]);
+    const [currentIdx, setCurrentIdx] = useState(initialIdx !== -1 ? initialIdx : 0);
     const [progress, setProgress] = useState(0);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const progressRef = useRef(0);
-    const group = groups[gIdx];
-    const slide = group?.slides[sIdx];
-    const totalSlides = group?.slides.length ?? 1;
+
+    const currentFlat = flatSlides[currentIdx];
+    const { group, slide, gIdx, sIdx } = currentFlat || { group: groups[0], slide: groups[0]?.slides[0], gIdx: 0, sIdx: 0 };
+    const totalSlidesForGroup = group?.slides.length ?? 1;
+
+    // Initialize scroll position on mount (once only — don't re-run on each currentIdx change
+    // as it fights user swipe events and causes jitter)
+    useEffect(() => {
+        if (scrollerRef.current && initialIdx > 0) {
+            requestAnimationFrame(() => {
+                if (scrollerRef.current) {
+                    scrollerRef.current.scrollLeft = initialIdx * scrollerRef.current.clientWidth;
+                }
+            });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const handleScroll = () => {
+        if (!scrollerRef.current) return;
+        const W = scrollerRef.current.clientWidth;
+        const center = scrollerRef.current.scrollLeft + W / 2;
+        const idx = Math.floor(center / W);
+        if (idx !== currentIdx && idx >= 0 && idx < flatSlides.length) {
+            setCurrentIdx(idx);
+            setProgress(0); progressRef.current = 0;
+        }
+    };
 
     const clearTimer = () => { if (timerRef.current) clearInterval(timerRef.current); };
+
     const goNext = useCallback(() => {
-        clearTimer(); setProgress(0); progressRef.current = 0; setDirection(1);
-        if (sIdx < totalSlides - 1) setSIdx(s => s + 1);
-        else if (gIdx < groups.length - 1) { setGIdx(g => g + 1); setSIdx(0); }
-        else { if (onFinished) onFinished(); else onClose(); }
-    }, [sIdx, totalSlides, gIdx, groups.length, onClose]);
+        if (currentIdx < flatSlides.length - 1) {
+            const W = scrollerRef.current?.clientWidth ?? window.innerWidth;
+            if (scrollerRef.current) scrollerRef.current.scrollTo({ left: (currentIdx + 1) * W, behavior: 'instant' as ScrollBehavior });
+        } else {
+            if (onFinished) onFinished(); else onClose();
+        }
+    }, [currentIdx, flatSlides.length, onClose, onFinished]);
+
     const goPrev = useCallback(() => {
-        clearTimer(); setProgress(0); progressRef.current = 0; setDirection(-1);
-        if (sIdx > 0) setSIdx(s => s - 1);
-        else if (gIdx > 0) { setGIdx(g => g - 1); setSIdx(0); }
-    }, [sIdx, gIdx]);
+        if (currentIdx > 0) {
+            const W = scrollerRef.current?.clientWidth ?? window.innerWidth;
+            if (scrollerRef.current) scrollerRef.current.scrollTo({ left: (currentIdx - 1) * W, behavior: 'instant' as ScrollBehavior });
+        }
+    }, [currentIdx]);
+
+    const handleTapPrev = (e: React.MouseEvent) => { e.stopPropagation(); goPrev(); };
+    const handleTapNext = (e: React.MouseEvent) => { e.stopPropagation(); goNext(); };
 
     useEffect(() => {
         clearTimer(); progressRef.current = 0; setProgress(0);
@@ -1285,13 +1299,13 @@ function StoryViewer({ groups, startGroupIdx, onClose, onFinished }: { groups: S
             if (progressRef.current >= 100) goNext();
         }, tick);
         return clearTimer;
-    }, [gIdx, sIdx, goNext]);
+    }, [currentIdx, goNext]);
 
     useEffect(() => {
         const h = (e: KeyboardEvent) => {
             if (e.key === 'Escape') onClose();
-            if (e.key === 'ArrowRight') goNext();
-            if (e.key === 'ArrowLeft') goPrev();
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goNext();
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') goPrev();
         };
         window.addEventListener('keydown', h);
         return () => window.removeEventListener('keydown', h);
@@ -1302,66 +1316,328 @@ function StoryViewer({ groups, startGroupIdx, onClose, onFinished }: { groups: S
     if (!group || !slide) return null;
 
     return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ position: 'fixed', inset: 0, zIndex: 10000, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ position: 'relative', width: '100%', maxWidth: 480, height: '100vh', overflow: 'hidden' }}>
-                <AnimatePresence initial={false} mode="sync">
-                    <motion.div key={`${gIdx}-${sIdx}`}
-                        initial={{ x: direction >= 0 ? '100%' : '-100%' }}
-                        animate={{ x: 0 }}
-                        exit={{ x: direction >= 0 ? '-100%' : '100%' }}
-                        transition={{ duration: 0.28, ease: [0.25, 0.8, 0.25, 1] }}
-                        style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-                        <img src={slide.bg} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.3) 30%, rgba(0,0,0,0.45) 70%, rgba(0,0,0,0.88) 100%)' }} />
-                        <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at center 65%, ${slide.accent}22 0%, transparent 65%)` }} />
-                        {/* Progress bars */}
-                        <div style={{ position: 'absolute', top: 14, left: 12, right: 12, display: 'flex', gap: 4, zIndex: 20 }}>
-                            {group.slides.map((_, i) => (
-                                <div key={i} style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.25)', borderRadius: 2, overflow: 'hidden' }}>
-                                    <motion.div style={{ height: '100%', background: `linear-gradient(90deg,${group.color},#fbbf24)`, width: i < sIdx ? '100%' : i === sIdx ? `${Math.min(progress, 100)}%` : '0%', borderRadius: 2 }} />
-                                </div>
-                            ))}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 10000, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+
+            {/* Native Scroll Container (Horizontal) */}
+            <div
+                ref={scrollerRef}
+                onScroll={handleScroll}
+                style={{
+                    position: 'absolute', inset: 0, width: '100vw', height: '100svh',
+                    display: 'flex', overflowX: 'scroll', scrollSnapType: 'x mandatory',
+                    WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none',
+                    /* GPU compositing — eliminates paint on scroll, same as video viewer */
+                    transform: 'translateZ(0)', willChange: 'scroll-position',
+                }}
+            >
+                {flatSlides.map((f, idx) => (
+                    <div key={`${f.gIdx}-${f.sIdx}`} style={{ position: 'relative', width: '100vw', height: '100svh', scrollSnapAlign: 'start', scrollSnapStop: 'always', flexShrink: 0, overflow: 'hidden', display: 'flex', justifyContent: 'center' }}>
+                        <div style={{ position: 'relative', width: '100%', maxWidth: 480, height: '100%' }}>
+                            {(Math.abs(idx - currentIdx) <= 1) && (
+                                <>
+                                    <img src={f.slide.bg} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.3) 30%, rgba(0,0,0,0.45) 70%, rgba(0,0,0,0.88) 100%)', pointerEvents: 'none' }} />
+                                    <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at center 65%, ${f.slide.accent}22 0%, transparent 65%)`, pointerEvents: 'none' }} />
+
+                                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, pointerEvents: 'none' }}>
+                                        <div style={{ width: '100%', marginTop: '3rem', pointerEvents: 'auto' }}>
+                                            {f.slide.content}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                            <div onClick={handleTapPrev} style={{ position: 'absolute', left: 0, top: 0, width: '35%', height: '100%', zIndex: 15, cursor: 'pointer' }} />
+                            <div onClick={handleTapNext} style={{ position: 'absolute', right: 0, top: 0, width: '35%', height: '100%', zIndex: 15, cursor: 'pointer' }} />
                         </div>
-                        {/* Header */}
-                        <div style={{ position: 'absolute', top: 28, left: 14, right: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                <div style={{ width: 40, height: 40, borderRadius: '50%', background: group.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', boxShadow: `0 0 16px ${group.color}66`, border: '2px solid rgba(255,255,255,0.35)' }}>{group.icon}</div>
-                                <div>
-                                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#fff', fontFamily: "'Inter',sans-serif" }}>{group.label}</div>
-                                    <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.55)' }}>{sIdx + 1} of {totalSlides}</div>
-                                </div>
-                            </div>
-                            <button onClick={onClose} style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 36, height: 36, color: '#fff', cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
-                        </div>
-                        {/* Content */}
-                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
-                            <div style={{ width: '100%', marginTop: '3rem' }}>
-                                {slide.content}
-                            </div>
-                        </div>
-                        {/* Group dots */}
-                        <div style={{ position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 6, zIndex: 20 }}>
-                            {groups.map((g, i) => (
-                                <button key={g.id} onClick={() => { setGIdx(i); setSIdx(0); }} style={{ width: i === gIdx ? 20 : 6, height: 6, borderRadius: 3, background: i === gIdx ? '#fff' : 'rgba(255,255,255,0.35)', border: 'none', cursor: 'pointer', transition: 'all 0.25s', padding: 0 }} />
-                            ))}
-                        </div>
-                        <div onClick={e => { e.stopPropagation(); goPrev(); }} style={{ position: 'absolute', left: 0, top: 0, width: '40%', height: '100%', zIndex: 15, cursor: 'pointer' }} />
-                        <div onClick={e => { e.stopPropagation(); goNext(); }} style={{ position: 'absolute', right: 0, top: 0, width: '40%', height: '100%', zIndex: 15, cursor: 'pointer' }} />
-                    </motion.div>
-                </AnimatePresence>
+                    </div>
+                ))}
             </div>
+
+            {/* ── Fixed global UI on top of horizontal scroller ── */}
+            <div style={{ position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 480, display: 'flex', gap: 4, zIndex: 100, padding: '0 12px', boxSizing: 'border-box', pointerEvents: 'none' }}>
+                {group.slides.map((_, i) => (
+                    <div key={i} style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.25)', borderRadius: 2, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', background: `linear-gradient(90deg,${group.color},#fbbf24)`, width: i < sIdx ? '100%' : i === sIdx ? `${Math.min(progress, 100)}%` : '0%', borderRadius: 2, transition: i === sIdx ? 'none' : undefined }} />
+                    </div>
+                ))}
+            </div>
+
+            <div style={{ position: 'absolute', top: 28, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 480, display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 100, padding: '0 14px', boxSizing: 'border-box', pointerEvents: 'none' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: group.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', boxShadow: `0 0 16px ${group.color}66`, border: '2px solid rgba(255,255,255,0.35)' }}>{group.icon}</div>
+                    <div>
+                        <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#fff', fontFamily: "'Inter',sans-serif", textShadow: '0 1px 8px rgba(0,0,0,0.5)' }}>{group.label}</div>
+                        <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.55)' }}>{sIdx + 1} of {totalSlidesForGroup}</div>
+                    </div>
+                </div>
+                <button onClick={onClose} style={{ pointerEvents: 'auto', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 36, height: 36, color: '#fff', cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+            </div>
+
+            <div style={{ position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 6, zIndex: 100, pointerEvents: 'none', maxWidth: 480, flexWrap: 'nowrap' }}>
+                {groups.map((g, i) => {
+                    const targetIdx = flatSlides.findIndex(f => f.gIdx === i && f.sIdx === 0);
+                    return (
+                        <button key={g.id} onClick={(e) => { e.stopPropagation(); if (scrollerRef.current && targetIdx !== -1) scrollerRef.current.scrollTo({ left: targetIdx * window.innerWidth, behavior: 'instant' as ScrollBehavior }); }} style={{ pointerEvents: 'auto', width: i === gIdx ? 20 : 6, height: 6, borderRadius: 3, background: i === gIdx ? '#fff' : 'rgba(255,255,255,0.35)', border: 'none', cursor: 'pointer', transition: 'all 0.25s', padding: 0 }} />
+                    );
+                })}
+            </div>
+
+        </motion.div>
+    );
+}
+
+// ── MantraStoryViewer — Full-screen mantra player fused with image/video ───────
+import type { MantraReel } from '@/components/PranaVerse/MantraReelFeed';
+
+function MantraStoryViewer({
+    mantras,
+    startIdx,
+    onClose,
+    onViewed,
+}: {
+    mantras: MantraReel[];
+    startIdx: number;
+    onClose: () => void;
+    onViewed: (id: string) => void;
+}) {
+    const [idx, setIdx] = useState(startIdx);
+    const audioRef = useRef<HTMLAudioElement>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const [playing, setPlaying] = useState(false);
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
+
+    const reel = mantras[idx];
+    const hasVideo = !!reel.videoSrc;
+
+    // Lock body scroll
+    useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        return () => { document.body.style.overflow = ''; };
+    }, []);
+
+    // Keyboard navigation
+    useEffect(() => {
+        const h = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') setIdx(i => Math.min(mantras.length - 1, i + 1));
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') setIdx(i => Math.max(0, i - 1));
+        };
+        window.addEventListener('keydown', h);
+        return () => window.removeEventListener('keydown', h);
+    }, [mantras.length, onClose]);
+
+    // Auto-play when reel changes
+    useEffect(() => {
+        onViewed(reel.id);
+        setCurrentTime(0);
+        const audio = audioRef.current;
+        const video = videoRef.current;
+        if (audio) {
+            audio.currentTime = 0;
+            audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+        }
+        if (video) {
+            video.muted = true;
+            video.currentTime = 0;
+            video.play().catch(() => { });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [idx, reel.id]);
+
+    const togglePlay = () => {
+        const audio = audioRef.current;
+        if (!audio) return;
+        if (playing) { audio.pause(); setPlaying(false); }
+        else { audio.play().then(() => setPlaying(true)).catch(() => { }); }
+    };
+
+    const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.94 }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+                position: 'fixed', inset: 0, zIndex: 2000,
+                background: '#000', overflow: 'hidden',
+            }}
+        >
+            {/* Background */}
+            {hasVideo ? (
+                <video
+                    ref={videoRef}
+                    src={reel.videoSrc}
+                    muted loop playsInline autoPlay
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.55) saturate(1.2)' }}
+                />
+            ) : (
+                <div style={{
+                    position: 'absolute', inset: 0,
+                    backgroundImage: `url(${reel.imageBg})`,
+                    backgroundSize: 'cover', backgroundPosition: 'center',
+                    filter: 'brightness(0.5) saturate(1.25)',
+                    animation: 'reelBgScale 30s ease-in-out infinite alternate',
+                }} />
+            )}
+
+            {/* Gradient */}
+            <div style={{
+                position: 'absolute', inset: 0,
+                background: 'linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 30%, transparent 55%, rgba(0,0,0,0.95) 100%)',
+                pointerEvents: 'none',
+            }} />
+
+            {/* Accent glow */}
+            <div style={{
+                position: 'absolute', inset: 0,
+                background: `radial-gradient(ellipse at 50% 30%, ${reel.color}20 0%, transparent 62%)`,
+                pointerEvents: 'none',
+            }} />
+
+            {/* Top bar */}
+            <div style={{
+                position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
+                padding: 'calc(0.8rem + env(safe-area-inset-top)) 1rem 0.6rem',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                background: 'linear-gradient(180deg, rgba(0,0,0,0.75) 0%, transparent 100%)',
+            }}>
+                <div>
+                    <div style={{ fontSize: '0.48rem', color: reel.color, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: "'Inter',sans-serif", textShadow: `0 0 12px ${reel.color}` }}>{reel.emoji} {reel.category}</div>
+                    <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.15rem', fontWeight: 700, color: '#fff', lineHeight: 1.2, textShadow: '0 2px 12px rgba(0,0,0,0.9)' }}>{reel.nameHi}</div>
+                </div>
+                <button onClick={onClose} style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '50%', width: 36, height: 36, color: '#fff', fontSize: '1.15rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>×</button>
+            </div>
+
+            {/* Slide indicators */}
+            <div style={{
+                position: 'absolute', top: 'calc(0.5rem + env(safe-area-inset-top))', left: '1rem', right: '1rem', zIndex: 11,
+                display: 'flex', gap: 3,
+            }}>
+                {mantras.map((_, i) => (
+                    <div key={i} onClick={() => setIdx(i)} style={{
+                        flex: 1, height: 2.5, borderRadius: 99, cursor: 'pointer',
+                        background: i < idx ? '#fff' : i === idx ? reel.color : 'rgba(255,255,255,0.22)',
+                        boxShadow: i === idx ? `0 0 6px ${reel.color}` : 'none',
+                        transition: 'all 0.25s ease',
+                    }} />
+                ))}
+            </div>
+
+            {/* Sanskrit text */}
+            <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.6 }}
+                style={{
+                    position: 'absolute', top: '50%', left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    textAlign: 'center', padding: '0 1.8rem', width: '100%',
+                    pointerEvents: 'none',
+                }}
+            >
+                <p style={{
+                    fontFamily: "'Noto Serif Devanagari', 'Mangal', serif",
+                    fontSize: 'clamp(1.1rem, 4vw, 1.5rem)',
+                    fontWeight: 700, lineHeight: 1.75,
+                    color: '#fff', whiteSpace: 'pre-line', margin: 0,
+                    textShadow: `0 0 40px ${reel.color}88, 0 2px 12px rgba(0,0,0,0.95)`,
+                }}>{reel.mantraText}</p>
+                <p style={{
+                    fontFamily: "'Inter',sans-serif", fontSize: '0.55rem',
+                    color: `${reel.color}cc`, fontStyle: 'italic', marginTop: '0.7rem',
+                    letterSpacing: '0.04em', textShadow: `0 0 10px ${reel.color}66`,
+                }}>{reel.transliteration}</p>
+            </motion.div>
+
+            {/* Bottom player */}
+            <div style={{
+                position: 'absolute', bottom: 0, left: 0, right: 0,
+                padding: '0.8rem 1.2rem calc(1.6rem + env(safe-area-inset-bottom))',
+                background: 'linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.8) 60%, transparent 100%)',
+            }}>
+                {/* Meaning */}
+                <p style={{ fontFamily: "'Inter',sans-serif", fontSize: '0.58rem', color: 'rgba(255,255,255,0.55)', fontStyle: 'italic', lineHeight: 1.6, marginBottom: '0.7rem' }}>
+                    ✦ {reel.meaning}
+                </p>
+
+                {/* Player glass card */}
+                <div style={{
+                    background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(20px)', border: `1px solid ${reel.color}30`,
+                    borderRadius: 18, padding: '0.7rem 1rem',
+                    boxShadow: `0 0 24px ${reel.color}22, 0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)`,
+                }}>
+                    {/* Progress bar */}
+                    <div style={{ height: 3, borderRadius: 99, background: 'rgba(255,255,255,0.1)', marginBottom: '0.7rem', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${progress}%`, background: `linear-gradient(90deg, ${reel.color}, ${reel.secondColor})`, borderRadius: 99, boxShadow: `0 0 8px ${reel.color}`, transition: 'width 0.5s linear' }} />
+                    </div>
+
+                    {/* Controls */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                        {/* Prev */}
+                        <motion.button whileTap={{ scale: 0.88 }} onClick={() => setIdx(i => Math.max(0, i - 1))}
+                            style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '50%', width: 36, height: 36, color: '#fff', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            ⏮
+                        </motion.button>
+
+                        {/* Play/Pause */}
+                        <motion.button whileTap={{ scale: 0.88 }} onClick={togglePlay}
+                            style={{ background: `linear-gradient(135deg, ${reel.color}dd, ${reel.secondColor}cc)`, border: `1.5px solid ${reel.color}55`, borderRadius: '50%', width: 52, height: 52, color: '#fff', cursor: 'pointer', fontSize: '1.3rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 20px ${reel.color}55` }}>
+                            {playing ? '⏸' : '▶'}
+                        </motion.button>
+
+                        {/* Next */}
+                        <motion.button whileTap={{ scale: 0.88 }} onClick={() => setIdx(i => Math.min(mantras.length - 1, i + 1))}
+                            style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '50%', width: 36, height: 36, color: '#fff', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            ⏭
+                        </motion.button>
+
+                        {/* Open in Dhyan Kendra */}
+                        <Link href="/dhyan-kshetra" onClick={onClose} style={{ textDecoration: 'none' }}>
+                            <motion.div whileTap={{ scale: 0.93 }} style={{
+                                padding: '0.35rem 0.7rem', background: `${reel.color}18`,
+                                border: `1px solid ${reel.color}44`, borderRadius: 99,
+                                fontSize: '0.44rem', color: reel.color, fontWeight: 700,
+                                fontFamily: "'Inter',sans-serif", whiteSpace: 'nowrap',
+                                letterSpacing: '0.06em',
+                            }}>
+                                🧘 Open Full
+                            </motion.div>
+                        </Link>
+                    </div>
+                </div>
+            </div>
+
+            {/* Hidden audio */}
+            <audio
+                ref={audioRef}
+                src={reel.audioSrc}
+                onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)}
+                onDurationChange={() => setDuration(audioRef.current?.duration || 0)}
+                onEnded={() => { setPlaying(false); if (idx < mantras.length - 1) setIdx(i => i + 1); }}
+            />
+
+            {/* Swipe areas */}
+            <button onClick={() => setIdx(i => Math.max(0, i - 1))} style={{ position: 'absolute', top: '20%', left: 0, width: '30%', height: '60%', background: 'none', border: 'none', cursor: 'pointer', zIndex: 5 }} />
+            <button onClick={() => setIdx(i => Math.min(mantras.length - 1, i + 1))} style={{ position: 'absolute', top: '20%', right: 0, width: '30%', height: '60%', background: 'none', border: 'none', cursor: 'pointer', zIndex: 5 }} />
+
+            <style>{`@keyframes reelBgScale { 0% { transform: scale(1.0); } 100% { transform: scale(1.06); } }`}</style>
         </motion.div>
     );
 }
 
 // ── Main HomeStoryBar ─────────────────────────────────────────────────────────
 export default function HomeStoryBar() {
+
     const getImg = useTimeImages();
     const [viewedIds, setViewedIds] = useState<Set<string>>(new Set());
     const [activeGroupIdx, setActiveGroupIdx] = useState<number | null>(null);
     const [activeVideoIdx, setActiveVideoIdx] = useState<number | null>(null);
     const [activeUserTaskIdx, setActiveUserTaskIdx] = useState<number | null>(null);
+    const [activeMantraIdx, setActiveMantraIdx] = useState<number | null>(null);
     const { tasks, removeTask } = useDailyTasks();
 
     const userTaskStories = React.useMemo(() => buildUserTaskStories(tasks), [tasks]);
@@ -1545,7 +1821,74 @@ export default function HomeStoryBar() {
                     );
                 })}
 
-                {/* Divider between non-video and video stories */}
+                {/* Divider between image stories and mantra stories */}
+                <div style={{ width: 1, height: 58, background: 'rgba(192,132,252,0.22)', flexShrink: 0, alignSelf: 'center' }} />
+
+                {/* ── MANTRA STORY BUBBLES — Fused with sacred images ───────────────── */}
+                {MANTRA_REELS.map((reel, idx) => {
+                    const isViewed = viewedIds.has(`mantra-${reel.id}`);
+                    return (
+                        <motion.div
+                            key={reel.id}
+                            initial={{ opacity: 0, scale: 0.7, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            transition={{ delay: idx * 0.035, type: 'spring', stiffness: 280, damping: 20 }}
+                            whileTap={{ scale: 0.91 }}
+                            onClick={() => setActiveMantraIdx(idx)}
+                            style={{
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem',
+                                flexShrink: 0, cursor: 'pointer', scrollSnapAlign: 'start', scrollSnapStop: 'always',
+                                animation: isViewed ? 'none' : `storyBubbleFloat ${3.5 + idx * 0.4}s ease-in-out ${idx * 0.15}s infinite`,
+                            }}
+                        >
+                            <div style={{
+                                width: 68, height: 68, borderRadius: '50%', padding: 3,
+                                background: isViewed
+                                    ? 'rgba(255,255,255,0.08)'
+                                    : `conic-gradient(${reel.color} 0deg, ${reel.secondColor} 90deg, ${reel.color} 180deg, ${reel.secondColor} 270deg, ${reel.color} 360deg)`,
+                                animation: isViewed ? 'none' : `videoRingPulse ${2.6 + idx * 0.28}s ease-in-out ${idx * 0.22}s infinite`,
+                                flexShrink: 0, position: 'relative',
+                            }}>
+                                <div style={{
+                                    width: '100%', height: '100%', borderRadius: '50%',
+                                    border: '2.5px solid #000', overflow: 'hidden', position: 'relative',
+                                    filter: isViewed ? 'grayscale(0.6) brightness(0.55)' : 'none',
+                                }}>
+                                    <img
+                                        src={reel.imageBg}
+                                        alt={reel.name}
+                                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', filter: 'brightness(0.75) saturate(1.3)' }}
+                                    />
+                                    <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at 50% 40%, ${reel.color}55 0%, transparent 72%)` }} />
+                                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <span style={{ fontSize: '1.2rem', filter: `drop-shadow(0 0 10px ${reel.color}) drop-shadow(0 0 5px ${reel.color}cc)`, opacity: isViewed ? 0.5 : 1 }}>{reel.emoji}</span>
+                                    </div>
+                                </div>
+                                {/* Mantra badge */}
+                                {!isViewed && (
+                                    <div style={{
+                                        position: 'absolute', bottom: -1, right: -1,
+                                        background: `linear-gradient(135deg, ${reel.color}, ${reel.secondColor})`,
+                                        borderRadius: '50%', width: 16, height: 16,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        border: '2px solid #000',
+                                        boxShadow: `0 0 8px ${reel.color}80`,
+                                        fontSize: '0.35rem', fontWeight: 800, color: '#fff',
+                                    }}>🎵</div>
+                                )}
+                            </div>
+                            <span style={{
+                                fontSize: '0.45rem', fontFamily: "'Inter',sans-serif", fontWeight: 700,
+                                color: isViewed ? 'rgba(255,255,255,0.28)' : reel.color,
+                                letterSpacing: '0.04em', textAlign: 'center',
+                                maxWidth: 66, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                textShadow: isViewed ? 'none' : `0 0 8px ${reel.color}80`,
+                            }}>{reel.name.split(' ').slice(0, 2).join(' ')}</span>
+                        </motion.div>
+                    );
+                })}
+
+                {/* Divider between mantra stories and video stories */}
                 <div style={{ width: 1, height: 58, background: 'rgba(251,191,36,0.12)', flexShrink: 0, alignSelf: 'center' }} />
 
                 {/* ── VIDEO STORY BUBBLES (after non-video) ── */}
@@ -1619,6 +1962,18 @@ export default function HomeStoryBar() {
                         startGroupIdx={activeGroupIdx}
                         onClose={() => setActiveGroupIdx(null)}
                         onFinished={() => { setActiveGroupIdx(null); openVideoStory(0); }}
+                    />
+                )}
+            </AnimatePresence>
+
+            {/* Full-screen MANTRA story viewer */}
+            <AnimatePresence>
+                {activeMantraIdx !== null && (
+                    <MantraStoryViewer
+                        mantras={MANTRA_REELS}
+                        startIdx={activeMantraIdx}
+                        onClose={() => setActiveMantraIdx(null)}
+                        onViewed={(id) => setViewedIds(prev => new Set([...prev, `mantra-${id}`]))}
                     />
                 )}
             </AnimatePresence>

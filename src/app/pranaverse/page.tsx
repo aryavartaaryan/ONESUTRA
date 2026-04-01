@@ -13,8 +13,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import HomeStoryBar from '@/components/PranaVerse/HomeStoryBar';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import SakhaBodhiOrb from '@/components/Dashboard/SakhaBodhiOrb';
+import InviteCard from '@/components/PranaVerse/InviteCard';
+import MantraReelFeed from '@/components/PranaVerse/MantraReelFeed';
 
-type Tab = 'story' | 'map' | 'chat' | 'home';
+type Tab = 'story' | 'map' | 'chat' | 'home' | 'mantras';
 
 // ════════════════════════════════════════════════════════
 //  SACRED PORTAL DATA  (from Home / SacredPortalGrid)
@@ -26,7 +28,7 @@ const SACRED_PORTALS = [
     { id: 'outplugs', title: 'Inshorts', subtitle: 'Mindful News', icon: '📰', color: '#d946ef', href: '/outplugs', importance: 'Distraction-free mindful news through a conscious lens. Stay informed without noise or negativity polluting your mental space.' },
     { id: 'raag', title: 'Raag Music', subtitle: 'Resonances', icon: '🎵', color: '#38bdf8', href: '/project-leela', importance: 'Ancient Indian classical ragas scientifically matched to time of day — healing frequencies that align your body clock with the cosmos.' },
     { id: 'swadeshi', title: 'Swadeshi', subtitle: 'Pure Organics', icon: '🛍️', color: '#f97316', href: '/swadesi-product', importance: 'Pure Organics & sacred commerce — authentic Indian artisan products that honor tradition, empower craftsmen and support Bharat.' },
-    { id: 'skills', title: 'Skills', subtitle: 'Upgrade & Transform', icon: '🎯', color: '#22d3ee', href: '/skills', importance: 'Upgrade & Transform — curated skill tracks from ancient Vedic arts to modern tech. AI, coding, finance, Sanskrit, yoga & more.' },
+    { id: 'skills', title: 'Ultra Gurukul', subtitle: 'Upgrade & Transform', icon: '🎯', color: '#22d3ee', href: '/vedic-sangrah', importance: 'World-Class Modern Skills blended with Vedic Wisdom — AI, Coding, Finance, Sanskrit, Yoga & Startup Support.' },
     { id: 'games', title: 'Games', subtitle: 'Productive Play', icon: '🎲', color: '#ec4899', href: '/vedic-games', importance: 'Productive Play — Vedic-inspired mindful games that sharpen your intellect while connecting your consciousness with ancient Indian wisdom.' },
     { id: 'pranaverse', title: 'PranaVerse', subtitle: 'Resonance Feeds & Network', icon: '✦', color: '#a78bfa', href: '/pranaverse', importance: 'Resonance Feeds & Network — the sacred conscious social network. Share your Prana, discover wisdom reels & raise collective vibration worldwide.' },
 ];
@@ -1026,7 +1028,7 @@ function FullscreenReelModal({
             p.catch(() => {
                 v.muted = true;
                 setMuted(true);
-                v.play().catch(() => {});
+                v.play().catch(() => { });
             });
         }
         return () => { try { v.pause(); } catch { } };
@@ -1148,240 +1150,240 @@ function FullscreenReelModal({
             onClick={handleScreenTap}
         >
             <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-            <AnimatePresence initial={false} mode="sync">
-                <motion.div
-                    key={current}
-                    initial={{ y: direction >= 0 ? '100%' : '-100%' }}
-                    animate={{ y: 0 }}
-                    exit={{ y: direction >= 0 ? '-100%' : '100%' }}
-                    transition={{ duration: 0.32, ease: [0.25, 0.8, 0.25, 1] }}
-                    style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}
-                >
-                    {/* ── Media background ── */}
-                    {item.type === 'reel' && item.localVideoSrc ? (
-                        <video ref={videoRef} src={item.localVideoSrc}
-                            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                            loop muted={muted} playsInline autoPlay />
-                    ) : (
-                        <img src={item.type === 'reel' ? item.imageUrl : item.story.bg} alt=""
-                            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-                    )}
-
-                    {/* ── Premium cinematic gradients ── */}
-                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.62) 0%, transparent 32%)', zIndex: 1, pointerEvents: 'none' }} />
-                    <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: '42%', background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.32) 60%, transparent 100%)', zIndex: 2, pointerEvents: 'none' }} />
-
-                    {/* ── Top bar ── */}
-                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: 'max(env(safe-area-inset-top),1rem) 1rem 0.5rem', background: 'linear-gradient(180deg,rgba(0,0,0,0.72) 0%,transparent 100%)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 }}>
-                        <span style={{ fontFamily: "'Inter','Outfit',sans-serif", fontSize: '1.1rem', color: 'rgba(167,139,250,0.97)', fontWeight: 800, letterSpacing: '0.04em', filter: 'drop-shadow(0 1px 6px rgba(0,0,0,0.7))' }}>PranaVerse</span>
-                        <div style={{ display: 'flex', gap: '0.25rem' }}>
-                            <button onClick={e => { e.stopPropagation(); onClose(); }}
-                                style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 6, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.8))' }}>
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* ── Content area (bottom-left) ── */}
-                    <div style={{ position: 'absolute', left: '1rem', bottom: '6.5rem', maxWidth: '70%', zIndex: 20, display: 'flex', flexDirection: 'column', gap: '0.38rem' }}>
-                        {item.type === 'reel' ? (
-                            <>
-                                <p style={{ fontFamily: "'Cormorant Garamond','Noto Serif Devanagari',serif", fontSize: 'clamp(1.45rem,5.5vw,1.95rem)', fontWeight: 700, color: item.mantra.color, textShadow: `0 0 40px ${item.mantra.color}99, 0 0 80px ${item.mantra.color}44, 0 2px 12px rgba(0,0,0,0.95)`, lineHeight: 1.22, margin: 0, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.6))' }}>{item.mantra.sanskrit}</p>
-                                <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 'clamp(0.68rem,2.5vw,0.88rem)', color: 'rgba(255,255,255,0.94)', fontStyle: 'italic', letterSpacing: '0.04em', margin: 0, filter: 'drop-shadow(0 1px 6px rgba(0,0,0,0.95))' }}>{item.mantra.transliteration}</p>
-                                <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 'clamp(0.55rem,2vw,0.72rem)', color: 'rgba(255,255,255,0.68)', margin: 0, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.95))' }}>{item.mantra.meaning}</p>
-                            </>
-                        ) : (
-                            <>
-                                <div style={{ fontSize: '0.62rem', color: item.story.color, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: "'Inter',sans-serif", textShadow: `0 0 16px ${item.story.color}99`, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.9))' }}>{item.story.sublabel}</div>
-                                <p style={{ fontFamily: "'Playfair Display',Georgia,serif", fontSize: 'clamp(1.45rem,6vw,2.1rem)', fontWeight: 700, color: '#fff', textShadow: '0 2px 20px rgba(0,0,0,0.95)', margin: 0, lineHeight: 1.18, filter: 'drop-shadow(0 2px 10px rgba(0,0,0,0.7))' }}>{item.story.label}</p>
-                                {(item.story as any).mantra && <p style={{ fontFamily: "'Noto Serif Devanagari',serif", fontSize: 'clamp(0.85rem,3vw,1.1rem)', color: `${item.story.color}ee`, textShadow: `0 0 24px ${item.story.color}77`, lineHeight: 1.5, margin: 0, filter: 'drop-shadow(0 1px 6px rgba(0,0,0,0.85))' }}>{(item.story as any).mantra}</p>}
-                            </>
-                        )}
-                    </div>
-
-                    {/* ── Floating Action Bar — Instagram/TikTok glass-encircled icons ── */}
-                    <div style={{ position: 'absolute', right: '0.875rem', bottom: '7rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', zIndex: 20 }} onClick={e => e.stopPropagation()}>
-
-                        {/* ❤️ Heart — Instagram style */}
-                        <motion.button whileTap={{ scale: 0.82 }} onClick={e => { e.stopPropagation(); triggerLike(); }}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', padding: 0 }}>
-                            <motion.div
-                                animate={isLiked ? { scale: [1, 1.35, 0.9, 1.08, 1], rotate: [0, -8, 5, -2, 0] } : { scale: 1, rotate: 0 }}
-                                transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1] }}
-                                style={{
-                                    width: 52, height: 52, borderRadius: '50%',
-                                    background: isLiked ? 'rgba(237,73,86,0.18)' : 'rgba(255,255,255,0.11)',
-                                    backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-                                    border: isLiked ? '1.5px solid rgba(237,73,86,0.5)' : '1.5px solid rgba(255,255,255,0.22)',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    boxShadow: isLiked
-                                        ? '0 4px 22px rgba(237,73,86,0.32), inset 0 1px 0 rgba(255,255,255,0.12)'
-                                        : '0 4px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
-                                    transition: 'background 0.28s, border-color 0.28s, box-shadow 0.28s',
-                                }}
-                            >
-                                <svg width="24" height="24" viewBox="0 0 24 24"
-                                    fill={isLiked ? '#ed4956' : 'none'}
-                                    stroke={isLiked ? '#ed4956' : 'rgba(255,255,255,0.95)'}
-                                    strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"
-                                    style={{ filter: isLiked ? 'drop-shadow(0 0 6px rgba(237,73,86,0.55))' : 'none', display: 'block' }}>
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                                </svg>
-                            </motion.div>
-                            <span style={{ fontSize: '0.68rem', color: isLiked ? '#ed4956' : 'rgba(255,255,255,0.92)', fontFamily: "'Inter',sans-serif", fontWeight: 700, letterSpacing: '0.01em', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
-                                {likes > 999 ? `${(likes / 1000).toFixed(1)}K` : likes}
-                            </span>
-                        </motion.button>
-
-                        {/* 💬 Comment */}
-                        <motion.button whileTap={{ scale: 0.82 }} onClick={e => { e.stopPropagation(); setShowCmts(v => !v); }}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', padding: 0 }}>
-                            <motion.div
-                                animate={showComments ? { scale: [1, 1.15, 0.95, 1.05, 1] } : { scale: 1 }}
-                                transition={{ duration: 0.38 }}
-                                style={{
-                                    width: 52, height: 52, borderRadius: '50%',
-                                    background: showComments ? 'rgba(167,139,250,0.18)' : 'rgba(255,255,255,0.11)',
-                                    backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-                                    border: showComments ? '1.5px solid rgba(167,139,250,0.5)' : '1.5px solid rgba(255,255,255,0.22)',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    boxShadow: showComments
-                                        ? '0 4px 22px rgba(167,139,250,0.28), inset 0 1px 0 rgba(255,255,255,0.12)'
-                                        : '0 4px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
-                                    transition: 'background 0.28s, border-color 0.28s, box-shadow 0.28s',
-                                }}
-                            >
-                                <svg width="22" height="22" viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke={showComments ? '#a78bfa' : 'rgba(255,255,255,0.95)'}
-                                    strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"
-                                    style={{ display: 'block' }}>
-                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                                </svg>
-                            </motion.div>
-                            <span style={{ fontSize: '0.68rem', color: showComments ? '#a78bfa' : 'rgba(255,255,255,0.92)', fontFamily: "'Inter',sans-serif", fontWeight: 700, letterSpacing: '0.01em', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
-                                {cmtCount}
-                            </span>
-                        </motion.button>
-
-                        {/* 📤 Share */}
-                        <motion.button whileTap={{ scale: 0.82 }} onClick={e => { e.stopPropagation(); handleShare(); }}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', padding: 0 }}>
-                            <div style={{
-                                width: 52, height: 52, borderRadius: '50%',
-                                background: 'rgba(255,255,255,0.11)',
-                                backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-                                border: '1.5px solid rgba(255,255,255,0.22)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                boxShadow: '0 4px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
-                            }}>
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.95)" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', transform: 'translateX(1px)' }}>
-                                    <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
-                                </svg>
-                            </div>
-                            <span style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.92)', fontFamily: "'Inter',sans-serif", fontWeight: 700, letterSpacing: '0.01em', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>Share</span>
-                        </motion.button>
-                    </div>
-
-                    {/* ── Center heart flash on double-tap ── */}
-                    <AnimatePresence>
-                        {heartFlash && (
-                            <motion.div
-                                initial={{ scale: 0.3, opacity: 0.95 }}
-                                animate={{ scale: [0.3, 1.5, 1.2], opacity: [0.95, 1, 0] }}
-                                transition={{ duration: 0.75, ease: 'easeOut' }}
-                                style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 35, pointerEvents: 'none' }}>
-                                <svg width="120" height="120" viewBox="0 0 24 24" fill="#ed4956" style={{ filter: 'drop-shadow(0 0 24px rgba(237,73,86,0.72)) drop-shadow(0 0 52px rgba(237,73,86,0.38))' }}>
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                                </svg>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    {/* ── Comment bottom sheet ── */}
-                    <AnimatePresence>
-                        {showComments && (
-                            <motion.div
-                                initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-                                transition={{ type: 'spring', stiffness: 340, damping: 34 }}
-                                onClick={e => e.stopPropagation()}
-                                style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '62%', background: 'rgba(6,6,14,0.93)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)', borderTop: '1px solid rgba(139,92,246,0.28)', borderRadius: '22px 22px 0 0', display: 'flex', flexDirection: 'column', zIndex: 40 }}
-                            >
-                                <div style={{ padding: '0.8rem 1.2rem 0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                                    <span style={{ fontFamily: "'Inter',sans-serif", fontSize: '0.88rem', fontWeight: 700, color: '#fff' }}>
-                                        Comments{cmtCount > 0 ? ` (${cmtCount})` : ''}
-                                    </span>
-                                    <button onClick={() => setShowCmts(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.45)', cursor: 'pointer', fontSize: '1.3rem', lineHeight: 1 }}>×</button>
-                                </div>
-                                <div style={{ flex: 1, overflowY: 'auto', padding: '0.6rem 1.2rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                    {comments.length === 0 ? (
-                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '0.5rem', opacity: 0.5 }}>
-                                            <span style={{ fontSize: '2rem' }}>🕉️</span>
-                                            <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.5)', fontFamily: "'Inter',sans-serif", textAlign: 'center' }}>Be the first to share sacred thoughts</p>
-                                        </div>
-                                    ) : comments.map(c => (
-                                        <div key={c.id} style={{ display: 'flex', gap: '0.7rem', alignItems: 'flex-start' }}>
-                                            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg,#8b5cf6,#ec4899)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem' }}>🙏</div>
-                                            <div>
-                                                <div style={{ fontSize: '0.62rem', color: '#a78bfa', fontFamily: "'Inter',sans-serif", fontWeight: 700, marginBottom: '0.15rem' }}>{c.author}</div>
-                                                <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.85)', fontFamily: "'Inter',sans-serif", lineHeight: 1.5 }}>{c.text}</div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                                <div style={{ padding: '0.65rem 1rem 1rem', borderTop: '1px solid rgba(255,255,255,0.07)', display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
-                                    <input value={commentText} onChange={e => setCommentText(e.target.value)} onKeyDown={e => e.key === 'Enter' && postComment()}
-                                        placeholder="Add a comment..."
-                                        style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 99, padding: '0.55rem 1rem', color: '#fff', fontSize: '0.78rem', fontFamily: "'Inter',sans-serif", outline: 'none' }} />
-                                    <motion.button whileTap={{ scale: 0.92 }} onClick={postComment} disabled={!commentText.trim() || posting}
-                                        style={{ background: commentText.trim() ? 'linear-gradient(135deg,#8b5cf6,#ec4899)' : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 99, padding: '0.55rem 1.1rem', color: '#fff', fontSize: '0.75rem', fontWeight: 700, fontFamily: "'Inter',sans-serif", cursor: commentText.trim() ? 'pointer' : 'default', whiteSpace: 'nowrap' as const }}>
-                                        Post
-                                    </motion.button>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    {/* ── Tap-to-unmute hint ── */}
-                    {showMuteHint && muted && (
-                        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderRadius: 999, padding: '0.5rem 1.3rem', color: '#fff', fontSize: '0.78rem', fontFamily: "'Inter',sans-serif", fontWeight: 600, letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 7, pointerEvents: 'none', zIndex: 30, border: '1px solid rgba(255,255,255,0.18)' }}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" /></svg>
-                            <span>Tap to unmute</span>
-                        </div>
-                    )}
-
-                    {/* Swipe hint */}
+                <AnimatePresence initial={false} mode="sync">
                     <motion.div
-                        animate={{ y: [0, -8, 0] }}
-                        transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-                        style={{
-                            position: 'absolute', bottom: '6%', left: '50%', transform: 'translateX(-50%)',
-                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
-                            zIndex: 10, pointerEvents: 'none',
-                        }}
+                        key={current}
+                        initial={{ y: direction >= 0 ? '100%' : '-100%' }}
+                        animate={{ y: 0 }}
+                        exit={{ y: direction >= 0 ? '-100%' : '100%' }}
+                        transition={{ duration: 0.32, ease: [0.25, 0.8, 0.25, 1] }}
+                        style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}
                     >
-                        <span style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.4)', fontFamily: "'Inter', sans-serif", letterSpacing: '0.05em' }}>
-                            ↑ Swipe for next mantra
-                        </span>
-                    </motion.div>
+                        {/* ── Media background ── */}
+                        {item.type === 'reel' && item.localVideoSrc ? (
+                            <video ref={videoRef} src={item.localVideoSrc}
+                                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                                loop muted={muted} playsInline autoPlay />
+                        ) : (
+                            <img src={item.type === 'reel' ? item.imageUrl : item.story.bg} alt=""
+                                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                        )}
 
-                    {/* Index indicator */}
-                    <div style={{
-                        position: 'absolute', top: '50%', right: '0.35rem',
-                        transform: 'translateY(-50%)',
-                        display: 'flex', flexDirection: 'column', gap: 3, zIndex: 10,
-                    }}>
-                        {items.slice(Math.max(0, current - 2), current + 3).map((_, i) => (
-                            <div key={i} style={{
-                                width: 3, height: i + Math.max(0, current - 2) === current ? 18 : 6,
-                                borderRadius: 2,
-                                background: i + Math.max(0, current - 2) === current ? '#fff' : 'rgba(255,255,255,0.3)',
-                                transition: 'all 0.25s',
-                            }} />
-                        ))}
-                    </div>
-                </motion.div>
-            </AnimatePresence>
+                        {/* ── Premium cinematic gradients ── */}
+                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.62) 0%, transparent 32%)', zIndex: 1, pointerEvents: 'none' }} />
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: '42%', background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.32) 60%, transparent 100%)', zIndex: 2, pointerEvents: 'none' }} />
+
+                        {/* ── Top bar ── */}
+                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: 'max(env(safe-area-inset-top),1rem) 1rem 0.5rem', background: 'linear-gradient(180deg,rgba(0,0,0,0.72) 0%,transparent 100%)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 }}>
+                            <span style={{ fontFamily: "'Inter','Outfit',sans-serif", fontSize: '1.1rem', color: 'rgba(167,139,250,0.97)', fontWeight: 800, letterSpacing: '0.04em', filter: 'drop-shadow(0 1px 6px rgba(0,0,0,0.7))' }}>PranaVerse</span>
+                            <div style={{ display: 'flex', gap: '0.25rem' }}>
+                                <button onClick={e => { e.stopPropagation(); onClose(); }}
+                                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 6, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.8))' }}>
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* ── Content area (bottom-left) ── */}
+                        <div style={{ position: 'absolute', left: '1rem', bottom: '6.5rem', maxWidth: '70%', zIndex: 20, display: 'flex', flexDirection: 'column', gap: '0.38rem' }}>
+                            {item.type === 'reel' ? (
+                                <>
+                                    <p style={{ fontFamily: "'Cormorant Garamond','Noto Serif Devanagari',serif", fontSize: 'clamp(1.45rem,5.5vw,1.95rem)', fontWeight: 700, color: item.mantra.color, textShadow: `0 0 40px ${item.mantra.color}99, 0 0 80px ${item.mantra.color}44, 0 2px 12px rgba(0,0,0,0.95)`, lineHeight: 1.22, margin: 0, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.6))' }}>{item.mantra.sanskrit}</p>
+                                    <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 'clamp(0.68rem,2.5vw,0.88rem)', color: 'rgba(255,255,255,0.94)', fontStyle: 'italic', letterSpacing: '0.04em', margin: 0, filter: 'drop-shadow(0 1px 6px rgba(0,0,0,0.95))' }}>{item.mantra.transliteration}</p>
+                                    <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 'clamp(0.55rem,2vw,0.72rem)', color: 'rgba(255,255,255,0.68)', margin: 0, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.95))' }}>{item.mantra.meaning}</p>
+                                </>
+                            ) : (
+                                <>
+                                    <div style={{ fontSize: '0.62rem', color: item.story.color, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: "'Inter',sans-serif", textShadow: `0 0 16px ${item.story.color}99`, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.9))' }}>{item.story.sublabel}</div>
+                                    <p style={{ fontFamily: "'Playfair Display',Georgia,serif", fontSize: 'clamp(1.45rem,6vw,2.1rem)', fontWeight: 700, color: '#fff', textShadow: '0 2px 20px rgba(0,0,0,0.95)', margin: 0, lineHeight: 1.18, filter: 'drop-shadow(0 2px 10px rgba(0,0,0,0.7))' }}>{item.story.label}</p>
+                                    {(item.story as any).mantra && <p style={{ fontFamily: "'Noto Serif Devanagari',serif", fontSize: 'clamp(0.85rem,3vw,1.1rem)', color: `${item.story.color}ee`, textShadow: `0 0 24px ${item.story.color}77`, lineHeight: 1.5, margin: 0, filter: 'drop-shadow(0 1px 6px rgba(0,0,0,0.85))' }}>{(item.story as any).mantra}</p>}
+                                </>
+                            )}
+                        </div>
+
+                        {/* ── Floating Action Bar — Instagram/TikTok glass-encircled icons ── */}
+                        <div style={{ position: 'absolute', right: '0.875rem', bottom: '7rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', zIndex: 20 }} onClick={e => e.stopPropagation()}>
+
+                            {/* ❤️ Heart — Instagram style */}
+                            <motion.button whileTap={{ scale: 0.82 }} onClick={e => { e.stopPropagation(); triggerLike(); }}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', padding: 0 }}>
+                                <motion.div
+                                    animate={isLiked ? { scale: [1, 1.35, 0.9, 1.08, 1], rotate: [0, -8, 5, -2, 0] } : { scale: 1, rotate: 0 }}
+                                    transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1] }}
+                                    style={{
+                                        width: 52, height: 52, borderRadius: '50%',
+                                        background: isLiked ? 'rgba(237,73,86,0.18)' : 'rgba(255,255,255,0.11)',
+                                        backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+                                        border: isLiked ? '1.5px solid rgba(237,73,86,0.5)' : '1.5px solid rgba(255,255,255,0.22)',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        boxShadow: isLiked
+                                            ? '0 4px 22px rgba(237,73,86,0.32), inset 0 1px 0 rgba(255,255,255,0.12)'
+                                            : '0 4px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
+                                        transition: 'background 0.28s, border-color 0.28s, box-shadow 0.28s',
+                                    }}
+                                >
+                                    <svg width="24" height="24" viewBox="0 0 24 24"
+                                        fill={isLiked ? '#ed4956' : 'none'}
+                                        stroke={isLiked ? '#ed4956' : 'rgba(255,255,255,0.95)'}
+                                        strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"
+                                        style={{ filter: isLiked ? 'drop-shadow(0 0 6px rgba(237,73,86,0.55))' : 'none', display: 'block' }}>
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                                    </svg>
+                                </motion.div>
+                                <span style={{ fontSize: '0.68rem', color: isLiked ? '#ed4956' : 'rgba(255,255,255,0.92)', fontFamily: "'Inter',sans-serif", fontWeight: 700, letterSpacing: '0.01em', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
+                                    {likes > 999 ? `${(likes / 1000).toFixed(1)}K` : likes}
+                                </span>
+                            </motion.button>
+
+                            {/* 💬 Comment */}
+                            <motion.button whileTap={{ scale: 0.82 }} onClick={e => { e.stopPropagation(); setShowCmts(v => !v); }}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', padding: 0 }}>
+                                <motion.div
+                                    animate={showComments ? { scale: [1, 1.15, 0.95, 1.05, 1] } : { scale: 1 }}
+                                    transition={{ duration: 0.38 }}
+                                    style={{
+                                        width: 52, height: 52, borderRadius: '50%',
+                                        background: showComments ? 'rgba(167,139,250,0.18)' : 'rgba(255,255,255,0.11)',
+                                        backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+                                        border: showComments ? '1.5px solid rgba(167,139,250,0.5)' : '1.5px solid rgba(255,255,255,0.22)',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        boxShadow: showComments
+                                            ? '0 4px 22px rgba(167,139,250,0.28), inset 0 1px 0 rgba(255,255,255,0.12)'
+                                            : '0 4px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
+                                        transition: 'background 0.28s, border-color 0.28s, box-shadow 0.28s',
+                                    }}
+                                >
+                                    <svg width="22" height="22" viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke={showComments ? '#a78bfa' : 'rgba(255,255,255,0.95)'}
+                                        strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"
+                                        style={{ display: 'block' }}>
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                    </svg>
+                                </motion.div>
+                                <span style={{ fontSize: '0.68rem', color: showComments ? '#a78bfa' : 'rgba(255,255,255,0.92)', fontFamily: "'Inter',sans-serif", fontWeight: 700, letterSpacing: '0.01em', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
+                                    {cmtCount}
+                                </span>
+                            </motion.button>
+
+                            {/* 📤 Share */}
+                            <motion.button whileTap={{ scale: 0.82 }} onClick={e => { e.stopPropagation(); handleShare(); }}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', padding: 0 }}>
+                                <div style={{
+                                    width: 52, height: 52, borderRadius: '50%',
+                                    background: 'rgba(255,255,255,0.11)',
+                                    backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+                                    border: '1.5px solid rgba(255,255,255,0.22)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    boxShadow: '0 4px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
+                                }}>
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.95)" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', transform: 'translateX(1px)' }}>
+                                        <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
+                                    </svg>
+                                </div>
+                                <span style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.92)', fontFamily: "'Inter',sans-serif", fontWeight: 700, letterSpacing: '0.01em', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>Share</span>
+                            </motion.button>
+                        </div>
+
+                        {/* ── Center heart flash on double-tap ── */}
+                        <AnimatePresence>
+                            {heartFlash && (
+                                <motion.div
+                                    initial={{ scale: 0.3, opacity: 0.95 }}
+                                    animate={{ scale: [0.3, 1.5, 1.2], opacity: [0.95, 1, 0] }}
+                                    transition={{ duration: 0.75, ease: 'easeOut' }}
+                                    style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 35, pointerEvents: 'none' }}>
+                                    <svg width="120" height="120" viewBox="0 0 24 24" fill="#ed4956" style={{ filter: 'drop-shadow(0 0 24px rgba(237,73,86,0.72)) drop-shadow(0 0 52px rgba(237,73,86,0.38))' }}>
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                                    </svg>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* ── Comment bottom sheet ── */}
+                        <AnimatePresence>
+                            {showComments && (
+                                <motion.div
+                                    initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                                    transition={{ type: 'spring', stiffness: 340, damping: 34 }}
+                                    onClick={e => e.stopPropagation()}
+                                    style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '62%', background: 'rgba(6,6,14,0.93)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)', borderTop: '1px solid rgba(139,92,246,0.28)', borderRadius: '22px 22px 0 0', display: 'flex', flexDirection: 'column', zIndex: 40 }}
+                                >
+                                    <div style={{ padding: '0.8rem 1.2rem 0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                                        <span style={{ fontFamily: "'Inter',sans-serif", fontSize: '0.88rem', fontWeight: 700, color: '#fff' }}>
+                                            Comments{cmtCount > 0 ? ` (${cmtCount})` : ''}
+                                        </span>
+                                        <button onClick={() => setShowCmts(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.45)', cursor: 'pointer', fontSize: '1.3rem', lineHeight: 1 }}>×</button>
+                                    </div>
+                                    <div style={{ flex: 1, overflowY: 'auto', padding: '0.6rem 1.2rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                        {comments.length === 0 ? (
+                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '0.5rem', opacity: 0.5 }}>
+                                                <span style={{ fontSize: '2rem' }}>🕉️</span>
+                                                <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.5)', fontFamily: "'Inter',sans-serif", textAlign: 'center' }}>Be the first to share sacred thoughts</p>
+                                            </div>
+                                        ) : comments.map(c => (
+                                            <div key={c.id} style={{ display: 'flex', gap: '0.7rem', alignItems: 'flex-start' }}>
+                                                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg,#8b5cf6,#ec4899)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem' }}>🙏</div>
+                                                <div>
+                                                    <div style={{ fontSize: '0.62rem', color: '#a78bfa', fontFamily: "'Inter',sans-serif", fontWeight: 700, marginBottom: '0.15rem' }}>{c.author}</div>
+                                                    <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.85)', fontFamily: "'Inter',sans-serif", lineHeight: 1.5 }}>{c.text}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div style={{ padding: '0.65rem 1rem 1rem', borderTop: '1px solid rgba(255,255,255,0.07)', display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+                                        <input value={commentText} onChange={e => setCommentText(e.target.value)} onKeyDown={e => e.key === 'Enter' && postComment()}
+                                            placeholder="Add a comment..."
+                                            style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 99, padding: '0.55rem 1rem', color: '#fff', fontSize: '0.78rem', fontFamily: "'Inter',sans-serif", outline: 'none' }} />
+                                        <motion.button whileTap={{ scale: 0.92 }} onClick={postComment} disabled={!commentText.trim() || posting}
+                                            style={{ background: commentText.trim() ? 'linear-gradient(135deg,#8b5cf6,#ec4899)' : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 99, padding: '0.55rem 1.1rem', color: '#fff', fontSize: '0.75rem', fontWeight: 700, fontFamily: "'Inter',sans-serif", cursor: commentText.trim() ? 'pointer' : 'default', whiteSpace: 'nowrap' as const }}>
+                                            Post
+                                        </motion.button>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* ── Tap-to-unmute hint ── */}
+                        {showMuteHint && muted && (
+                            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderRadius: 999, padding: '0.5rem 1.3rem', color: '#fff', fontSize: '0.78rem', fontFamily: "'Inter',sans-serif", fontWeight: 600, letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 7, pointerEvents: 'none', zIndex: 30, border: '1px solid rgba(255,255,255,0.18)' }}>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" /></svg>
+                                <span>Tap to unmute</span>
+                            </div>
+                        )}
+
+                        {/* Swipe hint */}
+                        <motion.div
+                            animate={{ y: [0, -8, 0] }}
+                            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                            style={{
+                                position: 'absolute', bottom: '6%', left: '50%', transform: 'translateX(-50%)',
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
+                                zIndex: 10, pointerEvents: 'none',
+                            }}
+                        >
+                            <span style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.4)', fontFamily: "'Inter', sans-serif", letterSpacing: '0.05em' }}>
+                                ↑ Swipe for next mantra
+                            </span>
+                        </motion.div>
+
+                        {/* Index indicator */}
+                        <div style={{
+                            position: 'absolute', top: '50%', right: '0.35rem',
+                            transform: 'translateY(-50%)',
+                            display: 'flex', flexDirection: 'column', gap: 3, zIndex: 10,
+                        }}>
+                            {items.slice(Math.max(0, current - 2), current + 3).map((_, i) => (
+                                <div key={i} style={{
+                                    width: 3, height: i + Math.max(0, current - 2) === current ? 18 : 6,
+                                    borderRadius: 2,
+                                    background: i + Math.max(0, current - 2) === current ? '#fff' : 'rgba(255,255,255,0.3)',
+                                    transition: 'all 0.25s',
+                                }} />
+                            ))}
+                        </div>
+                    </motion.div>
+                </AnimatePresence>
             </div>
 
             {/* Prev / Next nav buttons (desktop) */}
@@ -1653,6 +1655,9 @@ function AuraSpaceInner() {
                                 <span style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.3)' }}>{feedItems.length} items</span>
                             </div>
 
+                            {/* ── INVITE CARD ── */}
+                            <InviteCard userName={currentUser?.name} style={{ margin: '0.4rem 1rem 0.8rem' }} />
+
                             {/* ── SHORTS-STYLE GRID ── */}
                             <div style={{
                                 display: 'grid',
@@ -1696,14 +1701,51 @@ function AuraSpaceInner() {
                             <p style={{ color: 'rgba(255,255,255,0.55)', fontFamily: "'Outfit',sans-serif", fontSize: '0.88rem' }}>Dharma Map — Coming Soon</p>
                         </motion.div>
                     )}
+
+                    {/* ══ MANTRAS TAB — Full-screen vertical mantra reels ══ */}
+                    {activeTab === 'mantras' && (
+                        <motion.div
+                            key="mantras-feed"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            style={{ flex: 1, overflow: 'hidden', position: 'relative' }}
+                        >
+                            {/* Mantras header */}
+                            <div style={{
+                                position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20,
+                                padding: '0.55rem 1rem 0.4rem',
+                                background: 'linear-gradient(180deg, rgba(0,0,0,0.88) 0%, transparent 100%)',
+                                backdropFilter: 'blur(12px)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                pointerEvents: 'none',
+                            }}>
+                                <div>
+                                    <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#fff', fontFamily: "'Cormorant Garamond', serif", letterSpacing: '0.04em' }}>🕉 Sacred Mantra Reels</div>
+                                    <div style={{ fontSize: '0.42rem', color: 'rgba(244,114,182,0.7)', letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>Scroll · Snap · Absorb</div>
+                                </div>
+                                <div style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Inter', sans-serif" }}>↕ Swipe to navigate</div>
+                            </div>
+                            <MantraReelFeed style={{ paddingTop: '3rem' }} />
+                        </motion.div>
+                    )}
                 </AnimatePresence>
 
                 {/* ══ PRANAVERSE BOTTOM NAV ══ */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '0.55rem 0.5rem calc(0.55rem + env(safe-area-inset-bottom))', background: 'rgba(6,3,18,0.92)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderTop: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}>
-                    {([{ id: 'home', emoji: '⌂', label: 'Home', action: () => router.push('/') }, { id: 'story', emoji: '✦', label: 'Feed', action: () => setActiveTab('story') }, { id: 'map', emoji: '🗺️', label: 'Map', action: () => setActiveTab('map') }, { id: 'chat', emoji: '💬', label: 'Chat', action: () => router.push('/pranaverse-chat') }] as const).map(item => (
-                        <button key={item.id} onClick={item.action} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', padding: '0.3rem 0.8rem' }}>
-                            <span style={{ fontSize: '1.15rem', filter: activeTab === item.id ? 'drop-shadow(0 0 6px #a78bfa)' : 'none', opacity: activeTab === item.id ? 1 : 0.45 }}>{item.emoji}</span>
-                            <span style={{ fontSize: '0.42rem', fontWeight: 700, color: activeTab === item.id ? '#a78bfa' : 'rgba(255,255,255,0.35)', fontFamily: "'Outfit',sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' }}>{item.label}</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '0.55rem 0.25rem calc(0.55rem + env(safe-area-inset-bottom))', background: 'rgba(6,3,18,0.92)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderTop: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}>
+                    {([
+                        { id: 'home', emoji: '⌂', label: 'Home', action: () => router.push('/') },
+                        { id: 'story', emoji: '✦', label: 'Feed', action: () => setActiveTab('story') },
+                        { id: 'mantras', emoji: '🕉', label: 'Mantras', action: () => setActiveTab('mantras') },
+                        { id: 'map', emoji: '🗺️', label: 'Map', action: () => setActiveTab('map') },
+                        { id: 'chat', emoji: '💬', label: 'Chat', action: () => router.push('/pranaverse-chat') },
+                    ] as const).map(item => (
+                        <button key={item.id} onClick={item.action} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem 0.5rem', position: 'relative' }}>
+                            {activeTab === item.id && item.id !== 'home' && (
+                                <div style={{ position: 'absolute', top: -1, left: '50%', transform: 'translateX(-50%)', width: 20, height: 2.5, borderRadius: 99, background: item.id === 'mantras' ? 'linear-gradient(90deg,#f472b6,#c084fc)' : 'linear-gradient(90deg,#a78bfa,#c084fc)', boxShadow: item.id === 'mantras' ? '0 0 8px #f472b688' : '0 0 8px #a78bfa88' }} />
+                            )}
+                            <span style={{ fontSize: '1.05rem', filter: activeTab === item.id ? `drop-shadow(0 0 6px ${item.id === 'mantras' ? '#f472b6' : '#a78bfa'})` : 'none', opacity: activeTab === item.id ? 1 : 0.4 }}>{item.emoji}</span>
+                            <span style={{ fontSize: '0.38rem', fontWeight: 700, color: activeTab === item.id ? (item.id === 'mantras' ? '#f472b6' : '#a78bfa') : 'rgba(255,255,255,0.3)', fontFamily: "'Outfit',sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' }}>{item.label}</span>
                         </button>
                     ))}
                 </div>

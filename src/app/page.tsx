@@ -23,6 +23,8 @@ import MagicSyncModule from '@/components/Dashboard/MagicSyncModule';
 
 import BrahmastraFocusCard from '@/components/Dashboard/BrahmastraFocusCard';
 import UpgradeDonateCard from '@/components/Dashboard/UpgradeDonateCard';
+import InviteCard from '@/components/PranaVerse/InviteCard';
+import StorySlider from '@/components/PranaVerse/StorySlider';
 import { useTimeOfDay } from '@/hooks/useTimeOfDay';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { useDailyTasks } from '@/hooks/useDailyTasks';
@@ -352,6 +354,9 @@ export default function Home() {
             {/* Sacred Portal Grid */}
             <SacredPortalGrid />
 
+            {/* Invite Card — viral growth */}
+            <InviteCard userName={userName} />
+
             {/* Conscious OS Manifesto — philosophical bridge */}
             <ConsciousManifesto />
 
@@ -536,21 +541,62 @@ export default function Home() {
       {/* Sticky Feedback Button */}
       <StickyFeedbackButton />
 
-      {/* ══ HOME BOTTOM NAV BAR ══ */}
-      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 900, display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '0.55rem 0.5rem calc(0.55rem + env(safe-area-inset-bottom))', background: 'rgba(6,3,18,0.92)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+      {/* ══ HOME BOTTOM NAV BAR — sleek PranaVerse-style ══ */}
+      <nav style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 900,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-around',
+        padding: '0.6rem 0.5rem calc(0.6rem + env(safe-area-inset-bottom))',
+        background: 'linear-gradient(180deg, rgba(5,2,18,0.88) 0%, rgba(8,3,24,0.97) 100%)',
+        backdropFilter: 'blur(28px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(28px) saturate(160%)',
+        borderTop: '1px solid rgba(167,139,250,0.15)',
+        boxShadow: '0 -8px 40px rgba(0,0,0,0.5), 0 -1px 0 rgba(167,139,250,0.08)',
+      }}>
         {([
-          { id: 'home', emoji: '⌂', label: 'Home', href: null },
-          { id: 'feed', emoji: '✦', label: 'Feed', href: '/pranaverse' },
-          { id: 'map', emoji: '🗺️', label: 'Map', href: '/pranaverse?tab=map' },
-          { id: 'chat', emoji: '💬', label: 'Chat', href: '/pranaverse-chat' },
+          { id: 'home', emoji: '⌂', label: 'Home', href: null, color: '#a78bfa' },
+          { id: 'feed', emoji: '❖', label: 'Feed', href: '/pranaverse', color: '#c084fc' },
+          { id: 'map', emoji: '🗺️', label: 'Map', href: '/pranaverse?tab=map', color: '#60a5fa' },
+          { id: 'chat', emoji: '💬', label: 'Chat', href: '/pranaverse-chat', color: '#34d399' },
         ] as const).map(item => {
           const active = item.id === 'home';
           return (
-            <motion.button key={item.id} whileTap={{ scale: 0.9 }}
+            <motion.button key={item.id}
+              whileTap={{ scale: 0.88 }}
               onClick={() => { if (item.href) window.location.href = item.href; }}
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: item.href ? 'pointer' : 'default', padding: '0.3rem 0.8rem' }}>
-              <span style={{ fontSize: '1.15rem', filter: active ? 'drop-shadow(0 0 6px #a78bfa)' : 'none', opacity: active ? 1 : 0.45 }}>{item.emoji}</span>
-              <span style={{ fontSize: '0.42rem', fontWeight: 700, color: active ? '#a78bfa' : 'rgba(255,255,255,0.35)', fontFamily: "'Outfit',sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' }}>{item.label}</span>
+              style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                background: 'none', border: 'none',
+                cursor: item.href ? 'pointer' : 'default',
+                padding: '0.15rem 0.6rem',
+                position: 'relative', minWidth: 56,
+              }}>
+              {active && (
+                <motion.div layoutId="home-nav-active" style={{
+                  position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)',
+                  width: 28, height: 3, borderRadius: 999,
+                  background: 'linear-gradient(90deg, #a78bfa, #c084fc)',
+                  boxShadow: '0 0 10px rgba(167,139,250,0.7)',
+                }} />
+              )}
+              <motion.div whileHover={{ scale: 1.12 }} style={{
+                width: 36, height: 36, borderRadius: '50%',
+                background: active
+                  ? `radial-gradient(circle at 36% 26%, rgba(255,255,255,0.25) 0%, ${item.color}30 50%, ${item.color}18 100%)`
+                  : 'rgba(255,255,255,0.04)',
+                border: active ? `1.5px solid ${item.color}55` : '1.5px solid rgba(255,255,255,0.08)',
+                boxShadow: active ? `0 0 18px ${item.color}45, inset 0 1px 0 rgba(255,255,255,0.2)` : 'none',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 0.25s ease',
+              }}>
+                <span style={{ fontSize: '1.1rem', filter: active ? `drop-shadow(0 0 6px ${item.color})` : 'none', opacity: active ? 1 : 0.42 }}>{item.emoji}</span>
+              </motion.div>
+              <span style={{
+                fontSize: '0.42rem', fontWeight: 700,
+                color: active ? item.color : 'rgba(255,255,255,0.28)',
+                fontFamily: "'Outfit',sans-serif",
+                letterSpacing: '0.09em', textTransform: 'uppercase',
+                textShadow: active ? `0 0 8px ${item.color}80` : 'none',
+              }}>{item.label}</span>
             </motion.button>
           );
         })}

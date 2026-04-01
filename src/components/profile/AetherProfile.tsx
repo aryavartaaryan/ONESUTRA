@@ -14,6 +14,7 @@ import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { getFirebaseFirestore } from '@/lib/firebase';
 import { doc, onSnapshot, collection, query, where, getDocs, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import styles from './AetherProfile.module.css';
+import InviteCard from '@/components/PranaVerse/InviteCard';
 
 // ══════════════════════════════════════════════════════════
 //  HUMAN AVATAR — Gender-aware realistic portrait (Gen Z style)
@@ -1979,9 +1980,9 @@ export default function AetherProfile({ viewedUid, autoEnquire }: { viewedUid?: 
         <div className={styles.sectionHeader}>
           <span className={styles.sectionTitle}>{isOwnProfile ? 'My Sangha' : `${displayName}'s Circle`}</span>
           {isOwnProfile && (
-            <button className={styles.addSanghaBtn} onClick={() => router.push('/pranaverse-chat')}>
-              <UserPlus size={13} />
-              Add Seekers
+            <button className={styles.addSanghaBtn} style={{ maxWidth: '65%', whiteSpace: 'normal', textAlign: 'left', lineHeight: 1.25, padding: '0.4rem 0.7rem' }} onClick={() => router.push('/pranaverse-chat')}>
+              <UserPlus size={13} style={{ flexShrink: 0 }} />
+              <span style={{ fontSize: '0.52rem' }}>🚀 Social media is broken — we fix it. Invite your friends to PranaVerse, your complete Life Management System with healthy feeds, AI automation & real connections.</span>
             </button>
           )}
         </div>
@@ -2064,6 +2065,16 @@ export default function AetherProfile({ viewedUid, autoEnquire }: { viewedUid?: 
           INTEGRATIONS — own profile only (private)
       ════════════════════════════════════════ */}
       {isOwnProfile && <IntegrationsSection />}
+
+      {/* ════════════════════════════════════════
+          INVITE CARD — show on own profile to drive viral growth
+      ════════════════════════════════════════ */}
+      {isOwnProfile && (
+        <InviteCard
+          userName={user?.name}
+          style={{ margin: '0 0 0.5rem' }}
+        />
+      )}
 
       {/* ════════════════════════════════════════
           BOTTOM NAV
