@@ -1113,138 +1113,138 @@ function VideoStoryViewer({ story, allVideoStories, startIdx, onClose, onFinishe
                 @keyframes reactionPop{0%{transform:scale(1)}40%{transform:scale(1.45)}70%{transform:scale(0.9)}100%{transform:scale(1)}}
             `}</style>
             <div style={{ position: 'relative', width: '100%', maxWidth: 480, height: '100vh', overflow: 'hidden' }}>
-            <AnimatePresence initial={false} mode="sync">
-            <motion.div
-                key={currentIdx}
-                initial={{ y: direction >= 0 ? '100%' : '-100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: direction >= 0 ? '-100%' : '100%' }}
-                transition={{ duration: 0.32, ease: [0.25, 0.8, 0.25, 1] }}
-                style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}
-            >
-                <video
-                    ref={videoRef}
-                    src={current.videoSrc}
-                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                    muted={muted} playsInline autoPlay loop
-                />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.75) 0%, transparent 28%, transparent 60%, rgba(0,0,0,0.82) 100%)', pointerEvents: 'none' }} />
-                <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at center 65%, ${current.color}18 0%, transparent 65%)`, pointerEvents: 'none' }} />
+                <AnimatePresence initial={false} mode="sync">
+                    <motion.div
+                        key={currentIdx}
+                        initial={{ y: direction >= 0 ? '100%' : '-100%' }}
+                        animate={{ y: 0 }}
+                        exit={{ y: direction >= 0 ? '-100%' : '100%' }}
+                        transition={{ duration: 0.32, ease: [0.25, 0.8, 0.25, 1] }}
+                        style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}
+                    >
+                        <video
+                            ref={videoRef}
+                            src={current.videoSrc}
+                            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                            muted={muted} playsInline autoPlay loop
+                        />
+                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.75) 0%, transparent 28%, transparent 60%, rgba(0,0,0,0.82) 100%)', pointerEvents: 'none' }} />
+                        <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at center 65%, ${current.color}18 0%, transparent 65%)`, pointerEvents: 'none' }} />
 
-                {/* ── Progress bars ── */}
-                <div style={{ position: 'absolute', top: 14, left: 12, right: 12, display: 'flex', gap: 3, zIndex: 20 }}>
-                    {allVideoStories.map((_, i) => (
-                        <div key={i} style={{ flex: 1, height: 2.5, background: 'rgba(255,255,255,0.22)', borderRadius: 2, overflow: 'hidden' }}>
-                            <motion.div style={{
-                                height: '100%',
-                                background: `linear-gradient(90deg, ${current.color}, #fbbf24)`,
-                                width: i < currentIdx ? '100%' : i === currentIdx ? `${Math.min(progress, 100)}%` : '0%',
-                                borderRadius: 2,
-                            }} />
+                        {/* ── Progress bars ── */}
+                        <div style={{ position: 'absolute', top: 14, left: 12, right: 12, display: 'flex', gap: 3, zIndex: 20 }}>
+                            {allVideoStories.map((_, i) => (
+                                <div key={i} style={{ flex: 1, height: 2.5, background: 'rgba(255,255,255,0.22)', borderRadius: 2, overflow: 'hidden' }}>
+                                    <motion.div style={{
+                                        height: '100%',
+                                        background: `linear-gradient(90deg, ${current.color}, #fbbf24)`,
+                                        width: i < currentIdx ? '100%' : i === currentIdx ? `${Math.min(progress, 100)}%` : '0%',
+                                        borderRadius: 2,
+                                    }} />
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
 
-                {/* ── Header ── */}
-                <div style={{ position: 'absolute', top: 26, left: 14, right: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{
-                            width: 42, height: 42, borderRadius: '50%',
-                            background: current.gradient,
-                            border: `2px solid ${current.color}88`,
-                            boxShadow: `0 0 16px ${current.color}88`,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '1.2rem', overflow: 'hidden', position: 'relative',
-                        }}>
-                            <video src={current.videoSrc} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 }} muted playsInline autoPlay loop />
-                            <span style={{ position: 'relative', zIndex: 1 }}>{current.icon}</span>
+                        {/* ── Header ── */}
+                        <div style={{ position: 'absolute', top: 26, left: 14, right: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <div style={{
+                                    width: 42, height: 42, borderRadius: '50%',
+                                    background: current.gradient,
+                                    border: `2px solid ${current.color}88`,
+                                    boxShadow: `0 0 16px ${current.color}88`,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: '1.2rem', overflow: 'hidden', position: 'relative',
+                                }}>
+                                    <video src={current.videoSrc} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 }} muted playsInline autoPlay loop />
+                                    <span style={{ position: 'relative', zIndex: 1 }}>{current.icon}</span>
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', fontFamily: "'Inter',sans-serif", textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>{current.label}</div>
+                                    <div style={{ fontSize: '0.58rem', color: `${current.color}cc`, letterSpacing: '0.06em', fontFamily: "'Inter',sans-serif" }}>{current.description} · PranaVerse</div>
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: 8 }}>
+                                <button onClick={() => setMuted(m => !m)} style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 36, height: 36, color: '#fff', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{muted ? '🔇' : '🔊'}</button>
+                                <button onClick={onClose} style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 36, height: 36, color: '#fff', cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                            </div>
                         </div>
-                        <div>
-                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', fontFamily: "'Inter',sans-serif", textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>{current.label}</div>
-                            <div style={{ fontSize: '0.58rem', color: `${current.color}cc`, letterSpacing: '0.06em', fontFamily: "'Inter',sans-serif" }}>{current.description} · PranaVerse</div>
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                        <button onClick={() => setMuted(m => !m)} style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 36, height: 36, color: '#fff', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{muted ? '🔇' : '🔊'}</button>
-                        <button onClick={onClose} style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 36, height: 36, color: '#fff', cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
-                    </div>
-                </div>
 
-                {/* ── Bottom info overlay ── */}
-                <div style={{ position: 'absolute', bottom: '10%', left: '1rem', right: '5.5rem', zIndex: 20 }}>
-                    <motion.div key={`info-${currentIdx}`} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', border: `1px solid ${current.color}44`, borderRadius: 99, padding: '0.2rem 0.7rem', marginBottom: '0.6rem' }}>
-                            <div style={{ width: 6, height: 6, borderRadius: '50%', background: current.color, boxShadow: `0 0 8px ${current.color}` }} />
-                            <span style={{ fontSize: '0.52rem', color: current.color, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: "'Inter',sans-serif" }}>⚡ {pranaLabel} · PranaVerse</span>
+                        {/* ── Bottom info overlay ── */}
+                        <div style={{ position: 'absolute', bottom: '10%', left: '1rem', right: '5.5rem', zIndex: 20 }}>
+                            <motion.div key={`info-${currentIdx}`} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
+                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', border: `1px solid ${current.color}44`, borderRadius: 99, padding: '0.2rem 0.7rem', marginBottom: '0.6rem' }}>
+                                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: current.color, boxShadow: `0 0 8px ${current.color}` }} />
+                                    <span style={{ fontSize: '0.52rem', color: current.color, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: "'Inter',sans-serif" }}>⚡ {pranaLabel} · PranaVerse</span>
+                                </div>
+                                <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 'clamp(1.6rem,6vw,2.2rem)', fontWeight: 600, color: '#fff', textShadow: '0 2px 20px rgba(0,0,0,0.8)', marginBottom: '0.3rem', lineHeight: 1.2 }}>{current.label}</h2>
+                                <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.72)', fontStyle: 'italic', letterSpacing: '0.03em' }}>{current.description}</p>
+                            </motion.div>
                         </div>
-                        <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 'clamp(1.6rem,6vw,2.2rem)', fontWeight: 600, color: '#fff', textShadow: '0 2px 20px rgba(0,0,0,0.8)', marginBottom: '0.3rem', lineHeight: 1.2 }}>{current.label}</h2>
-                        <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.72)', fontStyle: 'italic', letterSpacing: '0.03em' }}>{current.description}</p>
+
+                        {/* ── Right action bar — ❤️ and 😍 only ── */}
+                        <div style={{ position: 'absolute', right: '0.75rem', bottom: '14%', display: 'flex', flexDirection: 'column', gap: '1.1rem', alignItems: 'center', zIndex: 20 }}>
+                            {/* Heart reaction */}
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                                <motion.button
+                                    whileTap={{ scale: 0.82 }}
+                                    onClick={() => {
+                                        setHeartActive(a => !a);
+                                        setHeartCount(c => heartActive ? c - 1 : c + 1);
+                                    }}
+                                    style={{
+                                        background: heartActive ? 'rgba(239,68,68,0.25)' : 'rgba(0,0,0,0.45)',
+                                        backdropFilter: 'blur(12px)',
+                                        border: heartActive ? '1px solid rgba(239,68,68,0.5)' : '1px solid rgba(255,255,255,0.15)',
+                                        borderRadius: 16, width: 48, height: 48,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        cursor: 'pointer', fontSize: '1.35rem',
+                                        animation: heartActive ? 'reactionPop 0.4s ease' : 'none',
+                                    }}
+                                >
+                                    {heartActive ? '❤️' : '🤍'}
+                                </motion.button>
+                                <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.65)', fontFamily: "'Inter',sans-serif", fontWeight: 600 }}>{fmtCount(heartCount)}</span>
+                            </div>
+                            {/* Love / Adore reaction */}
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                                <motion.button
+                                    whileTap={{ scale: 0.82 }}
+                                    onClick={() => {
+                                        setLoveActive(a => !a);
+                                        setLoveCount(c => loveActive ? c - 1 : c + 1);
+                                    }}
+                                    style={{
+                                        background: loveActive ? 'rgba(251,191,36,0.22)' : 'rgba(0,0,0,0.45)',
+                                        backdropFilter: 'blur(12px)',
+                                        border: loveActive ? '1px solid rgba(251,191,36,0.55)' : '1px solid rgba(255,255,255,0.15)',
+                                        borderRadius: 16, width: 48, height: 48,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        cursor: 'pointer', fontSize: '1.35rem',
+                                        animation: loveActive ? 'reactionPop 0.4s ease' : 'none',
+                                    }}
+                                >
+                                    {loveActive ? '😍' : '🤩'}
+                                </motion.button>
+                                <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.65)', fontFamily: "'Inter',sans-serif", fontWeight: 600 }}>{fmtCount(loveCount)}</span>
+                            </div>
+                        </div>
+
+                        {/* ── Tap zones ── */}
+                        <div onClick={goPrev} style={{ position: 'absolute', left: 0, top: 0, width: '38%', height: '100%', zIndex: 15, cursor: 'pointer' }} />
+                        <div onClick={goNext} style={{ position: 'absolute', right: 0, top: 0, width: '38%', height: '100%', zIndex: 15, cursor: 'pointer' }} />
+
+                        {/* ── Story dots ── */}
+                        <div style={{ position: 'absolute', bottom: '5%', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 4, zIndex: 20, maxWidth: '80vw', flexWrap: 'nowrap', overflow: 'hidden' }}>
+                            {allVideoStories.slice(Math.max(0, currentIdx - 4), currentIdx + 5).map((s, i) => {
+                                const realIdx = i + Math.max(0, currentIdx - 4);
+                                return (
+                                    <button key={s.id} onClick={() => { setCurrentIdx(realIdx); setProgress(0); progressRef.current = 0; }} style={{ width: realIdx === currentIdx ? 18 : 5, height: 5, borderRadius: 3, background: realIdx === currentIdx ? '#fbbf24' : 'rgba(255,255,255,0.3)', border: 'none', cursor: 'pointer', transition: 'all 0.25s', padding: 0, flexShrink: 0 }} />
+                                );
+                            })}
+                        </div>
                     </motion.div>
-                </div>
-
-                {/* ── Right action bar — ❤️ and 😍 only ── */}
-                <div style={{ position: 'absolute', right: '0.75rem', bottom: '14%', display: 'flex', flexDirection: 'column', gap: '1.1rem', alignItems: 'center', zIndex: 20 }}>
-                    {/* Heart reaction */}
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                        <motion.button
-                            whileTap={{ scale: 0.82 }}
-                            onClick={() => {
-                                setHeartActive(a => !a);
-                                setHeartCount(c => heartActive ? c - 1 : c + 1);
-                            }}
-                            style={{
-                                background: heartActive ? 'rgba(239,68,68,0.25)' : 'rgba(0,0,0,0.45)',
-                                backdropFilter: 'blur(12px)',
-                                border: heartActive ? '1px solid rgba(239,68,68,0.5)' : '1px solid rgba(255,255,255,0.15)',
-                                borderRadius: 16, width: 48, height: 48,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                cursor: 'pointer', fontSize: '1.35rem',
-                                animation: heartActive ? 'reactionPop 0.4s ease' : 'none',
-                            }}
-                        >
-                            {heartActive ? '❤️' : '🤍'}
-                        </motion.button>
-                        <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.65)', fontFamily: "'Inter',sans-serif", fontWeight: 600 }}>{fmtCount(heartCount)}</span>
-                    </div>
-                    {/* Love / Adore reaction */}
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                        <motion.button
-                            whileTap={{ scale: 0.82 }}
-                            onClick={() => {
-                                setLoveActive(a => !a);
-                                setLoveCount(c => loveActive ? c - 1 : c + 1);
-                            }}
-                            style={{
-                                background: loveActive ? 'rgba(251,191,36,0.22)' : 'rgba(0,0,0,0.45)',
-                                backdropFilter: 'blur(12px)',
-                                border: loveActive ? '1px solid rgba(251,191,36,0.55)' : '1px solid rgba(255,255,255,0.15)',
-                                borderRadius: 16, width: 48, height: 48,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                cursor: 'pointer', fontSize: '1.35rem',
-                                animation: loveActive ? 'reactionPop 0.4s ease' : 'none',
-                            }}
-                        >
-                            {loveActive ? '😍' : '🤩'}
-                        </motion.button>
-                        <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.65)', fontFamily: "'Inter',sans-serif", fontWeight: 600 }}>{fmtCount(loveCount)}</span>
-                    </div>
-                </div>
-
-                {/* ── Tap zones ── */}
-                <div onClick={goPrev} style={{ position: 'absolute', left: 0, top: 0, width: '38%', height: '100%', zIndex: 15, cursor: 'pointer' }} />
-                <div onClick={goNext} style={{ position: 'absolute', right: 0, top: 0, width: '38%', height: '100%', zIndex: 15, cursor: 'pointer' }} />
-
-                {/* ── Story dots ── */}
-                <div style={{ position: 'absolute', bottom: '5%', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 4, zIndex: 20, maxWidth: '80vw', flexWrap: 'nowrap', overflow: 'hidden' }}>
-                    {allVideoStories.slice(Math.max(0, currentIdx - 4), currentIdx + 5).map((s, i) => {
-                        const realIdx = i + Math.max(0, currentIdx - 4);
-                        return (
-                            <button key={s.id} onClick={() => { setCurrentIdx(realIdx); setProgress(0); progressRef.current = 0; }} style={{ width: realIdx === currentIdx ? 18 : 5, height: 5, borderRadius: 3, background: realIdx === currentIdx ? '#fbbf24' : 'rgba(255,255,255,0.3)', border: 'none', cursor: 'pointer', transition: 'all 0.25s', padding: 0, flexShrink: 0 }} />
-                        );
-                    })}
-                </div>
-            </motion.div>
-            </AnimatePresence>
+                </AnimatePresence>
             </div>
         </motion.div>
     );
@@ -1305,51 +1305,51 @@ function StoryViewer({ groups, startGroupIdx, onClose, onFinished }: { groups: S
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             style={{ position: 'fixed', inset: 0, zIndex: 10000, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ position: 'relative', width: '100%', maxWidth: 480, height: '100vh', overflow: 'hidden' }}>
-            <AnimatePresence initial={false} mode="sync">
-                <motion.div key={`${gIdx}-${sIdx}`}
-                    initial={{ x: direction >= 0 ? '100%' : '-100%' }}
-                    animate={{ x: 0 }}
-                    exit={{ x: direction >= 0 ? '-100%' : '100%' }}
-                    transition={{ duration: 0.28, ease: [0.25, 0.8, 0.25, 1] }}
-                    style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-                    <img src={slide.bg} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.3) 30%, rgba(0,0,0,0.45) 70%, rgba(0,0,0,0.88) 100%)' }} />
-                    <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at center 65%, ${slide.accent}22 0%, transparent 65%)` }} />
-                    {/* Progress bars */}
-                    <div style={{ position: 'absolute', top: 14, left: 12, right: 12, display: 'flex', gap: 4, zIndex: 20 }}>
-                        {group.slides.map((_, i) => (
-                            <div key={i} style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.25)', borderRadius: 2, overflow: 'hidden' }}>
-                                <motion.div style={{ height: '100%', background: `linear-gradient(90deg,${group.color},#fbbf24)`, width: i < sIdx ? '100%' : i === sIdx ? `${Math.min(progress, 100)}%` : '0%', borderRadius: 2 }} />
+                <AnimatePresence initial={false} mode="sync">
+                    <motion.div key={`${gIdx}-${sIdx}`}
+                        initial={{ x: direction >= 0 ? '100%' : '-100%' }}
+                        animate={{ x: 0 }}
+                        exit={{ x: direction >= 0 ? '-100%' : '100%' }}
+                        transition={{ duration: 0.28, ease: [0.25, 0.8, 0.25, 1] }}
+                        style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+                        <img src={slide.bg} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.3) 30%, rgba(0,0,0,0.45) 70%, rgba(0,0,0,0.88) 100%)' }} />
+                        <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at center 65%, ${slide.accent}22 0%, transparent 65%)` }} />
+                        {/* Progress bars */}
+                        <div style={{ position: 'absolute', top: 14, left: 12, right: 12, display: 'flex', gap: 4, zIndex: 20 }}>
+                            {group.slides.map((_, i) => (
+                                <div key={i} style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.25)', borderRadius: 2, overflow: 'hidden' }}>
+                                    <motion.div style={{ height: '100%', background: `linear-gradient(90deg,${group.color},#fbbf24)`, width: i < sIdx ? '100%' : i === sIdx ? `${Math.min(progress, 100)}%` : '0%', borderRadius: 2 }} />
+                                </div>
+                            ))}
+                        </div>
+                        {/* Header */}
+                        <div style={{ position: 'absolute', top: 28, left: 14, right: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <div style={{ width: 40, height: 40, borderRadius: '50%', background: group.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', boxShadow: `0 0 16px ${group.color}66`, border: '2px solid rgba(255,255,255,0.35)' }}>{group.icon}</div>
+                                <div>
+                                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#fff', fontFamily: "'Inter',sans-serif" }}>{group.label}</div>
+                                    <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.55)' }}>{sIdx + 1} of {totalSlides}</div>
+                                </div>
                             </div>
-                        ))}
-                    </div>
-                    {/* Header */}
-                    <div style={{ position: 'absolute', top: 28, left: 14, right: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <div style={{ width: 40, height: 40, borderRadius: '50%', background: group.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', boxShadow: `0 0 16px ${group.color}66`, border: '2px solid rgba(255,255,255,0.35)' }}>{group.icon}</div>
-                            <div>
-                                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#fff', fontFamily: "'Inter',sans-serif" }}>{group.label}</div>
-                                <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.55)' }}>{sIdx + 1} of {totalSlides}</div>
+                            <button onClick={onClose} style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 36, height: 36, color: '#fff', cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                        </div>
+                        {/* Content */}
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+                            <div style={{ width: '100%', marginTop: '3rem' }}>
+                                {slide.content}
                             </div>
                         </div>
-                        <button onClick={onClose} style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 36, height: 36, color: '#fff', cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
-                    </div>
-                    {/* Content */}
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
-                        <div style={{ width: '100%', marginTop: '3rem' }}>
-                            {slide.content}
+                        {/* Group dots */}
+                        <div style={{ position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 6, zIndex: 20 }}>
+                            {groups.map((g, i) => (
+                                <button key={g.id} onClick={() => { setGIdx(i); setSIdx(0); }} style={{ width: i === gIdx ? 20 : 6, height: 6, borderRadius: 3, background: i === gIdx ? '#fff' : 'rgba(255,255,255,0.35)', border: 'none', cursor: 'pointer', transition: 'all 0.25s', padding: 0 }} />
+                            ))}
                         </div>
-                    </div>
-                    {/* Group dots */}
-                    <div style={{ position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 6, zIndex: 20 }}>
-                        {groups.map((g, i) => (
-                            <button key={g.id} onClick={() => { setGIdx(i); setSIdx(0); }} style={{ width: i === gIdx ? 20 : 6, height: 6, borderRadius: 3, background: i === gIdx ? '#fff' : 'rgba(255,255,255,0.35)', border: 'none', cursor: 'pointer', transition: 'all 0.25s', padding: 0 }} />
-                        ))}
-                    </div>
-                    <div onClick={e => { e.stopPropagation(); goPrev(); }} style={{ position: 'absolute', left: 0, top: 0, width: '40%', height: '100%', zIndex: 15, cursor: 'pointer' }} />
-                    <div onClick={e => { e.stopPropagation(); goNext(); }} style={{ position: 'absolute', right: 0, top: 0, width: '40%', height: '100%', zIndex: 15, cursor: 'pointer' }} />
-                </motion.div>
-            </AnimatePresence>
+                        <div onClick={e => { e.stopPropagation(); goPrev(); }} style={{ position: 'absolute', left: 0, top: 0, width: '40%', height: '100%', zIndex: 15, cursor: 'pointer' }} />
+                        <div onClick={e => { e.stopPropagation(); goNext(); }} style={{ position: 'absolute', right: 0, top: 0, width: '40%', height: '100%', zIndex: 15, cursor: 'pointer' }} />
+                    </motion.div>
+                </AnimatePresence>
             </div>
         </motion.div>
     );
@@ -1467,13 +1467,14 @@ export default function HomeStoryBar() {
                 display: 'flex', gap: '0.65rem',
                 padding: '0.75rem 0.85rem 0.65rem',
                 overflowX: 'auto', scrollbarWidth: 'none',
+                WebkitOverflowScrolling: 'touch', scrollSnapType: 'x mandatory', scrollBehavior: 'smooth',
                 background: 'linear-gradient(180deg,rgba(0,0,0,0.94) 0%,rgba(0,0,0,0.6) 100%)',
                 backdropFilter: 'blur(20px)',
                 borderBottom: '1px solid rgba(251,191,36,0.06)',
                 flexShrink: 0, alignItems: 'flex-start',
             }}>
                 {/* "Add Story" */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', flexShrink: 0 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', flexShrink: 0, scrollSnapAlign: 'start', scrollSnapStop: 'always' }}>
                     <div style={{ width: 58, height: 58, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', border: '1.5px dashed rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', cursor: 'pointer' }}>+</div>
                     <span style={{ fontSize: '0.48rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.04em' }}>Your Story</span>
                 </div>
@@ -1483,14 +1484,15 @@ export default function HomeStoryBar() {
                     const catStories = userTaskStories.filter(s => s.category === cat);
                     if (catStories.length === 0) return null;
                     return (
-                        <UserCategoryGroupBubble
-                            key={cat}
-                            category={cat}
-                            stories={catStories}
-                            onOpen={() => openUserTask(userTaskStories.findIndex(s => s.category === cat))}
-                            isViewed={catStories.every(s => viewedIds.has(s.id))}
-                            idx={i}
-                        />
+                        <div key={cat} style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always', flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
+                            <UserCategoryGroupBubble
+                                category={cat}
+                                stories={catStories}
+                                onOpen={() => openUserTask(userTaskStories.findIndex(s => s.category === cat))}
+                                isViewed={catStories.every(s => viewedIds.has(s.id))}
+                                idx={i}
+                            />
+                        </div>
                     );
                 })}
 
@@ -1513,7 +1515,7 @@ export default function HomeStoryBar() {
                             onClick={() => openImageGroup(idx)}
                             style={{
                                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem',
-                                flexShrink: 0, cursor: 'pointer',
+                                flexShrink: 0, cursor: 'pointer', scrollSnapAlign: 'start', scrollSnapStop: 'always',
                                 animation: isViewed ? 'none' : `storyBubbleFloat ${3.5 + idx * 0.4}s ease-in-out ${idx * 0.15}s infinite`,
                             }}
                         >
@@ -1557,7 +1559,7 @@ export default function HomeStoryBar() {
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             transition={{ delay: idx * 0.04, type: 'spring', stiffness: 300, damping: 22 }}
                             onClick={() => openVideoStory(idx)}
-                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', flexShrink: 0, cursor: 'pointer', animation: isViewed ? 'none' : `storyBubbleFloat ${3.8 + idx * 0.35}s ease-in-out ${idx * 0.12}s infinite` }}
+                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', flexShrink: 0, cursor: 'pointer', scrollSnapAlign: 'start', scrollSnapStop: 'always', animation: isViewed ? 'none' : `storyBubbleFloat ${3.8 + idx * 0.35}s ease-in-out ${idx * 0.12}s infinite` }}
                         >
                             <div style={{
                                 width: 68, height: 68, borderRadius: '50%',
