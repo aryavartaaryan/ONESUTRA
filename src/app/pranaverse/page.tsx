@@ -332,24 +332,41 @@ function MantraReelGridCard({ item, onOpen }: { item: MantraFeedItem; onOpen: ()
             </div>
 
             {/* Reaction row */}
-            <div style={{ position: 'absolute', bottom: '3.8rem', right: '0.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', zIndex: 10 }} onClick={e => e.stopPropagation()}>
+            <div style={{ position: 'absolute', bottom: '3.8rem', right: '0.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', zIndex: 10 }}
+                onClick={e => e.stopPropagation()}>
                 {/* ❤️ Heart with burst */}
                 <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    {/* Burst particles — SVG hearts radiating out */}
                     <AnimatePresence>
-                        {liked && [0, 60, 120, 180, 240, 300].map((deg, i) => (
+                        {liked && [0, 45, 90, 135, 180, 225, 270, 315].map((deg, i) => (
                             <motion.div
                                 key={`mp-${deg}`}
-                                initial={{ x: 0, y: 0, opacity: 1, scale: 0.6 }}
+                                initial={{ x: 0, y: 0, opacity: 1, scale: 0.5 }}
                                 animate={{
-                                    x: Math.cos((deg * Math.PI) / 180) * 24,
-                                    y: Math.sin((deg * Math.PI) / 180) * 24,
-                                    opacity: 0, scale: 1.1,
+                                    x: Math.cos((deg * Math.PI) / 180) * 30,
+                                    y: Math.sin((deg * Math.PI) / 180) * 30,
+                                    opacity: 0, scale: 1.2,
                                 }}
                                 exit={{ opacity: 0 }}
-                                transition={{ duration: 0.5, ease: 'easeOut', delay: i * 0.04 }}
-                                style={{ position: 'absolute', top: 9, left: 9, fontSize: '0.55rem', pointerEvents: 'none', zIndex: 20 }}
-                            >❤️</motion.div>
+                                transition={{ duration: 0.55, ease: 'easeOut', delay: i * 0.03 }}
+                                style={{ position: 'absolute', top: 8, left: 8, pointerEvents: 'none', zIndex: 20 }}
+                            >
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="#ed4956"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
+                            </motion.div>
                         ))}
+                    </AnimatePresence>
+                    {/* Glow ring burst */}
+                    <AnimatePresence>
+                        {liked && (
+                            <motion.div
+                                key="ring"
+                                initial={{ scale: 0.5, opacity: 0.8 }}
+                                animate={{ scale: 2.2, opacity: 0 }}
+                                exit={{}}
+                                transition={{ duration: 0.45, ease: 'easeOut' }}
+                                style={{ position: 'absolute', top: 0, left: 0, width: 34, height: 34, borderRadius: '50%', border: '2px solid rgba(237,73,86,0.75)', pointerEvents: 'none', zIndex: 15 }}
+                            />
+                        )}
                     </AnimatePresence>
                     <motion.button whileTap={{ scale: 0.8 }} onClick={() => { setLiked(l => !l); setLikeCount(c => liked ? c - 1 : c + 1); }}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: 0 }}>

@@ -865,41 +865,59 @@ function MantraReelCard({ reel, isActive, reelIndex }: { reel: MantraReel; isAct
                             </div>
                         </div>
 
+                        {/* ══ World-class glass play/pause button ══ */}
                         <motion.button
-                            whileTap={{ scale: 0.88 }}
+                            whileTap={{ scale: 0.86 }}
                             onClick={togglePlay}
-                            style={{
-                                width: 56, height: 56, borderRadius: '50%',
-                                background: 'rgba(255,255,255,0.13)',
-                                backdropFilter: 'blur(24px) saturate(200%)',
-                                WebkitBackdropFilter: 'blur(24px) saturate(200%)',
-                                border: '1.5px solid rgba(255,255,255,0.28)',
+                            animate={playing ? {
                                 boxShadow: [
-                                    `0 0 0 1px ${reel.color}40`,
-                                    `0 0 28px ${reel.color}55`,
-                                    '0 8px 32px rgba(0,0,0,0.45)',
-                                    'inset 0 1.5px 0 rgba(255,255,255,0.38)',
-                                    'inset 0 -1px 0 rgba(0,0,0,0.12)',
-                                ].join(', '),
-                                color: '#fff', cursor: 'pointer',
+                                    `0 0 0 0px ${reel.color}60, 0 0 28px ${reel.color}55, 0 10px 40px rgba(0,0,0,0.55), inset 0 1.5px 0 rgba(255,255,255,0.40), inset 0 -1px 0 rgba(0,0,0,0.14)`,
+                                    `0 0 0 8px ${reel.color}00, 0 0 40px ${reel.color}66, 0 10px 40px rgba(0,0,0,0.55), inset 0 1.5px 0 rgba(255,255,255,0.40), inset 0 -1px 0 rgba(0,0,0,0.14)`,
+                                ]
+                            } : {
+                                boxShadow: `0 0 0 1px ${reel.color}30, 0 0 18px ${reel.color}35, 0 8px 28px rgba(0,0,0,0.45), inset 0 1.5px 0 rgba(255,255,255,0.30), inset 0 -1px 0 rgba(0,0,0,0.12)`
+                            }}
+                            transition={playing ? { duration: 1.8, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.3 }}
+                            style={{
+                                width: 62, height: 62, borderRadius: '50%',
+                                background: `linear-gradient(145deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 50%, ${reel.color}1a 100%)`,
+                                backdropFilter: 'blur(32px) saturate(200%)',
+                                WebkitBackdropFilter: 'blur(32px) saturate(200%)',
+                                border: `1.5px solid rgba(255,255,255,0.32)`,
+                                cursor: 'pointer',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: '1.15rem',
-                                position: 'relative',
-                                overflow: 'hidden',
+                                position: 'relative', overflow: 'hidden',
+                                flexShrink: 0,
                             }}
                         >
-                            <div style={{
-                                position: 'absolute',
-                                top: '8%', left: '14%',
-                                width: '58%', height: '34%',
-                                background: 'radial-gradient(ellipse, rgba(255,255,255,0.38) 0%, transparent 80%)',
-                                borderRadius: '50%',
-                                transform: 'rotate(-18deg)',
-                                pointerEvents: 'none',
-                            }} />
-                            <span style={{ position: 'relative', zIndex: 1, marginLeft: playing ? 0 : '2px' }}>
-                                {playing ? '⏸' : '▶'}
-                            </span>
+                            {/* Glass specular highlight */}
+                            <div style={{ position: 'absolute', top: '6%', left: '12%', width: '55%', height: '32%', background: 'radial-gradient(ellipse, rgba(255,255,255,0.42) 0%, transparent 80%)', borderRadius: '50%', transform: 'rotate(-20deg)', pointerEvents: 'none' }} />
+                            {/* Bottom rim shadow */}
+                            <div style={{ position: 'absolute', bottom: '5%', left: '15%', width: '70%', height: '18%', background: 'radial-gradient(ellipse, rgba(0,0,0,0.22) 0%, transparent 80%)', borderRadius: '50%', pointerEvents: 'none' }} />
+                            {/* Color tint glow */}
+                            <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: `radial-gradient(circle at 50% 60%, ${reel.color}28 0%, transparent 70%)`, pointerEvents: 'none' }} />
+                            {/* ── SVG Play / Pause icon ── */}
+                            <motion.svg
+                                key={playing ? 'pause' : 'play'}
+                                initial={{ scale: 0.6, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.6, opacity: 0 }}
+                                transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                                width="26" height="26" viewBox="0 0 24 24"
+                                fill="rgba(255,255,255,0.96)"
+                                style={{ position: 'relative', zIndex: 2, filter: `drop-shadow(0 0 8px ${reel.color}cc)`, marginLeft: playing ? 0 : '2px' }}
+                            >
+                                {playing ? (
+                                    /* Pause: two rounded rectangles */
+                                    <>
+                                        <rect x="5" y="4" width="4.5" height="16" rx="2" />
+                                        <rect x="14.5" y="4" width="4.5" height="16" rx="2" />
+                                    </>
+                                ) : (
+                                    /* Play: solid rounded triangle */
+                                    <path d="M6 4.5v15a1.2 1.2 0 0 0 1.85 1.01l11.6-7.5a1.2 1.2 0 0 0 0-2.02L7.85 3.49A1.2 1.2 0 0 0 6 4.5z" />
+                                )}
+                            </motion.svg>
                         </motion.button>
 
                         <Link href="/dhyan-kshetra" style={{ textDecoration: 'none' }}>
@@ -927,40 +945,75 @@ function MantraReelCard({ reel, isActive, reelIndex }: { reel: MantraReel; isAct
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.4rem',
                 zIndex: 30,
             }} onClick={e => e.stopPropagation()}>
-                {/* ❤️ Like */}
-                <motion.button
-                    whileTap={{ scale: 0.82 }}
-                    onClick={() => { setLiked(l => !l); setLikeCount(c => liked ? c - 1 : c + 1); }}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem', padding: 0 }}
-                >
-                    <motion.div
-                        animate={liked ? { scale: [1, 1.4, 0.88, 1.1, 1], rotate: [0, -8, 5, -2, 0] } : { scale: 1 }}
-                        transition={{ duration: 0.45 }}
-                        style={{
-                            width: 48, height: 48, borderRadius: '50%',
-                            background: liked ? 'rgba(237,73,86,0.2)' : 'rgba(0,0,0,0.45)',
-                            backdropFilter: 'blur(16px)',
-                            border: liked ? '1.5px solid rgba(237,73,86,0.55)' : '1.5px solid rgba(255,255,255,0.2)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: liked ? '0 4px 20px rgba(237,73,86,0.32)' : '0 4px 14px rgba(0,0,0,0.5)',
-                        }}
+                {/* ❤️ Like with burst particles */}
+                <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    {/* Burst particles — 8-directional SVG hearts */}
+                    <AnimatePresence>
+                        {liked && [0, 45, 90, 135, 180, 225, 270, 315].map((deg, i) => (
+                            <motion.div
+                                key={`lb-${deg}`}
+                                initial={{ x: 0, y: 0, opacity: 1, scale: 0.5 }}
+                                animate={{
+                                    x: Math.cos((deg * Math.PI) / 180) * 36,
+                                    y: Math.sin((deg * Math.PI) / 180) * 36,
+                                    opacity: 0, scale: 1.3,
+                                }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.55, ease: 'easeOut', delay: i * 0.03 }}
+                                style={{ position: 'absolute', top: 12, left: 12, pointerEvents: 'none', zIndex: 20 }}
+                            >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="#ed4956"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+                    {/* Expanding glow ring */}
+                    <AnimatePresence>
+                        {liked && (
+                            <motion.div
+                                key="lring"
+                                initial={{ scale: 0.6, opacity: 0.9 }}
+                                animate={{ scale: 2.6, opacity: 0 }}
+                                exit={{}}
+                                transition={{ duration: 0.48, ease: 'easeOut' }}
+                                style={{ position: 'absolute', top: 0, left: 0, width: 48, height: 48, borderRadius: '50%', border: '2px solid rgba(237,73,86,0.8)', pointerEvents: 'none', zIndex: 15 }}
+                            />
+                        )}
+                    </AnimatePresence>
+                    <motion.button
+                        whileTap={{ scale: 0.82 }}
+                        onClick={() => { setLiked(l => !l); setLikeCount(c => liked ? c - 1 : c + 1); }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem', padding: 0 }}
                     >
-                        <svg width="22" height="22" viewBox="0 0 24 24"
-                            fill={liked ? '#ed4956' : 'none'}
-                            stroke={liked ? '#ed4956' : 'rgba(255,255,255,0.92)'}
-                            strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                        </svg>
-                    </motion.div>
-                    <span style={{ fontSize: '0.62rem', color: liked ? '#ed4956' : 'rgba(255,255,255,0.85)', fontFamily: "'Inter',sans-serif", fontWeight: 700, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
-                        {likeCount > 999 ? `${(likeCount / 1000).toFixed(1)}K` : likeCount}
-                    </span>
-                </motion.button>
+                        <motion.div
+                            animate={liked ? { scale: [1, 1.4, 0.88, 1.1, 1], rotate: [0, -8, 5, -2, 0] } : { scale: 1 }}
+                            transition={{ duration: 0.45 }}
+                            style={{
+                                width: 48, height: 48, borderRadius: '50%',
+                                background: liked ? 'rgba(237,73,86,0.2)' : 'rgba(0,0,0,0.45)',
+                                backdropFilter: 'blur(16px)',
+                                border: liked ? '1.5px solid rgba(237,73,86,0.55)' : '1.5px solid rgba(255,255,255,0.2)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                boxShadow: liked ? '0 4px 20px rgba(237,73,86,0.32), 0 0 0 4px rgba(237,73,86,0.08)' : '0 4px 14px rgba(0,0,0,0.5)',
+                            }}
+                        >
+                            <svg width="22" height="22" viewBox="0 0 24 24"
+                                fill={liked ? '#ed4956' : 'none'}
+                                stroke={liked ? '#ed4956' : 'rgba(255,255,255,0.92)'}
+                                strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"
+                                style={{ filter: liked ? 'drop-shadow(0 0 6px rgba(237,73,86,0.9))' : 'none', transition: 'filter 0.3s' }}>
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                            </svg>
+                        </motion.div>
+                        <span style={{ fontSize: '0.62rem', color: liked ? '#ed4956' : 'rgba(255,255,255,0.85)', fontFamily: "'Inter',sans-serif", fontWeight: 700, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
+                            {likeCount > 999 ? `${(likeCount / 1000).toFixed(1)}K` : likeCount}
+                        </span>
+                    </motion.button>
+                </div>
 
                 {/* 💬 Comment */}
                 <motion.button
                     whileTap={{ scale: 0.82 }}
-                    onClick={() => {}}
+                    onClick={() => { }}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem', padding: 0 }}
                 >
                     <div style={{
