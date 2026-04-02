@@ -54,36 +54,36 @@ const MANTRAS = [
 // ════════════════════════════════════════════════════════
 const REEL_IMAGES = {
     morning: [
-        'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1470770903676-69b98201ea1c?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1434394354979-a235cd36269d?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1420593248178-d88870618ca0?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1475688621402-4257c812d641?w=600&h=1067&fit=crop&q=80',
     ],
     day: [
-        'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1540206395-68808572332f?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=1067&fit=crop&q=80',
     ],
     evening: [
-        'https://images.unsplash.com/photo-1518623489648-a173ef7824f3?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1419833173245-f59e1b93f9ee?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1507041957456-9c397ce39c7f?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1472120435266-53107fd0c44a?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1503435824048-a799a3a84bf7?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1560703650-ef3e0f254ae0?w=600&h=1067&fit=crop&q=80',
     ],
     night: [
-        'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1532978379173-523e16f371f2?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1475274047050-1d0c0975f9f1?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1543722530-d2c3201371e7?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1470770903676-69b98201ea1c?w=600&h=1067&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1504608524841-42584120d693?w=600&h=1067&fit=crop&q=80',
     ],
 };
 
@@ -102,36 +102,36 @@ const STORIES = [
 //  RESONANCE PAGE STORIES → Pranaverse Reel Cards
 // ════════════════════════════════════════════════════════
 const RESONANCE_STORIES = [
-    { id: 'gayatri', label: 'Gayatri Mantra', sublabel: 'Mother of Vedas', color: '#fbbf24', emoji: '\u{1F31E}', bg: 'https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ भूर्भुवः स्वः तत्सवितुर्वरेण्यं', featured: true },
-    { id: 'om_namah', label: 'Om Namah Shivaya', sublabel: 'Panchakshara', color: '#a78bfa', emoji: '\u{1F549}', bg: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ नमः शिवाय' },
-    { id: 'mahamrityunjaya', label: 'Mahamrityunjaya', sublabel: 'Conqueror of Death', color: '#f97316', emoji: '\u{1F525}', bg: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ त्र्यम्बकं यजामहे' },
-    { id: 'hanuman', label: 'Hanuman Chalisa', sublabel: 'Bajrangbali', color: '#ef4444', emoji: '\u{1F34A}', bg: 'https://images.unsplash.com/photo-1609619385002-f40f1df9b7eb?w=600&h=1067&fit=crop&q=80', mantra: 'जय हनुमान ज्ञान गुण सागर' },
-    { id: 'ganesha', label: 'Ganesha Vandana', sublabel: 'Vighnaharta', color: '#f59e0b', emoji: '\u{1F418}', bg: 'https://images.unsplash.com/photo-1600959907703-571a4f1f9fc4?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ गं गणपतये नमः' },
-    { id: 'krishna', label: 'Hare Krishna', sublabel: 'Maha Mantra', color: '#06b6d4', emoji: '\u{1FA77}', bg: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=1067&fit=crop&q=80', mantra: 'हरे राम हरे राम राम राम हरे हरे' },
-    { id: 'durga', label: 'Durga Stuti', sublabel: 'Shakti Mantra', color: '#ec4899', emoji: '\u{1F6E1}', bg: 'https://images.unsplash.com/photo-1604607053579-ac6a2a40e77c?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ दुं दुर्गायै नमः' },
-    { id: 'saraswati', label: 'Saraswati Vandana', sublabel: 'Goddess of Knowledge', color: '#ffffff', emoji: '\u{1F3B5}', bg: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ ऐं ह्रीं क्लीं महासरस्वत्यै नमः' },
-    { id: 'asato', label: 'Asato Ma', sublabel: 'Shanti Mantra', color: '#c4b5fd', emoji: '✨', bg: 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ असतो मा सद्गमय' },
-    { id: 'vedic', label: 'Vedic Wisdom', sublabel: 'Ancient Knowledge', color: '#d8b4fe', emoji: '\u{1F4DC}', bg: 'https://images.unsplash.com/photo-1510531704581-5b2870972060?w=600&h=1067&fit=crop&q=80', mantra: 'सर्वे भवन्तु सुखिनः' },
-    { id: 'dhyan', label: 'Dhyan', sublabel: 'Meditation', color: '#22d3ee', emoji: '\u{1F9D8}', bg: 'https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=600&h=1067&fit=crop&q=80' },
-    { id: 'ai-acharya', label: 'AI Ayurvedacharya', sublabel: 'Pranav · Free Consult', color: '#4ade80', emoji: '\u{1F33F}', bg: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=1067&fit=crop&q=80' },
+    { id: 'gayatri', label: 'Gayatri Mantra', sublabel: 'Mother of Vedas', color: '#fbbf24', emoji: '\u{1F31E}', bg: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ भूर्भुवः स्वः तत्सवितुर्वरेण्यं', featured: true },
+    { id: 'om_namah', label: 'Om Namah Shivaya', sublabel: 'Panchakshara', color: '#a78bfa', emoji: '\u{1F549}', bg: 'https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ नमः शिवाय' },
+    { id: 'mahamrityunjaya', label: 'Mahamrityunjaya', sublabel: 'Conqueror of Death', color: '#f97316', emoji: '\u{1F525}', bg: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ त्र्यम्बकं यजामहे' },
+    { id: 'hanuman', label: 'Hanuman Chalisa', sublabel: 'Bajrangbali', color: '#ef4444', emoji: '\u{1F34A}', bg: 'https://images.unsplash.com/photo-1434394354979-a235cd36269d?w=600&h=1067&fit=crop&q=80', mantra: 'जय हनुमान ज्ञान गुण सागर' },
+    { id: 'ganesha', label: 'Ganesha Vandana', sublabel: 'Vighnaharta', color: '#f59e0b', emoji: '\u{1F418}', bg: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ गं गणपतये नमः' },
+    { id: 'krishna', label: 'Hare Krishna', sublabel: 'Maha Mantra', color: '#06b6d4', emoji: '\u{1FA77}', bg: 'https://images.unsplash.com/photo-1503435824048-a799a3a84bf7?w=600&h=1067&fit=crop&q=80', mantra: 'हरे राम हरे राम राम राम हरे हरे' },
+    { id: 'durga', label: 'Durga Stuti', sublabel: 'Shakti Mantra', color: '#ec4899', emoji: '\u{1F6E1}', bg: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ दुं दुर्गायै नमः' },
+    { id: 'saraswati', label: 'Saraswati Vandana', sublabel: 'Goddess of Knowledge', color: '#ffffff', emoji: '\u{1F3B5}', bg: 'https://images.unsplash.com/photo-1540206395-68808572332f?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ ऐं ह्रीं क्लीं महासरस्वत्यै नमः' },
+    { id: 'asato', label: 'Asato Ma', sublabel: 'Shanti Mantra', color: '#c4b5fd', emoji: '✨', bg: 'https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ असतो मा सद्गमय' },
+    { id: 'vedic', label: 'Vedic Wisdom', sublabel: 'Ancient Knowledge', color: '#d8b4fe', emoji: '\u{1F4DC}', bg: 'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=600&h=1067&fit=crop&q=80', mantra: 'सर्वे भवन्तु सुखिनः' },
+    { id: 'dhyan', label: 'Dhyan', sublabel: 'Meditation', color: '#22d3ee', emoji: '\u{1F9D8}', bg: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=600&h=1067&fit=crop&q=80' },
+    { id: 'ai-acharya', label: 'AI Ayurvedacharya', sublabel: 'Pranav · Free Consult', color: '#4ade80', emoji: '\u{1F33F}', bg: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=600&h=1067&fit=crop&q=80' },
     // ── Gurukul: World-Class Modern + Ancient Wisdom + Startup Support ──
-    { id: 'gurukul-vision', label: 'World Premier Gurukul', sublabel: 'Modern Skills • Ancient Wisdom • Startup Support', color: '#fbbf24', emoji: '\u{1F3DB}', bg: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=600&h=1067&fit=crop&q=80', mantra: 'ज्ञानं परमं बलम् — Knowledge is Supreme Power' },
-    { id: 'gurukul-modern', label: 'AI & Modern Sciences', sublabel: 'Vedic Mathematics • Coding • AI • Engineering', color: '#60a5fa', emoji: '\u{1F916}', bg: 'https://images.unsplash.com/photo-1535378917042-10a22c95931a?w=600&h=1067&fit=crop&q=80', mantra: 'आर्टिफिशियल इंटेलिजेन्स + वेदिक ज्ञान' },
-    { id: 'gurukul-startup', label: 'Startup Support', sublabel: 'Ideas • Product Dev • Launch • Scale', color: '#4ade80', emoji: '\u{1F680}', bg: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=600&h=1067&fit=crop&q=80', mantra: 'उद्यमेन हि सिध्यन्ति कार्याणि — Success by Effort' },
-    { id: 'gurukul-gita', label: 'Bhagavat Gita', sublabel: 'Divine Song of Eternal Dharma', color: '#fbbf24', emoji: '\u{1F4D6}', bg: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=1067&fit=crop&q=80', mantra: 'न त्वं शोचितुमर्हसि — Thou shalt not grieve' },
-    { id: 'gurukul-upanishad', label: 'Upanishads', sublabel: 'Supreme Vedantic Wisdom', color: '#f97316', emoji: '\u{1F549}', bg: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600&h=1067&fit=crop&q=80', mantra: 'तत् त्वमसि — Thou art That' },
-    { id: 'gurukul-sanskrit', label: 'Sanskrit Vyakaran', sublabel: 'Language of the Gods', color: '#c084fc', emoji: '\u{1FAB7}', bg: 'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?w=600&h=1067&fit=crop&q=80', mantra: 'अहं ब्रह्मास्मि — I am Brahman' },
-    { id: 'gurukul-darshan', label: 'Darshan Shastra', sublabel: 'Six Schools of Indian Philosophy', color: '#f472b6', emoji: '\u{1F52D}', bg: 'https://images.unsplash.com/photo-1475274047050-1d0c0975f9f1?w=600&h=1067&fit=crop&q=80', mantra: 'सत्चिदानन्द — Truth, Consciousness, Bliss' },
-    { id: 'sunrise', label: 'Sunrise', sublabel: 'Pratah Kaal', color: '#fbbf24', emoji: '\u{1F304}', bg: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=1067&fit=crop&q=80' },
-    { id: 'sunset', label: 'Sunset', sublabel: 'Sandhya', color: '#fb923c', emoji: '\u{1F305}', bg: 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=600&h=1067&fit=crop&q=80' },
-    { id: 'himalaya', label: 'Himalaya', sublabel: 'Sacred Peaks', color: '#93c5fd', emoji: '\u{1F3D4}', bg: 'https://images.unsplash.com/photo-1455156218388-5e61b526818b?w=600&h=1067&fit=crop&q=80' },
-    { id: 'ganga', label: 'Ganga', sublabel: 'Sacred River', color: '#60a5fa', emoji: '\u{1F30A}', bg: 'https://images.unsplash.com/photo-1545420333-5c5fe6fc5a33?w=600&h=1067&fit=crop&q=80' },
-    { id: 'lotus', label: 'Lotus', sublabel: 'Padma Pushpa', color: '#f9a8d4', emoji: '\u{1FAB7}', bg: 'https://images.unsplash.com/photo-1616587894288-82f7b65dd78f?w=600&h=1067&fit=crop&q=80' },
-    { id: 'temple', label: 'Mandir', sublabel: 'Sacred Temple', color: '#fde68a', emoji: '\u{1F6D5}', bg: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=600&h=1067&fit=crop&q=80' },
-    { id: 'yoga', label: 'Yoga', sublabel: 'Union of Soul', color: '#34d399', emoji: '\u{1F9D8}', bg: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&h=1067&fit=crop&q=80' },
-    { id: 'ayurveda', label: 'Ayurveda', sublabel: 'Science of Life', color: '#a3e635', emoji: '\u{1F33F}', bg: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=600&h=1067&fit=crop&q=80' },
-    { id: 'nature', label: 'Prakriti', sublabel: 'Earth Soul', color: '#34d399', emoji: '\u{1F332}', bg: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600&h=1067&fit=crop&q=80' },
-    { id: 'swadeshi', label: 'Swadeshi', sublabel: 'Sacred Market', color: '#fb923c', emoji: '\u{1F6CD}', bg: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=600&h=1067&fit=crop&q=80' },
+    { id: 'gurukul-vision', label: 'World Premier Gurukul', sublabel: 'Modern Skills • Ancient Wisdom • Startup Support', color: '#fbbf24', emoji: '\u{1F3DB}', bg: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600&h=1067&fit=crop&q=80', mantra: 'ज्ञानं परमं बलम् — Knowledge is Supreme Power' },
+    { id: 'gurukul-modern', label: 'AI & Modern Sciences', sublabel: 'Vedic Mathematics • Coding • AI • Engineering', color: '#60a5fa', emoji: '\u{1F916}', bg: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=1067&fit=crop&q=80', mantra: 'आर्टिफिशियल इंटेलिजेन्स + वेदिक ज्ञान' },
+    { id: 'gurukul-startup', label: 'Startup Support', sublabel: 'Ideas • Product Dev • Launch • Scale', color: '#4ade80', emoji: '\u{1F680}', bg: 'https://images.unsplash.com/photo-1475688621402-4257c812d641?w=600&h=1067&fit=crop&q=80', mantra: 'उद्यमेन हि सिध्यन्ति कार्याणि — Success by Effort' },
+    { id: 'gurukul-gita', label: 'Bhagavat Gita', sublabel: 'Divine Song of Eternal Dharma', color: '#fbbf24', emoji: '\u{1F4D6}', bg: 'https://images.unsplash.com/photo-1504608524841-42584120d693?w=600&h=1067&fit=crop&q=80', mantra: 'न त्वं शोचितुमर्हसि — Thou shalt not grieve' },
+    { id: 'gurukul-upanishad', label: 'Upanishads', sublabel: 'Supreme Vedantic Wisdom', color: '#f97316', emoji: '\u{1F549}', bg: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600&h=1067&fit=crop&q=80', mantra: 'तत् त्वमसि — Thou art That' },
+    { id: 'gurukul-sanskrit', label: 'Sanskrit Vyakaran', sublabel: 'Language of the Gods', color: '#c084fc', emoji: '\u{1FAB7}', bg: 'https://images.unsplash.com/photo-1543722530-d2c3201371e7?w=600&h=1067&fit=crop&q=80', mantra: 'अहं ब्रह्मास्मि — I am Brahman' },
+    { id: 'gurukul-darshan', label: 'Darshan Shastra', sublabel: 'Six Schools of Indian Philosophy', color: '#f472b6', emoji: '\u{1F52D}', bg: 'https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=600&h=1067&fit=crop&q=80', mantra: 'सत्चिदानन्द — Truth, Consciousness, Bliss' },
+    { id: 'sunrise', label: 'Sunrise', sublabel: 'Pratah Kaal', color: '#fbbf24', emoji: '\u{1F304}', bg: 'https://images.unsplash.com/photo-1420593248178-d88870618ca0?w=600&h=1067&fit=crop&q=80' },
+    { id: 'sunset', label: 'Sunset', sublabel: 'Sandhya', color: '#fb923c', emoji: '\u{1F305}', bg: 'https://images.unsplash.com/photo-1560703650-ef3e0f254ae0?w=600&h=1067&fit=crop&q=80' },
+    { id: 'himalaya', label: 'Himalaya', sublabel: 'Sacred Peaks', color: '#93c5fd', emoji: '\u{1F3D4}', bg: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=1067&fit=crop&q=80' },
+    { id: 'ganga', label: 'Ganga', sublabel: 'Sacred River', color: '#60a5fa', emoji: '\u{1F30A}', bg: 'https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=600&h=1067&fit=crop&q=80' },
+    { id: 'lotus', label: 'Lotus', sublabel: 'Padma Pushpa', color: '#f9a8d4', emoji: '\u{1FAB7}', bg: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600&h=1067&fit=crop&q=80' },
+    { id: 'temple', label: 'Mandir', sublabel: 'Sacred Temple', color: '#fde68a', emoji: '\u{1F6D5}', bg: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&h=1067&fit=crop&q=80' },
+    { id: 'yoga', label: 'Yoga', sublabel: 'Union of Soul', color: '#34d399', emoji: '\u{1F9D8}', bg: 'https://images.unsplash.com/photo-1503435824048-a799a3a84bf7?w=600&h=1067&fit=crop&q=80' },
+    { id: 'ayurveda', label: 'Ayurveda', sublabel: 'Science of Life', color: '#a3e635', emoji: '\u{1F33F}', bg: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=600&h=1067&fit=crop&q=80' },
+    { id: 'nature', label: 'Prakriti', sublabel: 'Earth Soul', color: '#34d399', emoji: '\u{1F332}', bg: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=1067&fit=crop&q=80' },
+    { id: 'swadeshi', label: 'Swadeshi', sublabel: 'Sacred Market', color: '#fb923c', emoji: '\u{1F6CD}', bg: 'https://images.unsplash.com/photo-1475688621402-4257c812d641?w=600&h=1067&fit=crop&q=80' },
 ];
 
 // ════════════════════════════════════════════════════════
@@ -1935,8 +1935,9 @@ function AuraSpaceInner() {
                             }}>
                                 {/* ── GAYATRI MANTRA HERO — full-width first card ── */}
                                 <GayatriHeroCard onClick={() => {
-                                    const gayatriItem = swipeableItems.find(i => i.type === 'resonance' && (i as ResonanceItem).story.id === 'gayatri');
-                                    if (gayatriItem) openReel(gayatriItem as ResonanceItem);
+                                    // Opens the MantraReelFeed fullscreen player at index 0 (Gayatri Mantra with real audio)
+                                    setMantraOverlayIdx(0);
+                                    setMantraOverlayOpen(true);
                                 }} />
                                 {feedItems.map((item) =>
                                     item.type === 'reel' ? (

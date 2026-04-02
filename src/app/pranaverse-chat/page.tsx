@@ -872,7 +872,7 @@ export default function PranverseChatHub() {
 
                     {/* Floating Input */}
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-                        style={{ flexShrink: 0, padding: `0.55rem 0.85rem calc(0.8rem + env(safe-area-inset-bottom))`, width: '100%', boxSizing: 'border-box' as const, background: isNature ? 'rgba(0,0,0,0.06)' : 'linear-gradient(0deg,rgba(4,2,16,0.96) 0%,rgba(6,3,18,0.70) 100%)', backdropFilter: isNature ? 'blur(4px)' : 'blur(24px)', WebkitBackdropFilter: isNature ? 'blur(4px)' : 'blur(24px)' }}>
+                        style={{ flexShrink: 0, padding: '0.55rem 0.85rem 0.9rem', width: '100%', boxSizing: 'border-box' as const, background: isNature ? 'rgba(0,0,0,0.06)' : 'linear-gradient(0deg,rgba(4,2,16,0.96) 0%,rgba(6,3,18,0.70) 100%)', backdropFilter: isNature ? 'blur(4px)' : 'blur(24px)', WebkitBackdropFilter: isNature ? 'blur(4px)' : 'blur(24px)' }}>
                         {/* Emoji picker panel */}
                         <AnimatePresence>
                             {showEmoji && (
