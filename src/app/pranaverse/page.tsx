@@ -18,6 +18,7 @@ import MantraReelFeed, { MANTRA_REELS } from '@/components/PranaVerse/MantraReel
 import type { MantraReel } from '@/components/PranaVerse/MantraReelFeed';
 
 type Tab = 'story' | 'map' | 'chat' | 'home';
+type TimeSlot = 'morning' | 'day' | 'evening' | 'night';
 
 // ════════════════════════════════════════════════════════
 //  SACRED PORTAL DATA  (from Home / SacredPortalGrid)
@@ -50,41 +51,81 @@ const MANTRAS = [
 ];
 
 // ════════════════════════════════════════════════════════
-//  TIME-BASED UNSPLASH IMAGE POOLS
+//  GLOBAL UNIQUE IMAGE POOL — 50 distinct images, none repeated
+//  across reels, portals, resonance stories, or mantra cards
 // ════════════════════════════════════════════════════════
-const REEL_IMAGES = {
-    morning: [
-        'https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1434394354979-a235cd36269d?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1420593248178-d88870618ca0?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1475688621402-4257c812d641?w=600&h=1067&fit=crop&q=80',
-    ],
-    day: [
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1540206395-68808572332f?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=1067&fit=crop&q=80',
-    ],
-    evening: [
-        'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1503435824048-a799a3a84bf7?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1560703650-ef3e0f254ae0?w=600&h=1067&fit=crop&q=80',
-    ],
-    night: [
-        'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1543722530-d2c3201371e7?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1470770903676-69b98201ea1c?w=600&h=1067&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1504608524841-42584120d693?w=600&h=1067&fit=crop&q=80',
-    ],
+const GLOBAL_IMAGE_POOL = [
+    // Dawn / Morning nature — slots 0-9
+    'https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1420593248178-d88870618ca0?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1475688621402-4257c812d641?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1434394354979-a235cd36269d?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1499678329028-101435549a4e?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&h=1067&fit=crop&q=80',
+    // Forests / Landscapes — slots 10-19
+    'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1418065460487-3e41a6c84dc5?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1470770903676-69b98201ea1c?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1523712999610-f77fbcfc3843?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=1067&fit=crop&q=80',
+    // Mountains / Peaks — slots 20-29
+    'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1540206395-68808572332f?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1503435824048-a799a3a84bf7?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1560703650-ef3e0f254ae0?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=600&h=1067&fit=crop&q=80',
+    // Night / Stars / Cosmos — slots 30-39
+    'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1543722530-d2c3201371e7?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1504608524841-42584120d693?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1475274047050-1d0c0975f9f1?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1419033100404-7da6da4a1fce?w=600&h=1067&fit=crop&q=80',
+    // Temples / Spiritual / India — slots 40-49
+    'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1604607053579-ac6a2a40e77c?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1535378917042-10a22c95931a?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1616587894288-82f7b65dd78f?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1545420333-5c5fe6fc5a33?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1510531704581-5b2870972060?w=600&h=1067&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1522702588595-1c80f4f87929?w=600&h=1067&fit=crop&q=80',
+];
+
+// ════════════════════════════════════════════════════════
+//  SACRED PORTALS — each gets its own unique image slot
+//  (none of these IDs appear in GLOBAL_IMAGE_POOL or MANTRA_REELS imageBg)
+// ════════════════════════════════════════════════════════
+const PORTAL_IMAGES: Record<string, string> = {
+    'ai-acharya': 'https://images.unsplash.com/photo-1490750967868-88df5691663a?w=600&h=1067&fit=crop&q=80',
+    'gurukul': 'https://images.unsplash.com/photo-1503676382389-4809596d5290?w=600&h=1067&fit=crop&q=80',
+    'dhyan': 'https://images.unsplash.com/photo-1474418397713-003ec9403fe5?w=600&h=1067&fit=crop&q=80',
+    'outplugs': 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&h=1067&fit=crop&q=80',
+    'raag': 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&h=1067&fit=crop&q=80',
+    'swadeshi': 'https://images.unsplash.com/photo-1470219556762-1771e7f9427d?w=600&h=1067&fit=crop&q=80',
+    'skills': 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=600&h=1067&fit=crop&q=80',
+    'games': 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&h=1067&fit=crop&q=80',
+    'pranaverse': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=1067&fit=crop&q=80',
 };
 
 // Story bar data
@@ -100,45 +141,46 @@ const STORIES = [
 
 // ════════════════════════════════════════════════════════
 //  RESONANCE PAGE STORIES → Pranaverse Reel Cards
+//  Each bg is unique — NOT in GLOBAL_IMAGE_POOL
 // ════════════════════════════════════════════════════════
 const RESONANCE_STORIES = [
-    { id: 'gayatri', label: 'Gayatri Mantra', sublabel: 'Mother of Vedas', color: '#fbbf24', emoji: '\u{1F31E}', bg: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ भूर्भुवः स्वः तत्सवितुर्वरेण्यं', featured: true },
-    { id: 'om_namah', label: 'Om Namah Shivaya', sublabel: 'Panchakshara', color: '#a78bfa', emoji: '\u{1F549}', bg: 'https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ नमः शिवाय' },
-    { id: 'mahamrityunjaya', label: 'Mahamrityunjaya', sublabel: 'Conqueror of Death', color: '#f97316', emoji: '\u{1F525}', bg: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ त्र्यम्बकं यजामहे' },
-    { id: 'hanuman', label: 'Hanuman Chalisa', sublabel: 'Bajrangbali', color: '#ef4444', emoji: '\u{1F34A}', bg: 'https://images.unsplash.com/photo-1434394354979-a235cd36269d?w=600&h=1067&fit=crop&q=80', mantra: 'जय हनुमान ज्ञान गुण सागर' },
-    { id: 'ganesha', label: 'Ganesha Vandana', sublabel: 'Vighnaharta', color: '#f59e0b', emoji: '\u{1F418}', bg: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ गं गणपतये नमः' },
-    { id: 'krishna', label: 'Hare Krishna', sublabel: 'Maha Mantra', color: '#06b6d4', emoji: '\u{1FA77}', bg: 'https://images.unsplash.com/photo-1503435824048-a799a3a84bf7?w=600&h=1067&fit=crop&q=80', mantra: 'हरे राम हरे राम राम राम हरे हरे' },
-    { id: 'durga', label: 'Durga Stuti', sublabel: 'Shakti Mantra', color: '#ec4899', emoji: '\u{1F6E1}', bg: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ दुं दुर्गायै नमः' },
-    { id: 'saraswati', label: 'Saraswati Vandana', sublabel: 'Goddess of Knowledge', color: '#ffffff', emoji: '\u{1F3B5}', bg: 'https://images.unsplash.com/photo-1540206395-68808572332f?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ ऐं ह्रीं क्लीं महासरस्वत्यै नमः' },
-    { id: 'asato', label: 'Asato Ma', sublabel: 'Shanti Mantra', color: '#c4b5fd', emoji: '✨', bg: 'https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ असतो मा सद्गमय' },
-    { id: 'vedic', label: 'Vedic Wisdom', sublabel: 'Ancient Knowledge', color: '#d8b4fe', emoji: '\u{1F4DC}', bg: 'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=600&h=1067&fit=crop&q=80', mantra: 'सर्वे भवन्तु सुखिनः' },
-    { id: 'dhyan', label: 'Dhyan', sublabel: 'Meditation', color: '#22d3ee', emoji: '\u{1F9D8}', bg: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=600&h=1067&fit=crop&q=80' },
-    { id: 'ai-acharya', label: 'AI Ayurvedacharya', sublabel: 'Pranav · Free Consult', color: '#4ade80', emoji: '\u{1F33F}', bg: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=600&h=1067&fit=crop&q=80' },
-    // ── Gurukul: World-Class Modern + Ancient Wisdom + Startup Support ──
-    { id: 'gurukul-vision', label: 'World Premier Gurukul', sublabel: 'Modern Skills • Ancient Wisdom • Startup Support', color: '#fbbf24', emoji: '\u{1F3DB}', bg: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600&h=1067&fit=crop&q=80', mantra: 'ज्ञानं परमं बलम् — Knowledge is Supreme Power' },
-    { id: 'gurukul-modern', label: 'AI & Modern Sciences', sublabel: 'Vedic Mathematics • Coding • AI • Engineering', color: '#60a5fa', emoji: '\u{1F916}', bg: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=1067&fit=crop&q=80', mantra: 'आर्टिफिशियल इंटेलिजेन्स + वेदिक ज्ञान' },
-    { id: 'gurukul-startup', label: 'Startup Support', sublabel: 'Ideas • Product Dev • Launch • Scale', color: '#4ade80', emoji: '\u{1F680}', bg: 'https://images.unsplash.com/photo-1475688621402-4257c812d641?w=600&h=1067&fit=crop&q=80', mantra: 'उद्यमेन हि सिध्यन्ति कार्याणि — Success by Effort' },
-    { id: 'gurukul-gita', label: 'Bhagavat Gita', sublabel: 'Divine Song of Eternal Dharma', color: '#fbbf24', emoji: '\u{1F4D6}', bg: 'https://images.unsplash.com/photo-1504608524841-42584120d693?w=600&h=1067&fit=crop&q=80', mantra: 'न त्वं शोचितुमर्हसि — Thou shalt not grieve' },
-    { id: 'gurukul-upanishad', label: 'Upanishads', sublabel: 'Supreme Vedantic Wisdom', color: '#f97316', emoji: '\u{1F549}', bg: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600&h=1067&fit=crop&q=80', mantra: 'तत् त्वमसि — Thou art That' },
-    { id: 'gurukul-sanskrit', label: 'Sanskrit Vyakaran', sublabel: 'Language of the Gods', color: '#c084fc', emoji: '\u{1FAB7}', bg: 'https://images.unsplash.com/photo-1543722530-d2c3201371e7?w=600&h=1067&fit=crop&q=80', mantra: 'अहं ब्रह्मास्मि — I am Brahman' },
-    { id: 'gurukul-darshan', label: 'Darshan Shastra', sublabel: 'Six Schools of Indian Philosophy', color: '#f472b6', emoji: '\u{1F52D}', bg: 'https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=600&h=1067&fit=crop&q=80', mantra: 'सत्चिदानन्द — Truth, Consciousness, Bliss' },
-    { id: 'sunrise', label: 'Sunrise', sublabel: 'Pratah Kaal', color: '#fbbf24', emoji: '\u{1F304}', bg: 'https://images.unsplash.com/photo-1420593248178-d88870618ca0?w=600&h=1067&fit=crop&q=80' },
-    { id: 'sunset', label: 'Sunset', sublabel: 'Sandhya', color: '#fb923c', emoji: '\u{1F305}', bg: 'https://images.unsplash.com/photo-1560703650-ef3e0f254ae0?w=600&h=1067&fit=crop&q=80' },
-    { id: 'himalaya', label: 'Himalaya', sublabel: 'Sacred Peaks', color: '#93c5fd', emoji: '\u{1F3D4}', bg: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=1067&fit=crop&q=80' },
-    { id: 'ganga', label: 'Ganga', sublabel: 'Sacred River', color: '#60a5fa', emoji: '\u{1F30A}', bg: 'https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=600&h=1067&fit=crop&q=80' },
-    { id: 'lotus', label: 'Lotus', sublabel: 'Padma Pushpa', color: '#f9a8d4', emoji: '\u{1FAB7}', bg: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600&h=1067&fit=crop&q=80' },
-    { id: 'temple', label: 'Mandir', sublabel: 'Sacred Temple', color: '#fde68a', emoji: '\u{1F6D5}', bg: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&h=1067&fit=crop&q=80' },
-    { id: 'yoga', label: 'Yoga', sublabel: 'Union of Soul', color: '#34d399', emoji: '\u{1F9D8}', bg: 'https://images.unsplash.com/photo-1503435824048-a799a3a84bf7?w=600&h=1067&fit=crop&q=80' },
-    { id: 'ayurveda', label: 'Ayurveda', sublabel: 'Science of Life', color: '#a3e635', emoji: '\u{1F33F}', bg: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=600&h=1067&fit=crop&q=80' },
-    { id: 'nature', label: 'Prakriti', sublabel: 'Earth Soul', color: '#34d399', emoji: '\u{1F332}', bg: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=1067&fit=crop&q=80' },
-    { id: 'swadeshi', label: 'Swadeshi', sublabel: 'Sacred Market', color: '#fb923c', emoji: '\u{1F6CD}', bg: 'https://images.unsplash.com/photo-1475688621402-4257c812d641?w=600&h=1067&fit=crop&q=80' },
+    { id: 'gayatri', label: 'Gayatri Mantra', sublabel: 'Mother of Vedas', color: '#fbbf24', emoji: '\u{1F31E}', bg: 'https://images.unsplash.com/photo-1588392382834-a891154bca4d?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ भूर्भुवः स्वः तत्सवितुर्वरेण्यं', featured: true },
+    { id: 'om_namah', label: 'Om Namah Shivaya', sublabel: 'Panchakshara', color: '#a78bfa', emoji: '\u{1F549}', bg: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ नमः शिवाय' },
+    { id: 'mahamrityunjaya', label: 'Mahamrityunjaya', sublabel: 'Conqueror of Death', color: '#f97316', emoji: '\u{1F525}', bg: 'https://images.unsplash.com/photo-1609619385002-f40f1df9b7eb?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ त्र्यम्बकं यजामहे' },
+    { id: 'hanuman', label: 'Hanuman Chalisa', sublabel: 'Bajrangbali', color: '#ef4444', emoji: '\u{1F34A}', bg: 'https://images.unsplash.com/photo-1600959907703-571a4f1f9fc4?w=600&h=1067&fit=crop&q=80', mantra: 'जय हनुमान ज्ञान गुण सागर' },
+    { id: 'ganesha', label: 'Ganesha Vandana', sublabel: 'Vighnaharta', color: '#f59e0b', emoji: '\u{1F418}', bg: 'https://images.unsplash.com/photo-1567095761054-7986a9558531?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ गं गणपतये नमः' },
+    { id: 'krishna', label: 'Hare Krishna', sublabel: 'Maha Mantra', color: '#06b6d4', emoji: '\u{1FA77}', bg: 'https://images.unsplash.com/photo-1465101162946-4377e57745c3?w=600&h=1067&fit=crop&q=80', mantra: 'हरे राम हरे राम राम राम हरे हरे' },
+    { id: 'durga', label: 'Durga Stuti', sublabel: 'Shakti Mantra', color: '#ec4899', emoji: '\u{1F6E1}', bg: 'https://images.unsplash.com/photo-1533065244-28f00e023f68?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ दुं दुर्गायै नमः' },
+    { id: 'saraswati', label: 'Saraswati Vandana', sublabel: 'Goddess of Knowledge', color: '#ffffff', emoji: '\u{1F3B5}', bg: 'https://images.unsplash.com/photo-1512053459797-38c3a066cabd?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ ऐं ह्रीं क्लीं महासरस्वत्यै नमः' },
+    { id: 'asato', label: 'Asato Ma', sublabel: 'Shanti Mantra', color: '#c4b5fd', emoji: '✨', bg: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ असतो मा सद्गमय' },
+    { id: 'vedic', label: 'Vedic Wisdom', sublabel: 'Ancient Knowledge', color: '#d8b4fe', emoji: '\u{1F4DC}', bg: 'https://images.unsplash.com/photo-1455156218388-5e61b526818b?w=600&h=1067&fit=crop&q=80', mantra: 'सर्वे भवन्तु सुखिनः' },
+    { id: 'dhyan', label: 'Dhyan', sublabel: 'Meditation', color: '#22d3ee', emoji: '\u{1F9D8}', bg: 'https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=600&h=1067&fit=crop&q=80' },
+    { id: 'ai-acharya', label: 'AI Ayurvedacharya', sublabel: 'Pranav · Free Consult', color: '#4ade80', emoji: '\u{1F33F}', bg: 'https://images.unsplash.com/photo-1536085512927-91f47d9a1f83?w=600&h=1067&fit=crop&q=80' },
+    // ── Gurukul ──
+    { id: 'gurukul-vision', label: 'World Premier Gurukul', sublabel: 'Modern Skills • Ancient Wisdom • Startup Support', color: '#fbbf24', emoji: '\u{1F3DB}', bg: 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=600&h=1067&fit=crop&q=80', mantra: 'ज्ञानं परमं बलम् — Knowledge is Supreme Power' },
+    { id: 'gurukul-modern', label: 'AI & Modern Sciences', sublabel: 'Vedic Mathematics • Coding • AI • Engineering', color: '#60a5fa', emoji: '\u{1F916}', bg: 'https://images.unsplash.com/photo-1517816743773-6e0d765cdc96?w=600&h=1067&fit=crop&q=80', mantra: 'आर्टिफिशियल इंटेलिजेन्स + वेदिक ज्ञान' },
+    { id: 'gurukul-startup', label: 'Startup Support', sublabel: 'Ideas • Product Dev • Launch • Scale', color: '#4ade80', emoji: '\u{1F680}', bg: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=1067&fit=crop&q=80', mantra: 'उद्यमेन हि सिध्यन्ति कार्याणि — Success by Effort' },
+    { id: 'gurukul-gita', label: 'Bhagavat Gita', sublabel: 'Divine Song of Eternal Dharma', color: '#fbbf24', emoji: '\u{1F4D6}', bg: 'https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?w=600&h=1067&fit=crop&q=80', mantra: 'न त्वं शोचितुमर्हसि — Thou shalt not grieve' },
+    { id: 'gurukul-upanishad', label: 'Upanishads', sublabel: 'Supreme Vedantic Wisdom', color: '#f97316', emoji: '\u{1F549}', bg: 'https://images.unsplash.com/photo-1507041957456-9c397ce39c7f?w=600&h=1067&fit=crop&q=80', mantra: 'तत् त्वमसि — Thou art That' },
+    { id: 'gurukul-sanskrit', label: 'Sanskrit Vyakaran', sublabel: 'Language of the Gods', color: '#c084fc', emoji: '\u{1FAB7}', bg: 'https://images.unsplash.com/photo-1472120435266-53107fd0c44a?w=600&h=1067&fit=crop&q=80', mantra: 'अहं ब्रह्मास्मि — I am Brahman' },
+    { id: 'gurukul-darshan', label: 'Darshan Shastra', sublabel: 'Six Schools of Indian Philosophy', color: '#f472b6', emoji: '\u{1F52D}', bg: 'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?w=600&h=1067&fit=crop&q=80', mantra: 'सत्चिदानन्द — Truth, Consciousness, Bliss' },
+    { id: 'sunrise', label: 'Sunrise', sublabel: 'Pratah Kaal', color: '#fbbf24', emoji: '\u{1F304}', bg: 'https://images.unsplash.com/photo-1470770903676-69b98201ea1c?w=600&h=1067&fit=crop&q=80' },
+    { id: 'sunset', label: 'Sunset', sublabel: 'Sandhya', color: '#fb923c', emoji: '\u{1F305}', bg: 'https://images.unsplash.com/photo-1518623489648-a173ef7824f3?w=600&h=1067&fit=crop&q=80' },
+    { id: 'himalaya', label: 'Himalaya', sublabel: 'Sacred Peaks', color: '#93c5fd', emoji: '\u{1F3D4}', bg: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=1067&fit=crop&q=80' },
+    { id: 'ganga', label: 'Ganga', sublabel: 'Sacred River', color: '#60a5fa', emoji: '\u{1F30A}', bg: 'https://images.unsplash.com/photo-1545420333-5c5fe6fc5a33?w=600&h=1067&fit=crop&q=80' },
+    { id: 'lotus', label: 'Lotus', sublabel: 'Padma Pushpa', color: '#f9a8d4', emoji: '\u{1FAB7}', bg: 'https://images.unsplash.com/photo-1616587894288-82f7b65dd78f?w=600&h=1067&fit=crop&q=80' },
+    { id: 'temple', label: 'Mandir', sublabel: 'Sacred Temple', color: '#fde68a', emoji: '\u{1F6D5}', bg: 'https://images.unsplash.com/photo-1548013146-72479768bada?w=600&h=1067&fit=crop&q=80' },
+    { id: 'yoga', label: 'Yoga', sublabel: 'Union of Soul', color: '#34d399', emoji: '\u{1F9D8}', bg: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&h=1067&fit=crop&q=80' },
+    { id: 'ayurveda', label: 'Ayurveda', sublabel: 'Science of Life', color: '#a3e635', emoji: '\u{1F33F}', bg: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=600&h=1067&fit=crop&q=80' },
+    { id: 'nature', label: 'Prakriti', sublabel: 'Earth Soul', color: '#34d399', emoji: '\u{1F332}', bg: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=600&h=1067&fit=crop&q=80' },
+    { id: 'swadeshi', label: 'Swadeshi', sublabel: 'Sacred Market', color: '#fb923c', emoji: '\u{1F6CD}', bg: 'https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=600&h=1067&fit=crop&q=80' },
 ];
+
 
 // ════════════════════════════════════════════════════════
 //  TYPES
 // ════════════════════════════════════════════════════════
-type TimeSlot = 'morning' | 'day' | 'evening' | 'night';
-type FeedItemType = 'reel' | 'portal' | 'resonance';
+type FeedItemType = 'reel' | 'portal' | 'resonance' | 'mantra';
 
 interface ReelItem {
     id: string;
@@ -177,7 +219,7 @@ type FeedItem = ReelItem | PortalItem | ResonanceItem | MantraFeedItem;
 // ════════════════════════════════════════════════════════
 //  HELPERS
 // ════════════════════════════════════════════════════════
-function getTimeSlot(): TimeSlot {
+function getTimeSlot() {
     const h = new Date().getHours();
     if (h >= 5 && h < 11) return 'morning';
     if (h >= 11 && h < 17) return 'day';
@@ -200,24 +242,13 @@ const LOCAL_VIDEOS = [
     '/Flash%20Videos/kailash2.mp4',
 ];
 
-function buildMixedFeed(timeSlot: TimeSlot): FeedItem[] {
-    const images = REEL_IMAGES[timeSlot];
+function buildMixedFeed(): FeedItem[] {
     const items: FeedItem[] = [];
-    let imgIdx = 0;
+    let imgIdx = 0;   // sequential global pool index — guarantees zero repeats
     let mantraIdx = 0;
     let portalIdx = 0;
     let videoIdx = 0;
 
-    // Pattern: 2 reels → 1 portal → 3 reels → 1 portal → repeat
-    const pattern = [2, 1, 3, 1, 2, 1, 3, 1];
-    let typeQueue: Array<'reel' | 'portal'> = [];
-    for (const count of pattern) {
-        for (let i = 0; i < count; i++) {
-            typeQueue.push(typeQueue.length % 6 === 2 || typeQueue.length % 6 === 5 ? 'portal' : 'reel');
-        }
-    }
-    // Simpler: just manually produce 20 feed items
-    const ratioReels = [0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14, 16, 17, 18];
     const ratioPortals = [3, 7, 11, 15, 19];
 
     for (let i = 0; i < 20; i++) {
@@ -227,20 +258,19 @@ function buildMixedFeed(timeSlot: TimeSlot): FeedItem[] {
                 id: `portal-${i}`,
                 type: 'portal',
                 portal,
-                imageUrl: images[(imgIdx++) % images.length],
+                // Each portal uses its own dedicated image — no pool collision
+                imageUrl: PORTAL_IMAGES[portal.id] ?? GLOBAL_IMAGE_POOL[imgIdx++ % GLOBAL_IMAGE_POOL.length],
             });
             portalIdx++;
         } else {
             const isVideo = videoIdx < LOCAL_VIDEOS.length;
-
-            // Pseudo-random based on index to avoid SSR hydration mismatches
             const pseudoRandomLikes = (i * 347) % 3000;
             const pseudoRandomViews = (i * 19) % 90;
-
             items.push({
                 id: `reel-${i}`,
                 type: 'reel',
-                imageUrl: images[(imgIdx++) % images.length],
+                // Sequential index — each reel gets a unique image
+                imageUrl: GLOBAL_IMAGE_POOL[imgIdx++ % GLOBAL_IMAGE_POOL.length],
                 mantra: MANTRAS[mantraIdx % MANTRAS.length],
                 likes: 800 + pseudoRandomLikes,
                 views: `${10 + pseudoRandomViews}K`,
@@ -252,6 +282,7 @@ function buildMixedFeed(timeSlot: TimeSlot): FeedItem[] {
     }
     return items;
 }
+
 
 // Append all Resonance story cards at the end of the feed
 function buildResonanceFeedItems(): ResonanceItem[] {
@@ -573,6 +604,7 @@ function _StoryBar_REMOVED() {
 function ReelGridCard({ item, onClick }: { item: ReelItem; onClick: () => void }) {
     const [liked, setLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(item.likes);
+    const [imgLoaded, setImgLoaded] = useState(false);
 
     return (
         <motion.div
@@ -586,8 +618,12 @@ function ReelGridCard({ item, onClick }: { item: ReelItem; onClick: () => void }
                 background: '#0a0a0a',
             }}
         >
+            {/* Shimmer while loading */}
+            {!imgLoaded && (
+                <div className="pv-shimmer" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg,#0d1117 0%,#161b27 50%,#0d1117 100%)', overflow: 'hidden', zIndex: 1 }} />
+            )}
             {/* Clickable media area */}
-            <div onClick={onClick} style={{ position: 'absolute', inset: 0, cursor: 'pointer' }}>
+            <div onClick={onClick} style={{ position: 'absolute', inset: 0, cursor: 'pointer', zIndex: 2 }}>
                 {item.localVideoSrc ? (
                     <video
                         src={item.localVideoSrc}
@@ -596,6 +632,7 @@ function ReelGridCard({ item, onClick }: { item: ReelItem; onClick: () => void }
                         loop
                         playsInline
                         poster={item.imageUrl}
+                        onLoadedData={() => setImgLoaded(true)}
                         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                 ) : (
@@ -603,7 +640,8 @@ function ReelGridCard({ item, onClick }: { item: ReelItem; onClick: () => void }
                         src={item.imageUrl}
                         alt="Sacred nature"
                         loading="lazy"
-                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
+                        onLoad={() => setImgLoaded(true)}
+                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', opacity: imgLoaded ? 1 : 0, transition: 'opacity 0.45s ease' }}
                     />
                 )}
 
@@ -701,11 +739,12 @@ function ReelGridCard({ item, onClick }: { item: ReelItem; onClick: () => void }
 // ════════════════════════════════════════════════════════
 //  PORTAL GRID CARD — Elegant with Importance Text
 // ════════════════════════════════════════════════════════
-function PortalGridCard({ item }: { item: PortalItem }) {
+function PortalGridCard({ item, onClick }: { item: PortalItem; onClick?: () => void }) {
     const p = item.portal as typeof SACRED_PORTALS[0];
+    const [imgLoaded, setImgLoaded] = useState(false);
 
     return (
-        <Link href={p.href} style={{ textDecoration: 'none', display: 'block' }}>
+        <div onClick={onClick} style={{ textDecoration: 'none', display: 'block', cursor: 'pointer' }}>
             <motion.div
                 whileTap={{ scale: 0.97 }}
                 style={{
@@ -717,15 +756,21 @@ function PortalGridCard({ item }: { item: PortalItem }) {
                     background: '#050505',
                 }}
             >
+                {/* Shimmer while loading */}
+                {!imgLoaded && (
+                    <div className="pv-shimmer" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #0d0d1a 0%, #1a0d2e 50%, #0d0d1a 100%)', overflow: 'hidden' }} />
+                )}
                 {/* Background image with deep dim */}
                 <img
                     src={item.imageUrl}
                     alt={p.title}
                     loading="lazy"
+                    onLoad={() => setImgLoaded(true)}
                     style={{
                         position: 'absolute', inset: 0, width: '100%', height: '100%',
                         objectFit: 'cover',
                         filter: 'brightness(0.28) saturate(0.5)',
+                        opacity: imgLoaded ? 1 : 0, transition: 'opacity 0.5s ease',
                     }}
                 />
 
@@ -856,10 +901,10 @@ function PortalGridCard({ item }: { item: PortalItem }) {
                             fontFamily: "'Inter', sans-serif",
                             boxShadow: `0 4px 16px ${p.color}66`,
                         }}
-                    >Enter Portal →</motion.div>
+                    >✦ Explore Portal</motion.div>
                 </div>
             </motion.div>
-        </Link>
+        </div>
     );
 }
 
@@ -1035,136 +1080,83 @@ function ResonanceReelCard({ item, onClick }: { item: ResonanceItem; onClick: ()
 //  GAYATRI MANTRA HERO CARD — full-width top of feed — click goes fullscreen
 // ════════════════════════════════════════════════════════
 function GayatriHeroCard({ onClick }: { onClick: () => void }) {
-    const g = RESONANCE_STORIES[0]; // Gayatri Mantra
     const [liked, setLiked] = React.useState(false);
     const [loved, setLoved] = React.useState(false);
     const [likeCount, setLikeCount] = React.useState(18240);
     const [loveCount, setLoveCount] = React.useState(9830);
+    const [imgLoaded, setImgLoaded] = React.useState(false);
+    const heroBg = 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?w=1200&h=675&fit=crop&q=90';
 
     return (
         <motion.div
             onClick={onClick}
-            whileTap={{ scale: 0.985 }}
+            whileTap={{ scale: 0.988 }}
             style={{
                 position: 'relative',
-                gridColumn: '1 / -1', // spans both columns
+                gridColumn: '1 / -1',
                 width: '100%',
                 aspectRatio: '16/9',
                 overflow: 'hidden',
                 cursor: 'pointer',
-                background: '#050510',
+                background: '#030810',
             }}
         >
-            {/* Background image */}
+            {/* Shimmer while bg loads */}
+            {!imgLoaded && (
+                <div className="pv-shimmer" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg,#0a0510 0%,#1a0a20 50%,#0a0510 100%)', overflow: 'hidden' }} />
+            )}
+            {/* Cinematic background — sunset with silhouette */}
             <img
-                src={g.bg}
+                src={heroBg}
                 alt="Gayatri Mantra"
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 30%' }}
+                onLoad={() => setImgLoaded(true)}
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 55%', opacity: imgLoaded ? 1 : 0, transition: 'opacity 0.6s ease' }}
             />
 
-            {/* Rich golden overlay */}
-            <div style={{
-                position: 'absolute', inset: 0,
-                background: 'linear-gradient(160deg, rgba(251,191,36,0.18) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.92) 100%)',
-            }} />
-            <div style={{
-                position: 'absolute', inset: 0,
-                background: 'radial-gradient(ellipse at 50% 40%, rgba(251,191,36,0.22) 0%, transparent 65%)',
-            }} />
+            {/* Deep cinematic overlays */}
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.12) 35%, rgba(0,0,0,0.72) 75%, rgba(0,0,0,0.96) 100%)' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 50% 55%, rgba(251,191,36,0.14) 0%, transparent 65%)' }} />
 
-            {/* Shimmer border */}
-            <motion.div
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-                style={{
-                    position: 'absolute', inset: 0,
-                    boxShadow: 'inset 0 0 0 1.5px rgba(251,191,36,0.45)',
-                    pointerEvents: 'none',
-                }}
-            />
-
-            {/* Top badge */}
-            <div style={{
-                position: 'absolute', top: 0, left: 0, right: 0,
-                padding: '0.6rem 0.8rem 0.3rem',
-                background: 'linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%)',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            }}>
+            {/* Top bar: FEATURED badge + views */}
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '0.55rem 0.75rem 0.3rem', background: 'linear-gradient(180deg,rgba(0,0,0,0.72) 0%,transparent 100%)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 5 }}>
                 <motion.div
-                    animate={{ opacity: [0.85, 1, 0.85] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    style={{
-                        fontSize: '0.45rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase',
-                        color: '#fbbf24', fontFamily: "'Inter', sans-serif",
-                        background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(10px)',
-                        padding: '0.2rem 0.65rem', borderRadius: 99,
-                        border: '1px solid rgba(251,191,36,0.4)',
-                        boxShadow: '0 0 12px rgba(251,191,36,0.35)',
-                    }}
+                    animate={{ opacity: [0.88, 1, 0.88] }}
+                    transition={{ duration: 2.2, repeat: Infinity }}
+                    style={{ fontSize: '0.48rem', fontWeight: 800, letterSpacing: '0.13em', textTransform: 'uppercase', color: '#fbbf24', fontFamily: "'Inter',sans-serif", background: 'rgba(0,0,0,0.52)', backdropFilter: 'blur(12px)', padding: '0.22rem 0.7rem', borderRadius: 99, border: '1px solid rgba(251,191,36,0.42)', boxShadow: '0 0 14px rgba(251,191,36,0.38)' }}
                 >✦ Featured</motion.div>
-                <span style={{ fontSize: '0.4rem', color: 'rgba(255,255,255,0.45)', fontFamily: "'Inter', sans-serif" }}>98K views</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <motion.span animate={{ rotate: [0, 12, -12, 0], scale: [1, 1.1, 1] }} transition={{ duration: 3.5, repeat: Infinity }} style={{ fontSize: '0.85rem', filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.9))' }}>☀️</motion.span>
+                    <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.55)', fontFamily: "'Inter',sans-serif", fontWeight: 600 }}>98K views</span>
+                </div>
             </div>
 
-            {/* Sun emoji */}
-            <motion.div
-                animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.12, 1] }}
-                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                style={{
-                    position: 'absolute', top: '0.75rem', right: '0.75rem',
-                    fontSize: '1.6rem', filter: 'drop-shadow(0 0 16px rgba(251,191,36,0.9))',
-                    zIndex: 2,
-                }}
-            >{g.emoji}</motion.div>
-
             {/* Center content */}
-            <div style={{
-                position: 'absolute', inset: 0,
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                textAlign: 'center', padding: '0 1.2rem',
-            }}>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '2rem 1.4rem 3.5rem', zIndex: 4 }}>
                 <motion.p
-                    initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}
-                    style={{
-                        fontSize: '0.5rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase',
-                        color: '#fbbf24', fontFamily: "'Inter', sans-serif",
-                        textShadow: '0 0 20px rgba(251,191,36,0.7)',
-                        marginBottom: '0.3rem',
-                    }}
+                    initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.15, duration: 0.5 }}
+                    style={{ fontSize: '0.52rem', fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#fbbf24', fontFamily: "'Inter',sans-serif", textShadow: '0 0 22px rgba(251,191,36,0.75)', margin: '0 0 0.4rem' }}
                 >Mother of Vedas</motion.p>
                 <motion.h2
-                    initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}
-                    style={{
-                        fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
-                        fontSize: 'clamp(1.3rem, 5vw, 2rem)', fontWeight: 700,
-                        color: '#fff', textShadow: '0 2px 24px rgba(0,0,0,0.8)',
-                        marginBottom: '0.4rem', lineHeight: 1.15,
-                    }}
+                    initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.28, duration: 0.55 }}
+                    style={{ fontFamily: "'Cormorant Garamond','Playfair Display',serif", fontSize: 'clamp(1.55rem,5.5vw,2.4rem)', fontWeight: 700, color: '#fff', textShadow: '0 2px 28px rgba(0,0,0,0.85)', margin: '0 0 0.5rem', lineHeight: 1.1 }}
                 >Gayatri Mantra</motion.h2>
                 <motion.p
-                    initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.45 }}
-                    style={{
-                        fontFamily: "'Noto Serif Devanagari', serif",
-                        fontSize: 'clamp(0.5rem, 1.6vw, 0.68rem)',
-                        color: 'rgba(251,191,36,0.92)',
-                        textShadow: '0 0 20px rgba(251,191,36,0.6), 0 1px 8px rgba(0,0,0,0.9)',
-                        lineHeight: 1.85,
-                        whiteSpace: 'pre-line',
-                        textAlign: 'center',
-                    }}
-                >{MANTRA_REELS[0].mantraText}</motion.p>
+                    initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.42, duration: 0.5 }}
+                    style={{ fontFamily: "'Noto Serif Devanagari',serif", fontSize: 'clamp(0.55rem,1.8vw,0.78rem)', color: 'rgba(251,191,36,0.94)', textShadow: '0 0 22px rgba(251,191,36,0.65), 0 1px 8px rgba(0,0,0,0.95)', lineHeight: 1.7, margin: '0 0 1rem' }}
+                >ॐ भूर्भुवः स्वः तत्सवितुर्वरेण्यं</motion.p>
+                <motion.div
+                    initial={{ y: 8, opacity: 0, scale: 0.96 }} animate={{ y: 0, opacity: 1, scale: 1 }} transition={{ delay: 0.55, duration: 0.45 }}
+                    whileTap={{ scale: 0.94 }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.48rem 1.5rem', borderRadius: 99, background: 'linear-gradient(135deg,#fbbf24cc,#f59e0b)', color: '#000', fontSize: '0.55rem', fontWeight: 800, fontFamily: "'Inter',sans-serif", letterSpacing: '0.1em', textTransform: 'uppercase', boxShadow: '0 6px 24px rgba(251,191,36,0.5)', cursor: 'pointer' }}
+                >▶ Watch Now</motion.div>
             </div>
 
             {/* Bottom actions */}
-            <div style={{
-                position: 'absolute', bottom: 0, left: 0, right: 0,
-                padding: '0.5rem 0.8rem 0.6rem',
-                background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            }}>
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0.45rem 0.85rem 0.55rem', background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, transparent 100%)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 5 }}>
                 <button onClick={e => { e.stopPropagation(); setLiked(l => !l); setLikeCount(c => liked ? c - 1 : c + 1); }}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem', padding: 0 }}>
                     <motion.div animate={liked ? { scale: [1, 1.45, 0.88, 1.1, 1], rotate: [0, -6, 4, -2, 0] } : { scale: 1 }} transition={{ duration: 0.44, ease: [0.22, 1, 0.36, 1] }}>
-                        <svg width="22" height="22" viewBox="0 0 24 24"
+                        <svg width="19" height="19" viewBox="0 0 24 24"
                             fill={liked ? '#ed4956' : 'none'}
                             stroke={liked ? '#ed4956' : 'rgba(255,255,255,0.92)'}
                             strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"
@@ -1172,43 +1164,56 @@ function GayatriHeroCard({ onClick }: { onClick: () => void }) {
                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                         </svg>
                     </motion.div>
-                    <span style={{ fontSize: '0.45rem', color: liked ? '#ed4956' : 'rgba(255,255,255,0.78)', fontFamily: "'Inter', sans-serif", fontWeight: 700, textShadow: '0 1px 4px rgba(0,0,0,0.85)' }}>
+                    <span style={{ fontSize: '0.45rem', color: liked ? '#ed4956' : 'rgba(255,255,255,0.78)', fontFamily: "'Inter',sans-serif", fontWeight: 700, textShadow: '0 1px 4px rgba(0,0,0,0.85)' }}>
                         {likeCount > 999 ? `${(likeCount / 1000).toFixed(1)}K` : likeCount}
                     </span>
                 </button>
 
-                {/* ▶ Open Gayatri Mantra — opens fullscreen player like all other mantras */}
-                <div
-                    onClick={onClick}
-                    style={{
-                        padding: '0.3rem 1rem', borderRadius: 99, fontSize: '0.48rem', fontWeight: 700,
-                        letterSpacing: '0.08em', textTransform: 'uppercase',
-                        background: 'linear-gradient(135deg, #fbbf24cc, #f59e0b)',
-                        color: '#000', fontFamily: "'Inter', sans-serif",
-                        boxShadow: '0 4px 16px rgba(251,191,36,0.45)',
-                        cursor: 'pointer',
-                    }}
-                >
-                    ▶ Open Gayatri Mantra
-                </div>
-
                 <button onClick={e => { e.stopPropagation(); setLoved(l => !l); setLoveCount(c => loved ? c - 1 : c + 1); }}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem', padding: 0 }}>
                     <motion.div animate={loved ? { scale: [1, 1.45, 0.88, 1.1, 1], rotate: [0, 20, -10, 5, 0] } : { scale: 1 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}>
-                        <svg width="22" height="22" viewBox="0 0 24 24"
+                        <svg width="19" height="19" viewBox="0 0 24 24"
                             fill={loved ? '#fbbf24' : 'none'}
                             stroke={loved ? '#fbbf24' : 'rgba(255,255,255,0.92)'}
                             strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                            style={{ filter: loved ? 'drop-shadow(0 0 10px rgba(251,191,36,0.95))' : 'drop-shadow(0 1px 5px rgba(0,0,0,0.9))', display: 'block' }}>
+                            style={{ filter: loved ? 'drop-shadow(0 0 10px rgba(251,191,36,0.95))' : 'none', display: 'block' }}>
                             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                         </svg>
                     </motion.div>
-                    <span style={{ fontSize: '0.45rem', color: loved ? '#fbbf24' : 'rgba(255,255,255,0.78)', fontFamily: "'Inter', sans-serif", fontWeight: 700, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.85))' }}>
+                    <span style={{ fontSize: '0.45rem', color: loved ? '#fbbf24' : 'rgba(255,255,255,0.78)', fontFamily: "'Inter',sans-serif", fontWeight: 700, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.85))' }}>
                         {loveCount > 999 ? `${(loveCount / 1000).toFixed(1)}K` : loveCount}
                     </span>
                 </button>
             </div>
         </motion.div>
+    );
+}
+
+// ════════════════════════════════════════════════════════
+//  AUDIO WAVEFORM — animated equalizer bars for mantra items
+// ════════════════════════════════════════════════════════
+function AudioWaveform({ isPlaying, color = '#fbbf24' }: { isPlaying: boolean; color?: string }) {
+    const BARS = [0.42, 0.68, 0.95, 0.82, 0.56, 0.90, 0.72, 0.85, 0.48, 0.88, 0.62, 0.76];
+    return (
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3.5, height: 40, marginBottom: '0.55rem' }}>
+            {BARS.map((h, i) => (
+                <motion.div
+                    key={i}
+                    animate={isPlaying
+                        ? { scaleY: [h, h * 0.22, h * 1.18, h * 0.38, h * 0.9, h] }
+                        : { scaleY: 0.1 }
+                    }
+                    transition={{ duration: 0.52 + i * 0.045, repeat: Infinity, ease: 'easeInOut', delay: i * 0.052 }}
+                    style={{
+                        width: 4, height: 40, borderRadius: 99,
+                        background: `linear-gradient(to top, ${color}55, ${color}dd)`,
+                        transformOrigin: 'bottom',
+                        opacity: 0.92,
+                        boxShadow: `0 0 6px ${color}55`,
+                    }}
+                />
+            ))}
+        </div>
     );
 }
 
@@ -1219,7 +1224,7 @@ function FullscreenReelModal({
     onClose,
     authorName = 'Mitra',
 }: {
-    items: (ReelItem | ResonanceItem)[];
+    items: (ReelItem | ResonanceItem | PortalItem | MantraFeedItem)[];
     initialIndex: number;
     onClose: () => void;
     authorName?: string;
@@ -1237,11 +1242,17 @@ function FullscreenReelModal({
     const [commentText, setCommentText] = useState('');
     const [posting, setPosting] = useState(false);
     const [heartFlash, setHeartFlash] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(true);
+    const [showPlayPause, setShowPlayPause] = useState(false);
+    const [progress, setProgress] = useState(0);
 
     const videoRef = useRef<HTMLVideoElement | null>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const hideCtrlTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const dragStartY = useRef(0);
     const lastTap = useRef(0);
     const audioUnlocked = useRef(false);
+    const wasSwiped = useRef(false);
     const cmtUnsub = useRef<(() => void) | null>(null);
     const dragY = useMotionValue(0);
     const opacity = useTransform(dragY, [-200, 0, 200], [0, 1, 0]);
@@ -1265,20 +1276,49 @@ function FullscreenReelModal({
         return () => window.removeEventListener('keydown', h);
     }, [onClose, items.length]);
 
+    // Start/restart playback when current item changes
     useEffect(() => {
         const v = videoRef.current;
-        if (!v) return;
-        v.muted = muted;
-        const p = v.play();
-        if (p !== undefined) {
-            p.catch(() => {
+        const a = audioRef.current;
+        setProgress(0);
+        setIsPlaying(true);
+        setShowPlayPause(false);
+        if (hideCtrlTimer.current) clearTimeout(hideCtrlTimer.current);
+        if (v) {
+            v.muted = muted;
+            const p = v.play();
+            if (p) p.catch(() => {
                 v.muted = true;
-                setMuted(true);
-                v.play().catch(() => { });
+                v.play().then(() => {
+                    if (audioUnlocked.current) setTimeout(() => { v.muted = false; setMuted(false); }, 80);
+                    else setMuted(true);
+                }).catch(() => {});
             });
         }
-        return () => { try { v.pause(); } catch { } };
-    }, [current, muted]);
+        if (a) {
+            a.muted = muted;
+            const p = a.play();
+            if (p) p.catch(() => {
+                a.muted = true;
+                a.play().then(() => {
+                    if (audioUnlocked.current) setTimeout(() => { a.muted = false; setMuted(false); }, 80);
+                    else setMuted(true);
+                }).catch(() => {});
+            });
+        }
+        return () => {
+            try { v?.pause(); } catch {}
+            try { a?.pause(); } catch {}
+        };
+    }, [current]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Sync muted changes without restarting playback
+    useEffect(() => {
+        const v = videoRef.current;
+        const a = audioRef.current;
+        if (v) { v.muted = muted; if (!muted && v.paused && isPlaying) v.play().catch(() => {}); }
+        if (a) { a.muted = muted; if (!muted && a.paused && isPlaying) a.play().catch(() => {}); }
+    }, [muted]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         if (!showMuteHint) return;
@@ -1303,7 +1343,7 @@ function FullscreenReelModal({
             } catch { /* offline */ }
         })();
         return () => { unsub?.(); };
-    }, [reelId, item.likes]);
+    }, [reelId]);
 
     // ── Firebase: real-time comments (only when sheet is open) ────────────────
     useEffect(() => {
@@ -1330,7 +1370,9 @@ function FullscreenReelModal({
     const handleTouchStart = useCallback((e: React.TouchEvent) => { dragStartY.current = e.touches[0].clientY; }, []);
     const handleTouchEnd = useCallback((e: React.TouchEvent) => {
         const diff = dragStartY.current - e.changedTouches[0].clientY;
-        if (diff > 60) goNext(); else if (diff < -60) goPrev();
+        if (diff > 60) { wasSwiped.current = true; goNext(); }
+        else if (diff < -60) { wasSwiped.current = true; goPrev(); }
+        else { wasSwiped.current = false; }
     }, [goNext, goPrev]);
 
     // ── Like ──────────────────────────────────────────────────────────────────
@@ -1347,20 +1389,40 @@ function FullscreenReelModal({
         } catch { /* offline */ }
     }, [reelId, liked]);
 
-    // ── Single-tap unmute / Double-tap like ──────────────────────────────────
+    // ── Tap: double=like, single=pause/play + always unmute ──────────────────
     const handleScreenTap = useCallback(() => {
+        if (wasSwiped.current) { wasSwiped.current = false; return; }
         const now = Date.now();
+        // Always unlock audio on any tap
+        const v = videoRef.current;
+        const a = audioRef.current;
+        if (v && v.muted) { v.muted = false; }
+        if (a && a.muted) { a.muted = false; }
+        if (muted) { setMuted(false); setShowMuteHint(false); }
+        audioUnlocked.current = true;
+
         if (now - lastTap.current < 300) {
+            // Double-tap: like
             triggerLike();
-        } else {
-            if (!audioUnlocked.current) {
-                audioUnlocked.current = true;
-                setMuted(false);
-                setShowMuteHint(false);
-            }
+            lastTap.current = 0;
+            return;
         }
         lastTap.current = now;
-    }, [triggerLike]);
+
+        // Single tap: toggle pause / play
+        if (isPlaying) {
+            v?.pause(); a?.pause();
+            setIsPlaying(false);
+            setShowPlayPause(true);
+            if (hideCtrlTimer.current) clearTimeout(hideCtrlTimer.current);
+        } else {
+            v?.play().catch(() => {}); a?.play().catch(() => {});
+            setIsPlaying(true);
+            setShowPlayPause(true);
+            if (hideCtrlTimer.current) clearTimeout(hideCtrlTimer.current);
+            hideCtrlTimer.current = setTimeout(() => setShowPlayPause(false), 1800);
+        }
+    }, [triggerLike, isPlaying, muted]);
 
     // ── Comment post ──────────────────────────────────────────────────────────
     const postComment = useCallback(async () => {
@@ -1380,7 +1442,10 @@ function FullscreenReelModal({
     // ── Share ─────────────────────────────────────────────────────────────────
     const handleShare = useCallback(async () => {
         const url = `${window.location.origin}/pranaverse/reel/${reelId}`;
-        const title = item.type === 'reel' ? item.mantra.sanskrit : item.story.label;
+        const title = item.type === 'reel' ? item.mantra.sanskrit
+            : item.type === 'resonance' ? item.story.label
+            : item.type === 'portal' ? item.portal.title
+            : item.reel.name;
         if (typeof navigator !== 'undefined' && navigator.share) {
             try { await navigator.share({ title: `🕉️ ${title} — ONE SUTRA`, text: 'Sacred wisdom from PranaVerse', url }); } catch { /* dismissed */ }
         } else {
@@ -1409,10 +1474,29 @@ function FullscreenReelModal({
                         {item.type === 'reel' && item.localVideoSrc ? (
                             <video ref={videoRef} src={item.localVideoSrc}
                                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                                loop muted={muted} playsInline autoPlay />
+                                loop muted={muted} playsInline autoPlay
+                                onTimeUpdate={e => { const v = e.currentTarget; if (v.duration) setProgress(v.currentTime / v.duration); }} />
+                        ) : item.type === 'mantra' && item.reel.videoSrc ? (
+                            <video ref={videoRef} src={item.reel.videoSrc}
+                                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                                loop muted={muted} playsInline autoPlay
+                                onTimeUpdate={e => { const v = e.currentTarget; if (v.duration) setProgress(v.currentTime / v.duration); }} />
                         ) : (
-                            <img src={item.type === 'reel' ? item.imageUrl : item.story.bg} alt=""
-                                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img
+                                src={
+                                    item.type === 'reel' ? item.imageUrl
+                                    : item.type === 'resonance' ? item.story.bg
+                                    : item.type === 'portal' ? item.imageUrl
+                                    : item.reel.imageBg
+                                }
+                                alt=""
+                                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                        )}
+                        {/* Hidden audio player for audio-only mantra items */}
+                        {item.type === 'mantra' && !item.reel.videoSrc && (
+                            <audio ref={audioRef} src={item.reel.audioSrc} loop autoPlay style={{ display: 'none' }}
+                                onTimeUpdate={e => { const a = e.currentTarget; if (a.duration) setProgress(a.currentTime / a.duration); }} />
                         )}
 
                         {/* ── Premium cinematic gradients ── */}
@@ -1438,11 +1522,31 @@ function FullscreenReelModal({
                                     <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 'clamp(0.68rem,2.5vw,0.88rem)', color: 'rgba(255,255,255,0.94)', fontStyle: 'italic', letterSpacing: '0.04em', margin: 0, filter: 'drop-shadow(0 1px 6px rgba(0,0,0,0.95))' }}>{item.mantra.transliteration}</p>
                                     <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 'clamp(0.55rem,2vw,0.72rem)', color: 'rgba(255,255,255,0.68)', margin: 0, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.95))' }}>{item.mantra.meaning}</p>
                                 </>
-                            ) : (
+                            ) : item.type === 'resonance' ? (
                                 <>
                                     <div style={{ fontSize: '0.62rem', color: item.story.color, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: "'Inter',sans-serif", textShadow: `0 0 16px ${item.story.color}99`, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.9))' }}>{item.story.sublabel}</div>
                                     <p style={{ fontFamily: "'Playfair Display',Georgia,serif", fontSize: 'clamp(1.45rem,6vw,2.1rem)', fontWeight: 700, color: '#fff', textShadow: '0 2px 20px rgba(0,0,0,0.95)', margin: 0, lineHeight: 1.18, filter: 'drop-shadow(0 2px 10px rgba(0,0,0,0.7))' }}>{item.story.label}</p>
                                     {(item.story as any).mantra && <p style={{ fontFamily: "'Noto Serif Devanagari',serif", fontSize: 'clamp(0.85rem,3vw,1.1rem)', color: `${item.story.color}ee`, textShadow: `0 0 24px ${item.story.color}77`, lineHeight: 1.5, margin: 0, filter: 'drop-shadow(0 1px 6px rgba(0,0,0,0.85))' }}>{(item.story as any).mantra}</p>}
+                                </>
+                            ) : item.type === 'portal' ? (
+                                <>
+                                    <div style={{ fontSize: '0.58rem', color: item.portal.color, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', fontFamily: "'Inter',sans-serif", textShadow: `0 0 16px ${item.portal.color}99`, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.9))' }}>✦ OneSUTRA Portal</div>
+                                    <p style={{ fontFamily: "'Outfit',sans-serif", fontSize: 'clamp(1.45rem,6vw,2.1rem)', fontWeight: 800, color: item.portal.color, textShadow: `0 0 40px ${item.portal.color}66, 0 2px 20px rgba(0,0,0,0.95)`, margin: 0, lineHeight: 1.15, filter: 'drop-shadow(0 2px 10px rgba(0,0,0,0.7))' }}>{item.portal.title}</p>
+                                    <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 'clamp(0.58rem,2vw,0.75rem)', color: 'rgba(255,255,255,0.72)', margin: 0, lineHeight: 1.5, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.95))' }}>{item.portal.importance}</p>
+                                    <Link href={item.portal.href} onClick={onClose} style={{ textDecoration: 'none', marginTop: '0.5rem' }}>
+                                        <motion.div whileTap={{ scale: 0.96 }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0.5rem 1.1rem', borderRadius: 99, background: `linear-gradient(135deg,${item.portal.color}cc,${item.portal.color})`, color: '#fff', fontSize: '0.72rem', fontWeight: 700, fontFamily: "'Inter',sans-serif", boxShadow: `0 4px 20px ${item.portal.color}55`, letterSpacing: '0.04em' }}>
+                                            ✦ Enter Portal →
+                                        </motion.div>
+                                    </Link>
+                                </>
+                            ) : (
+                                <>
+                                    <div style={{ fontSize: '0.55rem', color: item.reel.color, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: "'Inter',sans-serif", textShadow: `0 0 14px ${item.reel.color}99`, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.9))' }}>{item.reel.category} · {item.reel.durationLabel}</div>
+                                    <p style={{ fontFamily: "'Cormorant Garamond','Noto Serif Devanagari',serif", fontSize: 'clamp(1.2rem,5vw,1.75rem)', fontWeight: 700, color: item.reel.color, textShadow: `0 0 40px ${item.reel.color}88, 0 2px 12px rgba(0,0,0,0.95)`, lineHeight: 1.22, margin: 0, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.6))' }}>{item.reel.mantraText.split('\n')[0]}</p>
+                                    <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 'clamp(0.62rem,2.2vw,0.82rem)', color: 'rgba(255,255,255,0.9)', fontStyle: 'italic', letterSpacing: '0.04em', margin: 0, filter: 'drop-shadow(0 1px 6px rgba(0,0,0,0.95))' }}>{item.reel.transliteration}</p>
+                                    <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 'clamp(0.5rem,1.8vw,0.68rem)', color: 'rgba(255,255,255,0.65)', margin: 0, lineHeight: 1.5, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.95))' }}>{item.reel.meaning}</p>
+                                    <AudioWaveform isPlaying={isPlaying} color={item.reel.color} />
+                                    <p style={{ fontFamily: "'Outfit',sans-serif", fontSize: '0.65rem', color: `${item.reel.color}cc`, fontWeight: 700, margin: 0, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.9))' }}>{item.reel.name}</p>
                                 </>
                             )}
                         </div>
@@ -1531,6 +1635,27 @@ function FullscreenReelModal({
                             </motion.button>
                         </div>
 
+                        {/* ── Play/Pause center overlay ── */}
+                        <AnimatePresence>
+                            {showPlayPause && (
+                                <motion.div
+                                    key="pp-overlay"
+                                    initial={{ opacity: 0, scale: 0.72 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.82 }}
+                                    transition={{ duration: 0.18 }}
+                                    style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 28, pointerEvents: 'none' }}
+                                >
+                                    <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(0,0,0,0.36)', backdropFilter: 'blur(22px)', WebkitBackdropFilter: 'blur(22px)', border: '1.5px solid rgba(255,255,255,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 36px rgba(0,0,0,0.48)' }}>
+                                        {isPlaying
+                                            ? <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16" rx="1.5"/><rect x="14" y="4" width="4" height="16" rx="1.5"/></svg>
+                                            : <svg width="28" height="28" viewBox="0 0 24 24" fill="white" style={{ transform: 'translateX(2px)' }}><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                        }
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
                         {/* ── Center heart flash on double-tap ── */}
                         <AnimatePresence>
                             {heartFlash && (
@@ -1597,6 +1722,11 @@ function FullscreenReelModal({
                                 <span>Tap to unmute</span>
                             </div>
                         )}
+
+                        {/* ── Progress bar (YouTube-style) ── */}
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, background: 'rgba(255,255,255,0.14)', zIndex: 32, pointerEvents: 'none' }}>
+                            <div style={{ height: '100%', background: 'linear-gradient(90deg,#a78bfa,#ec4899)', width: `${progress * 100}%`, transition: 'width 0.35s linear', borderRadius: '0 2px 2px 0' }} />
+                        </div>
 
                         {/* Swipe hint */}
                         <motion.div
@@ -1699,7 +1829,7 @@ function AuraSpaceInner() {
 
     const [timeSlot] = useState<TimeSlot>(() => getTimeSlot());
     const feedItems = useMemo(() => {
-        const base = buildMixedFeed(timeSlot);
+        const base = buildMixedFeed();
         // Exclude Gayatri from resonance feed — It's already shown as GayatriHeroCard at top
         const resonance = buildResonanceFeedItems().filter(r => r.story.id !== 'gayatri');
         const allMantras = buildMantraFeedItems();
@@ -1722,20 +1852,34 @@ function AuraSpaceInner() {
         return [...mixed, ...resonance];
     }, [timeSlot]);
 
-    // We filter out portals so the modal can swipe through all reels + resonance seamlessly
+    // ALL content types are swipeable — portals, mantras, reels, resonance in one unified scroll
     const swipeableItems = useMemo(
-        () => feedItems.filter((f): f is (ReelItem | ResonanceItem) => f.type === 'reel' || f.type === 'resonance'),
+        () => feedItems.filter((f): f is (ReelItem | ResonanceItem | PortalItem | MantraFeedItem) =>
+            f.type === 'reel' || f.type === 'resonance' || f.type === 'portal' || f.type === 'mantra'
+        ),
         [feedItems]
     );
 
     const [modalOpen, setModalOpen] = useState(false);
     const [modalStartIdx, setModalStartIdx] = useState(0);
+
+    // Intercept hardware back button — close modal instead of leaving page
+    useEffect(() => {
+        if (modalOpen) {
+            window.history.pushState({ pvModal: true }, '');
+        }
+    }, [modalOpen]);
+    useEffect(() => {
+        const onPop = () => { if (modalOpen) setModalOpen(false); };
+        window.addEventListener('popstate', onPop);
+        return () => window.removeEventListener('popstate', onPop);
+    }, [modalOpen]);
     const [mantraOverlayOpen, setMantraOverlayOpen] = useState(false);
     const [mantraOverlayIdx, setMantraOverlayIdx] = useState(0);
     const [headerVisible, setHeaderVisible] = useState(true);
     const lastScrollY = useRef(0);
 
-    const openReel = useCallback((feedItem: ReelItem | ResonanceItem) => {
+    const openReel = useCallback((feedItem: ReelItem | ResonanceItem | PortalItem | MantraFeedItem) => {
         const idx = swipeableItems.findIndex(r => r.id === feedItem.id);
         setModalStartIdx(Math.max(0, idx));
         setModalOpen(true);
@@ -1783,6 +1927,16 @@ function AuraSpaceInner() {
         @keyframes textShimmer {
           0%{background-position:-200% center}
           100%{background-position:200% center}
+        }
+        @keyframes shimmerSlide {
+          0%{transform:translateX(-100%)}
+          100%{transform:translateX(100%)}
+        }
+        .pv-shimmer::after {
+          content:'';
+          position:absolute;inset:0;
+          background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.07) 50%,transparent 100%);
+          animation:shimmerSlide 1.5s infinite linear;
         }
         .pv-header-fade-in { animation: pvHeaderIn 0.3s ease forwards; }
         .pv-header-fade-out { animation: pvHeaderOut 0.3s ease forwards; }
@@ -1973,10 +2127,10 @@ function AuraSpaceInner() {
                                         <MantraReelGridCard
                                             key={item.id}
                                             item={item}
-                                            onOpen={() => { setMantraOverlayIdx(item.reelIndex); setMantraOverlayOpen(true); }}
+                                            onOpen={() => openReel(item)}
                                         />
                                     ) : (
-                                        <PortalGridCard key={item.id} item={item} />
+                                        <PortalGridCard key={item.id} item={item} onClick={() => openReel(item)} />
                                     )
                                 )}
                             </div>

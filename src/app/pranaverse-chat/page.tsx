@@ -198,7 +198,7 @@ function SeekerCard({ u, status, isNature, onAdd, onAccept, onDecline, onChat, o
                 {status === 'none' && !isSent && (
                     <motion.button whileTap={{ scale: 0.84 }} onClick={e => { e.stopPropagation(); onViewProfile?.(); }}
                         style={{ ...snapPill, padding: '0.42rem 0.85rem', background: 'linear-gradient(135deg,rgba(167,139,250,0.22),rgba(139,92,246,0.16))', border: '1.5px solid rgba(167,139,250,0.45)', color: '#c4b5fd', fontSize: '0.62rem', boxShadow: '0 2px 14px rgba(139,92,246,0.22)' }}>
-                        <span style={{ fontSize: '0.75rem' }}>👤</span> Add
+                        <span style={{ fontSize: '0.75rem' }}>👤</span> View
                     </motion.button>
                 )}
                 {isSent && (
@@ -1380,17 +1380,12 @@ export default function PranverseChatHub() {
                                     ))}
                                 </div>
 
-                                {/* Add + Ask Bodhi */}
+                                {/* Ask Bodhi */}
                                 <div style={{ display: 'flex', gap: '0.55rem', padding: '0 1.4rem', width: '100%', boxSizing: 'border-box', marginBottom: '0.65rem' }}>
-                                    <motion.button whileTap={{ scale: 0.94 }}
-                                        onClick={() => { setProfileUser(null); router.push(`/profile/${pu.uid}`); }}
-                                        style={{ flex: 1, padding: '0.62rem 0.5rem', borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.11)', color: 'rgba(255,255,255,0.60)', fontSize: '0.75rem', fontWeight: 700, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-                                        👤 Add
-                                    </motion.button>
                                     <motion.button whileTap={{ scale: 0.94 }}
                                         onClick={() => { setProfileUser(null); router.push(`/profile/${pu.uid}?enquire=true`); }}
                                         style={{ flex: 1, padding: '0.62rem 0.5rem', borderRadius: 12, background: 'rgba(167,139,250,0.10)', border: '1px solid rgba(167,139,250,0.28)', color: '#c4b5fd', fontSize: '0.75rem', fontWeight: 700, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-                                        ✦ Ask Bodhi
+                                        ✦ Ask Bodhi About {pu.name.split(' ')[0]}
                                     </motion.button>
                                 </div>
 
@@ -1423,9 +1418,9 @@ export default function PranverseChatHub() {
                                             ✓ Request Sent
                                         </div>
                                     ) : (
-                                        <motion.button whileTap={{ scale: 0.94 }} onClick={() => { sendFriendRequest(pu.uid, pu.name); setProfileUser(null); }}
-                                            style={{ flex: 1, padding: '0.80rem', borderRadius: 14, background: 'linear-gradient(135deg,rgba(251,191,36,0.26),rgba(217,119,6,0.18))', border: '1.5px solid rgba(251,191,36,0.48)', color: '#fbbf24', fontSize: '0.82rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
-                                            ✦ Add to Circle
+                                        <motion.button whileTap={{ scale: 0.94 }} onClick={() => { setProfileUser(null); router.push(`/profile/${pu.uid}`); }}
+                                            style={{ flex: 1, padding: '0.80rem', borderRadius: 14, background: 'linear-gradient(135deg,rgba(167,139,250,0.28),rgba(124,58,237,0.20))', border: '1.5px solid rgba(167,139,250,0.50)', color: '#c4b5fd', fontSize: '0.82rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+                                            👤 See Profile
                                         </motion.button>
                                     )}
                                 </div>

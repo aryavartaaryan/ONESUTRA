@@ -7,7 +7,7 @@ import {
   UserPlus, MessageCircle, Moon, TrendingUp, Activity,
   Zap, Award, BookOpen, Camera, Leaf, Music, Coffee, Heart, Wind,
   Globe, Users, Star, Bell, PlusCircle, Eye, Repeat2,
-  Flame, Sparkles, Bot, Sun, Edit2, Home, X as XIcon, MapPin,
+  Flame, Sparkles, Bot, Sun, Edit2, Home, X as XIcon, MapPin, LogOut,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
@@ -1328,6 +1328,22 @@ export default function AetherProfile({ viewedUid, autoEnquire }: { viewedUid?: 
           {isOwnProfile && (
             <button className={styles.headerBtn} onClick={() => router.push('/profile/edit')} aria-label="Edit Profile">
               <Edit2 size={16} />
+            </button>
+          )}
+          {isOwnProfile && (
+            <button
+              className={styles.headerBtn}
+              aria-label="Sign Out"
+              onClick={async () => {
+                try {
+                  const { getAuth, signOut } = await import('firebase/auth');
+                  await signOut(getAuth());
+                  router.push('/');
+                } catch { /* offline */ }
+              }}
+              style={{ color: 'rgba(239,68,68,0.85)' }}
+            >
+              <LogOut size={16} />
             </button>
           )}
           <button className={styles.headerBtn} onClick={() => router.back()} aria-label="Close">

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { X } from 'lucide-react';
@@ -184,22 +185,6 @@ function UserTaskViewer({ stories, currentIdx, onClose, onNext, onPrev, onRemove
     onRemove: (taskId: string) => void;
 }) {
     const story = stories[currentIdx];
-    const [progress, setProgress] = useState(0);
-
-    useEffect(() => {
-        setProgress(0);
-        let elapsed = 0;
-        const duration = 10000;
-        const step = 80;
-        const timer = setInterval(() => {
-            elapsed += step;
-            const pct = Math.min((elapsed / duration) * 100, 100);
-            setProgress(pct);
-            if (pct >= 100) { clearInterval(timer); onNext(); }
-        }, step);
-        return () => clearInterval(timer);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [story?.id]);
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';
@@ -216,22 +201,45 @@ function UserTaskViewer({ stories, currentIdx, onClose, onNext, onPrev, onRemove
             style={{ position: 'fixed', inset: 0, zIndex: 10002, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             onClick={onClose}
         >
+            <style>{`
+                @keyframes storyFill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+            `}</style>
             <motion.div
                 onClick={e => e.stopPropagation()}
                 initial={{ scale: 0.94 }} animate={{ scale: 1 }} exit={{ scale: 0.94 }}
                 transition={{ type: 'spring', stiffness: 340, damping: 30 }}
                 style={{ position: 'relative', width: '100%', maxWidth: 480, height: '100dvh', overflow: 'hidden', background: '#000' }}
             >
-                {/* BG Image */}
-                <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${bgImg})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.82)' }} />
+                {/* BG Image — crossfade on story change */}
+                <AnimatePresence initial={false}>
+                    <motion.div
+                        key={bgImg}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.4 }}
+                        style={{ position: 'absolute', inset: 0, backgroundImage: `url(${bgImg})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.82)' }}
+                    />
+                </AnimatePresence>
                 {/* Color mood overlay */}
                 <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(160deg, ${story.accentColor}28 0%, transparent 40%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0.65) 100%)` }} />
 
-                {/* Progress bars */}
+                {/* Progress bars — CSS animation: zero re-renders */}
                 <div style={{ position: 'absolute', top: 14, left: 12, right: 12, display: 'flex', gap: 4, zIndex: 20 }}>
                     {stories.map((_, i) => (
                         <div key={i} style={{ flex: 1, height: 2.5, borderRadius: 2, background: 'rgba(255,255,255,0.25)', overflow: 'hidden' }}>
-                            <div style={{ height: '100%', background: `linear-gradient(90deg,${story.color},#fbbf24)`, width: i < currentIdx ? '100%' : i === currentIdx ? `${progress}%` : '0%', borderRadius: 2 }} />
+                            <div
+                                key={`${i}-${story.id}`}
+                                onAnimationEnd={i === currentIdx ? onNext : undefined}
+                                style={{
+                                    height: '100%',
+                                    background: `linear-gradient(90deg,${story.color},#fbbf24)`,
+                                    borderRadius: 2,
+                                    transformOrigin: 'left center',
+                                    transform: i < currentIdx ? 'scaleX(1)' : i === currentIdx ? undefined : 'scaleX(0)',
+                                    animation: i === currentIdx ? 'storyFill 10s linear forwards' : 'none',
+                                }}
+                            />
                         </div>
                     ))}
                 </div>
@@ -1719,6 +1727,10 @@ export default function HomeStoryBar() {
         return () => window.removeEventListener('popstate', handler);
     }, [activeGroupIdx, activeVideoIdx, activeUserTaskIdx]);
 
+    const isAnyViewerOpen = activeGroupIdx !== null || activeVideoIdx !== null || activeUserTaskIdx !== null || activeMantraIdx !== null;
+    const [isMounted, setIsMounted] = useState(false);
+    useEffect(() => { setIsMounted(true); }, []);
+
     return (
         <>
             <style>{`
@@ -1748,6 +1760,8 @@ export default function HomeStoryBar() {
                 backdropFilter: 'blur(20px)',
                 borderBottom: '1px solid rgba(251,191,36,0.06)',
                 flexShrink: 0, alignItems: 'flex-start',
+                visibility: isAnyViewerOpen ? 'hidden' : 'visible',
+                pointerEvents: isAnyViewerOpen ? 'none' : 'auto',
             }}>
                 {/* "Add Story" */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', flexShrink: 0, scrollSnapAlign: 'start', scrollSnapStop: 'always' }}>
@@ -1927,56 +1941,62 @@ export default function HomeStoryBar() {
 
             </div>
 
-            {/* User task story viewer */}
-            <AnimatePresence>
-                {activeUserTaskIdx !== null && userTaskStories.length > 0 && (
-                    <UserTaskViewer
-                        stories={userTaskStories}
-                        currentIdx={activeUserTaskIdx}
-                        onClose={closeUserTask}
-                        onNext={nextUserTask}
-                        onPrev={prevUserTask}
-                        onRemove={removeTask}
-                    />
-                )}
-            </AnimatePresence>
+            {/* All viewers rendered via portal to document.body — escapes stacking context */}
+            {isMounted && createPortal(
+                <>
+                    {/* User task story viewer */}
+                    <AnimatePresence>
+                        {activeUserTaskIdx !== null && userTaskStories.length > 0 && (
+                            <UserTaskViewer
+                                stories={userTaskStories}
+                                currentIdx={activeUserTaskIdx}
+                                onClose={closeUserTask}
+                                onNext={nextUserTask}
+                                onPrev={prevUserTask}
+                                onRemove={removeTask}
+                            />
+                        )}
+                    </AnimatePresence>
 
-            {/* Full-screen video viewer */}
-            <AnimatePresence>
-                {activeVideoIdx !== null && (
-                    <VideoStoryViewer
-                        story={VIDEO_STORIES[activeVideoIdx]}
-                        allVideoStories={VIDEO_STORIES}
-                        startIdx={activeVideoIdx}
-                        onClose={() => setActiveVideoIdx(null)}
-                        onFinished={() => { setActiveVideoIdx(null); openImageGroup(0); }}
-                    />
-                )}
-            </AnimatePresence>
+                    {/* Full-screen video viewer */}
+                    <AnimatePresence>
+                        {activeVideoIdx !== null && (
+                            <VideoStoryViewer
+                                story={VIDEO_STORIES[activeVideoIdx]}
+                                allVideoStories={VIDEO_STORIES}
+                                startIdx={activeVideoIdx}
+                                onClose={() => setActiveVideoIdx(null)}
+                                onFinished={() => { setActiveVideoIdx(null); openImageGroup(0); }}
+                            />
+                        )}
+                    </AnimatePresence>
 
-            {/* Full-screen image story viewer */}
-            <AnimatePresence>
-                {activeGroupIdx !== null && (
-                    <StoryViewer
-                        groups={imageGroups}
-                        startGroupIdx={activeGroupIdx}
-                        onClose={() => setActiveGroupIdx(null)}
-                        onFinished={() => { setActiveGroupIdx(null); openVideoStory(0); }}
-                    />
-                )}
-            </AnimatePresence>
+                    {/* Full-screen image story viewer */}
+                    <AnimatePresence>
+                        {activeGroupIdx !== null && (
+                            <StoryViewer
+                                groups={imageGroups}
+                                startGroupIdx={activeGroupIdx}
+                                onClose={() => setActiveGroupIdx(null)}
+                                onFinished={() => { setActiveGroupIdx(null); openVideoStory(0); }}
+                            />
+                        )}
+                    </AnimatePresence>
 
-            {/* Full-screen MANTRA story viewer */}
-            <AnimatePresence>
-                {activeMantraIdx !== null && (
-                    <MantraStoryViewer
-                        mantras={MANTRA_REELS}
-                        startIdx={activeMantraIdx}
-                        onClose={() => setActiveMantraIdx(null)}
-                        onViewed={(id) => setViewedIds(prev => new Set([...prev, `mantra-${id}`]))}
-                    />
-                )}
-            </AnimatePresence>
+                    {/* Full-screen MANTRA story viewer */}
+                    <AnimatePresence>
+                        {activeMantraIdx !== null && (
+                            <MantraStoryViewer
+                                mantras={MANTRA_REELS}
+                                startIdx={activeMantraIdx}
+                                onClose={() => setActiveMantraIdx(null)}
+                                onViewed={(id) => setViewedIds(prev => new Set([...prev, `mantra-${id}`]))}
+                            />
+                        )}
+                    </AnimatePresence>
+                </>,
+                document.body
+            )}
         </>
     );
 }

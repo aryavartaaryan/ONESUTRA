@@ -83,7 +83,7 @@ export const MANTRA_REELS: MantraReel[] = [
         color: '#c084fc',
         secondColor: '#7c3aed',
         audioSrc: 'https://ik.imagekit.io/rcsesr4xf/Shiva-Tandav.mp3',
-        imageBg: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&h=1400&fit=crop&q=90',
+        imageBg: 'https://images.unsplash.com/photo-1447433819943-74a20887a81e?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~8 min',
         isLong: false,
         category: 'Stotra',
@@ -121,7 +121,7 @@ export const MANTRA_REELS: MantraReel[] = [
         color: '#a78bfa',
         secondColor: '#4f46e5',
         audioSrc: '/audio/Om%20Namah%20Shivaya.mp3',
-        imageBg: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&h=1400&fit=crop&q=90',
+        imageBg: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~5 min',
         isLong: false,
         category: 'Mantra',
@@ -139,7 +139,7 @@ export const MANTRA_REELS: MantraReel[] = [
         color: '#34d399',
         secondColor: '#059669',
         audioSrc: 'https://ik.imagekit.io/rcsesr4xf/shanti-path.mp3',
-        imageBg: 'https://images.unsplash.com/photo-1455156218388-5e61b526818b?w=800&h=1400&fit=crop&q=90',
+        imageBg: 'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~10 min',
         isLong: false,
         category: 'Vedic Mantra',
@@ -175,7 +175,7 @@ export const MANTRA_REELS: MantraReel[] = [
         color: '#ef4444',
         secondColor: '#b91c1c',
         audioSrc: 'https://ik.imagekit.io/aup4wh6lq/DainikAgnihotra.mp3?updatedAt=1771246817070',
-        imageBg: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=1400&fit=crop&q=90',
+        imageBg: 'https://images.unsplash.com/photo-1574169208507-84376144848b?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~15 min',
         isLong: true,
         category: 'Vedic Ritual',
@@ -193,7 +193,7 @@ export const MANTRA_REELS: MantraReel[] = [
         color: '#60a5fa',
         secondColor: '#1d4ed8',
         audioSrc: '/audio/Agam - Rudrashtakam  रदरषटकम  Most POWERFUL Shiva Mantras Ever  Lyrical Video  Shiv.mp3',
-        imageBg: 'https://images.unsplash.com/photo-1455156218388-5e61b526818b?w=800&h=1400&fit=crop&q=90',
+        imageBg: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~8 min',
         isLong: false,
         category: 'Stotra',
@@ -268,7 +268,7 @@ export const MANTRA_REELS: MantraReel[] = [
         color: '#fbbf24',
         secondColor: '#d97706',
         audioSrc: '/audio/Om_Sahana_Vavatu_Shanti_Mantra.mp3',
-        imageBg: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&h=1400&fit=crop&q=90',
+        imageBg: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~5 min',
         isLong: false,
         category: 'Vedic Mantra',
@@ -286,7 +286,7 @@ export const MANTRA_REELS: MantraReel[] = [
         color: '#f97316',
         secondColor: '#c2410c',
         audioSrc: '/audio/Agnihotra_Shantipath_-_Vedic_Chants_for_Universal_Peace_and_Well-Being_part_2_(mp3.pm).mp3',
-        imageBg: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=1400&fit=crop&q=90',
+        imageBg: 'https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~12 min',
         isLong: false,
         category: 'Vedic Ritual',
@@ -305,7 +305,7 @@ export const MANTRA_REELS: MantraReel[] = [
         secondColor: '#4f46e5',
         audioSrc: 'https://ik.imagekit.io/aup4wh6lq/Complete%20Rudri%20Path%20with%20Lyrics%20_%20Vedic%20Chanting%20by%2021%20Brahmins.mp4',
         videoSrc: 'https://ik.imagekit.io/aup4wh6lq/Complete%20Rudri%20Path%20with%20Lyrics%20_%20Vedic%20Chanting%20by%2021%20Brahmins.mp4',
-        imageBg: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&h=1400&fit=crop&q=90',
+        imageBg: 'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~1 hr',
         isLong: true,
         category: 'Vedic Chanting',
@@ -324,7 +324,7 @@ export const MANTRA_REELS: MantraReel[] = [
         secondColor: '#7c3aed',
         audioSrc: 'https://ik.imagekit.io/aup4wh6lq/Just%20feel%20the%20energy%20____Follow%20@fmccreators%20for%20more_%E0%A4%B9%E0%A4%B0%20%E0%A4%B9%E0%A4%B0%20%E0%A4%AE%E0%A4%B9%E0%A4%BE%E0%A4%A6%E0%A5%87%E0%A4%B5%20__%E0%A4%9C%E0%A4%AF%20%E0%A4%B6%E0%A4%82%E0%A4%95%E0%A4%B0%20___Do%20like.mp4',
         videoSrc: 'https://ik.imagekit.io/aup4wh6lq/Just%20feel%20the%20energy%20____Follow%20@fmccreators%20for%20more_%E0%A4%B9%E0%A4%B0%20%E0%A4%B9%E0%A4%B0%20%E0%A4%AE%E0%A4%B9%E0%A4%BE%E0%A4%A6%E0%A5%87%E0%A4%B5%20__%E0%A4%9C%E0%A4%AF%20%E0%A4%B6%E0%A4%82%E0%A4%95%E0%A4%B0%20___Do%20like.mp4',
-        imageBg: 'https://images.unsplash.com/photo-1455156218388-5e61b526818b?w=800&h=1400&fit=crop&q=90',
+        imageBg: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~3 min',
         isLong: false,
         category: 'Shakti',
@@ -362,7 +362,7 @@ export const MANTRA_REELS: MantraReel[] = [
         secondColor: '#b45309',
         audioSrc: 'https://ik.imagekit.io/aup4wh6lq/Shiv%20Swarnamala%20Stuti%20_%E2%9D%A4%EF%B8%8F%20I%20Verse%20-%207%20_.Follow%20@aumm_namah_shivay%20for%20more%20%E2%9D%A4%EF%B8%8F%20.._mahadev%20_shiv.mp4',
         videoSrc: 'https://ik.imagekit.io/aup4wh6lq/Shiv%20Swarnamala%20Stuti%20_%E2%9D%A4%EF%B8%8F%20I%20Verse%20-%207%20_.Follow%20@aumm_namah_shivay%20for%20more%20%E2%9D%A4%EF%B8%8F%20.._mahadev%20_shiv.mp4',
-        imageBg: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=1400&fit=crop&q=90',
+        imageBg: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~4 min',
         isLong: false,
         category: 'Stotra',
@@ -381,7 +381,7 @@ export const MANTRA_REELS: MantraReel[] = [
         secondColor: '#0891b2',
         audioSrc: 'https://ik.imagekit.io/aup4wh6lq/Most%20people%20don_t%20realize%20it,%20but%20sound%20has%20the%20power%20to%20heal%20-%20or%20harm.%20There_s%20a%20reason%20why%20an.mp4',
         videoSrc: 'https://ik.imagekit.io/aup4wh6lq/Most%20people%20don_t%20realize%20it,%20but%20sound%20has%20the%20power%20to%20heal%20-%20or%20harm.%20There_s%20a%20reason%20why%20an.mp4',
-        imageBg: 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=800&h=1400&fit=crop&q=90',
+        imageBg: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~3 min',
         isLong: false,
         category: 'Sound Healing',
@@ -400,7 +400,7 @@ export const MANTRA_REELS: MantraReel[] = [
         secondColor: '#c2410c',
         audioSrc: 'https://ik.imagekit.io/aup4wh6lq/%E0%A4%86%E0%A4%AA%20%E0%A4%B8%E0%A4%AD%E0%A5%80%20%E0%A4%95%E0%A5%8B%20%E0%A4%A8%E0%A4%B5%20%E0%A4%B5%E0%A4%B0%E0%A5%8D%E0%A4%B7%20%E0%A4%95%E0%A5%80%20%E0%A4%B9%E0%A4%BE%E0%A4%B0%E0%A5%8D%E0%A4%A6%E0%A4%BF%E0%A4%95%20%E0%A4%AC%E0%A4%A7%E0%A4%BE%E0%A4%88%20%E0%A4%8F%E0%A4%B5%E0%A4%82%20%E0%A4%B6%E0%A5%81%E0%A4%AD%E0%A4%95%E0%A4%BE%E0%A4%AE%E0%A4%A8%E0%A4%BE%E0%A4%8F%E0%A4%81_%E0%A4%B9%E0%A4%B0%20%E0%A4%B9%E0%A4%B0%20%E0%A4%AE%E0%A4%B9%E0%A4%BE%E0%A4%A6%E0%A5%87%E0%A4%B5____.mp4',
         videoSrc: 'https://ik.imagekit.io/aup4wh6lq/%E0%A4%86%E0%A4%AA%20%E0%A4%B8%E0%A4%AD%E0%A5%80%20%E0%A4%95%E0%A5%8B%20%E0%A4%A8%E0%A4%B5%20%E0%A4%B5%E0%A4%B0%E0%A5%8D%E0%A4%B7%20%E0%A4%95%E0%A5%80%20%E0%A4%B9%E0%A4%BE%E0%A4%B0%E0%A5%8D%E0%A4%A6%E0%A4%BF%E0%A4%95%20%E0%A4%AC%E0%A4%A7%E0%A4%BE%E0%A4%88%20%E0%A4%8F%E0%A4%B5%E0%A4%82%20%E0%A4%B6%E0%A5%81%E0%A4%AD%E0%A4%95%E0%A4%BE%E0%A4%AE%E0%A4%A8%E0%A4%BE%E0%A4%8F%E0%A4%81_%E0%A4%B9%E0%A4%B0%20%E0%A4%B9%E0%A4%B0%20%E0%A4%AE%E0%A4%B9%E0%A4%BE%E0%A4%A6%E0%A5%87%E0%A4%B5____.mp4',
-        imageBg: 'https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=800&h=1400&fit=crop&q=90',
+        imageBg: 'https://images.unsplash.com/photo-1471931452361-f5ff1faa15ad?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~2 min',
         isLong: false,
         category: 'Celebration',
@@ -419,7 +419,7 @@ export const MANTRA_REELS: MantraReel[] = [
         secondColor: '#7c3aed',
         audioSrc: '/videos/mahashivratri_darshan.mp4',
         videoSrc: '/videos/mahashivratri_darshan.mp4',
-        imageBg: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&h=1400&fit=crop&q=90',
+        imageBg: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~5 min',
         isLong: false,
         category: 'Festival',
@@ -455,7 +455,7 @@ export const MANTRA_REELS: MantraReel[] = [
         color: '#38bdf8',
         secondColor: '#0369a1',
         audioSrc: '/audio/Anant_-_a_collection_of_vedic_chants_-_05._Narayana_Suktam_(mp3.pm).mp3',
-        imageBg: 'https://images.unsplash.com/photo-1517816743773-6e0d765cdc96?w=800&h=1400&fit=crop&q=90',
+        imageBg: 'https://images.unsplash.com/photo-1474418397713-003ec9403fe5?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~15 min',
         isLong: false,
         category: 'Suktam',
@@ -473,7 +473,7 @@ export const MANTRA_REELS: MantraReel[] = [
         color: '#ef4444',
         secondColor: '#b91c1c',
         audioSrc: '/audio/Virija Homa Mantra  Uma Mohan  Promod Shanker  Times Music Spiritual.mp3',
-        imageBg: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=1400&fit=crop&q=90',
+        imageBg: 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~10 min',
         isLong: false,
         category: 'Vedic Ritual',
@@ -854,16 +854,19 @@ function MantraReelCard({ reel, isActive, reelIndex }: { reel: MantraReel; isAct
                         }} />
                     </div>
 
-                    {/* Controls */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div>
-                            <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#fff', fontFamily: "'Inter', sans-serif", lineHeight: 1.2 }}>
-                                {reel.name}
-                            </div>
-                            <div style={{ fontSize: '0.48rem', color: reel.color, fontFamily: "'Inter', sans-serif", fontWeight: 600, marginTop: 1 }}>
-                                {reel.deityHi}
-                            </div>
+                    {/* Mantra title — above controls, never shifts button */}
+                    <div style={{ marginBottom: '0.55rem' }}>
+                        <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#fff', fontFamily: "'Inter', sans-serif", lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {reel.name}
                         </div>
+                        <div style={{ fontSize: '0.46rem', color: reel.color, fontFamily: "'Inter', sans-serif", fontWeight: 600, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {reel.deityHi}
+                        </div>
+                    </div>
+
+                    {/* Controls — fixed 3-column, no text that shifts positions */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <AudioWaveform playing={playing} color={reel.color} />
 
                         {/* ══ World-class glass play/pause button ══ */}
                         <motion.button
@@ -880,10 +883,10 @@ function MantraReelCard({ reel, isActive, reelIndex }: { reel: MantraReel; isAct
                             transition={playing ? { duration: 1.8, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.3 }}
                             style={{
                                 width: 62, height: 62, borderRadius: '50%',
-                                background: `linear-gradient(145deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 50%, ${reel.color}1a 100%)`,
-                                backdropFilter: 'blur(32px) saturate(200%)',
-                                WebkitBackdropFilter: 'blur(32px) saturate(200%)',
-                                border: `1.5px solid rgba(255,255,255,0.32)`,
+                                background: 'rgba(255,255,255,0.04)',
+                                backdropFilter: 'blur(40px) saturate(220%)',
+                                WebkitBackdropFilter: 'blur(40px) saturate(220%)',
+                                border: `1px solid rgba(255,255,255,0.18)`,
                                 cursor: 'pointer',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 position: 'relative', overflow: 'hidden',

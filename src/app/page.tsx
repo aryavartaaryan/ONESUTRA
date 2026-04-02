@@ -378,11 +378,13 @@ export default function Home() {
       </main>
 
       {/* ══ SAKHA BODHI — "Pranic Spark" Floating Trigger ══ */}
+      {/* Isolation wrapper: prevents GPU layer from bleeding into page content */}
+      <div style={{ position: 'fixed', bottom: 90, right: 22, zIndex: 1000, isolation: 'isolate', transform: 'translateZ(0)' }}>
       <AnimatePresence>
         {!isSakhaActive && (
           <motion.div
             key="sakha-trigger"
-            style={{ position: 'fixed', bottom: 90, right: 22, zIndex: 1000 }}
+            style={{ position: 'relative' }}
             initial={{ opacity: 0, scale: 0.4 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.3 }}
@@ -514,6 +516,7 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
+      </div>{/* end isolation wrapper */}
 
       {/* ══ SAKHA BODHI — Orb Overlay ══ */}
       <AnimatePresence>
