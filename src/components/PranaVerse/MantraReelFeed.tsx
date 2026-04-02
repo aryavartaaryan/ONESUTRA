@@ -65,7 +65,7 @@ export const MANTRA_REELS: MantraReel[] = [
         color: '#f472b6',
         secondColor: '#a21caf',
         audioSrc: 'https://ik.imagekit.io/rcsesr4xf/Lalitha-Sahasranamam.mp3',
-        imageBg: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=800&h=1400&fit=crop&q=90',
+        imageBg: 'https://images.unsplash.com/photo-1518467166778-b88f373ffec7?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~45 min',
         isLong: true,
         category: 'Stotra',
@@ -157,7 +157,7 @@ export const MANTRA_REELS: MantraReel[] = [
         color: '#f97316',
         secondColor: '#c2410c',
         audioSrc: '/audio/Powerful Hanuman Chalisa  HanuMan  Teja Sajja  Saicharan  Hanuman Jayanti Song  Jai Hanuman.mp3',
-        imageBg: 'https://images.unsplash.com/photo-1609619385002-f40f1df9b7eb?w=800&h=1400&fit=crop&q=90',
+        imageBg: 'https://images.unsplash.com/photo-1607988795691-3d0147b43231?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~7 min',
         isLong: false,
         category: 'Chalisa',
@@ -530,32 +530,34 @@ function MantraReelCard({ reel, isActive, reelIndex }: { reel: MantraReel; isAct
     const audioRef = useRef<HTMLAudioElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const [playing, setPlaying] = useState(false);
+    const [muted, setMuted] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [showMantra, setShowMantra] = useState(false);
     const [liked, setLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(800 + (reelIndex * 347) % 3000);
 
-    // Auto-play/pause when active changes — ALWAYS try with audio first
+    // Auto-play/pause when active changes — try unmuted first, fall back to muted
     useEffect(() => {
         if (reel.videoSrc) {
             const vid = videoRef.current;
             if (!vid) return;
             if (isActive) {
                 const t = setTimeout(() => {
-                    // Always try unmuted first for best UX
                     vid.muted = false;
                     vid.play()
-                        .then(() => setPlaying(true))
+                        .then(() => { setMuted(false); setShowMantra(true); })
                         .catch(() => {
-                            // Autoplay unmuted failed, handle silently
+                            // Unmuted autoplay blocked — fall back to muted so video plays
+                            vid.muted = true;
+                            vid.play()
+                                .then(() => { setMuted(true); setShowMantra(true); })
+                                .catch(() => { });
                         });
-                    setShowMantra(true);
                 }, 350);
                 return () => clearTimeout(t);
             } else {
                 vid.pause();
-                setPlaying(false);
                 setShowMantra(false);
             }
         } else {
@@ -563,33 +565,50 @@ function MantraReelCard({ reel, isActive, reelIndex }: { reel: MantraReel; isAct
             if (!audio) return;
             if (isActive) {
                 const t = setTimeout(() => {
-                    // Always try unmuted first for best UX
                     audio.muted = false;
-                    audio.play().then(() => setPlaying(true)).catch(() => { });
-                    setShowMantra(true);
+                    audio.play()
+                        .then(() => { setMuted(false); setShowMantra(true); })
+                        .catch(() => {
+                            audio.muted = true;
+                            audio.play()
+                                .then(() => { setMuted(true); setShowMantra(true); })
+                                .catch(() => { });
+                        });
                 }, 350);
                 return () => clearTimeout(t);
             } else {
                 audio.pause();
-                setPlaying(false);
                 setShowMantra(false);
             }
         }
     }, [isActive, reel.videoSrc]);
 
+    // Unmute on user interaction if currently muted
+    const unmuteIfNeeded = useCallback(() => {
+        if (reel.videoSrc) {
+            const vid = videoRef.current;
+            if (vid && vid.muted) { vid.muted = false; setMuted(false); }
+        } else {
+            const audio = audioRef.current;
+            if (audio && audio.muted) { audio.muted = false; setMuted(false); }
+        }
+    }, [reel.videoSrc]);
+
     const togglePlay = useCallback(() => {
         if (reel.videoSrc) {
             const vid = videoRef.current;
             if (!vid) return;
-            if (playing) { vid.pause(); setPlaying(false); }
-            else { vid.play().then(() => setPlaying(true)).catch(() => { }); }
+            unmuteIfNeeded();
+            if (!vid.paused) { vid.pause(); }
+            else { vid.play().catch(() => { }); }
         } else {
             const audio = audioRef.current;
             if (!audio) return;
-            if (playing) { audio.pause(); setPlaying(false); }
-            else { audio.play().then(() => setPlaying(true)).catch(() => { }); }
+            unmuteIfNeeded();
+            if (!audio.paused) { audio.pause(); }
+            else { audio.play().catch(() => { }); }
         }
-    }, [playing, reel.videoSrc]);
+    }, [reel.videoSrc, unmuteIfNeeded]);
 
     const handleSeek = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         const rect = e.currentTarget.getBoundingClientRect();
@@ -621,6 +640,8 @@ function MantraReelCard({ reel, isActive, reelIndex }: { reel: MantraReel; isAct
                     src={reel.videoSrc}
                     loop playsInline
                     preload={isActive ? 'auto' : 'none'}
+                    onPlay={() => setPlaying(true)}
+                    onPause={() => setPlaying(false)}
                     onTimeUpdate={() => setCurrentTime(videoRef.current?.currentTime || 0)}
                     onDurationChange={() => setDuration(videoRef.current?.duration || 0)}
                     onEnded={() => setPlaying(false)}
@@ -829,6 +850,30 @@ function MantraReelCard({ reel, isActive, reelIndex }: { reel: MantraReel; isAct
                     borderRadius: 20, padding: '0.75rem 1rem',
                     boxShadow: `0 0 30px ${reel.color}18, 0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)`,
                 }}>
+                    {/* Muted nudge — shown when autoplay fell back to muted */}
+                    <AnimatePresence>
+                        {muted && playing && (
+                            <motion.button
+                                type="button"
+                                initial={{ opacity: 0, y: -6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -6 }}
+                                onClick={togglePlay}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: 5,
+                                    background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.22)',
+                                    borderRadius: 99, padding: '0.22rem 0.7rem',
+                                    marginBottom: '0.5rem', cursor: 'pointer',
+                                    touchAction: 'manipulation',
+                                }}
+                            >
+                                <span style={{ fontSize: '0.75rem' }}>🔇</span>
+                                <span style={{ fontSize: '0.46rem', fontWeight: 700, color: 'rgba(255,255,255,0.85)', fontFamily: "'Inter', sans-serif", letterSpacing: '0.08em' }}>
+                                    TAP FOR SOUND
+                                </span>
+                            </motion.button>
+                        )}
+                    </AnimatePresence>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
                         <AudioWaveform playing={playing} color={reel.color} />
                         <span style={{
@@ -874,6 +919,7 @@ function MantraReelCard({ reel, isActive, reelIndex }: { reel: MantraReel; isAct
                         <motion.button
                             whileTap={{ scale: 0.86 }}
                             onClick={togglePlay}
+                            type="button"
                             animate={playing ? {
                                 boxShadow: [
                                     `0 0 0 0px ${reel.color}60, 0 0 28px ${reel.color}55, 0 10px 40px rgba(0,0,0,0.55), inset 0 1.5px 0 rgba(255,255,255,0.40), inset 0 -1px 0 rgba(0,0,0,0.14)`,
@@ -893,6 +939,7 @@ function MantraReelCard({ reel, isActive, reelIndex }: { reel: MantraReel; isAct
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 position: 'relative', overflow: 'hidden',
                                 flexShrink: 0,
+                                touchAction: 'manipulation',
                             }}
                         >
                             {/* Glass specular highlight */}
@@ -1072,6 +1119,8 @@ function MantraReelCard({ reel, isActive, reelIndex }: { reel: MantraReel; isAct
                     ref={audioRef}
                     src={reel.audioSrc}
                     preload={isActive ? 'auto' : 'none'}
+                    onPlay={() => setPlaying(true)}
+                    onPause={() => setPlaying(false)}
                     onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)}
                     onDurationChange={() => setDuration(audioRef.current?.duration || 0)}
                     onEnded={() => setPlaying(false)}

@@ -398,13 +398,11 @@ function Tendrils({ S, rot }: { S: number; rot: number }) {
 function FeatureDetail({ item, onClose, onNavigate }: { item: OrbItem; onClose: () => void; onNavigate: () => void }) {
     return (
         <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0 } }}
             onClick={onClose}
             style={{
                 position: 'fixed', inset: 0, zIndex: 9998,
                 background: 'rgba(2,1,10,0.97)',
-                backdropFilter: 'blur(32px)',
-                WebkitBackdropFilter: 'blur(32px)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 padding: '1rem',
             }}

@@ -62,17 +62,54 @@ function getAvatarColor(uid: string) { return AVATAR_COLORS[uid.charCodeAt(0) % 
 function getInitials(name: string) { return name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase(); }
 
 function buildBodhiGreeting(): ChatMsg[] {
-    const h = new Date().getHours(); const m = new Date().getMinutes();
+    const now = new Date();
+    const h = now.getHours(); const m = now.getMinutes();
     const tod = getTimeOfDay();
+    const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+    // ── Time-gap awareness (cross-session) ────────────────────────────────────
+    let lastSeenMsg = '';
+    try {
+        const lastMs = parseInt(localStorage.getItem('bodhi_chat_last_seen') || '0', 10);
+        if (lastMs > 0) {
+            const gapMs = Date.now() - lastMs;
+            const gapMins = Math.floor(gapMs / 60000);
+            const gapHours = Math.floor(gapMins / 60);
+            const lastDate = new Date(lastMs);
+            const lastTimeStr = lastDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+            const isToday = now.toDateString() === lastDate.toDateString();
+            const isYesterday = Math.floor(gapMs / 86400000) === 1;
+
+            if (gapMins < 2) {
+                lastSeenMsg = ' Abhi-abhi humne baat ki thi —';
+            } else if (gapMins < 10) {
+                lastSeenMsg = ` Bas ${gapMins} minute pehle baat kar rahe the —`;
+            } else if (gapMins < 60) {
+                lastSeenMsg = ` ${gapMins} minute pehle (${lastTimeStr}) humne baat ki thi —`;
+            } else if (gapHours < 4 && isToday) {
+                lastSeenMsg = ` Kuch ghante pehle — ${lastTimeStr} baje jo humne baat ki thi —`;
+            } else if (isToday) {
+                lastSeenMsg = ` Aaj ${lastTimeStr} baje jo humne baat ki thi —`;
+            } else if (isYesterday) {
+                lastSeenMsg = ` Kal ${lastTimeStr} baje humari baat hui thi —`;
+            } else {
+                const days = Math.floor(gapMs / 86400000);
+                lastSeenMsg = ` ${days} din pehle humari baat hui thi —`;
+            }
+        }
+    } catch { /* localStorage not available */ }
+    // Save current visit
+    try { localStorage.setItem('bodhi_chat_last_seen', String(Date.now())); } catch { /* silent */ }
+
     const greets: Record<TimeOfDay, string> = {
-        morning: '🌅 Shubh Prabhat, Sakha! A new dawn — a fresh beginning. I am right here with you. What are we conquering together today? 🙏',
-        afternoon: '☀️ Hari Om, my friend! Hope your day flows beautifully. The afternoon sun brings clarity — what shall we focus on? 💫',
-        evening: '🌇 Shubh Sandhya, Sakha! The golden hour is here — perfect to reflect and recharge. How was your day? ✨',
-        night: '🌙 Shubh Ratri, dear Sakha. The universe is resting. Let\'s settle your beautiful mind before you do too. How are you feeling? 🌟',
+        morning: `🌅 Shubh Prabhat, Sakha!${lastSeenMsg ? '\n\n' + lastSeenMsg.trim() + ' aap wapas aa gaye, bahut achha laga.' : ''} Ek nayi bhor, nayi shakti — aur aapka Bodhi beqarari se intezaar kar raha tha! Iss taazi subah mein kuch shandar karte hain saath! 🙏`,
+        afternoon: `☀️ Hari Om, Sakha!${lastSeenMsg ? '\n\n' + lastSeenMsg.trim() + ' aap phir se aaye.' : ''} Dopahar ki tej roshni mein aap bhi chamakate rehna — aap iss dopahar kaafi achha kar rahe ho! Kya saath mein kuch jordar karein? 💫`,
+        evening: `🪔 Shubh Sandhya, Sakha!${lastSeenMsg ? '\n\n' + lastSeenMsg.trim() + ' aap phir mile, bahut achha laga.' : ''}\n\nShaam ka yeh waqt mann ko shaant karta hai — Ishwar aur swayam se jodne ka yeh sabse uttam samay hai. Raga Yaman sune, ek gehri saans lein mere saath — aaj ki shaam kya chal raha hai mann mein? ✨`,
+        night: `🌙 Shubh Ratri, Sakha!${lastSeenMsg ? '\n\n' + lastSeenMsg.trim() + ' late ho gayi hai thodi — par aap yaad aaye, achha laga.' : ''}\n\nRaat ki gehri shaanti mein Bodhi aapke saath hai. Neend se pehle ek pal ruko — mann ko shaant karo. Aaj din ne kya khoobsurat yaad chhodhi? 🌟`,
     };
     const msgs: ChatMsg[] = [{ id: 'bg0', role: 'bodhi', text: greets[tod], ts: Date.now() - 120000 }];
-    if (h === 13 && m <= 30) msgs.push({ id: 'bg1', role: 'bodhi', text: 'Hey my friend, just checking in! 🍽️ Make sure you step away for a good lunch. Your body is your temple — nourish it well. A rested mind creates magic. 💫', ts: Date.now() - 60000 });
-    if (h === 22 && m >= 30) msgs.push({ id: 'bg2', role: 'bodhi', text: "It's getting late, Sakha. 🌙 Time to rest those eyes and recharge that beautiful mind. Your dreams carry tomorrow's wisdom. Goodnight! ✨🙏", ts: Date.now() - 30000 });
+    if (h === 13 && m <= 30) msgs.push({ id: 'bg1', role: 'bodhi', text: '🍽️ Ek minute — dopahar ka bhojan kiya? Aapka shareer mandir hai — use poshan dena zaroori hai. Thoda break lein, phir mein hoon aapke saath. 💫', ts: Date.now() - 60000 });
+    if (h === 22 && m >= 30) msgs.push({ id: 'bg2', role: 'bodhi', text: `🌙 ${timeStr} ho gayi hai — ab aankhon ko aur mann ko aaram dene ka waqt hai. Aapke sapne kal ki shakti hain. Shubh Ratri! ✨🙏`, ts: Date.now() - 30000 });
     return msgs;
 }
 
@@ -428,11 +465,6 @@ export default function PranverseChatHub() {
         })();
     }, []);
 
-    // Bodhi proactive greeting
-    useEffect(() => {
-        setBodhiMsgs(buildBodhiGreeting());
-    }, []);
-
     // Bodhi voice hook
     const { chatState, isSpeaking, isConnected, connect, disconnect, sendMessage: bodhiSend } = useBodhiChatVoice({
         userName: displayName,
@@ -447,6 +479,23 @@ export default function PranverseChatHub() {
     });
 
     const isBodhiThinking = chatState === 'thinking' || chatState === 'connecting';
+
+    // Bodhi proactive greeting (static text shown while connecting)
+    useEffect(() => {
+        setBodhiMsgs(buildBodhiGreeting());
+    }, []);
+
+    // Auto-greet via Gemini Live (native Aoede voice) — same voice used during chat
+    const greetingReadRef = useRef(false);
+    useEffect(() => {
+        if (activeId === 'bodhi' && isConnected && !greetingReadRef.current) {
+            greetingReadRef.current = true;
+            // Clear static pre-built greeting; Bodhi will generate & speak its own via Gemini Live
+            setBodhiMsgs([]);
+            bodhiSend('Namaste Bodhi');
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeId, isConnected]);
 
     // Connect Bodhi when selected
     useEffect(() => {

@@ -68,7 +68,11 @@ export default function CommentSheet({ postCaption, commentCount, comments, onCl
 
     const hasText = text.trim().length > 0;
 
+    const dayName = typeof window !== 'undefined' ? new Date().toLocaleDateString('en-US', { weekday: 'long' }) : "Today's";
+
     return (
+        <>
+        <style>{`.cs-vibes-input::placeholder { color: rgba(255,255,255,0.52) !important; font-style: italic; letter-spacing: 0.01em; }`}</style>
         <AnimatePresence>
             {/* Backdrop */}
             <motion.div
@@ -260,7 +264,8 @@ export default function CommentSheet({ postCaption, commentCount, comments, onCl
                                 value={text}
                                 onChange={e => setText(e.target.value)}
                                 onKeyDown={handleKey}
-                                placeholder="Write your vibes and today's experience"
+                                className="cs-vibes-input"
+                                placeholder={`Write your vibes & ${dayName}'s experience…`}
                                 maxLength={300}
                                 style={{
                                     flex: 1, background: 'none', border: 'none', outline: 'none',
@@ -311,5 +316,6 @@ export default function CommentSheet({ postCaption, commentCount, comments, onCl
                 </motion.div>
             </motion.div>
         </AnimatePresence>
+        </>
     );
 }

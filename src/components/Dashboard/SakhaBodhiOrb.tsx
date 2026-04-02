@@ -37,7 +37,7 @@ const PHASE_CONFIG: Record<DayPhase, { label: string; emoji: string; wisdom: str
     evening: {
         label: 'Sandhya · Evening',
         emoji: '🪔',
-        wisdom: 'As day surrenders to night, surrender your worries to the cosmic rhythm.'
+        wisdom: 'Shaam ka yeh waqt mann ko shaant karta hai — Ishwar aur swayam se jodne ka sabse uttam samay. ✨'
     },
     night: {
         label: 'Nisha · Late Night',

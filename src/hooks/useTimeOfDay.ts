@@ -21,6 +21,12 @@ export interface TimeOfDayInfo {
     accent: string;
 }
 
+// Returns the current hour (0-23) in Indian Standard Time (UTC+5:30)
+function getISTHour(): number {
+    const istStr = new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', hour12: false });
+    return parseInt(istStr, 10) % 24;
+}
+
 // Phase map — exact same boundaries as useCircadianBackground:
 //   3–7   morning  (Brahma Muhurta, Prabhata)
 //   7–12  morning  (active morning)
@@ -66,10 +72,10 @@ function classify(h: number): TimeOfDayInfo {
 }
 
 export function useTimeOfDay(): TimeOfDayInfo {
-    const [info, setInfo] = useState<TimeOfDayInfo>(() => classify(new Date().getHours()));
+    const [info, setInfo] = useState<TimeOfDayInfo>(() => classify(getISTHour()));
 
     useEffect(() => {
-        const update = () => setInfo(classify(new Date().getHours()));
+        const update = () => setInfo(classify(getISTHour()));
         update();
 
         // Recalculate at the next 30-min boundary, then every 30 min

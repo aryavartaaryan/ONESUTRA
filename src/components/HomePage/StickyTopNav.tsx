@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -1600,9 +1601,13 @@ export default function StickyTopNav() {
     const [activeIdx, setActiveIdx] = useState<number | null>(null);
     const [activeUserIdx, setActiveUserIdx] = useState<number | null>(null);
     const [cosmicOpen, setCosmicOpen] = useState(false);
+    const [headerVisible, setHeaderVisible] = useState(true);
+    const lastScrollY = useRef(0);
     const { tasks, removeTask } = useDailyTasks();
 
     const userStories = useMemo(() => buildUserStories(tasks), [tasks]);
+    const [isMounted, setIsMounted] = useState(false);
+    useEffect(() => { setIsMounted(true); }, []);
 
     // Groups: one entry per category that has items
     const CATS = ['task', 'challenge', 'idea', 'issue', 'wellness'] as const;
@@ -1623,12 +1628,25 @@ export default function StickyTopNav() {
         return () => clearTimeout(timer);
     }, [tasks, removeTask]);
 
+    // ── Scroll-direction auto-hide (Instagram-style) ──────────────────────────
+    useEffect(() => {
+        const onScroll = () => {
+            const y = window.scrollY;
+            if (y > lastScrollY.current + 6) setHeaderVisible(false);
+            else if (y < lastScrollY.current - 6) setHeaderVisible(true);
+            lastScrollY.current = y;
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
+
     // Emit event so parent page can hide Bodhi while stories are open
     const isStoryViewerOpen = cosmicOpen || activeUserIdx !== null || activeIdx !== null;
     useEffect(() => {
         if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('story-viewer-change', { detail: { open: isStoryViewerOpen } }));
         }
+        if (isStoryViewerOpen) setHeaderVisible(true);
     }, [isStoryViewerOpen]);
 
     // Navigation: cosmic → userStories (flat) → STORIES
@@ -1702,6 +1720,9 @@ export default function StickyTopNav() {
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
                 overflow: 'hidden',
                 borderRadius: '0 0 24px 24px',
+                transform: headerVisible ? 'translateY(0)' : 'translateY(-110%)',
+                transition: 'transform 0.32s cubic-bezier(0.4,0,0.2,1)',
+                willChange: 'transform',
             }}>
                 {/* Golden ambient glow */}
                 <div aria-hidden style={{
@@ -1870,62 +1891,66 @@ export default function StickyTopNav() {
             </header>
 
             {
-                /* ── UNIFIED STORY OVERLAY — single persistent backdrop, content crossfades ── */
+                /* ── UNIFIED STORY OVERLAY — portal-rendered to document.body to escape stacking context ── */
             }
-            <AnimatePresence mode="wait">
-                {(cosmicOpen || activeUserIdx !== null || activeIdx !== null) && (
-                    <motion.div
-                        key="story-overlay"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.25, ease: 'easeInOut' }}
-                        style={{
-                            position: 'fixed', inset: 0, zIndex: 99999,
-                            background: '#000',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}
-                        onClick={closeAll}
-                    >
-                        {/* Inner content crossfades without backdrop flicker */}
-                        <AnimatePresence mode="wait">
-                            {cosmicOpen && (
-                                <CosmicDateViewer
-                                    key="cosmic"
-                                    totalStoryCount={totalCount}
-                                    globalIndex={cosmicGlobalIdx}
-                                    onClose={closeAll}
-                                    onNext={nextCosmicStory}
-                                    onPrev={prevCosmicStory}
-                                />
-                            )}
-                            {!cosmicOpen && activeUserIdx !== null && userStories[activeUserIdx] && (
-                                <UserStoryViewer
-                                    key={`user-${activeUserIdx}`}
-                                    story={userStories[activeUserIdx]}
-                                    totalStoryCount={totalCount}
-                                    globalIndex={1 + activeUserIdx}
-                                    onClose={closeAll}
-                                    onNext={nextUserStory}
-                                    onPrev={prevUserStory}
-                                    onRemove={removeTask}
-                                />
-                            )}
-                            {!cosmicOpen && activeUserIdx === null && activeIdx !== null && (
-                                <StoryViewer
-                                    key={`story-${activeIdx}`}
-                                    story={STORIES[activeIdx]}
-                                    totalStoryCount={totalCount}
-                                    globalIndex={1 + userStories.length + activeIdx}
-                                    onClose={closeStory}
-                                    onNext={nextStory}
-                                    onPrev={prevStory}
-                                />
-                            )}
-                        </AnimatePresence>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {isMounted && createPortal(
+                <AnimatePresence mode="wait">
+                    {(cosmicOpen || activeUserIdx !== null || activeIdx !== null) && (
+                        <motion.div
+                            key="story-overlay"
+                            initial={{ opacity: 1 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.22, ease: 'easeInOut' }}
+                            style={{
+                                position: 'fixed', inset: 0, zIndex: 99999,
+                                background: '#000',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                isolation: 'isolate',
+                            }}
+                            onClick={closeAll}
+                        >
+                            {/* Inner content crossfades without backdrop flicker */}
+                            <AnimatePresence mode="wait">
+                                {cosmicOpen && (
+                                    <CosmicDateViewer
+                                        key="cosmic"
+                                        totalStoryCount={totalCount}
+                                        globalIndex={cosmicGlobalIdx}
+                                        onClose={closeAll}
+                                        onNext={nextCosmicStory}
+                                        onPrev={prevCosmicStory}
+                                    />
+                                )}
+                                {!cosmicOpen && activeUserIdx !== null && userStories[activeUserIdx] && (
+                                    <UserStoryViewer
+                                        key={`user-${activeUserIdx}`}
+                                        story={userStories[activeUserIdx]}
+                                        totalStoryCount={totalCount}
+                                        globalIndex={1 + activeUserIdx}
+                                        onClose={closeAll}
+                                        onNext={nextUserStory}
+                                        onPrev={prevUserStory}
+                                        onRemove={removeTask}
+                                    />
+                                )}
+                                {!cosmicOpen && activeUserIdx === null && activeIdx !== null && (
+                                    <StoryViewer
+                                        key={`story-${activeIdx}`}
+                                        story={STORIES[activeIdx]}
+                                        totalStoryCount={totalCount}
+                                        globalIndex={1 + userStories.length + activeIdx}
+                                        onClose={closeStory}
+                                        onNext={nextStory}
+                                        onPrev={prevStory}
+                                    />
+                                )}
+                            </AnimatePresence>
+                        </motion.div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
         </>
     );
 }

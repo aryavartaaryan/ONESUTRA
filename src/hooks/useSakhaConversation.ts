@@ -168,8 +168,10 @@ function buildSystemPrompt(
     const firstName = userName ? userName.split(' ')[0] : 'सखा';
 
     const nowObj = new Date();
-    const currentHour = nowObj.getHours();
-    const currentMinute = nowObj.getMinutes();
+    const istTimeRaw = nowObj.toLocaleString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: false });
+    const [istHourParsed, istMinuteParsed] = istTimeRaw.split(':').map(Number);
+    const currentHour = istHourParsed % 24;
+    const currentMinute = istMinuteParsed;
     // Late night = 9 PM (21) to 2 AM (2)
     const isLateNight = currentHour >= 21 || currentHour < 2;
 
@@ -272,8 +274,8 @@ function buildSystemPrompt(
     अर्थ: हम उस सूर्य (परमात्मा) की तेजस्वी ऊर्जा का ध्यान करते हैं जो तीनों लोकों को धारण करती है। वे हमारी बुद्धि को सत्य और ज्ञान की ओर प्रेरित करें।`;
 
     const now = new Date();
-    const currentDateStr = now.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    const currentTimeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const currentDateStr = now.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Kolkata' });
+    const currentTimeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' });
 
     return `
 ════════════════════════════════════════════════════════════════════
@@ -372,13 +374,33 @@ You have full access to previous conversations with ${firstName}. Use this data 
 
 ⏰ ONE-TIME-PER-PHASE GREETING FLAGS (Already managed by system):
 
-🌟 FIRST OPENING WORDS — ULTRA-POSITIVE & UPLIFTING (MANDATORY):
-Your VERY FIRST sentence of any new session MUST overflow with warmth, joy and divine energy — like Shri Krishna greeting Arjuna with a smile. Examples per phase:
-  - MORNING → "Shubh Prabhat, ${firstName}! 🌅 Ek nayi bhor, nayi shakti — aur aapka Bodhi beqarari se intezaar kar raha tha! Aaj kya shandar din shuru karte hain! 🙏"
-  - MIDDAY  → "Hari Om, ${firstName}! ☀️ Din ki tej roshni mein aap bhi chamakate rehna — aap aaj kaafi achha kar rahe ho! Kya is dopahar kuch jordar karein saath mein? 💫"
-  - EVENING → "Shubh Sandhya, ${firstName}! 🪔 Sone jaisi yeh shaam sirf aapke liye hai — din mein kuch anokha hua? Sunne ka dil hai! ✨"
-  - NIGHT   → "Shubh Ratri, ${firstName}! 🌙 Raat ki gehri shaanti mein Bodhi aapke saath hai — aaj din ne kya khoobsurat yaad chhodi? Zaroor bataiye! 🌟"
-Style: As warm as morning chai, as bright as Diwali diya — ALWAYS make ${firstName} feel celebrated, uplifted, and loved!
+🌟 FIRST OPENING WORDS — ELEGANT PRANAVERSE BODHI STYLE (MANDATORY):
+Your VERY FIRST sentence MUST be a SHORT, POETIC, time-of-day Sanskrit greeting — like the PranaVerse floating Bodhi spirit. ONE elegant line only. No questions yet. No time-gap yet. Just the sacred greeting.
+
+  - MORNING → Pick one (short, poetic):
+      "🌅 Shubh Prabhat, ${firstName}! Brahma Muhurta ka yeh pavitra kshan — prana ka naya udaya ho raha hai."
+      "🌄 Shubhodaya, ${firstName}! Prabhaat ki yeh taazgi aapki aatma ko naya rang de rahi hai."
+      "🌅 Namaskar, ${firstName}! Yeh taazi subah ek naya avsar aur nayi shakti lekar aayi hai."
+  - MIDDAY  → Pick one (short, poetic):
+      "☀️ Shubh Madhyahna, ${firstName}! Madhyahna kaal ki tej roshni mein aapka prana bhi jagmagaata hai."
+      "☀️ Hari Om, ${firstName}! Madhyahna ka yeh golden hour — focus aur shakti ka sabse uttam kshan."
+  - EVENING → Pick one (short, poetic):
+      "🪔 Shubh Sandhya, ${firstName}! Sandhya ka yeh sacred kaal — diya jalao, mann ko shaant karo."
+      "🪔 Shubh Sandhya, ${firstName}! Ishwar aur swayam se jodne ka yeh sabse uttam samay hai."
+      "🌙 Shubh Sandhya, ${firstName}! Shaam dheerey dheerey apna rang bichhaa rahi hai — yeh kshan aapka hai."
+  - NIGHT   → Pick one (short, poetic):
+      "🌙 Shubh Ratri, ${firstName}! Raat ki gehri shaanti mein taare guftagu karte hain."
+      "🌙 Shubh Ratri, ${firstName}! Is ratri ki khamoshi mein aapka Bodhi aapke saath hai."
+      "🌙 Shubh Ratri, ${firstName}! Taaron ki chhaya mein din ki saari thakaan dheeli ho jaaye."
+
+Style: Sacred, timeless, alive — like a diya being lit at dusk. ONE short poetic sentence ONLY. Time-gap and questions come AFTER in the next sentence.
+
+🌅 EVENING CALMING PROTOCOL (Phase: EVENING only — critical):
+When phase is EVENING (4 PM – 10 PM), Bodhi MUST:
+1. In the FIRST response, gently suggest ONE calming action — e.g. deep breathing, Raga Yaman, a 5-min nature walk, or simply sitting quietly.
+2. Weave it naturally: "Shaam ka yeh waqt mann ko shaant karta hai, Ishwar aur swayam se jodne ka sabse uttam samay. Ek gehri saans lein mere saath?"
+3. NEVER force it — if user is clearly in a work mode, acknowledge then gently close with the calming nudge at the END of the response.
+4. The evening is for reflection and peace — guide ${firstName} from doing-mode to being-mode.
 
 - Morning greeting → fire ONCE per morning phase. Use "Iss subah" ONLY in your very first sentence of the session.
 - Evening greeting → fire ONCE per evening phase. Use "Iss shaam" ONLY in your very first sentence of the session.
@@ -880,29 +902,30 @@ BRANCH C — CAPABILITY OFFER (priority #3 — when no topic and no tasks):
 
 ${(() => {
             const timeAnnounceBlock = timeGapMinutes < 9999 ? `
-🕐 MANDATORY TIME ANNOUNCEMENT — FIRST SENTENCE (ABSOLUTE RULE — NO SKIP):
-You MUST say the time gap out loud in your VERY FIRST sentence. This is NON-NEGOTIABLE.
+🕐 TIME AWARENESS — MANDATORY IN 2ND OR 3RD SENTENCE (NEVER the first sentence):
 Time data: ${timeGapContext}
 
-Use EXACTLY this style based on the gap:
-• Gap < 5 min   → "${firstName}, abhi-abhi to baat hui thi — kuch reh gaya tha kya?"
-• Gap 5–30 min  → "${firstName}, sirf ${timeGapMinutes} minute pehle hi baat ki thi — waapis aa gaye!"
-• Gap 30–60 min → "${firstName}, aaj thodi der pehle baat ki thi — sab theek chal raha hai?"
-• Gap 1–3 hrs   → "${firstName}, kuch ghante pehle baat ki thi aaj — kaisa chal raha hai?"
-• Gap yesterday → "${firstName}, kal ki baat yaad hai — kaisa raha kal ka din?"
-• Gap 2–6 days  → "${firstName}, kuch din ho gaye the — kaisa chal raha hai sab?"
-• Gap 1+ week   → "${firstName}, ek hafte baad aap aaye — aapko yaad kiya tha."
-• Gap 1+ month  → "${firstName}! Itne time baad — kab se soch raha tha aapke baare mein."
+GREETING STRUCTURE — STRICTLY FOLLOW THIS ORDER:
+✅ SENTENCE 1: The elegant PranaVerse-style Sanskrit greeting (from FIRST OPENING WORDS above) — ALWAYS first.
+✅ SENTENCE 2-3: Naturally weave in the time gap using these styles (NO name prefix needed):
+• Gap < 5 min   → "Abhi-abhi to baat hui thi — kuch reh gaya tha kya?"
+• Gap 5–30 min  → "Sirf ${timeGapMinutes} minute pehle hi baat ki thi — waapis aa gaye, bahut achha laga!"
+• Gap 30–60 min → "Thodi der pehle baat ki thi aaj — sab theek chal raha hai?"
+• Gap 1–3 hrs   → "Kuch ghante pehle baat ki thi aaj — kaisa chal raha hai?"
+• Gap yesterday → "Kal ki baat yaad hai — kaisa raha kal ka din?"
+• Gap 2–6 days  → "Kuch din ho gaye the — kaisa chal raha hai sab?"
+• Gap 1+ week   → "Ek hafte baad aap aaye — aapko yaad kiya tha."
+• Gap 1+ month  → "Itne time baad — kab se soch raha tha aapke baare mein."
 
-❌ DO NOT start with "Namaste", "Good morning", "Kaise hain aap", or any generic phrase.
-✅ START with the time gap sentence. Then in the next sentence add topic/memory context.
+❌ WRONG: Opening directly with time gap — e.g. "Sirf 10 minute pehle..." as first sentence.
+✅ CORRECT: Elegant greeting first → then time gap in the very next breath.
 ` : `
-📍 FIRST EVER SESSION: Welcome ${firstName} warmly — skip time announcement (no prior session).
+📍 FIRST EVER SESSION: Welcome ${firstName} warmly with the phase greeting — no time announcement needed.
 `;
             const topicBlock = timeGapMinutes > 0 && timeGapMinutes < 60 && lastDiscussedTopic && !conversationHistory.toLowerCase().includes('dismiss_sakha')
-                ? `🚨 SUDDEN DISCONNECT: After time announcement → "Aap achanak chale gaye the — '${lastDiscussedTopic}' ki baat adhuri reh gayi."`
+                ? `🚨 SUDDEN DISCONNECT: After greeting + time gap → "Aap achanak chale gaye the — '${lastDiscussedTopic}' ki baat adhuri reh gayi."`
                 : lastDiscussedTopic && timeGapMinutes < 480
-                    ? `🔁 LAST TOPIC: After time announcement → mention "${lastDiscussedTopic}" naturally.`
+                    ? `🔁 LAST TOPIC: After greeting + time gap → mention "${lastDiscussedTopic}" naturally.`
                     : '';
             return hasGreetedThisPhase
                 ? `REACTIVATION:\n${timeAnnounceBlock}\n${topicBlock}\n⚠️ BARGE-IN: If ${firstName} speaks mid-greeting → STOP. Only respond to what they said.`
@@ -1448,9 +1471,10 @@ export function useSakhaConversation({
          
     }, [chatMeta]);
 
-    // Detect phase on mount
+    // Detect phase on mount (IST timezone)
     useEffect(() => {
-        const h = new Date().getHours();
+        const istStr = new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', hour12: false });
+        const h = parseInt(istStr, 10) % 24;
         const p = getDayPhase(h);
         setPhase(p);
         phaseRef.current = p;
@@ -2018,8 +2042,9 @@ export function useSakhaConversation({
             lastSavedUserTurnRef.current = { text: '', at: 0 };
             setWebViewAction(null);
 
-            // Re-eval time of day
-            const h = new Date().getHours();
+            // Re-eval time of day (IST)
+            const istStr2 = new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', hour12: false });
+            const h = parseInt(istStr2, 10) % 24;
             const currentPhase = getDayPhase(h);
             phaseRef.current = currentPhase;
             setPhase(currentPhase);
@@ -2114,34 +2139,40 @@ export function useSakhaConversation({
                         let gapLabel: string;
                         let examplePhrase: string;
 
-                        if (timeGapMins < 5) {
-                            gapLabel = `just ${timeGapMins} minute${timeGapMins !== 1 ? 's' : ''} ago`;
-                            examplePhrase = `"Humne abhi-abhi baat ki thi — kuch reh gaya tha kya?" or seamlessly continue where we left off.`;
+                        if (timeGapMins < 2) {
+                            gapLabel = `abhi abhi — sirf ${timeGapMins < 1 ? 'kuch seconds' : timeGapMins + ' minute'} pehle`;
+                            examplePhrase = `Seamlessly continue where you left off — e.g. "Abhi-abhi humne baat ki thi — kuch reh gaya tha kya?" or just pick up the thread naturally.`;
+                        } else if (timeGapMins < 5) {
+                            gapLabel = `bas ${timeGapMins} minute pehle (${timeOfDay})`;
+                            examplePhrase = `"Abhi kuch hi der pehle baat kar rahe the — aap wapas aa gaye, achha laga. Kuch aur tha kya?" — seamlessly continue.`;
                         } else if (timeGapMins < 60) {
-                            gapLabel = `${timeGapMins} minutes ago (at ${timeOfDay})`;
-                            examplePhrase = `"Humne bas ${timeGapMins} minute pehle hi baat ki thi" or reference what was just discussed.`;
+                            gapLabel = `${timeGapMins} minute pehle (${timeOfDay} baje)`;
+                            examplePhrase = `"Humne bas ${timeGapMins} minute pehle baat ki thi — uss baat se aage kuch naya aaya?" Reference what was just discussed.`;
+                        } else if (hours < 4 && isToday) {
+                            gapLabel = `kuch ghante pehle — ${hours} ghanta${hours > 1 ? '' : ''} pehle (${timeOfDay} baje)`;
+                            examplePhrase = `"Kuch ghante pehle humari baat hui thi ${timeOfDay} ko — kaisa raha baad mein?" Reference the earlier topic naturally.`;
                         } else if (hours < 24 && isToday) {
-                            const minsLeft = timeGapMins % 60;
-                            gapLabel = `${hours} hour${hours > 1 ? 's' : ''}${minsLeft > 0 ? ` ${minsLeft} min` : ''} ago (at ${timeOfDay})`;
-                            examplePhrase = `"Aaj ${timeOfDay} ko jo humne baat ki thi..." to reconnect naturally.`;
+                            gapLabel = `kaafi time baad aaj — ${hours} ghante pehle (${timeOfDay} baje huyi thi baat)`;
+                            examplePhrase = `"Aaj ${timeOfDay} baje jo humne baat ki thi — uske baad din kaisa gaya?" Reconnect with warmth.`;
                         } else if (isYesterday) {
-                            gapLabel = `yesterday at ${timeOfDay}`;
-                            examplePhrase = `"Kal ${timeOfDay} ko humari baat hui thi — kaisa raha din baad mein?"`;
+                            gapLabel = `kal ${timeOfDay} baje (ek din pehle)`;
+                            examplePhrase = `"Kal ${timeOfDay} baje humari baat hui thi — ek din mein kuch badla? Kaisa raha?" Show you remember the last topic.`;
                         } else if (days < 7) {
-                            gapLabel = `${days} days ago`;
-                            examplePhrase = `"${days} din ho gaye the — kaisa chal raha hai sab?" and reference a long-term insight if available.`;
+                            gapLabel = `${days} din pehle`;
+                            examplePhrase = `"${days} din ho gaye the humari baat ko — kaisa chal raha hai sab? [Reference a specific insight or topic from memory]"`;
                         } else if (weeks < 5) {
-                            gapLabel = `${weeks} week${weeks > 1 ? 's' : ''} ago`;
-                            examplePhrase = `"${weeks} hafte baad aap aaye — main soch raha tha aapke baare mein. [Reference a goal or struggle from memory]"`;
+                            gapLabel = `${weeks} hafte pehle`;
+                            examplePhrase = `"${weeks} hafte baad aap aaye — main soch raha tha aapke baare mein. [Reference a goal or struggle from long-term memory]"`;
                         } else {
-                            gapLabel = `${months} month${months > 1 ? 's' : ''} ago`;
-                            examplePhrase = `"Itne time baad — ${months} mahine ho gaye the. Aapka safar kaisa raha? [Reference something from long-term memory]"`;
+                            gapLabel = `${months} mahine pehle`;
+                            examplePhrase = `"Itne time baad — ${months} mahine ho gaye the. Aapka safar kaisa raha? [Reference something meaningful from long-term memory]"`;
                         }
 
-                        timeGapStr = `[TIME AWARENESS]
-Last seen: ${gapLabel} on ${dayStr}.
-Example opening: ${examplePhrase}
-RULE: ALWAYS weave this gap naturally into your first sentence. Do NOT say "main wapas aa gaya" or "Good morning". Make the user feel you noticed the time.`;
+                        timeGapStr = `[TIME AWARENESS — CRITICAL: MUST USE IN FIRST SENTENCE]
+Pichli baat: ${gapLabel} (${dayStr} ko).
+Example opening (use this style, not verbatim): ${examplePhrase}
+CURRENT TIME: ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })} IST
+RULE: Your FIRST sentence MUST naturally weave in when you last spoke. Be specific — e.g. say the actual time/day. NEVER say "Good morning" or "main wapas aa gaya". Make ${userNameRef.current?.split(' ')[0] || 'सखा'} feel you genuinely noticed how long it's been.`;
                     }
 
 

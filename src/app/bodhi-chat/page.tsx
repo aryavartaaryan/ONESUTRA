@@ -540,9 +540,11 @@ export default function BodhiChatPage() {
     // Proactive wellness check-ins — injected directly as Bodhi messages once per session
     useEffect(() => {
         if (proactiveSentRef.current) return;
-        const todayKey = `bodhi_proactive_${new Date().toDateString()}`;
-        const h = new Date().getHours();
-        const m = new Date().getMinutes();
+        const istNow = new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: false });
+        const [istH, istM] = istNow.split(':').map(Number);
+        const todayKey = `bodhi_proactive_${new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
+        const h = istH % 24;
+        const m = istM;
         const isLunch = h === 13 && m <= 30;
         const isRest = h === 22 && m >= 30;
         if (!isLunch && !isRest) return;

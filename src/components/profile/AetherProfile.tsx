@@ -7,7 +7,7 @@ import {
   UserPlus, MessageCircle, Moon, TrendingUp, Activity,
   Zap, Award, BookOpen, Camera, Leaf, Music, Coffee, Heart, Wind,
   Globe, Users, Star, Bell, PlusCircle, Eye, Repeat2,
-  Flame, Sparkles, Bot, Sun, Edit2, Home, X as XIcon, MapPin, LogOut,
+  Flame, Sparkles, Bot, Sun, Edit2, Home, MapPin, LogOut,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
@@ -1346,9 +1346,6 @@ export default function AetherProfile({ viewedUid, autoEnquire }: { viewedUid?: 
               <LogOut size={16} />
             </button>
           )}
-          <button className={styles.headerBtn} onClick={() => router.back()} aria-label="Close">
-            <XIcon size={16} />
-          </button>
         </div>
       </header>
 

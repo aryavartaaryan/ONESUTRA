@@ -117,7 +117,7 @@ const GLOBAL_IMAGE_POOL = [
 //  (none of these IDs appear in GLOBAL_IMAGE_POOL or MANTRA_REELS imageBg)
 // ════════════════════════════════════════════════════════
 const PORTAL_IMAGES: Record<string, string> = {
-    'ai-acharya': 'https://images.unsplash.com/photo-1490750967868-88df5691663a?w=600&h=1067&fit=crop&q=80',
+    'ai-acharya': 'https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=600&h=1067&fit=crop&q=80',
     'gurukul': 'https://images.unsplash.com/photo-1503676382389-4809596d5290?w=600&h=1067&fit=crop&q=80',
     'dhyan': 'https://images.unsplash.com/photo-1474418397713-003ec9403fe5?w=600&h=1067&fit=crop&q=80',
     'outplugs': 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&h=1067&fit=crop&q=80',
@@ -155,7 +155,7 @@ const RESONANCE_STORIES = [
     { id: 'asato', label: 'Asato Ma', sublabel: 'Shanti Mantra', color: '#c4b5fd', emoji: '✨', bg: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ असतो मा सद्गमय' },
     { id: 'vedic', label: 'Vedic Wisdom', sublabel: 'Ancient Knowledge', color: '#d8b4fe', emoji: '\u{1F4DC}', bg: 'https://images.unsplash.com/photo-1455156218388-5e61b526818b?w=600&h=1067&fit=crop&q=80', mantra: 'सर्वे भवन्तु सुखिनः' },
     { id: 'dhyan', label: 'Dhyan', sublabel: 'Meditation', color: '#22d3ee', emoji: '\u{1F9D8}', bg: 'https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=600&h=1067&fit=crop&q=80' },
-    { id: 'ai-acharya', label: 'AI Ayurvedacharya', sublabel: 'Pranav · Free Consult', color: '#4ade80', emoji: '\u{1F33F}', bg: 'https://images.unsplash.com/photo-1536085512927-91f47d9a1f83?w=600&h=1067&fit=crop&q=80' },
+    { id: 'ai-acharya', label: 'AI Ayurvedacharya', sublabel: 'Pranav · Free Consult', color: '#4ade80', emoji: '\u{1F33F}', bg: 'https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=600&h=1067&fit=crop&q=80' },
     // ── Gurukul ──
     { id: 'gurukul-vision', label: 'World Premier Gurukul', sublabel: 'Modern Skills • Ancient Wisdom • Startup Support', color: '#fbbf24', emoji: '\u{1F3DB}', bg: 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=600&h=1067&fit=crop&q=80', mantra: 'ज्ञानं परमं बलम् — Knowledge is Supreme Power' },
     { id: 'gurukul-modern', label: 'AI & Modern Sciences', sublabel: 'Vedic Mathematics • Coding • AI • Engineering', color: '#60a5fa', emoji: '\u{1F916}', bg: 'https://images.unsplash.com/photo-1517816743773-6e0d765cdc96?w=600&h=1067&fit=crop&q=80', mantra: 'आर्टिफिशियल इंटेलिजेन्स + वेदिक ज्ञान' },
@@ -1658,25 +1658,27 @@ function FullscreenReelModal({
                             </div>
                         )}
 
-                        {/* ── Portal Bottom Action Bar — share only ── */}
+                        {/* ── Portal Bottom Action Bar — sacred share pill ── */}
                         {item.type === 'portal' && (
-                            <div style={{ position: 'absolute', bottom: 58, left: 0, right: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2rem', zIndex: 22, padding: '0.7rem 1.5rem' }} onClick={e => e.stopPropagation()}>
-                                {/* 📤 Share */}
-                                <motion.button whileTap={{ scale: 0.82 }} onClick={e => { e.stopPropagation(); handleShare(); }}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.28rem', padding: 0 }}>
-                                    <div style={{
-                                        width: 56, height: 56, borderRadius: '50%',
-                                        background: 'rgba(255,255,255,0.10)',
-                                        backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)',
-                                        border: '1.5px solid rgba(255,255,255,0.26)',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        boxShadow: '0 6px 20px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.10)',
+                            <div style={{ position: 'absolute', bottom: 68, left: 0, right: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 22, padding: '0.7rem 1.5rem' }} onClick={e => e.stopPropagation()}>
+                                <motion.button
+                                    whileTap={{ scale: 0.92 }}
+                                    whileHover={{ scale: 1.05 }}
+                                    onClick={e => { e.stopPropagation(); handleShare(); }}
+                                    style={{
+                                        background: 'linear-gradient(135deg, rgba(251,191,36,0.20) 0%, rgba(251,191,36,0.07) 100%)',
+                                        backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+                                        border: '1.5px solid rgba(251,191,36,0.60)',
+                                        borderRadius: 50,
+                                        padding: '0.55rem 1.5rem',
+                                        display: 'flex', alignItems: 'center', gap: '0.45rem',
+                                        cursor: 'pointer',
+                                        boxShadow: '0 4px 24px rgba(251,191,36,0.25), 0 1px 0 rgba(255,255,255,0.10) inset',
                                     }}>
-                                        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.92)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', transform: 'translateX(1px)' }}>
-                                            <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
-                                        </svg>
-                                    </div>
-                                    <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.85)', fontFamily: "'Cormorant Garamond',Georgia,serif", fontWeight: 700, letterSpacing: '0.03em', textShadow: '0 1px 4px rgba(0,0,0,0.9)', fontStyle: 'italic' }}>Share</span>
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(251,191,36,0.95)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
+                                    </svg>
+                                    <span style={{ fontSize: '0.72rem', fontFamily: "'Outfit',sans-serif", fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(251,191,36,0.95)', textShadow: '0 0 14px rgba(251,191,36,0.45)', whiteSpace: 'nowrap' }}>Share the Portal</span>
                                 </motion.button>
                             </div>
                         )}
@@ -2206,23 +2208,69 @@ function AuraSpaceInner() {
 
                 </AnimatePresence>
 
-                {/* ══ PRANAVERSE BOTTOM NAV ══ */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '0.55rem 0.25rem calc(0.55rem + env(safe-area-inset-bottom))', background: 'rgba(6,3,18,0.92)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderTop: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}>
+                {/* ══ PRANAVERSE BOTTOM NAV — Ultra Sleek ══ */}
+                <nav style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-around',
+                    padding: '0.5rem 0.25rem calc(0.5rem + env(safe-area-inset-bottom))',
+                    background: 'linear-gradient(180deg, rgba(5,2,18,0.88) 0%, rgba(8,3,24,0.97) 100%)',
+                    backdropFilter: 'blur(28px) saturate(160%)',
+                    WebkitBackdropFilter: 'blur(28px) saturate(160%)',
+                    borderTop: '1px solid rgba(167,139,250,0.15)',
+                    boxShadow: '0 -8px 40px rgba(0,0,0,0.5), 0 -1px 0 rgba(167,139,250,0.08)',
+                    flexShrink: 0,
+                }}>
                     {([
-                        { id: 'home', emoji: '⌂', label: 'Home', action: () => router.push('/') },
-                        { id: 'story', emoji: '✦', label: 'Feed', action: () => setActiveTab('story') },
-                        { id: 'map', emoji: '🗺️', label: 'Map', action: () => setActiveTab('map') },
-                        { id: 'chat', emoji: '💬', label: 'Chat', action: () => router.push('/pranaverse-chat') },
-                    ] as Array<{ id: Tab | 'home' | 'chat'; emoji: string; label: string; action: () => void }>).map(item => (
-                        <button key={item.id} onClick={item.action} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem 0.5rem', position: 'relative' }}>
-                            {activeTab === item.id && item.id !== 'home' && (
-                                <div style={{ position: 'absolute', top: -1, left: '50%', transform: 'translateX(-50%)', width: 20, height: 2.5, borderRadius: 99, background: 'linear-gradient(90deg,#a78bfa,#c084fc)', boxShadow: '0 0 8px #a78bfa88' }} />
-                            )}
-                            <span style={{ fontSize: '1.05rem', filter: activeTab === item.id ? 'drop-shadow(0 0 6px #a78bfa)' : 'none', opacity: activeTab === item.id ? 1 : 0.4 }}>{item.emoji}</span>
-                            <span style={{ fontSize: '0.38rem', fontWeight: 700, color: activeTab === item.id ? '#a78bfa' : 'rgba(255,255,255,0.3)', fontFamily: "'Outfit',sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' }}>{item.label}</span>
-                        </button>
-                    ))}
-                </div>
+                        { id: 'home', emoji: '⌂', label: 'Home', action: () => router.push('/'), color: '#a78bfa' },
+                        { id: 'story', emoji: '✦', label: 'Feed', action: () => setActiveTab('story'), color: '#c084fc' },
+                        { id: 'map', emoji: '🗺️', label: 'Map', action: () => setActiveTab('map'), color: '#60a5fa' },
+                        { id: 'chat', emoji: '💬', label: 'Chat', action: () => router.push('/pranaverse-chat'), color: '#34d399' },
+                    ] as Array<{ id: Tab | 'home' | 'chat'; emoji: string; label: string; action: () => void; color: string }>).map(item => {
+                        const isActive = item.id !== 'home' && activeTab === item.id;
+                        return (
+                            <motion.button key={item.id}
+                                whileTap={{ scale: 0.86 }}
+                                onClick={item.action}
+                                style={{
+                                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                                    background: 'none', border: 'none', cursor: 'pointer',
+                                    padding: '0.12rem 0.55rem', position: 'relative', minWidth: 52,
+                                }}>
+                                {isActive && (
+                                    <div style={{
+                                        position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)',
+                                        width: 26, height: 2.5, borderRadius: 999,
+                                        background: `linear-gradient(90deg, ${item.color}, ${item.color}cc)`,
+                                        boxShadow: `0 0 10px ${item.color}aa`,
+                                    }} />
+                                )}
+                                <motion.div whileHover={{ scale: 1.10 }} style={{
+                                    width: 36, height: 36, borderRadius: '50%',
+                                    background: isActive
+                                        ? `radial-gradient(circle at 36% 26%, rgba(255,255,255,0.22) 0%, ${item.color}2a 50%, ${item.color}14 100%)`
+                                        : 'rgba(255,255,255,0.04)',
+                                    border: isActive ? `1.5px solid ${item.color}50` : '1.5px solid rgba(255,255,255,0.07)',
+                                    boxShadow: isActive ? `0 0 16px ${item.color}40, inset 0 1px 0 rgba(255,255,255,0.18)` : 'none',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    transition: 'all 0.22s ease',
+                                }}>
+                                    <span style={{
+                                        fontSize: '1.05rem',
+                                        filter: isActive ? `drop-shadow(0 0 6px ${item.color})` : 'none',
+                                        opacity: isActive ? 1 : 0.38,
+                                    }}>{item.emoji}</span>
+                                </motion.div>
+                                <span style={{
+                                    fontSize: '0.40rem', fontWeight: 700,
+                                    color: isActive ? item.color : 'rgba(255,255,255,0.25)',
+                                    fontFamily: "'Outfit',sans-serif",
+                                    letterSpacing: '0.09em', textTransform: 'uppercase',
+                                    textShadow: isActive ? `0 0 8px ${item.color}70` : 'none',
+                                    transition: 'color 0.22s ease',
+                                }}>{item.label}</span>
+                            </motion.button>
+                        );
+                    })}
+                </nav>
 
                 {/* ══ FLOATING SAKHA BODHI — Elegant Cosmic Companion ══ */}
                 <AnimatePresence>
