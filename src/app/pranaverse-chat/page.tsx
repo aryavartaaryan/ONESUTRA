@@ -196,14 +196,10 @@ function SeekerCard({ u, status, isNature, onAdd, onAccept, onDecline, onChat, o
                     </>
                 )}
                 {status === 'none' && !isSent && (
-                    <>
-                        <motion.button whileTap={{ scale: 0.84 }} onClick={e => { e.stopPropagation(); setLocalSent(true); onAdd(); }}
-                            style={{ ...snapPill, padding: '0.42rem 0.78rem', background: 'linear-gradient(135deg,rgba(251,191,36,0.26),rgba(217,119,6,0.20))', border: '1.5px solid rgba(251,191,36,0.50)', color: '#fbbf24', fontSize: '0.62rem', boxShadow: '0 2px 14px rgba(251,191,36,0.20)' }}>
-                            <span style={{ fontSize: '0.75rem' }}>✦</span> Add
-                        </motion.button>
-                        <motion.button whileTap={{ scale: 0.82 }} onClick={e => e.stopPropagation()}
-                            style={{ ...snapPill, width: 30, height: 30, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.14)', color: 'rgba(255,255,255,0.38)', fontSize: '0.75rem' }}>×</motion.button>
-                    </>
+                    <motion.button whileTap={{ scale: 0.84 }} onClick={e => { e.stopPropagation(); onViewProfile?.(); }}
+                        style={{ ...snapPill, padding: '0.42rem 0.85rem', background: 'linear-gradient(135deg,rgba(167,139,250,0.22),rgba(139,92,246,0.16))', border: '1.5px solid rgba(167,139,250,0.45)', color: '#c4b5fd', fontSize: '0.62rem', boxShadow: '0 2px 14px rgba(139,92,246,0.22)' }}>
+                        <span style={{ fontSize: '0.75rem' }}>👤</span> Add
+                    </motion.button>
                 )}
                 {isSent && (
                     <span style={{ ...snapPill, padding: '0.40rem 0.80rem', background: 'rgba(74,222,128,0.09)', border: '1.5px solid rgba(74,222,128,0.28)', color: 'rgba(74,222,128,0.72)', fontSize: '0.60rem' }}>
@@ -305,6 +301,7 @@ export default function PranverseChatHub() {
     const [inviteLinkCopied, setInviteLinkCopied] = useState(false);
     // Profile sheet
     const [profileUser, setProfileUser] = useState<SutraUser | null>(null);
+    const [showSelfProfile, setShowSelfProfile] = useState(false);
 
     // ── Real users from Firebase ──────────────────────────────────────────────
     const { users: allUsers } = useUsers(uid);
@@ -630,16 +627,56 @@ export default function PranverseChatHub() {
                             <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2.4, repeat: Infinity }} style={{ width: 5, height: 5, borderRadius: '50%', background: '#fbbf24', boxShadow: '0 0 5px rgba(251,191,36,0.8)' }} />
                             <span style={{ fontSize: '0.44rem', fontWeight: 800, color: 'rgba(255,255,255,0.40)', letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'monospace' }}>✦ Your Circle</span>
                         </div>
-                        <div style={{ display: 'flex', gap: 4 }}>
-                            <motion.button whileTap={{ scale: 0.88 }} onClick={() => setShowAddStory(true)}
-                                style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '0.2rem 0.5rem', borderRadius: 99, background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.28)', cursor: 'pointer', color: '#fbbf24', fontSize: '0.42rem', fontWeight: 700 }}>
-                                <Camera size={9} /> Story
+                        <div style={{ display: 'flex', gap: 6 }}>
+                            <motion.button whileTap={{ scale: 0.88 }} whileHover={{ scale: 1.04 }} onClick={() => setShowAddStory(true)}
+                                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0.32rem 0.75rem', borderRadius: 99, background: 'linear-gradient(135deg, rgba(251,191,36,0.22), rgba(217,119,6,0.18))', border: '1.5px solid rgba(251,191,36,0.50)', cursor: 'pointer', color: '#fbbf24', fontSize: '0.50rem', fontWeight: 800, boxShadow: '0 0 12px rgba(251,191,36,0.28)', letterSpacing: '0.04em' }}>
+                                <Camera size={11} /> Story
                             </motion.button>
-                            <motion.button whileTap={{ scale: 0.88 }} onClick={() => setShowCreateCircle(true)}
-                                style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '0.2rem 0.5rem', borderRadius: 99, background: 'rgba(167,139,250,0.12)', border: '1px solid rgba(167,139,250,0.28)', cursor: 'pointer', color: '#a78bfa', fontSize: '0.42rem', fontWeight: 700 }}>
-                                <Plus size={9} /> Circle
+                            <motion.button whileTap={{ scale: 0.88 }} whileHover={{ scale: 1.04 }} onClick={() => setShowCreateCircle(true)}
+                                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0.32rem 0.75rem', borderRadius: 99, background: 'linear-gradient(135deg, rgba(167,139,250,0.22), rgba(124,58,237,0.18))', border: '1.5px solid rgba(167,139,250,0.50)', cursor: 'pointer', color: '#c084fc', fontSize: '0.50rem', fontWeight: 800, boxShadow: '0 0 12px rgba(167,139,250,0.28)', letterSpacing: '0.04em' }}>
+                                <Users size={11} /> Circle
                             </motion.button>
                         </div>
+                    </div>
+                    {/* ── Horizontal circles row: Me + Friends ── */}
+                    <div className="circlebar" style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', overflowY: 'hidden', padding: '0.35rem 0 0.25rem', WebkitOverflowScrolling: 'touch' as const, scrollbarWidth: 'none' as const }}>
+                        {/* My own avatar — first, shows Google photo or first letter */}
+                        <motion.button whileTap={{ scale: 0.88 }} onClick={() => setShowSelfProfile(true)}
+                            style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.22rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                            <div style={{ position: 'relative' }}>
+                                <motion.div animate={{ rotate: 360 }} transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+                                    style={{ position: 'absolute', inset: -2, borderRadius: '50%', background: 'conic-gradient(#fbbf24,#f472b6,#a78bfa,#fbbf24)', opacity: 0.85, zIndex: 0 }} />
+                                <div style={{ position: 'relative', zIndex: 1, width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', border: '2.5px solid #050216', background: user?.photoURL ? undefined : 'radial-gradient(circle at 35% 28%,rgba(255,255,255,0.25) 0%,rgba(167,139,250,0.80) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', fontWeight: 800, color: '#fff', margin: 2 }}>
+                                    {user?.photoURL
+                                        ? <img src={user.photoURL} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                        : (user?.name?.charAt(0).toUpperCase() || '✦')
+                                    }
+                                </div>
+                            </div>
+                            <span style={{ fontSize: '0.37rem', color: '#fbbf24', fontFamily: "'Outfit',sans-serif", fontWeight: 700, letterSpacing: '0.04em', maxWidth: 48, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>You</span>
+                        </motion.button>
+                        {/* Accepted friends circles */}
+                        {acceptedFriends.slice(0, 8).map(u => {
+                            const c = getAvatarColor(u.uid);
+                            const ini = getInitials(u.name);
+                            return (
+                                <motion.button key={u.uid} whileTap={{ scale: 0.88 }}
+                                    onClick={() => handleSelect(u.uid)}
+                                    style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.22rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                                    <div style={{ position: 'relative' }}>
+                                        <div style={{ position: 'absolute', inset: -2, borderRadius: '50%', background: `conic-gradient(${c},${c}44,${c})`, opacity: 0.75, zIndex: 0 }} />
+                                        <div style={{ position: 'relative', zIndex: 1, width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', border: '2.5px solid #050216', background: u.photoURL ? undefined : `radial-gradient(circle at 35% 28%,rgba(255,255,255,0.22) 0%,${c}70 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.80rem', fontWeight: 700, color: '#fff', margin: 2 }}>
+                                            {u.photoURL
+                                                ? <img src={u.photoURL} alt={u.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                                : ini
+                                            }
+                                        </div>
+                                        {u.online && <motion.div animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 2, repeat: Infinity }} style={{ position: 'absolute', bottom: 3, right: 3, width: 9, height: 9, borderRadius: '50%', background: '#4ade80', border: '1.5px solid #050216', boxShadow: '0 0 5px rgba(74,222,128,0.8)', zIndex: 2 }} />}
+                                    </div>
+                                    <span style={{ fontSize: '0.37rem', color: 'rgba(255,255,255,0.50)', fontFamily: "'Outfit',sans-serif", fontWeight: 600, maxWidth: 48, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.name.split(' ')[0]}</span>
+                                </motion.button>
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -707,15 +744,14 @@ export default function PranverseChatHub() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: '0.58rem', color: 'rgba(196,181,253,0.95)', fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>
-                            {allUsers.filter(u => u.online).length + Math.max(allUsers.length, 12)}+ seekers in the verse
+                            13,000+ seekers in the verse
                         </div>
                         <div style={{ fontSize: '0.38rem', color: 'rgba(167,139,250,0.50)', fontFamily: 'monospace', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 1 }}>Prana Community · Live</div>
                     </div>
                     <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.6, repeat: Infinity }} style={{ width: 7, height: 7, borderRadius: '50%', background: '#a78bfa', boxShadow: '0 0 8px rgba(167,139,250,0.9)', flexShrink: 0 }} />
                 </div>
 
-                {/* ── INVITE CARD — Aether-Glass viral growth engine ── */}
-                <InviteCard userName={user?.name} style={{ margin: '0.4rem 0.35rem 0' }} />
+
 
                 {/* ── ADDED ME section (pending requests) ── */}
                 {pendingRequests.length > 0 && (
@@ -754,13 +790,7 @@ export default function PranverseChatHub() {
                         <span style={{ fontSize: '0.54rem', color: 'rgba(167,139,250,0.55)', fontFamily: "'Outfit',sans-serif", fontWeight: 600, cursor: 'pointer' }}>All Members ›</span>
                     </div>
 
-                    {/* Quick seeker search under Find Seekers header */}
-                    <div style={{ padding: '0 1.1rem 0.6rem' }}>
-                        <div style={{ position: 'relative' }}>
-                            <Search size={12} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)', pointerEvents: 'none' }} />
-                            <input value={seekerSearch} onChange={e => setSeekerSearch(e.target.value)} placeholder="Search to add friends..." style={{ width: '100%', boxSizing: 'border-box', background: isNature ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: '0.45rem 0.8rem 0.45rem 2rem', color: 'rgba(255,255,255,0.9)', fontSize: '0.70rem', outline: 'none', fontFamily: "'Outfit',sans-serif", backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} />
-                        </div>
-                    </div>
+
 
                     <AnimatePresence>
                         {filteredUsers.map(u => {
@@ -1350,12 +1380,12 @@ export default function PranverseChatHub() {
                                     ))}
                                 </div>
 
-                                {/* View Profile + Ask Bodhi */}
+                                {/* Add + Ask Bodhi */}
                                 <div style={{ display: 'flex', gap: '0.55rem', padding: '0 1.4rem', width: '100%', boxSizing: 'border-box', marginBottom: '0.65rem' }}>
                                     <motion.button whileTap={{ scale: 0.94 }}
                                         onClick={() => { setProfileUser(null); router.push(`/profile/${pu.uid}`); }}
                                         style={{ flex: 1, padding: '0.62rem 0.5rem', borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.11)', color: 'rgba(255,255,255,0.60)', fontSize: '0.75rem', fontWeight: 700, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-                                        👤 View Profile
+                                        👤 Add
                                     </motion.button>
                                     <motion.button whileTap={{ scale: 0.94 }}
                                         onClick={() => { setProfileUser(null); router.push(`/profile/${pu.uid}?enquire=true`); }}
@@ -1403,6 +1433,59 @@ export default function PranverseChatHub() {
                         </motion.div>
                     );
                 })()}
+            </AnimatePresence>
+
+            {/* ── SELF PROFILE SHEET ── */}
+            <AnimatePresence>
+                {showSelfProfile && user && (
+                    <motion.div key="self-profile-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        onClick={() => setShowSelfProfile(false)}
+                        style={{ position: 'fixed', inset: 0, zIndex: 310, background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+                        <motion.div key="self-profile-sheet" initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                            transition={{ type: 'spring', stiffness: 340, damping: 34 }}
+                            onClick={e => e.stopPropagation()}
+                            style={{ width: '100%', maxWidth: 480, background: 'linear-gradient(160deg,rgba(8,4,24,0.98) 0%,rgba(12,6,32,0.98) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(167,139,250,0.28)', borderRadius: '28px 28px 0 0', padding: '0 0 calc(1.8rem + env(safe-area-inset-bottom))', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
+                            {/* Ambient glow */}
+                            <div style={{ position: 'absolute', top: -80, left: '50%', transform: 'translateX(-50%)', width: 320, height: 160, borderRadius: '50%', background: 'radial-gradient(ellipse,rgba(167,139,250,0.22) 0%,transparent 70%)', pointerEvents: 'none' }} />
+                            {/* Drag handle */}
+                            <div style={{ width: 40, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.15)', margin: '0.85rem auto 0' }} />
+                            {/* Close button */}
+                            <button onClick={() => setShowSelfProfile(false)} style={{ position: 'absolute', top: 14, right: 18, width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.50)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', zIndex: 2 }}>✕</button>
+                            {/* Avatar */}
+                            <div style={{ position: 'relative', marginTop: '1.5rem', marginBottom: '0.85rem' }}>
+                                <motion.div animate={{ rotate: 360 }} transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+                                    style={{ position: 'absolute', inset: -3, borderRadius: '50%', background: 'conic-gradient(#fbbf24,#f472b6,#a78bfa,#fbbf24)', opacity: 0.88 }} />
+                                <div style={{ position: 'relative', zIndex: 1, width: 90, height: 90, borderRadius: '50%', overflow: 'hidden', border: '3px solid #080418', background: user.photoURL ? undefined : 'radial-gradient(circle at 35% 28%,rgba(255,255,255,0.25) 0%,rgba(167,139,250,0.80) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.9rem', fontWeight: 800, color: '#fff', margin: 3, boxShadow: '0 0 32px rgba(167,139,250,0.45)' }}>
+                                    {user.photoURL
+                                        ? <img src={user.photoURL} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                        : (user.name?.charAt(0).toUpperCase() || '✦')
+                                    }
+                                </div>
+                            </div>
+                            {/* Name */}
+                            <span style={{ fontSize: '1.15rem', fontWeight: 800, color: 'rgba(255,255,255,0.95)', fontFamily: "'Outfit',sans-serif", marginBottom: '0.18rem' }}>{user.name}</span>
+                            <span style={{ fontSize: '0.52rem', color: 'rgba(167,139,250,0.70)', fontFamily: 'monospace', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600, marginBottom: '0.3rem' }}>✦ YOU · SEEKER</span>
+                            {user.email && <span style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.30)', fontFamily: "'Outfit',sans-serif", marginBottom: '1.4rem', fontStyle: 'italic' }}>{user.email}</span>}
+                            {/* Stats */}
+                            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.2rem', padding: '0 1.4rem', width: '100%', boxSizing: 'border-box' }}>
+                                {[{ label: 'Community', value: 'OneSUTRA', color: '#a78bfa' }, { label: 'Circle', value: `${acceptedFriends.length} Friends`, color: '#fbbf24' }, { label: 'Prana', value: 'Active', color: '#4ade80' }].map((s, i) => (
+                                    <div key={i} style={{ flex: 1, padding: '0.55rem 0.4rem', borderRadius: 14, background: `${s.color}08`, border: `1px solid ${s.color}18`, textAlign: 'center' }}>
+                                        <div style={{ fontSize: '0.62rem', fontWeight: 700, color: s.color, fontFamily: "'Outfit',sans-serif", marginBottom: 2 }}>{s.value}</div>
+                                        <div style={{ fontSize: '0.37rem', color: 'rgba(255,255,255,0.28)', fontFamily: 'monospace', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{s.label}</div>
+                                    </div>
+                                ))}
+                            </div>
+                            {/* Add button */}
+                            <div style={{ display: 'flex', gap: '0.55rem', padding: '0 1.4rem', width: '100%', boxSizing: 'border-box' }}>
+                                <motion.button whileTap={{ scale: 0.94 }}
+                                    onClick={() => { setShowSelfProfile(false); router.push('/profile'); }}
+                                    style={{ flex: 1, padding: '0.80rem', borderRadius: 14, background: 'linear-gradient(135deg,rgba(167,139,250,0.25),rgba(124,58,237,0.18))', border: '1.5px solid rgba(167,139,250,0.45)', color: '#c4b5fd', fontSize: '0.82rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+                                    👤 View Full Profile
+                                </motion.button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
             </AnimatePresence>
         </>
     );

@@ -14,9 +14,10 @@ import HomeStoryBar from '@/components/PranaVerse/HomeStoryBar';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import SakhaBodhiOrb from '@/components/Dashboard/SakhaBodhiOrb';
 import InviteCard from '@/components/PranaVerse/InviteCard';
-import MantraReelFeed from '@/components/PranaVerse/MantraReelFeed';
+import MantraReelFeed, { MANTRA_REELS } from '@/components/PranaVerse/MantraReelFeed';
+import type { MantraReel } from '@/components/PranaVerse/MantraReelFeed';
 
-type Tab = 'story' | 'map' | 'chat' | 'home' | 'mantras';
+type Tab = 'story' | 'map' | 'chat' | 'home';
 
 // ════════════════════════════════════════════════════════
 //  SACRED PORTAL DATA  (from Home / SacredPortalGrid)
@@ -28,7 +29,7 @@ const SACRED_PORTALS = [
     { id: 'outplugs', title: 'Inshorts', subtitle: 'Mindful News', icon: '📰', color: '#d946ef', href: '/outplugs', importance: 'Distraction-free mindful news through a conscious lens. Stay informed without noise or negativity polluting your mental space.' },
     { id: 'raag', title: 'Raag Music', subtitle: 'Resonances', icon: '🎵', color: '#38bdf8', href: '/project-leela', importance: 'Ancient Indian classical ragas scientifically matched to time of day — healing frequencies that align your body clock with the cosmos.' },
     { id: 'swadeshi', title: 'Swadeshi', subtitle: 'Pure Organics', icon: '🛍️', color: '#f97316', href: '/swadesi-product', importance: 'Pure Organics & sacred commerce — authentic Indian artisan products that honor tradition, empower craftsmen and support Bharat.' },
-    { id: 'skills', title: 'Ultra Gurukul', subtitle: 'Upgrade & Transform', icon: '🎯', color: '#22d3ee', href: '/vedic-sangrah', importance: 'World-Class Modern Skills blended with Vedic Wisdom — AI, Coding, Finance, Sanskrit, Yoga & Startup Support.' },
+    { id: 'skills', title: 'Gurukul', subtitle: 'Upgrade & Transform', icon: '🎯', color: '#22d3ee', href: '/vedic-sangrah', importance: 'World-Class Modern Skills blended with Vedic Wisdom — AI, Coding, Finance, Sanskrit, Yoga & Startup Support.' },
     { id: 'games', title: 'Games', subtitle: 'Productive Play', icon: '🎲', color: '#ec4899', href: '/vedic-games', importance: 'Productive Play — Vedic-inspired mindful games that sharpen your intellect while connecting your consciousness with ancient Indian wisdom.' },
     { id: 'pranaverse', title: 'PranaVerse', subtitle: 'Resonance Feeds & Network', icon: '✦', color: '#a78bfa', href: '/pranaverse', importance: 'Resonance Feeds & Network — the sacred conscious social network. Share your Prana, discover wisdom reels & raise collective vibration worldwide.' },
 ];
@@ -101,7 +102,7 @@ const STORIES = [
 //  RESONANCE PAGE STORIES → Pranaverse Reel Cards
 // ════════════════════════════════════════════════════════
 const RESONANCE_STORIES = [
-    { id: 'gayatri', label: 'Gayatri Mantra', sublabel: 'Mother of Vedas', color: '#fbbf24', emoji: '\u{1F31E}', bg: 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ भूर्भुवः स्वः तत्सवितुर्वरेण्यं', featured: true },
+    { id: 'gayatri', label: 'Gayatri Mantra', sublabel: 'Mother of Vedas', color: '#fbbf24', emoji: '\u{1F31E}', bg: 'https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ भूर्भुवः स्वः तत्सवितुर्वरेण्यं', featured: true },
     { id: 'om_namah', label: 'Om Namah Shivaya', sublabel: 'Panchakshara', color: '#a78bfa', emoji: '\u{1F549}', bg: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ नमः शिवाय' },
     { id: 'mahamrityunjaya', label: 'Mahamrityunjaya', sublabel: 'Conqueror of Death', color: '#f97316', emoji: '\u{1F525}', bg: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=600&h=1067&fit=crop&q=80', mantra: 'ॐ त्र्यम्बकं यजामहे' },
     { id: 'hanuman', label: 'Hanuman Chalisa', sublabel: 'Bajrangbali', color: '#ef4444', emoji: '\u{1F34A}', bg: 'https://images.unsplash.com/photo-1609619385002-f40f1df9b7eb?w=600&h=1067&fit=crop&q=80', mantra: 'जय हनुमान ज्ञान गुण सागर' },
@@ -164,7 +165,14 @@ interface ResonanceItem {
     views: string;
 }
 
-type FeedItem = ReelItem | PortalItem | ResonanceItem;
+interface MantraFeedItem {
+    id: string;
+    type: 'mantra';
+    reel: MantraReel;
+    reelIndex: number;
+}
+
+type FeedItem = ReelItem | PortalItem | ResonanceItem | MantraFeedItem;
 
 // ════════════════════════════════════════════════════════
 //  HELPERS
@@ -254,6 +262,128 @@ function buildResonanceFeedItems(): ResonanceItem[] {
         likes: Math.floor(1200 + i * 340 + 80),
         views: `${Math.floor(15 + i * 7)}K`,
     }));
+}
+
+// Build MantraReel feed items from MANTRA_REELS array
+function buildMantraFeedItems(): MantraFeedItem[] {
+    return MANTRA_REELS.map((reel, i) => ({
+        id: `mantra-feed-${reel.id}`,
+        type: 'mantra' as const,
+        reel,
+        reelIndex: i,
+    }));
+}
+
+// ════════════════════════════════════════════════════════
+//  MANTRA REEL GRID CARD — 9:16 card with image + reactions
+// ════════════════════════════════════════════════════════
+function MantraReelGridCard({ item, onOpen }: { item: MantraFeedItem; onOpen: () => void }) {
+    const { reel, reelIndex } = item;
+    const [liked, setLiked] = useState(false);
+    const [likeCount, setLikeCount] = useState(800 + (reelIndex * 347) % 3000);
+
+    return (
+        <motion.div
+            whileTap={{ scale: 0.97 }}
+            style={{ position: 'relative', aspectRatio: '9/16', overflow: 'hidden', cursor: 'pointer', background: '#0a0a0a' }}
+        >
+            {/* Background — video if available, else static image */}
+            {reel.videoSrc ? (
+                <video
+                    src={reel.videoSrc}
+                    muted autoPlay loop playsInline
+                    onClick={onOpen}
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.6) saturate(1.3)' }}
+                />
+            ) : (
+                <img
+                    src={reel.imageBg}
+                    alt={reel.name}
+                    loading="lazy"
+                    onClick={onOpen}
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.55) saturate(1.2)' }}
+                />
+            )}
+            {/* Color glow overlay */}
+            <div onClick={onOpen} style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at 50% 30%, ${reel.color}22 0%, transparent 65%)`, pointerEvents: 'none' }} />
+            <div onClick={onOpen} style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.2) 55%, transparent 100%)', pointerEvents: 'none' }} />
+
+            {/* Top badges */}
+            <div onClick={onOpen} style={{ position: 'absolute', top: 8, left: 8, fontSize: '0.38rem', fontWeight: 700, color: reel.color, background: `${reel.color}22`, border: `1px solid ${reel.color}44`, borderRadius: 99, padding: '0.1rem 0.42rem', fontFamily: "'Inter',sans-serif", letterSpacing: '0.08em', backdropFilter: 'blur(8px)' }}>
+                {reel.emoji} {reel.category}
+            </div>
+            <div onClick={onOpen} style={{ position: 'absolute', top: 8, right: 8, fontSize: '0.38rem', color: 'rgba(255,255,255,0.7)', background: 'rgba(0,0,0,0.52)', backdropFilter: 'blur(8px)', padding: '0.12rem 0.42rem', borderRadius: 4, fontFamily: "'Inter',sans-serif", fontWeight: 600 }}>
+                {reel.isLong ? '🎬' : '⚡'} {reel.durationLabel}
+            </div>
+
+            {/* Center emoji orb */}
+            <div onClick={onOpen} style={{ position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: '2rem', filter: `drop-shadow(0 0 14px ${reel.color}88)`, pointerEvents: 'none' }}>
+                {reel.emoji}
+            </div>
+
+            {/* Bottom info */}
+            <div onClick={onOpen} style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0.6rem 0.65rem 0.5rem', pointerEvents: 'none' }}>
+                <p style={{ fontFamily: "'Noto Serif Devanagari','Mangal',serif", fontSize: 'clamp(0.72rem,2.5vw,0.9rem)', fontWeight: 600, color: '#fff', margin: '0 0 0.1rem', textShadow: '0 1px 8px rgba(0,0,0,0.95)', lineHeight: 1.25, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden' }}>
+                    {reel.mantraText.split('\n')[0]}
+                </p>
+                <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 'clamp(0.38rem,1.2vw,0.48rem)', color: reel.color, letterSpacing: '0.04em', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {reel.name}
+                </p>
+            </div>
+
+            {/* Reaction row */}
+            <div style={{ position: 'absolute', bottom: '3.8rem', right: '0.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', zIndex: 10 }} onClick={e => e.stopPropagation()}>
+                {/* ❤️ Heart with burst */}
+                <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <AnimatePresence>
+                        {liked && [0, 60, 120, 180, 240, 300].map((deg, i) => (
+                            <motion.div
+                                key={`mp-${deg}`}
+                                initial={{ x: 0, y: 0, opacity: 1, scale: 0.6 }}
+                                animate={{
+                                    x: Math.cos((deg * Math.PI) / 180) * 24,
+                                    y: Math.sin((deg * Math.PI) / 180) * 24,
+                                    opacity: 0, scale: 1.1,
+                                }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.5, ease: 'easeOut', delay: i * 0.04 }}
+                                style={{ position: 'absolute', top: 9, left: 9, fontSize: '0.55rem', pointerEvents: 'none', zIndex: 20 }}
+                            >❤️</motion.div>
+                        ))}
+                    </AnimatePresence>
+                    <motion.button whileTap={{ scale: 0.8 }} onClick={() => { setLiked(l => !l); setLikeCount(c => liked ? c - 1 : c + 1); }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: 0 }}>
+                        <motion.div animate={liked ? { scale: [1, 1.5, 0.88, 1.12, 1], rotate: [0, -10, 6, -3, 0] } : { scale: 1 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                            style={{ width: 34, height: 34, borderRadius: '50%', background: liked ? 'rgba(237,73,86,0.22)' : 'rgba(0,0,0,0.5)', backdropFilter: 'blur(12px)', border: liked ? '1.5px solid rgba(237,73,86,0.5)' : '1.5px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: liked ? '0 0 14px rgba(237,73,86,0.5)' : 'none' }}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill={liked ? '#ed4956' : 'none'} stroke={liked ? '#ed4956' : 'rgba(255,255,255,0.9)'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+                                style={{ filter: liked ? 'drop-shadow(0 0 4px rgba(237,73,86,0.8))' : 'none' }}>
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                            </svg>
+                        </motion.div>
+                        <span style={{ fontSize: '0.38rem', color: liked ? '#ed4956' : 'rgba(255,255,255,0.8)', fontFamily: "'Inter',sans-serif", fontWeight: 700, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{likeCount > 999 ? `${(likeCount / 1000).toFixed(1)}K` : likeCount}</span>
+                    </motion.button>
+                </div>
+                <motion.button whileTap={{ scale: 0.8 }} onClick={onOpen}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: 0 }}>
+                    <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(12px)', border: '1.5px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                    </div>
+                    <span style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.8)', fontFamily: "'Inter',sans-serif", fontWeight: 700, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>108</span>
+                </motion.button>
+            </div>
+
+            {/* Play icon overlay */}
+            <div onClick={onOpen} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 38, height: 38, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', border: '1.5px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', pointerEvents: 'none', marginTop: '1.5rem' }}>
+                {reel.videoSrc ? '▶' : '🎵'}
+            </div>
+            {/* Video badge for video reels */}
+            {reel.videoSrc && (
+                <div style={{ position: 'absolute', top: 8, left: 8, fontSize: '0.38rem', fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,0.65)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 4, padding: '0.12rem 0.38rem', fontFamily: "'Inter',sans-serif", letterSpacing: '0.06em', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', gap: 3 }}>
+                    🎬 VIDEO
+                </div>
+            )}
+        </motion.div>
+    );
 }
 
 // ════════════════════════════════════════════════════════
@@ -424,9 +554,11 @@ function _StoryBar_REMOVED() {
 //  REEL GRID CARD — Clean YouTube-style
 // ════════════════════════════════════════════════════════
 function ReelGridCard({ item, onClick }: { item: ReelItem; onClick: () => void }) {
+    const [liked, setLiked] = useState(false);
+    const [likeCount, setLikeCount] = useState(item.likes);
+
     return (
         <motion.div
-            onClick={onClick}
             whileTap={{ scale: 0.97 }}
             style={{
                 position: 'relative',
@@ -437,34 +569,37 @@ function ReelGridCard({ item, onClick }: { item: ReelItem; onClick: () => void }
                 background: '#0a0a0a',
             }}
         >
-            {item.localVideoSrc ? (
-                <video
-                    src={item.localVideoSrc}
-                    muted
-                    autoPlay
-                    loop
-                    playsInline
-                    poster={item.imageUrl}
-                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-            ) : (
-                <img
-                    src={item.imageUrl}
-                    alt="Sacred nature"
-                    loading="lazy"
-                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
-                />
-            )}
+            {/* Clickable media area */}
+            <div onClick={onClick} style={{ position: 'absolute', inset: 0, cursor: 'pointer' }}>
+                {item.localVideoSrc ? (
+                    <video
+                        src={item.localVideoSrc}
+                        muted
+                        autoPlay
+                        loop
+                        playsInline
+                        poster={item.imageUrl}
+                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                ) : (
+                    <img
+                        src={item.imageUrl}
+                        alt="Sacred nature"
+                        loading="lazy"
+                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
+                    />
+                )}
 
-            {/* Bottom gradient scrim */}
-            <div style={{
-                position: 'absolute', inset: 0,
-                background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.18) 50%, transparent 100%)',
-                pointerEvents: 'none',
-            }} />
+                {/* Bottom gradient scrim */}
+                <div style={{
+                    position: 'absolute', inset: 0,
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.18) 50%, transparent 100%)',
+                    pointerEvents: 'none',
+                }} />
+            </div>
 
-            {/* Views badge — top right only */}
-            <div style={{
+            {/* Views badge — top right */}
+            <div onClick={onClick} style={{
                 position: 'absolute', top: 8, right: 8,
                 fontSize: '0.40rem', color: 'rgba(255,255,255,0.72)',
                 background: 'rgba(0,0,0,0.52)', backdropFilter: 'blur(8px)',
@@ -473,37 +608,75 @@ function ReelGridCard({ item, onClick }: { item: ReelItem; onClick: () => void }
             }}>{item.views}</div>
 
             {/* Bottom text — mantra title + meaning */}
-            <div style={{
+            <div onClick={onClick} style={{
                 position: 'absolute', bottom: 0, left: 0, right: 0,
                 padding: '0.7rem 0.65rem 0.6rem',
-                pointerEvents: 'none',
+                pointerEvents: 'all',
             }}>
                 <p style={{
                     fontFamily: "'Cormorant Garamond', 'Noto Serif Devanagari', serif",
                     fontSize: 'clamp(0.85rem, 2.8vw, 1.05rem)',
-                    fontWeight: 600,
-                    color: '#fff',
+                    fontWeight: 600, color: '#fff',
                     textShadow: '0 1px 8px rgba(0,0,0,0.95)',
-                    lineHeight: 1.3,
-                    margin: '0 0 0.18rem',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical' as any,
-                    overflow: 'hidden',
+                    lineHeight: 1.3, margin: '0 0 0.18rem',
+                    display: '-webkit-box', WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical' as any, overflow: 'hidden',
                 }}>{item.mantra.sanskrit}</p>
                 <p style={{
                     fontFamily: "'Inter', sans-serif",
                     fontSize: 'clamp(0.42rem, 1.4vw, 0.54rem)',
-                    color: 'rgba(255,255,255,0.55)',
-                    letterSpacing: '0.04em',
-                    margin: 0,
-                    display: '-webkit-box',
-                    WebkitLineClamp: 1,
-                    WebkitBoxOrient: 'vertical' as any,
-                    overflow: 'hidden',
+                    color: 'rgba(255,255,255,0.55)', letterSpacing: '0.04em', margin: 0,
+                    display: '-webkit-box', WebkitLineClamp: 1,
+                    WebkitBoxOrient: 'vertical' as any, overflow: 'hidden',
                 }}>{item.mantra.meaning}</p>
             </div>
 
+            {/* Reaction sidebar */}
+            <div style={{ position: 'absolute', bottom: '4.2rem', right: '0.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', zIndex: 10 }}
+                onClick={e => e.stopPropagation()}>
+                {/* ❤️ Heart with burst */}
+                <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    {/* Burst particles */}
+                    <AnimatePresence>
+                        {liked && [0, 60, 120, 180, 240, 300].map((deg, i) => (
+                            <motion.div
+                                key={`p-${deg}`}
+                                initial={{ x: 0, y: 0, opacity: 1, scale: 0.6 }}
+                                animate={{
+                                    x: Math.cos((deg * Math.PI) / 180) * 26,
+                                    y: Math.sin((deg * Math.PI) / 180) * 26,
+                                    opacity: 0,
+                                    scale: 1.1,
+                                }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.55, ease: 'easeOut', delay: i * 0.04 }}
+                                style={{ position: 'absolute', top: 9, left: 9, fontSize: '0.55rem', pointerEvents: 'none', zIndex: 20 }}
+                            >❤️</motion.div>
+                        ))}
+                    </AnimatePresence>
+                    <motion.button whileTap={{ scale: 0.8 }}
+                        onClick={() => { setLiked(l => !l); setLikeCount(c => liked ? c - 1 : c + 1); }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: 0 }}>
+                        <motion.div
+                            animate={liked ? { scale: [1, 1.5, 0.88, 1.12, 1], rotate: [0, -10, 6, -3, 0] } : { scale: 1 }}
+                            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                            style={{ width: 34, height: 34, borderRadius: '50%', background: liked ? 'rgba(237,73,86,0.22)' : 'rgba(0,0,0,0.5)', backdropFilter: 'blur(12px)', border: liked ? '1.5px solid rgba(237,73,86,0.5)' : '1.5px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: liked ? '0 0 14px rgba(237,73,86,0.5)' : 'none' }}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill={liked ? '#ed4956' : 'none'} stroke={liked ? '#ed4956' : 'rgba(255,255,255,0.9)'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+                                style={{ filter: liked ? 'drop-shadow(0 0 4px rgba(237,73,86,0.8))' : 'none' }}>
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                            </svg>
+                        </motion.div>
+                        <span style={{ fontSize: '0.38rem', color: liked ? '#ed4956' : 'rgba(255,255,255,0.8)', fontFamily: "'Inter',sans-serif", fontWeight: 700, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{likeCount > 999 ? `${(likeCount / 1000).toFixed(1)}K` : likeCount}</span>
+                    </motion.button>
+                </div>
+                <motion.button whileTap={{ scale: 0.8 }} onClick={onClick}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: 0 }}>
+                    <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(12px)', border: '1.5px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                    </div>
+                    <span style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.8)', fontFamily: "'Inter',sans-serif", fontWeight: 700, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>Vibes</span>
+                </motion.button>
+            </div>
         </motion.div>
     );
 }
@@ -681,10 +854,11 @@ function PortalGridCard({ item }: { item: PortalItem }) {
 function ResonanceReelCard({ item, onClick }: { item: ResonanceItem; onClick: () => void }) {
     const s = item.story;
     const hasMantras = !!(s as any).mantra;
+    const [liked, setLiked] = useState(false);
+    const [likeCount, setLikeCount] = useState(item.likes);
 
     return (
         <motion.div
-            onClick={onClick}
             whileTap={{ scale: 0.97 }}
             style={{
                 position: 'relative',
@@ -790,12 +964,58 @@ function ResonanceReelCard({ item, onClick }: { item: ResonanceItem; onClick: ()
                 {/* View count — minimal */}
                 <div style={{ marginTop: '0.3rem', fontSize: '0.40rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Inter', sans-serif" }}>{item.views} views</div>
             </div>
+
+            {/* Reaction sidebar */}
+            <div style={{ position: 'absolute', bottom: '4.5rem', right: '0.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', zIndex: 10 }}
+                onClick={e => e.stopPropagation()}>
+                {/* ❤️ Heart with burst */}
+                <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <AnimatePresence>
+                        {liked && [0, 60, 120, 180, 240, 300].map((deg, i) => (
+                            <motion.div
+                                key={`rp-${deg}`}
+                                initial={{ x: 0, y: 0, opacity: 1, scale: 0.6 }}
+                                animate={{
+                                    x: Math.cos((deg * Math.PI) / 180) * 24,
+                                    y: Math.sin((deg * Math.PI) / 180) * 24,
+                                    opacity: 0, scale: 1.1,
+                                }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.5, ease: 'easeOut', delay: i * 0.04 }}
+                                style={{ position: 'absolute', top: 9, left: 9, fontSize: '0.55rem', pointerEvents: 'none', zIndex: 20 }}
+                            >❤️</motion.div>
+                        ))}
+                    </AnimatePresence>
+                    <motion.button whileTap={{ scale: 0.8 }}
+                        onClick={() => { setLiked(l => !l); setLikeCount(c => liked ? c - 1 : c + 1); }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: 0 }}>
+                        <motion.div animate={liked ? { scale: [1, 1.5, 0.88, 1.12, 1], rotate: [0, -10, 6, -3, 0] } : { scale: 1 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                            style={{ width: 34, height: 34, borderRadius: '50%', background: liked ? 'rgba(237,73,86,0.22)' : 'rgba(0,0,0,0.5)', backdropFilter: 'blur(12px)', border: liked ? '1.5px solid rgba(237,73,86,0.5)' : '1.5px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: liked ? '0 0 14px rgba(237,73,86,0.5)' : 'none' }}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill={liked ? '#ed4956' : 'none'} stroke={liked ? '#ed4956' : 'rgba(255,255,255,0.9)'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+                                style={{ filter: liked ? 'drop-shadow(0 0 4px rgba(237,73,86,0.8))' : 'none' }}>
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                            </svg>
+                        </motion.div>
+                        <span style={{ fontSize: '0.38rem', color: liked ? '#ed4956' : 'rgba(255,255,255,0.8)', fontFamily: "'Inter',sans-serif", fontWeight: 700, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{likeCount > 999 ? `${(likeCount / 1000).toFixed(1)}K` : likeCount}</span>
+                    </motion.button>
+                </div>
+                <motion.button whileTap={{ scale: 0.8 }} onClick={onClick}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: 0 }}>
+                    <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(12px)', border: '1.5px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                    </div>
+                    <span style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.8)', fontFamily: "'Inter',sans-serif", fontWeight: 700, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>Vibes</span>
+                </motion.button>
+            </div>
+
+            {/* Full-card click */}
+            <div onClick={onClick} style={{ position: 'absolute', inset: 0, zIndex: 5 }} />
         </motion.div>
     );
 }
 
 // ════════════════════════════════════════════════════════
-//  GAYATRI MANTRA HERO CARD — full-width top of feed
+//  GAYATRI MANTRA HERO CARD — full-width top of feed — click goes fullscreen
 // ════════════════════════════════════════════════════════
 function GayatriHeroCard({ onClick }: { onClick: () => void }) {
     const g = RESONANCE_STORIES[0]; // Gayatri Mantra
@@ -907,12 +1127,14 @@ function GayatriHeroCard({ onClick }: { onClick: () => void }) {
                     initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.45 }}
                     style={{
                         fontFamily: "'Noto Serif Devanagari', serif",
-                        fontSize: 'clamp(0.55rem, 2vw, 0.75rem)',
-                        color: 'rgba(251,191,36,0.88)',
-                        textShadow: '0 0 20px rgba(251,191,36,0.5)',
-                        lineHeight: 1.6,
+                        fontSize: 'clamp(0.5rem, 1.6vw, 0.68rem)',
+                        color: 'rgba(251,191,36,0.92)',
+                        textShadow: '0 0 20px rgba(251,191,36,0.6), 0 1px 8px rgba(0,0,0,0.9)',
+                        lineHeight: 1.85,
+                        whiteSpace: 'pre-line',
+                        textAlign: 'center',
                     }}
-                >{g.mantra}</motion.p>
+                >{MANTRA_REELS[0].mantraText}</motion.p>
             </div>
 
             {/* Bottom actions */}
@@ -938,13 +1160,20 @@ function GayatriHeroCard({ onClick }: { onClick: () => void }) {
                     </span>
                 </button>
 
-                <div style={{
-                    padding: '0.3rem 1rem', borderRadius: 99, fontSize: '0.48rem', fontWeight: 700,
-                    letterSpacing: '0.08em', textTransform: 'uppercase',
-                    background: 'linear-gradient(135deg, #fbbf24cc, #f59e0b)',
-                    color: '#000', fontFamily: "'Inter', sans-serif",
-                    boxShadow: '0 4px 16px rgba(251,191,36,0.45)',
-                }}>▶ Watch Now</div>
+                {/* ▶ Open Gayatri Mantra — opens fullscreen player like all other mantras */}
+                <div
+                    onClick={onClick}
+                    style={{
+                        padding: '0.3rem 1rem', borderRadius: 99, fontSize: '0.48rem', fontWeight: 700,
+                        letterSpacing: '0.08em', textTransform: 'uppercase',
+                        background: 'linear-gradient(135deg, #fbbf24cc, #f59e0b)',
+                        color: '#000', fontFamily: "'Inter', sans-serif",
+                        boxShadow: '0 4px 16px rgba(251,191,36,0.45)',
+                        cursor: 'pointer',
+                    }}
+                >
+                    ▶ Open Gayatri Mantra
+                </div>
 
                 <button onClick={e => { e.stopPropagation(); setLoved(l => !l); setLoveCount(c => loved ? c - 1 : c + 1); }}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem', padding: 0 }}>
@@ -981,8 +1210,8 @@ function FullscreenReelModal({
     const currentAuthorName = authorName;
     const [current, setCurrent] = useState(initialIndex);
     const [direction, setDirection] = useState(1);
-    const [muted, setMuted] = useState(true);
-    const [showMuteHint, setShowMuteHint] = useState(true);
+    const [muted, setMuted] = useState(false);
+    const [showMuteHint, setShowMuteHint] = useState(false);
     const [liked, setLiked] = useState<Set<string>>(new Set());
     const [liveLikes, setLiveLikes] = useState<Record<string, number>>({});
     const [liveComments, setLiveCmts] = useState<Record<string, number>>({});
@@ -1430,6 +1659,7 @@ function AuraSpaceInner() {
     const [isSakhaActive, setIsSakhaActive] = useState(false);
     const [isAwakening, setIsAwakening] = useState(false);
     const [isAudioUnlocked, setIsAudioUnlocked] = useState(false);
+    const [showSelfProfile, setShowSelfProfile] = useState(false);
 
     const handleBodhiAwaken = () => {
         unlockAudio();
@@ -1451,10 +1681,29 @@ function AuraSpaceInner() {
     };
 
     const [timeSlot] = useState<TimeSlot>(() => getTimeSlot());
-    const feedItems = useMemo(() => [
-        ...buildMixedFeed(timeSlot),
-        ...buildResonanceFeedItems(),
-    ], [timeSlot]);
+    const feedItems = useMemo(() => {
+        const base = buildMixedFeed(timeSlot);
+        // Exclude Gayatri from resonance feed — It's already shown as GayatriHeroCard at top
+        const resonance = buildResonanceFeedItems().filter(r => r.story.id !== 'gayatri');
+        const allMantras = buildMantraFeedItems();
+        // Vishnu Sahasranamam first, then the rest
+        const vishnuIdx = allMantras.findIndex(m => m.reel.id === 'vishnu-sahasranamam');
+        const mantras = vishnuIdx > 0
+            ? [allMantras[vishnuIdx], ...allMantras.filter((_, i) => i !== vishnuIdx)]
+            : allMantras;
+        // Interleave mantras every 3 base items
+        const mixed: FeedItem[] = [];
+        let mi = 0;
+        for (let i = 0; i < base.length; i++) {
+            mixed.push(base[i]);
+            if ((i + 1) % 3 === 0 && mi < mantras.length) {
+                mixed.push(mantras[mi++]);
+            }
+        }
+        // Remaining mantras after base items
+        while (mi < mantras.length) mixed.push(mantras[mi++]);
+        return [...mixed, ...resonance];
+    }, [timeSlot]);
 
     // We filter out portals so the modal can swipe through all reels + resonance seamlessly
     const swipeableItems = useMemo(
@@ -1464,6 +1713,8 @@ function AuraSpaceInner() {
 
     const [modalOpen, setModalOpen] = useState(false);
     const [modalStartIdx, setModalStartIdx] = useState(0);
+    const [mantraOverlayOpen, setMantraOverlayOpen] = useState(false);
+    const [mantraOverlayIdx, setMantraOverlayIdx] = useState(0);
     const [headerVisible, setHeaderVisible] = useState(true);
     const lastScrollY = useRef(0);
 
@@ -1568,17 +1819,33 @@ function AuraSpaceInner() {
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        {['🔥', '〰️', '🔔'].map((icon, i) => (
-                            <button key={i} style={{
-                                background: 'rgba(255,255,255,0.07)',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: '50%', width: 32, height: 32,
-                                cursor: 'pointer', fontSize: '0.85rem',
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        {/* Profile icon — click opens self-profile sheet */}
+                        <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => setShowSelfProfile(true)}
+                            style={{
+                                background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                            }}
+                        >
+                            {/* Elegant person icon — no photo, no initials */}
+                            <div style={{
+                                width: 32, height: 32, borderRadius: '50%',
+                                background: 'linear-gradient(135deg, rgba(167,139,250,0.18) 0%, rgba(88,28,135,0.55) 100%)',
+                                border: '1.5px solid rgba(167,139,250,0.55)',
+                                boxShadow: '0 0 10px rgba(167,139,250,0.3)',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            }}>{icon}</button>
-                        ))}
+                            }}>
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,0.95)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                    <circle cx="12" cy="7" r="4" />
+                                </svg>
+                            </div>
+                            <span style={{ fontSize: '0.38rem', fontWeight: 700, color: 'rgba(167,139,250,0.85)', fontFamily: "'Outfit',sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' }}>Profile</span>
+                        </motion.button>
                     </div>
+
                 </motion.div>
 
                 {/* ══ CONDITIONAL CONTENT BY TAB ══ */}
@@ -1684,6 +1951,12 @@ function AuraSpaceInner() {
                                             item={item}
                                             onClick={() => openReel(item)}
                                         />
+                                    ) : item.type === 'mantra' ? (
+                                        <MantraReelGridCard
+                                            key={item.id}
+                                            item={item}
+                                            onOpen={() => { setMantraOverlayIdx(item.reelIndex); setMantraOverlayOpen(true); }}
+                                        />
                                     ) : (
                                         <PortalGridCard key={item.id} item={item} />
                                     )
@@ -1702,33 +1975,6 @@ function AuraSpaceInner() {
                         </motion.div>
                     )}
 
-                    {/* ══ MANTRAS TAB — Full-screen vertical mantra reels ══ */}
-                    {activeTab === 'mantras' && (
-                        <motion.div
-                            key="mantras-feed"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            style={{ flex: 1, overflow: 'hidden', position: 'relative' }}
-                        >
-                            {/* Mantras header */}
-                            <div style={{
-                                position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20,
-                                padding: '0.55rem 1rem 0.4rem',
-                                background: 'linear-gradient(180deg, rgba(0,0,0,0.88) 0%, transparent 100%)',
-                                backdropFilter: 'blur(12px)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                pointerEvents: 'none',
-                            }}>
-                                <div>
-                                    <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#fff', fontFamily: "'Cormorant Garamond', serif", letterSpacing: '0.04em' }}>🕉 Sacred Mantra Reels</div>
-                                    <div style={{ fontSize: '0.42rem', color: 'rgba(244,114,182,0.7)', letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>Scroll · Snap · Absorb</div>
-                                </div>
-                                <div style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Inter', sans-serif" }}>↕ Swipe to navigate</div>
-                            </div>
-                            <MantraReelFeed style={{ paddingTop: '3rem' }} />
-                        </motion.div>
-                    )}
                 </AnimatePresence>
 
                 {/* ══ PRANAVERSE BOTTOM NAV ══ */}
@@ -1736,16 +1982,15 @@ function AuraSpaceInner() {
                     {([
                         { id: 'home', emoji: '⌂', label: 'Home', action: () => router.push('/') },
                         { id: 'story', emoji: '✦', label: 'Feed', action: () => setActiveTab('story') },
-                        { id: 'mantras', emoji: '🕉', label: 'Mantras', action: () => setActiveTab('mantras') },
                         { id: 'map', emoji: '🗺️', label: 'Map', action: () => setActiveTab('map') },
                         { id: 'chat', emoji: '💬', label: 'Chat', action: () => router.push('/pranaverse-chat') },
-                    ] as const).map(item => (
+                    ] as Array<{ id: Tab | 'home' | 'chat'; emoji: string; label: string; action: () => void }>).map(item => (
                         <button key={item.id} onClick={item.action} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem 0.5rem', position: 'relative' }}>
                             {activeTab === item.id && item.id !== 'home' && (
-                                <div style={{ position: 'absolute', top: -1, left: '50%', transform: 'translateX(-50%)', width: 20, height: 2.5, borderRadius: 99, background: item.id === 'mantras' ? 'linear-gradient(90deg,#f472b6,#c084fc)' : 'linear-gradient(90deg,#a78bfa,#c084fc)', boxShadow: item.id === 'mantras' ? '0 0 8px #f472b688' : '0 0 8px #a78bfa88' }} />
+                                <div style={{ position: 'absolute', top: -1, left: '50%', transform: 'translateX(-50%)', width: 20, height: 2.5, borderRadius: 99, background: 'linear-gradient(90deg,#a78bfa,#c084fc)', boxShadow: '0 0 8px #a78bfa88' }} />
                             )}
-                            <span style={{ fontSize: '1.05rem', filter: activeTab === item.id ? `drop-shadow(0 0 6px ${item.id === 'mantras' ? '#f472b6' : '#a78bfa'})` : 'none', opacity: activeTab === item.id ? 1 : 0.4 }}>{item.emoji}</span>
-                            <span style={{ fontSize: '0.38rem', fontWeight: 700, color: activeTab === item.id ? (item.id === 'mantras' ? '#f472b6' : '#a78bfa') : 'rgba(255,255,255,0.3)', fontFamily: "'Outfit',sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' }}>{item.label}</span>
+                            <span style={{ fontSize: '1.05rem', filter: activeTab === item.id ? 'drop-shadow(0 0 6px #a78bfa)' : 'none', opacity: activeTab === item.id ? 1 : 0.4 }}>{item.emoji}</span>
+                            <span style={{ fontSize: '0.38rem', fontWeight: 700, color: activeTab === item.id ? '#a78bfa' : 'rgba(255,255,255,0.3)', fontFamily: "'Outfit',sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' }}>{item.label}</span>
                         </button>
                     ))}
                 </div>
@@ -1963,6 +2208,67 @@ function AuraSpaceInner() {
                             onClose={() => setModalOpen(false)}
                             authorName={displayUserName}
                         />
+                    )}
+                </AnimatePresence>
+
+                {/* ══ FULLSCREEN MANTRA REEL OVERLAY ══ */}
+                <AnimatePresence>
+                    {mantraOverlayOpen && (
+                        <motion.div
+                            key="mantra-overlay"
+                            initial={{ opacity: 0, y: 40 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 40 }}
+                            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                            style={{
+                                position: 'fixed', inset: 0, zIndex: 2200,
+                                background: '#000',
+                            }}
+                        >
+                            <MantraReelFeed
+                                startIndex={mantraOverlayIdx}
+                                onClose={() => setMantraOverlayOpen(false)}
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* ══ SELF PROFILE SHEET ══ */}
+                <AnimatePresence>
+                    {showSelfProfile && currentUser && (
+                        <motion.div key="pv-self-profile-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            onClick={() => setShowSelfProfile(false)}
+                            style={{ position: 'fixed', inset: 0, zIndex: 2300, background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+                            <motion.div key="pv-self-profile-sheet" initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                                transition={{ type: 'spring', stiffness: 340, damping: 34 }}
+                                onClick={e => e.stopPropagation()}
+                                style={{ width: '100%', maxWidth: 480, background: 'linear-gradient(160deg,rgba(8,4,24,0.98) 0%,rgba(12,6,32,0.98) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(167,139,250,0.28)', borderRadius: '28px 28px 0 0', padding: '0 0 calc(1.8rem + env(safe-area-inset-bottom))', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
+                                <div style={{ position: 'absolute', top: -80, left: '50%', transform: 'translateX(-50%)', width: 320, height: 160, borderRadius: '50%', background: 'radial-gradient(ellipse,rgba(167,139,250,0.22) 0%,transparent 70%)', pointerEvents: 'none' }} />
+                                <div style={{ width: 40, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.15)', margin: '0.85rem auto 0' }} />
+                                <button onClick={() => setShowSelfProfile(false)} style={{ position: 'absolute', top: 14, right: 18, width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.50)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', zIndex: 2 }}>✕</button>
+                                {/* Avatar */}
+                                <div style={{ position: 'relative', marginTop: '1.5rem', marginBottom: '0.85rem' }}>
+                                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+                                        style={{ position: 'absolute', inset: -3, borderRadius: '50%', background: 'conic-gradient(#fbbf24,#f472b6,#a78bfa,#fbbf24)', opacity: 0.88 }} />
+                                    <div style={{ position: 'relative', zIndex: 1, width: 90, height: 90, borderRadius: '50%', overflow: 'hidden', border: '3px solid #080418', background: currentUser.photoURL ? undefined : 'radial-gradient(circle at 35% 28%,rgba(255,255,255,0.25) 0%,rgba(167,139,250,0.80) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.9rem', fontWeight: 800, color: '#fff', margin: 3, boxShadow: '0 0 32px rgba(167,139,250,0.45)' }}>
+                                        {currentUser.photoURL
+                                            ? <img src={currentUser.photoURL} alt={currentUser.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                            : (currentUser.name?.charAt(0).toUpperCase() || '✦')
+                                        }
+                                    </div>
+                                </div>
+                                <span style={{ fontSize: '1.15rem', fontWeight: 800, color: 'rgba(255,255,255,0.95)', fontFamily: "'Outfit',sans-serif", marginBottom: '0.18rem' }}>{currentUser.name}</span>
+                                <span style={{ fontSize: '0.52rem', color: 'rgba(167,139,250,0.70)', fontFamily: 'monospace', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600, marginBottom: '0.3rem' }}>✦ YOU · SEEKER</span>
+                                {currentUser.email && <span style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.30)', fontFamily: "'Outfit',sans-serif", marginBottom: '1.4rem', fontStyle: 'italic' }}>{currentUser.email}</span>}
+                                <div style={{ display: 'flex', gap: '0.55rem', padding: '0 1.4rem', width: '100%', boxSizing: 'border-box' }}>
+                                    <motion.button whileTap={{ scale: 0.94 }}
+                                        onClick={() => { setShowSelfProfile(false); router.push('/profile'); }}
+                                        style={{ flex: 1, padding: '0.80rem', borderRadius: 14, background: 'linear-gradient(135deg,rgba(167,139,250,0.25),rgba(124,58,237,0.18))', border: '1.5px solid rgba(167,139,250,0.45)', color: '#c4b5fd', fontSize: '0.82rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+                                        👤 View Full Profile
+                                    </motion.button>
+                                </div>
+                            </motion.div>
+                        </motion.div>
                     )}
                 </AnimatePresence>
             </div>

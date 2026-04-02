@@ -5,35 +5,36 @@ import React, {
     useRef,
     useEffect,
     useCallback,
-    useMemo,
 } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
 // ═══════════════════════════════════════════════════════════
-//  MANTRA REEL DATASET — Each mantra fused with sacred image/video
+//  MANTRA REEL DATASET
+//  videoSrc = this IS a content video (plays as video reel)
+//  no videoSrc = audio-only, uses imageBg + wave ring animation
 // ═══════════════════════════════════════════════════════════
 export interface MantraReel {
     id: string;
-    name: string;              // Display name (English)
-    nameHi: string;            // Display name (Hindi/Sanskrit)
-    deity: string;             // e.g. "Shiva", "Vishnu"
+    name: string;
+    nameHi: string;
+    deity: string;
     deityHi: string;
-    mantraText: string;        // Sanskrit text to display on card
+    mantraText: string;
     transliteration: string;
     meaning: string;
-    color: string;             // Accent color for UI
+    color: string;
     secondColor: string;
-    audioSrc: string;          // Audio source (local or CDN)
-    videoSrc?: string;         // Optional video background
-    imageBg: string;           // Fallback image background
-    durationLabel: string;     // e.g. "8 min" or "45 min"
-    isLong: boolean;           // long = show YouTube-style progress
+    audioSrc: string;
+    videoSrc?: string;   // Only set when the reel IS a video
+    imageBg: string;
+    durationLabel: string;
+    isLong: boolean;
     category: string;
     emoji: string;
 }
 
-const MANTRA_REELS: MantraReel[] = [
+export const MANTRA_REELS: MantraReel[] = [
     {
         id: 'gayatri-deep',
         name: 'Gayatri Mantra',
@@ -46,7 +47,6 @@ const MANTRA_REELS: MantraReel[] = [
         color: '#fbbf24',
         secondColor: '#f97316',
         audioSrc: 'https://ik.imagekit.io/rcsesr4xf/gayatri-mantra-ghanpaath.mp3',
-        videoSrc: '/Slide%20Videos/Dhyan2.mp4',
         imageBg: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~4 min',
         isLong: false,
@@ -65,8 +65,7 @@ const MANTRA_REELS: MantraReel[] = [
         color: '#f472b6',
         secondColor: '#a21caf',
         audioSrc: 'https://ik.imagekit.io/rcsesr4xf/Lalitha-Sahasranamam.mp3',
-        videoSrc: '/Slide%20Videos/kailash10.mp4',
-        imageBg: 'https://images.unsplash.com/photo-1616587894288-82f7b65dd78f?w=800&h=1400&fit=crop&q=90',
+        imageBg: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~45 min',
         isLong: true,
         category: 'Stotra',
@@ -84,7 +83,6 @@ const MANTRA_REELS: MantraReel[] = [
         color: '#c084fc',
         secondColor: '#7c3aed',
         audioSrc: 'https://ik.imagekit.io/rcsesr4xf/Shiva-Tandav.mp3',
-        videoSrc: '/Slide%20Videos/Shiva.mp4',
         imageBg: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~8 min',
         isLong: false,
@@ -102,9 +100,10 @@ const MANTRA_REELS: MantraReel[] = [
         meaning: 'A thousand names of Lord Vishnu who is the universe itself',
         color: '#38bdf8',
         secondColor: '#0369a1',
+        // This is a real content video — plays as video reel
         audioSrc: 'https://ik.imagekit.io/aup4wh6lq/VISHNU%20SAHASRANAMAM%20_%20Madhubanti%20Bagchi%20%26%20Siddharth%20Bhavsar%20_%20Stotra%20For%20Peace%20%26%20Divine%20Blessings.mp4',
         videoSrc: 'https://ik.imagekit.io/aup4wh6lq/VISHNU%20SAHASRANAMAM%20_%20Madhubanti%20Bagchi%20%26%20Siddharth%20Bhavsar%20_%20Stotra%20For%20Peace%20%26%20Divine%20Blessings.mp4',
-        imageBg: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=1400&fit=crop&q=90',
+        imageBg: 'https://images.unsplash.com/photo-1517816743773-6e0d765cdc96?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~52 min',
         isLong: true,
         category: 'Sahasranamam',
@@ -121,8 +120,7 @@ const MANTRA_REELS: MantraReel[] = [
         meaning: 'I bow to Lord Shiva — the five elements, the inner self and universal consciousness',
         color: '#a78bfa',
         secondColor: '#4f46e5',
-        audioSrc: '/Slide%20Videos/Om%20Namah%20Shivaay%F0%9F%99%8F%F0%9F%8F%BB%F0%9F%9B%95...%F0%9F%93%8D%F0%9F%93%8C%20Timbersaim%20Mahadev%20(%20Chota%20Kailash%20)%20..%23temple%20%23shiv%20%23shiva%20%23mahad.mp4',
-        videoSrc: '/Slide%20Videos/Om%20Namah%20Shivaay%F0%9F%99%8F%F0%9F%8F%BB%F0%9F%9B%95...%F0%9F%93%8D%F0%9F%93%8C%20Timbersaim%20Mahadev%20(%20Chota%20Kailash%20)%20..%23temple%20%23shiv%20%23shiva%20%23mahad.mp4',
+        audioSrc: '/audio/Om%20Namah%20Shivaya.mp3',
         imageBg: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~5 min',
         isLong: false,
@@ -141,7 +139,6 @@ const MANTRA_REELS: MantraReel[] = [
         color: '#34d399',
         secondColor: '#059669',
         audioSrc: 'https://ik.imagekit.io/rcsesr4xf/shanti-path.mp3',
-        videoSrc: '/Slide%20Videos/kailash11.mp4',
         imageBg: 'https://images.unsplash.com/photo-1455156218388-5e61b526818b?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~10 min',
         isLong: false,
@@ -160,7 +157,6 @@ const MANTRA_REELS: MantraReel[] = [
         color: '#f97316',
         secondColor: '#c2410c',
         audioSrc: '/audio/Powerful Hanuman Chalisa  HanuMan  Teja Sajja  Saicharan  Hanuman Jayanti Song  Jai Hanuman.mp3',
-        videoSrc: '/Slide%20Videos/Dhyan7.mp4',
         imageBg: 'https://images.unsplash.com/photo-1609619385002-f40f1df9b7eb?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~7 min',
         isLong: false,
@@ -179,7 +175,6 @@ const MANTRA_REELS: MantraReel[] = [
         color: '#ef4444',
         secondColor: '#b91c1c',
         audioSrc: 'https://ik.imagekit.io/aup4wh6lq/DainikAgnihotra.mp3?updatedAt=1771246817070',
-        videoSrc: '/Slide%20Videos/%E0%A4%AD%E0%A5%82%E0%A4%B0%E0%A4%97%E0%A5%8D%E0%A4%A8%E0%A4%AF%E0%A5%87%20%E0%A4%B8%E0%A5%8D%E0%A4%B5%E0%A4%BE%E0%A4%B9%E0%A4%BE.mp4',
         imageBg: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~15 min',
         isLong: true,
@@ -192,13 +187,12 @@ const MANTRA_REELS: MantraReel[] = [
         nameHi: 'रुद्राष्टकम्',
         deity: 'Rudra — The Fierce Shiva',
         deityHi: 'रुद्र — भगवान शिव',
-        mantraText: 'नमामीशमीशान निर्वाणरूपं\nविभुं व्यापकं ब्रह्मवेदस्वरूपम् ।\nनिजं निर्गुणं निर्विकल्पं निरीहं\nचिदाकाशामाकाशवासं भजेऽहम् ॥',
+        mantraText: 'नमामीशमीशान निर्वाणरूपं\nविभुं व्यापकं ब्रह्मवेदस्वरूपम् ।\nनिजं निर्गुणं निर्विकल्पं निरीहं\nचिदाकाशमाकाशवासं भजेऽहम् ॥',
         transliteration: 'Namami Isham Ishan Nirvana Rupam',
         meaning: 'I bow to Shiva who is the essence of liberation, all-pervading and the form of Vedas',
         color: '#60a5fa',
         secondColor: '#1d4ed8',
         audioSrc: '/audio/Agam - Rudrashtakam  रदरषटकम  Most POWERFUL Shiva Mantras Ever  Lyrical Video  Shiv.mp3',
-        videoSrc: '/Slide%20Videos/Kedar.mp4',
         imageBg: 'https://images.unsplash.com/photo-1455156218388-5e61b526818b?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~8 min',
         isLong: false,
@@ -217,7 +211,6 @@ const MANTRA_REELS: MantraReel[] = [
         color: '#fbbf24',
         secondColor: '#b45309',
         audioSrc: 'https://ik.imagekit.io/rcsesr4xf/BrahmaYagya.mp3',
-        videoSrc: '/Slide%20Videos/Dhyan4.mp4',
         imageBg: 'https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~20 min',
         isLong: true,
@@ -235,6 +228,7 @@ const MANTRA_REELS: MantraReel[] = [
         meaning: 'I worship Kaal Bhairav of Kashi, worshipped by the king of gods, the Lord of Time',
         color: '#818cf8',
         secondColor: '#4f46e5',
+        // This is a real content video
         audioSrc: 'https://ik.imagekit.io/aup4wh6lq/Kaal%20Bhairav%20Ashtakam%20_%20Tanuku%20Sisters%20_%20@DivineDharohar.mp4',
         videoSrc: 'https://ik.imagekit.io/aup4wh6lq/Kaal%20Bhairav%20Ashtakam%20_%20Tanuku%20Sisters%20_%20@DivineDharohar.mp4',
         imageBg: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=1400&fit=crop&q=90',
@@ -255,30 +249,257 @@ const MANTRA_REELS: MantraReel[] = [
         color: '#c084fc',
         secondColor: '#9333ea',
         audioSrc: 'https://ik.imagekit.io/aup4wh6lq/Most%20powerful%20Maheshvara%20Su%CC%84tram%20_%20the%20primal%20sound%20of%20creation.%E0%A4%AE%E0%A4%BE%E0%A4%B9%E0%A5%87%E0%A4%B6%E0%A5%8D%E0%A4%B5%E0%A4%B0%20%E0%A4%B8%E0%A5%82%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%AE%E0%A5%8D%20_%20%E0%A4%9C%E0%A4%BF%E0%A4%B8%E0%A4%B8%E0%A5%87%20%E0%A4%B8%E0%A4%AE%E0%A5%8D%E0%A4%AA%E0%A5%82%E0%A4%B0%E0%A5%8D%E0%A4%A3.mp4',
-        videoSrc: 'https://ik.imagekit.io/aup4wh6lq/Most%20powerful%20Maheshvara%20Su%CC%84tram%20_%20the%20primal%20sound%20of%20creation.%E0%A4%AE%E0%A4%BE%E0%A4%B9%E0%A5%87%E0%A4%B6%E0%A5%8D%E0%A4%B5%E0%A4%B0%20%E0%A4%B8%E0%A5%82%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%AE%E0%A5%8D%20_%20%E0%A4%9C%E0%A4%BF%E0%A4%B8%E0%A4%B8%E0%A5%87%20%E0%A4%B8%E0%A4%AE%E0%A5%8D%E0%A4%AA%E0%A5%82%E0%A4%B0%E0%A5%8D%E0%A4%A3.mp4',
         imageBg: 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=800&h=1400&fit=crop&q=90',
         durationLabel: '~3 min',
         isLong: false,
         category: 'Vedic Mantra',
         emoji: '🌀',
     },
+    // ── Dhyan Kshetra exclusive items ──────────────────────────────────────────
+    {
+        id: 'guru-shishya',
+        name: 'Guru Shishya Mantra',
+        nameHi: 'गुरु शिष्य मंत्र',
+        deity: 'Gurukul — Sacred Bond',
+        deityHi: 'गुरुकुल — पवित्र बंधन',
+        mantraText: 'ॐ सह नाववतु ।\nसह नौ भुनक्तु ।\nसह वीर्यं करवावहै ॥',
+        transliteration: 'Om Saha Nau Avatu — May we be protected together',
+        meaning: 'May we be protected together, nourished together and work with great energy together',
+        color: '#fbbf24',
+        secondColor: '#d97706',
+        audioSrc: '/audio/Om_Sahana_Vavatu_Shanti_Mantra.mp3',
+        imageBg: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&h=1400&fit=crop&q=90',
+        durationLabel: '~5 min',
+        isLong: false,
+        category: 'Vedic Mantra',
+        emoji: '🪔',
+    },
+    {
+        id: 'agnihotra-shantipath',
+        name: 'Agnihotra Shantipath',
+        nameHi: 'अग्निहोत्र शांतिपाठ',
+        deity: 'Agni — Universal Peace',
+        deityHi: 'अग्नि — सर्वलोक शांति',
+        mantraText: 'ॐ स्वस्ति न इन्द्रो वृद्धश्रवाः ।\nस्वस्ति नः पूषा विश्ववेदाः ।\nस्वस्ति नस्तार्क्ष्यो अरिष्टनेमिः ॥',
+        transliteration: 'Om Svasti Na Indro — May great Indra bless us',
+        meaning: 'May Indra bless us, may Pusha the Sun bless us — Vedic chants for universal peace and well-being',
+        color: '#f97316',
+        secondColor: '#c2410c',
+        audioSrc: '/audio/Agnihotra_Shantipath_-_Vedic_Chants_for_Universal_Peace_and_Well-Being_part_2_(mp3.pm).mp3',
+        imageBg: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=1400&fit=crop&q=90',
+        durationLabel: '~12 min',
+        isLong: false,
+        category: 'Vedic Ritual',
+        emoji: '🔥',
+    },
+    {
+        id: 'rudri-path',
+        name: 'Complete Rudri Path',
+        nameHi: 'सम्पूर्ण रुद्री पाठ',
+        deity: 'Rudra — 21 Brahmins Chanting',
+        deityHi: 'रुद्र — 21 ब्राह्मण गायन',
+        mantraText: 'नमस्ते रुद्र मन्यवे\nउतो त इषवे नमः ।\nनमस्ते अस्तु धन्वने\nबाहुभ्यामुत ते नमः ॥',
+        transliteration: 'Namaste Rudra Manyave — Salutations to Rudra',
+        meaning: 'Salutations to the fierce Rudra — complete Rudri Path chanted in sacred unison by 21 Brahmins',
+        color: '#818cf8',
+        secondColor: '#4f46e5',
+        audioSrc: 'https://ik.imagekit.io/aup4wh6lq/Complete%20Rudri%20Path%20with%20Lyrics%20_%20Vedic%20Chanting%20by%2021%20Brahmins.mp4',
+        videoSrc: 'https://ik.imagekit.io/aup4wh6lq/Complete%20Rudri%20Path%20with%20Lyrics%20_%20Vedic%20Chanting%20by%2021%20Brahmins.mp4',
+        imageBg: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&h=1400&fit=crop&q=90',
+        durationLabel: '~1 hr',
+        isLong: true,
+        category: 'Vedic Chanting',
+        emoji: '🏔️',
+    },
+    {
+        id: 'shiv-shakti-energy',
+        name: 'Shiv Shakti Energy',
+        nameHi: 'शिव शक्ति ऊर्जा',
+        deity: 'Shiva & Shakti — Cosmic Energy',
+        deityHi: 'शिव-शक्ति — ब्रह्मांडीय ऊर्जा',
+        mantraText: 'हर हर महादेव\nॐ नमः शिवाय\nशिव शक्ति ॐ ॥',
+        transliteration: 'Har Har Mahadev — Feel the Divine Energy',
+        meaning: 'Feel the divine cosmic energy of Shiva and Shakti flowing through you in every breath',
+        color: '#a78bfa',
+        secondColor: '#7c3aed',
+        audioSrc: 'https://ik.imagekit.io/aup4wh6lq/Just%20feel%20the%20energy%20____Follow%20@fmccreators%20for%20more_%E0%A4%B9%E0%A4%B0%20%E0%A4%B9%E0%A4%B0%20%E0%A4%AE%E0%A4%B9%E0%A4%BE%E0%A4%A6%E0%A5%87%E0%A4%B5%20__%E0%A4%9C%E0%A4%AF%20%E0%A4%B6%E0%A4%82%E0%A4%95%E0%A4%B0%20___Do%20like.mp4',
+        videoSrc: 'https://ik.imagekit.io/aup4wh6lq/Just%20feel%20the%20energy%20____Follow%20@fmccreators%20for%20more_%E0%A4%B9%E0%A4%B0%20%E0%A4%B9%E0%A4%B0%20%E0%A4%AE%E0%A4%B9%E0%A4%BE%E0%A4%A6%E0%A5%87%E0%A4%B5%20__%E0%A4%9C%E0%A4%AF%20%E0%A4%B6%E0%A4%82%E0%A4%95%E0%A4%B0%20___Do%20like.mp4',
+        imageBg: 'https://images.unsplash.com/photo-1455156218388-5e61b526818b?w=800&h=1400&fit=crop&q=90',
+        durationLabel: '~3 min',
+        isLong: false,
+        category: 'Shakti',
+        emoji: '⚡',
+    },
+    {
+        id: 'ardhanarishvara',
+        name: 'Ardhanarishvara',
+        nameHi: 'अर्धनारीश्वर',
+        deity: 'Ardhanarishvara — Half Woman Lord',
+        deityHi: 'अर्धनारीश्वर — शिव-शक्ति एकत्व',
+        mantraText: 'ॐ अर्धनारीश्वराय नमः ।\nशिव शक्त्यात्मने नमः ।\nपरमशिवाय नमः ॥',
+        transliteration: 'Om Ardhanarishvaraya Namah',
+        meaning: 'The Lord who is half-woman — perfect synthesis of masculine and feminine cosmic energies',
+        color: '#f472b6',
+        secondColor: '#9333ea',
+        audioSrc: 'https://ik.imagekit.io/aup4wh6lq/The%20_Lord%20who%20is%20half%20woman_%20signifies%20the%20perfect%20synthesis%20of%20masculine%20and%20feminine%20energies,.mp4',
+        videoSrc: 'https://ik.imagekit.io/aup4wh6lq/The%20_Lord%20who%20is%20half%20woman_%20signifies%20the%20perfect%20synthesis%20of%20masculine%20and%20feminine%20energies,.mp4',
+        imageBg: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&h=1400&fit=crop&q=90',
+        durationLabel: '~2 min',
+        isLong: false,
+        category: 'Shakti Mantra',
+        emoji: '🌸',
+    },
+    {
+        id: 'shiv-swarnamala',
+        name: 'Shiv Swarnamala Stuti',
+        nameHi: 'शिव स्वर्णमाला स्तुति',
+        deity: 'Mahadev — Golden Garland Hymn',
+        deityHi: 'महादेव — स्वर्णमाला स्तुति',
+        mantraText: 'ॐ नमः शिवाय शुभाय\nशङ्करप्रियाय स्वाहा\nशिव स्वर्णमाला स्तुति ॥',
+        transliteration: 'Om Namah Shivaya Shubhaya — Shiv Swarnamala',
+        meaning: 'The golden garland hymn to Lord Shiva — each verse a golden bead of pure devotion',
+        color: '#fbbf24',
+        secondColor: '#b45309',
+        audioSrc: 'https://ik.imagekit.io/aup4wh6lq/Shiv%20Swarnamala%20Stuti%20_%E2%9D%A4%EF%B8%8F%20I%20Verse%20-%207%20_.Follow%20@aumm_namah_shivay%20for%20more%20%E2%9D%A4%EF%B8%8F%20.._mahadev%20_shiv.mp4',
+        videoSrc: 'https://ik.imagekit.io/aup4wh6lq/Shiv%20Swarnamala%20Stuti%20_%E2%9D%A4%EF%B8%8F%20I%20Verse%20-%207%20_.Follow%20@aumm_namah_shivay%20for%20more%20%E2%9D%A4%EF%B8%8F%20.._mahadev%20_shiv.mp4',
+        imageBg: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=1400&fit=crop&q=90',
+        durationLabel: '~4 min',
+        isLong: false,
+        category: 'Stotra',
+        emoji: '🏅',
+    },
+    {
+        id: 'nad-chikitsa',
+        name: 'Nad Chikitsa — Sound Healing',
+        nameHi: 'नाद चिकित्सा',
+        deity: 'Nada Brahman — Sound is God',
+        deityHi: 'नादब्रह्म — ध्वनि ईश्वर है',
+        mantraText: 'नाद ब्रह्म विश्वस्वरूपम् ।\nनाद से उत्पन्न जगत् ।\nनाद चिकित्सा — ध्वनि उपचार ॥',
+        transliteration: 'Nada Brahma Vishvasvarupam — Sound is the form of God',
+        meaning: 'Sound has power to heal — ancient wisdom of sound therapy and healing frequencies for the soul',
+        color: '#22d3ee',
+        secondColor: '#0891b2',
+        audioSrc: 'https://ik.imagekit.io/aup4wh6lq/Most%20people%20don_t%20realize%20it,%20but%20sound%20has%20the%20power%20to%20heal%20-%20or%20harm.%20There_s%20a%20reason%20why%20an.mp4',
+        videoSrc: 'https://ik.imagekit.io/aup4wh6lq/Most%20people%20don_t%20realize%20it,%20but%20sound%20has%20the%20power%20to%20heal%20-%20or%20harm.%20There_s%20a%20reason%20why%20an.mp4',
+        imageBg: 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=800&h=1400&fit=crop&q=90',
+        durationLabel: '~3 min',
+        isLong: false,
+        category: 'Sound Healing',
+        emoji: '🎶',
+    },
+    {
+        id: 'mahadev-nav-varsh',
+        name: 'Mahadev — Nav Varsh',
+        nameHi: 'महादेव — नव वर्ष',
+        deity: 'Mahadev — New Year Blessings',
+        deityHi: 'महादेव — नव वर्ष आशीर्वाद',
+        mantraText: 'हर हर महादेव\nनव वर्ष की हार्दिक\nशुभकामनाएं ॥',
+        transliteration: 'Har Har Mahadev — Nav Varsh Shubhkamnaen',
+        meaning: 'New Year blessings from Lord Shiva — may the new year bring divine light and transformation',
+        color: '#f97316',
+        secondColor: '#c2410c',
+        audioSrc: 'https://ik.imagekit.io/aup4wh6lq/%E0%A4%86%E0%A4%AA%20%E0%A4%B8%E0%A4%AD%E0%A5%80%20%E0%A4%95%E0%A5%8B%20%E0%A4%A8%E0%A4%B5%20%E0%A4%B5%E0%A4%B0%E0%A5%8D%E0%A4%B7%20%E0%A4%95%E0%A5%80%20%E0%A4%B9%E0%A4%BE%E0%A4%B0%E0%A5%8D%E0%A4%A6%E0%A4%BF%E0%A4%95%20%E0%A4%AC%E0%A4%A7%E0%A4%BE%E0%A4%88%20%E0%A4%8F%E0%A4%B5%E0%A4%82%20%E0%A4%B6%E0%A5%81%E0%A4%AD%E0%A4%95%E0%A4%BE%E0%A4%AE%E0%A4%A8%E0%A4%BE%E0%A4%8F%E0%A4%81_%E0%A4%B9%E0%A4%B0%20%E0%A4%B9%E0%A4%B0%20%E0%A4%AE%E0%A4%B9%E0%A4%BE%E0%A4%A6%E0%A5%87%E0%A4%B5____.mp4',
+        videoSrc: 'https://ik.imagekit.io/aup4wh6lq/%E0%A4%86%E0%A4%AA%20%E0%A4%B8%E0%A4%AD%E0%A5%80%20%E0%A4%95%E0%A5%8B%20%E0%A4%A8%E0%A4%B5%20%E0%A4%B5%E0%A4%B0%E0%A5%8D%E0%A4%B7%20%E0%A4%95%E0%A5%80%20%E0%A4%B9%E0%A4%BE%E0%A4%B0%E0%A5%8D%E0%A4%A6%E0%A4%BF%E0%A4%95%20%E0%A4%AC%E0%A4%A7%E0%A4%BE%E0%A4%88%20%E0%A4%8F%E0%A4%B5%E0%A4%82%20%E0%A4%B6%E0%A5%81%E0%A4%AD%E0%A4%95%E0%A4%BE%E0%A4%AE%E0%A4%A8%E0%A4%BE%E0%A4%8F%E0%A4%81_%E0%A4%B9%E0%A4%B0%20%E0%A4%B9%E0%A4%B0%20%E0%A4%AE%E0%A4%B9%E0%A4%BE%E0%A4%A6%E0%A5%87%E0%A4%B5____.mp4',
+        imageBg: 'https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=800&h=1400&fit=crop&q=90',
+        durationLabel: '~2 min',
+        isLong: false,
+        category: 'Celebration',
+        emoji: '🎊',
+    },
+    {
+        id: 'mahashivratri-special',
+        name: 'Mahashivratri Special',
+        nameHi: 'महाशिवरात्रि विशेष',
+        deity: 'Shiva — The Great Night',
+        deityHi: 'शिव — महारात्रि दर्शन',
+        mantraText: 'ॐ नमः शिवाय\nमहाशिवरात्रि की\nहार्दिक शुभकामनाएं ॥',
+        transliteration: 'Om Namah Shivaya — Mahashivratri Special',
+        meaning: 'On the great night of Shiva, we offer salutations — transcend darkness and attain liberation',
+        color: '#c084fc',
+        secondColor: '#7c3aed',
+        audioSrc: '/videos/mahashivratri_darshan.mp4',
+        videoSrc: '/videos/mahashivratri_darshan.mp4',
+        imageBg: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&h=1400&fit=crop&q=90',
+        durationLabel: '~5 min',
+        isLong: false,
+        category: 'Festival',
+        emoji: '🔱',
+    },
+    {
+        id: 'shri-suktam',
+        name: 'Shri Suktam',
+        nameHi: 'श्री सूक्तम्',
+        deity: 'Lakshmi — Goddess of Abundance',
+        deityHi: 'लक्ष्मी — समृद्धि देवी',
+        mantraText: 'हिरण्यवर्णां हरिणीं\nसुवर्णरजतस्रजाम् ।\nचन्द्रां हिरण्मयीं लक्ष्मीं\nजातवेदो म आवह ॥',
+        transliteration: 'Hiranyavarnam Harineem — Golden Lakshmi come to me',
+        meaning: 'O golden Lakshmi, wearing gold and silver garlands — bless us with divine abundance',
+        color: '#fbbf24',
+        secondColor: '#d97706',
+        audioSrc: '/audio/Challakere_Brothers_vedic_chanting_-_Shri_suktam_(mp3.pm).mp3',
+        imageBg: 'https://images.unsplash.com/photo-1600959907703-571a4f1f9fc4?w=800&h=1400&fit=crop&q=90',
+        durationLabel: '~12 min',
+        isLong: false,
+        category: 'Suktam',
+        emoji: '🪷',
+    },
+    {
+        id: 'narayana-suktam',
+        name: 'Narayana Suktam',
+        nameHi: 'नारायण सूक्तम्',
+        deity: 'Narayana — Universal Cosmic Prayer',
+        deityHi: 'नारायण — ब्रह्मांड प्रार्थना',
+        mantraText: 'ॐ सहस्रशीर्षा पुरुषः\nसहस्राक्षः सहस्रपात् ।\nस भूमिं विश्वतो वृत्वा\nअत्यतिष्ठद्दशाङ्गुलम् ॥',
+        transliteration: 'Om Sahasrashirsha Purushah — The Universal Cosmic Being',
+        meaning: 'The Universal Cosmic Person with a thousand heads and eyes — Narayana pervades the universe',
+        color: '#38bdf8',
+        secondColor: '#0369a1',
+        audioSrc: '/audio/Anant_-_a_collection_of_vedic_chants_-_05._Narayana_Suktam_(mp3.pm).mp3',
+        imageBg: 'https://images.unsplash.com/photo-1517816743773-6e0d765cdc96?w=800&h=1400&fit=crop&q=90',
+        durationLabel: '~15 min',
+        isLong: false,
+        category: 'Suktam',
+        emoji: '🪷',
+    },
+    {
+        id: 'virija-homa',
+        name: 'Virija Homa Mantra',
+        nameHi: 'विरजा होम मंत्र',
+        deity: 'Agni — Sacred Fire Ritual',
+        deityHi: 'अग्नि — यज्ञ अनुष्ठान',
+        mantraText: 'ॐ विरजा होम मंत्र\nपावन अग्नि में\nआहुति समर्पण ॥',
+        transliteration: 'Om Virija Homa Mantra — Sacred Fire Offering',
+        meaning: 'The sacred Virija Homa fire ritual — purification through fire and sacred Vedic offerings',
+        color: '#ef4444',
+        secondColor: '#b91c1c',
+        audioSrc: '/audio/Virija Homa Mantra  Uma Mohan  Promod Shanker  Times Music Spiritual.mp3',
+        imageBg: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=1400&fit=crop&q=90',
+        durationLabel: '~10 min',
+        isLong: false,
+        category: 'Vedic Ritual',
+        emoji: '🪔',
+    },
 ];
 
 // ═══════════════════════════════════════════════════════════
-//  AUDIO WAVEFORM ANIMATION — Pure CSS, 5 bars
+//  AUDIO WAVEFORM — 5 animated bars (same as Dhyan Kshetra)
 // ═══════════════════════════════════════════════════════════
 function AudioWaveform({ playing, color }: { playing: boolean; color: string }) {
     return (
-        <div style={{
-            display: 'flex', alignItems: 'flex-end', gap: 3, height: 26,
-            padding: '0 2px',
-        }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 26, padding: '0 2px' }}>
             <style>{`
                 @keyframes waveBar1 { 0%,100%{height:6px} 50%{height:22px} }
                 @keyframes waveBar2 { 0%,100%{height:12px} 40%{height:8px} 70%{height:24px} }
                 @keyframes waveBar3 { 0%,100%{height:18px} 35%{height:6px} 65%{height:22px} }
                 @keyframes waveBar4 { 0%,100%{height:8px} 50%{height:20px} }
                 @keyframes waveBar5 { 0%,100%{height:14px} 55%{height:6px} }
+                @keyframes waveRing1 { 0%,100%{transform:scale(1);opacity:0.55} 50%{transform:scale(1.08);opacity:0.35} }
+                @keyframes waveRing2 { 0%,100%{transform:scale(1);opacity:0.44} 50%{transform:scale(1.13);opacity:0.26} }
+                @keyframes waveRing3 { 0%,100%{transform:scale(1);opacity:0.28} 50%{transform:scale(1.17);opacity:0.15} }
+                @keyframes waveRing4 { 0%,100%{transform:scale(1);opacity:0.18} 50%{transform:scale(1.21);opacity:0.09} }
+                @keyframes waveRing5 { 0%,100%{transform:scale(1);opacity:0.10} 50%{transform:scale(1.26);opacity:0.05} }
+                @keyframes orbPulse   { 0%,100%{transform:scale(1)} 50%{transform:scale(1.07)} }
+                @keyframes reelBgScale { 0%{transform:scale(1.0)} 100%{transform:scale(1.06)} }
             `}</style>
             {[1, 2, 3, 4, 5].map(i => (
                 <div key={i} style={{
@@ -296,9 +517,6 @@ function AudioWaveform({ playing, color }: { playing: boolean; color: string }) 
     );
 }
 
-// ═══════════════════════════════════════════════════════════
-//  FORMAT TIME
-// ═══════════════════════════════════════════════════════════
 function formatTime(s: number) {
     const m = Math.floor(s / 60);
     const sec = Math.floor(s % 60);
@@ -306,160 +524,196 @@ function formatTime(s: number) {
 }
 
 // ═══════════════════════════════════════════════════════════
-//  SINGLE REEL CARD — Full-screen snap slot
+//  SINGLE REEL CARD
 // ═══════════════════════════════════════════════════════════
-function MantraReelCard({
-    reel,
-    isActive,
-    onPlayPause,
-}: {
-    reel: MantraReel;
-    isActive: boolean;
-    onPlayPause?: () => void;
-}) {
+function MantraReelCard({ reel, isActive, reelIndex }: { reel: MantraReel; isActive: boolean; reelIndex: number }) {
     const audioRef = useRef<HTMLAudioElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const [playing, setPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
-    const [loaded, setLoaded] = useState(false);
     const [showMantra, setShowMantra] = useState(false);
-    const isVideoSrc = reel.videoSrc !== undefined;
+    const [liked, setLiked] = useState(false);
+    const [likeCount, setLikeCount] = useState(800 + (reelIndex * 347) % 3000);
 
-    // When isActive changes — auto-play/pause audio
+    // Auto-play/pause when active changes
     useEffect(() => {
-        const audio = audioRef.current;
-        if (!audio) return;
-
-        if (isActive) {
-            // Small delay so scroll settles
-            const t = setTimeout(() => {
-                audio.play().then(() => setPlaying(true)).catch(() => { });
-                setShowMantra(true);
-            }, 350);
-            return () => clearTimeout(t);
+        if (reel.videoSrc) {
+            const vid = videoRef.current;
+            if (!vid) return;
+            if (isActive) {
+                const t = setTimeout(() => {
+                    vid.muted = false;
+                    vid.play()
+                        .then(() => setPlaying(true))
+                        .catch(() => {
+                            vid.muted = true;
+                            vid.play().then(() => setPlaying(true)).catch(() => { });
+                        });
+                    setShowMantra(true);
+                }, 350);
+                return () => clearTimeout(t);
+            } else {
+                vid.pause();
+                setPlaying(false);
+                setShowMantra(false);
+            }
         } else {
-            audio.pause();
-            setPlaying(false);
-            setShowMantra(false);
+            const audio = audioRef.current;
+            if (!audio) return;
+            if (isActive) {
+                const t = setTimeout(() => {
+                    audio.play().then(() => setPlaying(true)).catch(() => { });
+                    setShowMantra(true);
+                }, 350);
+                return () => clearTimeout(t);
+            } else {
+                audio.pause();
+                setPlaying(false);
+                setShowMantra(false);
+            }
         }
-    }, [isActive]);
-
-    // Sync video mute (bg videos always muted)
-    useEffect(() => {
-        const vid = videoRef.current;
-        if (!vid) return;
-        vid.muted = true;
-        if (isActive) {
-            vid.play().catch(() => { });
-        } else {
-            vid.pause();
-        }
-    }, [isActive]);
+    }, [isActive, reel.videoSrc]);
 
     const togglePlay = useCallback(() => {
-        const audio = audioRef.current;
-        if (!audio) return;
-        if (playing) {
-            audio.pause();
-            setPlaying(false);
+        if (reel.videoSrc) {
+            const vid = videoRef.current;
+            if (!vid) return;
+            if (playing) { vid.pause(); setPlaying(false); }
+            else { vid.play().then(() => setPlaying(true)).catch(() => { }); }
         } else {
-            audio.play().then(() => setPlaying(true)).catch(() => { });
+            const audio = audioRef.current;
+            if (!audio) return;
+            if (playing) { audio.pause(); setPlaying(false); }
+            else { audio.play().then(() => setPlaying(true)).catch(() => { }); }
         }
-    }, [playing]);
+    }, [playing, reel.videoSrc]);
 
     const handleSeek = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-        const audio = audioRef.current;
-        if (!audio || !duration) return;
         const rect = e.currentTarget.getBoundingClientRect();
-        const pct = (e.clientX - rect.left) / rect.width;
-        audio.currentTime = pct * duration;
-    }, [duration]);
+        const ratio = (e.clientX - rect.left) / rect.width;
+        if (reel.videoSrc) {
+            const vid = videoRef.current;
+            if (!vid || !duration) return;
+            vid.currentTime = ratio * duration;
+        } else {
+            const audio = audioRef.current;
+            if (!audio || !duration) return;
+            audio.currentTime = ratio * duration;
+        }
+    }, [duration, reel.videoSrc]);
 
     const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
     return (
         <div style={{
-            position: 'relative',
-            width: '100%',
-            height: '100dvh',
-            scrollSnapAlign: 'start',
-            overflow: 'hidden',
-            background: '#000',
-            flexShrink: 0,
+            position: 'relative', width: '100%', height: '100dvh',
+            scrollSnapAlign: 'start', overflow: 'hidden',
+            background: '#000', flexShrink: 0,
         }}>
-            {/* Background video or image */}
-            {isVideoSrc ? (
+            {/* ── BACKGROUND ── */}
+            {reel.videoSrc ? (
+                // Video content reel — play fullscreen with audio
                 <video
                     ref={videoRef}
                     src={reel.videoSrc}
-                    muted
-                    loop
-                    playsInline
+                    loop playsInline
                     preload={isActive ? 'auto' : 'none'}
+                    onTimeUpdate={() => setCurrentTime(videoRef.current?.currentTime || 0)}
+                    onDurationChange={() => setDuration(videoRef.current?.duration || 0)}
+                    onEnded={() => setPlaying(false)}
                     style={{
                         position: 'absolute', inset: 0,
                         width: '100%', height: '100%',
                         objectFit: 'cover',
-                        filter: 'brightness(0.55) saturate(1.2)',
+                        filter: 'brightness(0.48) saturate(1.2)',
                     }}
                 />
             ) : (
-                <div style={{
-                    position: 'absolute', inset: 0,
-                    backgroundImage: `url(${reel.imageBg})`,
-                    backgroundSize: 'cover', backgroundPosition: 'center',
-                    filter: 'brightness(0.5) saturate(1.2)',
-                    animation: isActive ? 'reelBgScale 30s ease-in-out infinite alternate' : 'none',
-                }} />
+                // Audio reel — image background + sacred wave rings
+                <>
+                    <div style={{
+                        position: 'absolute', inset: 0,
+                        backgroundImage: `url(${reel.imageBg})`,
+                        backgroundSize: 'cover', backgroundPosition: 'center',
+                        filter: 'brightness(0.38) saturate(1.35)',
+                        animation: isActive ? 'reelBgScale 30s ease-in-out infinite alternate' : 'none',
+                    }} />
+
+                    {/* Sacred wave ring visualization */}
+                    {isActive && (
+                        <div style={{
+                            position: 'absolute', inset: 0,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            pointerEvents: 'none',
+                        }}>
+                            {[0, 1, 2, 3, 4].map((i) => (
+                                <div key={i} style={{
+                                    position: 'absolute',
+                                    width: `${100 + i * 65}px`,
+                                    height: `${100 + i * 65}px`,
+                                    borderRadius: '50%',
+                                    border: `${Math.max(0.5, 2 - i * 0.35)}px solid ${reel.color}`,
+                                    opacity: playing ? (0.55 - i * 0.10) : (0.15 - i * 0.02),
+                                    animation: playing
+                                        ? `waveRing${i + 1} ${1.8 + i * 0.5}s ease-in-out ${i * 0.22}s infinite`
+                                        : 'none',
+                                    transition: 'opacity 0.7s ease',
+                                    boxShadow: playing ? `0 0 ${16 + i * 8}px ${reel.color}44` : 'none',
+                                }} />
+                            ))}
+
+                            {/* Center emoji orb */}
+                            <div style={{
+                                width: 84, height: 84, borderRadius: '50%',
+                                background: `radial-gradient(circle at 38% 32%, ${reel.color}55 0%, ${reel.color}18 55%, transparent 80%)`,
+                                border: `1.5px solid ${reel.color}66`,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '2.2rem',
+                                boxShadow: `0 0 40px ${reel.color}55, 0 0 80px ${reel.color}22`,
+                                animation: playing ? 'orbPulse 2.5s ease-in-out infinite' : 'none',
+                                transition: 'box-shadow 0.7s ease',
+                            }}>
+                                {reel.emoji}
+                            </div>
+                        </div>
+                    )}
+                </>
             )}
 
             {/* Gradient overlays */}
             <div style={{
                 position: 'absolute', inset: 0,
-                background: `linear-gradient(
-                    180deg,
-                    rgba(0,0,0,0.65) 0%,
-                    transparent 25%,
-                    transparent 50%,
-                    rgba(0,0,0,0.72) 80%,
-                    rgba(0,0,0,0.94) 100%
-                )`,
+                background: `linear-gradient(180deg, rgba(0,0,0,0.65) 0%, transparent 28%, transparent 52%, rgba(0,0,0,0.75) 80%, rgba(0,0,0,0.95) 100%)`,
                 pointerEvents: 'none',
             }} />
-
-            {/* Accent color glow */}
             <div style={{
                 position: 'absolute', inset: 0,
-                background: `radial-gradient(ellipse at 50% 30%, ${reel.color}18 0%, transparent 60%)`,
+                background: `radial-gradient(ellipse at 50% 30%, ${reel.color}14 0%, transparent 60%)`,
                 pointerEvents: 'none',
             }} />
 
-            {/* TOP: Category + name badge */}
+            {/* ── TOP HEADER ── */}
             <div style={{
                 position: 'absolute', top: 0, left: 0, right: 0,
                 padding: '2.2rem 1.2rem 0.8rem',
                 background: 'linear-gradient(180deg, rgba(0,0,0,0.72) 0%, transparent 100%)',
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                    {/* Category pill */}
                     <div style={{
                         display: 'inline-flex', alignItems: 'center', gap: 6,
-                        background: `${reel.color}22`,
-                        border: `1px solid ${reel.color}55`,
+                        background: `${reel.color}20`, border: `1px solid ${reel.color}50`,
                         borderRadius: 999, padding: '0.22rem 0.8rem',
                         backdropFilter: 'blur(12px)',
                     }}>
                         <span style={{ fontSize: '0.85rem' }}>{reel.emoji}</span>
                         <span style={{
-                            fontSize: '0.48rem', fontWeight: 800,
-                            color: reel.color, letterSpacing: '0.12em',
-                            textTransform: 'uppercase', fontFamily: "'Inter', sans-serif",
+                            fontSize: '0.48rem', fontWeight: 800, color: reel.color,
+                            letterSpacing: '0.12em', textTransform: 'uppercase',
+                            fontFamily: "'Inter', sans-serif",
                             textShadow: `0 0 10px ${reel.color}99`,
                         }}>{reel.category}</span>
                     </div>
-
-                    {/* Duration badge */}
                     <div style={{
                         background: 'rgba(0,0,0,0.52)', backdropFilter: 'blur(8px)',
                         border: '1px solid rgba(255,255,255,0.12)',
@@ -469,7 +723,6 @@ function MantraReelCard({
                     }}>{reel.isLong ? '🎬 Long' : '⚡ Short'} · {reel.durationLabel}</div>
                 </div>
 
-                {/* Reel name */}
                 <motion.h2
                     initial={{ opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -477,10 +730,9 @@ function MantraReelCard({
                     style={{
                         fontFamily: "'Cormorant Garamond', 'Playfair Display', Georgia, serif",
                         fontSize: 'clamp(1.15rem, 4.5vw, 1.6rem)',
-                        fontWeight: 700,
-                        color: '#fff',
+                        fontWeight: 700, color: '#fff',
                         margin: '0.6rem 0 0.1rem',
-                        textShadow: `0 0 30px ${reel.color}66, 0 2px 8px rgba(0,0,0,0.8)`,
+                        textShadow: `0 0 30px ${reel.color}55, 0 2px 8px rgba(0,0,0,0.8)`,
                         lineHeight: 1.2,
                     }}
                 >
@@ -497,7 +749,7 @@ function MantraReelCard({
                 </p>
             </div>
 
-            {/* CENTER: Sanskrit mantra text */}
+            {/* ── CENTER: Sanskrit text (shown when playing) ── */}
             <AnimatePresence>
                 {showMantra && (
                     <motion.div
@@ -507,42 +759,34 @@ function MantraReelCard({
                         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
                         style={{
                             position: 'absolute',
-                            top: '50%', left: '50%',
-                            transform: 'translate(-50%, -50%)',
+                            top: '50%', left: 0, right: 0,
+                            transform: 'translateY(-50%)',
                             textAlign: 'center',
-                            padding: '0 1.5rem',
+                            padding: '0 1.8rem',
                             width: '100%',
+                            boxSizing: 'border-box' as const,
                             pointerEvents: 'none',
+                            overflow: 'hidden',
                         }}
                     >
-                        {/* Glowing halo behind text */}
                         <div style={{
                             position: 'absolute', inset: 0,
-                            background: `radial-gradient(ellipse at 50% 50%, ${reel.color}22 0%, transparent 70%)`,
+                            background: `radial-gradient(ellipse at 50% 50%, ${reel.color}18 0%, transparent 70%)`,
                             borderRadius: 24, filter: 'blur(20px)',
                         }} />
-
                         <p style={{
                             fontFamily: "'Noto Serif Devanagari', 'Mangal', serif",
                             fontSize: 'clamp(1.1rem, 4.5vw, 1.55rem)',
-                            lineHeight: 1.7,
-                            color: '#fff',
-                            fontWeight: 700,
+                            lineHeight: 1.7, color: '#fff', fontWeight: 700,
                             textShadow: `0 0 40px ${reel.color}99, 0 2px 16px rgba(0,0,0,0.95)`,
-                            whiteSpace: 'pre-line',
-                            margin: 0,
-                            position: 'relative', zIndex: 1,
+                            whiteSpace: 'pre-line', margin: 0, position: 'relative', zIndex: 1,
                         }}>
                             {reel.mantraText}
                         </p>
-
                         <p style={{
-                            fontFamily: "'Inter', sans-serif",
-                            fontSize: '0.58rem',
-                            color: `${reel.color}cc`,
-                            fontStyle: 'italic',
-                            marginTop: '0.8rem',
-                            letterSpacing: '0.04em',
+                            fontFamily: "'Inter', sans-serif", fontSize: '0.58rem',
+                            color: `${reel.color}cc`, fontStyle: 'italic',
+                            marginTop: '0.8rem', letterSpacing: '0.04em',
                             textShadow: `0 0 12px ${reel.color}66`,
                             position: 'relative', zIndex: 1,
                         }}>
@@ -552,14 +796,12 @@ function MantraReelCard({
                 )}
             </AnimatePresence>
 
-            {/* BOTTOM: Audio Player Panel */}
+            {/* ── BOTTOM: Player panel ── */}
             <div style={{
-                position: 'absolute',
-                bottom: 0, left: 0, right: 0,
+                position: 'absolute', bottom: 0, left: 0, right: 0,
                 padding: '0.8rem 1.2rem calc(1.5rem + env(safe-area-inset-bottom))',
                 background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 60%, transparent 100%)',
             }}>
-                {/* Meaning */}
                 <AnimatePresence>
                     {showMantra && (
                         <motion.p
@@ -567,12 +809,9 @@ function MantraReelCard({
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.5 }}
                             style={{
-                                fontFamily: "'Inter', sans-serif",
-                                fontSize: '0.62rem',
-                                color: 'rgba(255,255,255,0.65)',
-                                fontStyle: 'italic',
-                                lineHeight: 1.6,
-                                marginBottom: '0.75rem',
+                                fontFamily: "'Inter', sans-serif", fontSize: '0.62rem',
+                                color: 'rgba(255,255,255,0.65)', fontStyle: 'italic',
+                                lineHeight: 1.6, marginBottom: '0.75rem',
                             }}
                         >
                             ✦ {reel.meaning}
@@ -580,91 +819,98 @@ function MantraReelCard({
                     )}
                 </AnimatePresence>
 
-                {/* Glassmorphic player bar */}
+                {/* Glassmorphic player */}
                 <div style={{
                     background: 'rgba(0,0,0,0.5)',
                     backdropFilter: 'blur(20px) saturate(180%)',
-                    border: `1px solid ${reel.color}30`,
-                    borderRadius: 20,
-                    padding: '0.75rem 1rem',
-                    boxShadow: `0 0 30px ${reel.color}22, 0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)`,
+                    border: `1px solid ${reel.color}28`,
+                    borderRadius: 20, padding: '0.75rem 1rem',
+                    boxShadow: `0 0 30px ${reel.color}18, 0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)`,
                 }}>
-                    {/* Waveform + time */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
                         <AudioWaveform playing={playing} color={reel.color} />
                         <span style={{
                             fontSize: '0.5rem', color: 'rgba(255,255,255,0.55)',
-                            fontFamily: "'Inter', sans-serif", fontWeight: 600,
-                            letterSpacing: '0.05em',
+                            fontFamily: "'Inter', sans-serif", fontWeight: 600, letterSpacing: '0.05em',
                         }}>
                             {formatTime(currentTime)} / {reel.isLong ? reel.durationLabel : formatTime(duration)}
                         </span>
                     </div>
 
-                    {/* Progress bar — seekable */}
+                    {/* Progress bar */}
                     <div
                         onClick={handleSeek}
                         style={{
-                            height: 3, borderRadius: 99,
-                            background: 'rgba(255,255,255,0.12)',
+                            height: 3, borderRadius: 99, background: 'rgba(255,255,255,0.12)',
                             cursor: 'pointer', marginBottom: '0.75rem',
                             position: 'relative', overflow: 'hidden',
                         }}
                     >
                         <div style={{
-                            height: '100%',
-                            width: `${progress}%`,
+                            height: '100%', width: `${progress}%`,
                             background: `linear-gradient(90deg, ${reel.color}, ${reel.secondColor})`,
-                            borderRadius: 99,
-                            boxShadow: `0 0 8px ${reel.color}99`,
+                            borderRadius: 99, boxShadow: `0 0 8px ${reel.color}99`,
                             transition: 'width 0.5s linear',
                         }} />
                     </div>
 
-                    {/* Controls row */}
+                    {/* Controls */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        {/* Name */}
                         <div>
-                            <div style={{
-                                fontSize: '0.62rem', fontWeight: 700, color: '#fff',
-                                fontFamily: "'Inter', sans-serif", lineHeight: 1.2,
-                            }}>{reel.name}</div>
-                            <div style={{
-                                fontSize: '0.48rem', color: reel.color,
-                                fontFamily: "'Inter', sans-serif", fontWeight: 600, marginTop: 1,
-                            }}>{reel.deityHi}</div>
+                            <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#fff', fontFamily: "'Inter', sans-serif", lineHeight: 1.2 }}>
+                                {reel.name}
+                            </div>
+                            <div style={{ fontSize: '0.48rem', color: reel.color, fontFamily: "'Inter', sans-serif", fontWeight: 600, marginTop: 1 }}>
+                                {reel.deityHi}
+                            </div>
                         </div>
 
-                        {/* Play/Pause button */}
                         <motion.button
                             whileTap={{ scale: 0.88 }}
                             onClick={togglePlay}
                             style={{
-                                width: 48, height: 48, borderRadius: '50%',
-                                background: `linear-gradient(135deg, ${reel.color}dd, ${reel.secondColor}cc)`,
-                                border: `1.5px solid ${reel.color}66`,
-                                boxShadow: `0 0 24px ${reel.color}66, 0 4px 16px rgba(0,0,0,0.5)`,
+                                width: 56, height: 56, borderRadius: '50%',
+                                background: 'rgba(255,255,255,0.13)',
+                                backdropFilter: 'blur(24px) saturate(200%)',
+                                WebkitBackdropFilter: 'blur(24px) saturate(200%)',
+                                border: '1.5px solid rgba(255,255,255,0.28)',
+                                boxShadow: [
+                                    `0 0 0 1px ${reel.color}40`,
+                                    `0 0 28px ${reel.color}55`,
+                                    '0 8px 32px rgba(0,0,0,0.45)',
+                                    'inset 0 1.5px 0 rgba(255,255,255,0.38)',
+                                    'inset 0 -1px 0 rgba(0,0,0,0.12)',
+                                ].join(', '),
                                 color: '#fff', cursor: 'pointer',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: '1.2rem',
+                                fontSize: '1.15rem',
+                                position: 'relative',
+                                overflow: 'hidden',
                             }}
                         >
-                            {playing ? '⏸' : '▶'}
+                            <div style={{
+                                position: 'absolute',
+                                top: '8%', left: '14%',
+                                width: '58%', height: '34%',
+                                background: 'radial-gradient(ellipse, rgba(255,255,255,0.38) 0%, transparent 80%)',
+                                borderRadius: '50%',
+                                transform: 'rotate(-18deg)',
+                                pointerEvents: 'none',
+                            }} />
+                            <span style={{ position: 'relative', zIndex: 1, marginLeft: playing ? 0 : '2px' }}>
+                                {playing ? '⏸' : '▶'}
+                            </span>
                         </motion.button>
 
-                        {/* Open in Dhyan Kendra */}
                         <Link href="/dhyan-kshetra" style={{ textDecoration: 'none' }}>
                             <motion.div
                                 whileTap={{ scale: 0.93 }}
                                 style={{
                                     padding: '0.4rem 0.75rem',
-                                    background: `${reel.color}18`,
-                                    border: `1px solid ${reel.color}44`,
-                                    borderRadius: 99,
-                                    fontSize: '0.46rem', color: reel.color, fontWeight: 700,
-                                    fontFamily: "'Inter', sans-serif",
-                                    letterSpacing: '0.06em',
-                                    whiteSpace: 'nowrap',
+                                    background: `${reel.color}18`, border: `1px solid ${reel.color}44`,
+                                    borderRadius: 99, fontSize: '0.46rem', color: reel.color,
+                                    fontWeight: 700, fontFamily: "'Inter', sans-serif",
+                                    letterSpacing: '0.06em', whiteSpace: 'nowrap',
                                     textShadow: `0 0 8px ${reel.color}66`,
                                 }}
                             >
@@ -675,52 +921,140 @@ function MantraReelCard({
                 </div>
             </div>
 
-            {/* Hidden audio element */}
-            <audio
-                ref={audioRef}
-                src={reel.audioSrc}
-                preload={isActive ? 'auto' : 'none'}
-                onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)}
-                onDurationChange={() => setDuration(audioRef.current?.duration || 0)}
-                onLoadedData={() => setLoaded(true)}
-                onEnded={() => setPlaying(false)}
-            />
+            {/* ── RIGHT REACTION SIDEBAR (Instagram/Reels style) ── */}
+            <div style={{
+                position: 'absolute', right: '0.75rem', bottom: '13rem',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.4rem',
+                zIndex: 30,
+            }} onClick={e => e.stopPropagation()}>
+                {/* ❤️ Like */}
+                <motion.button
+                    whileTap={{ scale: 0.82 }}
+                    onClick={() => { setLiked(l => !l); setLikeCount(c => liked ? c - 1 : c + 1); }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem', padding: 0 }}
+                >
+                    <motion.div
+                        animate={liked ? { scale: [1, 1.4, 0.88, 1.1, 1], rotate: [0, -8, 5, -2, 0] } : { scale: 1 }}
+                        transition={{ duration: 0.45 }}
+                        style={{
+                            width: 48, height: 48, borderRadius: '50%',
+                            background: liked ? 'rgba(237,73,86,0.2)' : 'rgba(0,0,0,0.45)',
+                            backdropFilter: 'blur(16px)',
+                            border: liked ? '1.5px solid rgba(237,73,86,0.55)' : '1.5px solid rgba(255,255,255,0.2)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: liked ? '0 4px 20px rgba(237,73,86,0.32)' : '0 4px 14px rgba(0,0,0,0.5)',
+                        }}
+                    >
+                        <svg width="22" height="22" viewBox="0 0 24 24"
+                            fill={liked ? '#ed4956' : 'none'}
+                            stroke={liked ? '#ed4956' : 'rgba(255,255,255,0.92)'}
+                            strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                    </motion.div>
+                    <span style={{ fontSize: '0.62rem', color: liked ? '#ed4956' : 'rgba(255,255,255,0.85)', fontFamily: "'Inter',sans-serif", fontWeight: 700, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
+                        {likeCount > 999 ? `${(likeCount / 1000).toFixed(1)}K` : likeCount}
+                    </span>
+                </motion.button>
 
-            <style>{`
-                @keyframes reelBgScale {
-                    0% { transform: scale(1.0); }
-                    100% { transform: scale(1.06); }
-                }
-            `}</style>
+                {/* 💬 Comment */}
+                <motion.button
+                    whileTap={{ scale: 0.82 }}
+                    onClick={() => {}}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem', padding: 0 }}
+                >
+                    <div style={{
+                        width: 48, height: 48, borderRadius: '50%',
+                        background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(16px)',
+                        border: '1.5px solid rgba(255,255,255,0.2)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 4px 14px rgba(0,0,0,0.5)',
+                    }}>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                            stroke="rgba(255,255,255,0.92)" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
+                    </div>
+                    <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.85)', fontFamily: "'Inter',sans-serif", fontWeight: 700, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
+                        108
+                    </span>
+                </motion.button>
+
+                {/* 📤 Share */}
+                <motion.button
+                    whileTap={{ scale: 0.82 }}
+                    onClick={async () => {
+                        const url = `${window.location.origin}/pranaverse?mantra=${reel.id}`;
+                        if (typeof navigator !== 'undefined' && navigator.share) {
+                            try { await navigator.share({ title: `🕉️ ${reel.name} — ONE SUTRA`, text: reel.meaning, url }); } catch { }
+                        } else {
+                            try { navigator.clipboard.writeText(url); } catch { }
+                        }
+                    }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem', padding: 0 }}
+                >
+                    <div style={{
+                        width: 48, height: 48, borderRadius: '50%',
+                        background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(16px)',
+                        border: '1.5px solid rgba(255,255,255,0.2)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 4px 14px rgba(0,0,0,0.5)',
+                    }}>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.92)" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'translateX(1px)' }}>
+                            <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
+                        </svg>
+                    </div>
+                    <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.85)', fontFamily: "'Inter',sans-serif", fontWeight: 700, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>Share</span>
+                </motion.button>
+            </div>
+
+            {/* Hidden audio — only for audio-only reels */}
+            {!reel.videoSrc && (
+                <audio
+                    ref={audioRef}
+                    src={reel.audioSrc}
+                    preload={isActive ? 'auto' : 'none'}
+                    onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)}
+                    onDurationChange={() => setDuration(audioRef.current?.duration || 0)}
+                    onEnded={() => setPlaying(false)}
+                />
+            )}
         </div>
     );
 }
 
 // ═══════════════════════════════════════════════════════════
-//  MANTRA REEL FEED — Full container with CSS scroll-snap
+//  MANTRA REEL FEED — CSS scroll-snap container
 // ═══════════════════════════════════════════════════════════
-export default function MantraReelFeed({ style }: { style?: React.CSSProperties }) {
+export default function MantraReelFeed({ style, startIndex = 0, onClose }: { style?: React.CSSProperties; startIndex?: number; onClose?: () => void }) {
     const containerRef = useRef<HTMLDivElement>(null);
-    const [activeIdx, setActiveIdx] = useState(0);
+    const [activeIdx, setActiveIdx] = useState(startIndex);
+    const scrolledToStart = useRef(false);
 
-    // IntersectionObserver to detect active reel
+    // Scroll to startIndex on first mount
+    useEffect(() => {
+        if (scrolledToStart.current || !containerRef.current || startIndex === 0) return;
+        scrolledToStart.current = true;
+        const cards = containerRef.current.querySelectorAll<HTMLDivElement>('[data-reel-card]');
+        if (cards[startIndex]) {
+            cards[startIndex].scrollIntoView({ behavior: 'instant' as ScrollBehavior });
+        }
+    }, [startIndex]);
+
     useEffect(() => {
         const container = containerRef.current;
         if (!container) return;
-
         const cards = container.querySelectorAll<HTMLDivElement>('[data-reel-card]');
         const observer = new IntersectionObserver(
             (entries) => {
                 for (const entry of entries) {
                     if (entry.isIntersecting && entry.intersectionRatio > 0.55) {
-                        const idx = Number(entry.target.getAttribute('data-reel-idx'));
-                        setActiveIdx(idx);
+                        setActiveIdx(Number(entry.target.getAttribute('data-reel-idx')));
                     }
                 }
             },
             { root: container, threshold: 0.55 }
         );
-
         cards.forEach(card => observer.observe(card));
         return () => observer.disconnect();
     }, []);
@@ -729,58 +1063,53 @@ export default function MantraReelFeed({ style }: { style?: React.CSSProperties 
         <div
             ref={containerRef}
             style={{
-                height: '100dvh',
-                overflowY: 'scroll',
-                scrollSnapType: 'y mandatory',
-                scrollBehavior: 'smooth',
+                height: '100dvh', overflowY: 'scroll',
+                scrollSnapType: 'y mandatory', scrollBehavior: 'smooth',
                 WebkitOverflowScrolling: 'touch',
-                position: 'relative',
-                background: '#000',
+                position: 'relative', background: '#000',
                 ...style,
             }}
         >
-            {/* Vertical progress indicator (right side) */}
+            {/* Close button when used as overlay */}
+            {onClose && (
+                <button
+                    onClick={onClose}
+                    style={{
+                        position: 'fixed', top: 'max(18px, env(safe-area-inset-top))', left: 16,
+                        zIndex: 200, background: 'rgba(0,0,0,0.55)',
+                        backdropFilter: 'blur(14px)', border: '1px solid rgba(255,255,255,0.22)',
+                        borderRadius: '50%', width: 42, height: 42, color: '#fff',
+                        cursor: 'pointer', fontSize: '1rem',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 4px 18px rgba(0,0,0,0.6)',
+                    }}
+                >
+                    ✕
+                </button>
+            )}
+
+            {/* Right-side progress dots */}
             <div style={{
-                position: 'fixed',
-                right: 12,
-                top: '50%',
+                position: 'fixed', right: 12, top: '50%',
                 transform: 'translateY(-50%)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 6,
-                zIndex: 100,
-                pointerEvents: 'none',
+                display: 'flex', flexDirection: 'column', gap: 6,
+                zIndex: 100, pointerEvents: 'none',
             }}>
                 {MANTRA_REELS.map((r, i) => (
-                    <div
-                        key={r.id}
-                        style={{
-                            width: 3,
-                            height: i === activeIdx ? 22 : 6,
-                            borderRadius: 99,
-                            background: i === activeIdx ? MANTRA_REELS[activeIdx].color : 'rgba(255,255,255,0.2)',
-                            transition: 'all 0.35s ease',
-                            boxShadow: i === activeIdx ? `0 0 8px ${MANTRA_REELS[activeIdx].color}` : 'none',
-                        }}
-                    />
+                    <div key={r.id} style={{
+                        width: 3, height: i === activeIdx ? 22 : 6, borderRadius: 99,
+                        background: i === activeIdx ? MANTRA_REELS[activeIdx].color : 'rgba(255,255,255,0.2)',
+                        transition: 'all 0.35s ease',
+                        boxShadow: i === activeIdx ? `0 0 8px ${MANTRA_REELS[activeIdx].color}` : 'none',
+                    }} />
                 ))}
             </div>
 
             {MANTRA_REELS.map((reel, idx) => (
-                <div
-                    key={reel.id}
-                    data-reel-card
-                    data-reel-idx={idx}
-                >
-                    <MantraReelCard
-                        reel={reel}
-                        isActive={idx === activeIdx}
-                    />
+                <div key={reel.id} data-reel-card data-reel-idx={idx}>
+                    <MantraReelCard reel={reel} isActive={idx === activeIdx} reelIndex={idx} />
                 </div>
             ))}
         </div>
     );
 }
-
-// Export the raw dataset for use in HomeStoryBar
-export { MANTRA_REELS };

@@ -64,21 +64,20 @@ function buildInviteLink(userName?: string | null): string {
 /** Build the viral share payload with the dynamic link injected. */
 function buildSharePayload(inviteLink: string): { title: string; text: string; url: string } {
     return {
-        title: '🚀 PranaVerse — Social Media, Reimagined',
-        text: `🚀 Social media is broken. Today, we fix it. Welcome to the PranaVerse.
+        title: '🌟 PranaVerse — Where Conscious Souls Connect',
+        text: `🌟 I found something extraordinary — PranaVerse.
 
-I am thrilled to announce the official launch of PranaVerse—an ultra-modern social platform built entirely to upgrade our quality of life, health, and real connections.
+It's a sacred social space built for awakened minds. No toxic feeds. No addictive loops. Just divine wisdom, conscious connections, and AI that genuinely works for your wellbeing.
 
-Think of it as the wellness equivalent of the metaverse. Instead of endless, draining feeds, PranaVerse gives you an interactive "Aether Profile" to track your sleep, energy, and daily habits while connecting you with people on the exact same wavelength.
+✦ Sacred Mantra Reels
+✦ Daily Prana Feed
+✦ AI Life Companion — Sakha Bodhi
+✦ Energy Circles with like-minded souls
 
-We've engineered our algorithms completely differently. Instead of hijacking your focus, our platform is specifically designed to increase your attention span. The high-quality feeds inside are curated to help you achieve a better work-life balance, recover from burnout, and optimize your sleep cycles. Plus, our ultra-smart AI buddy, Bodhi, is built right into the app to assist and guide you.
-
-The app is officially live. We aren't building external groups; all of our founding members are connecting and growing together directly inside the platform.
-
-Step inside, claim your username before it's taken, and secure your 3D Avatar right here:
+13,000+ seekers are already inside. Join the movement:
 👉 ${inviteLink}
 
-Let's build a healthier digital world together! ⚡ Proudly Made in Bharat 🇮🇳`,
+🇮🇳 Proudly Built in Bharat — for the World`,
         url: inviteLink,
     };
 }
@@ -265,22 +264,19 @@ export default function InviteCard({ userName, className, style }: InviteCardPro
                 className={className}
                 style={{
                     position: 'relative',
-                    borderRadius: 22,
-                    padding: '1.25rem 1.25rem 1.4rem',
-                    margin: '1rem 0.75rem',
-                    /* Aether-Glass: deep dark twilight with frosted glass */
+                    borderRadius: 18,
+                    padding: '0.9rem 1rem 1rem',
+                    margin: '0.75rem 0.75rem',
                     background: 'linear-gradient(135deg, rgba(14,6,42,0.94) 0%, rgba(8,3,26,0.96) 100%)',
                     backdropFilter: 'blur(24px)',
                     WebkitBackdropFilter: 'blur(24px)',
-                    /* Glowing gradient border */
                     border: '1px solid transparent',
                     backgroundClip: 'padding-box',
                     boxShadow: [
-                        '0 0 0 1px rgba(139,92,246,0.35)',
-                        '0 0 0 2px rgba(34,211,238,0.10)',
-                        '0 8px 40px rgba(88,28,135,0.35)',
-                        '0 32px 80px rgba(0,0,0,0.45)',
-                        'inset 0 1px 0 rgba(255,255,255,0.08)',
+                        '0 0 0 1px rgba(139,92,246,0.3)',
+                        '0 0 0 2px rgba(34,211,238,0.08)',
+                        '0 6px 28px rgba(88,28,135,0.28)',
+                        'inset 0 1px 0 rgba(255,255,255,0.07)',
                     ].join(', '),
                     overflow: 'hidden',
                     ...style,
@@ -394,24 +390,23 @@ export default function InviteCard({ userName, className, style }: InviteCardPro
                             fontFamily: "'Inter', sans-serif",
                             letterSpacing: '0.05em',
                         }}>
-                            ⚡ Proudly Made in Bharat 🇮🇳
+                            ♦ Proudly Made in Bharat 🇮🇳
                         </div>
                     </div>
                 </div>
 
                 {/* ── Headline ─────────────────────────────────────────── */}
                 <h3 style={{
-                    fontFamily: "'Playfair Display', Georgia, serif",
-                    fontSize: 'clamp(1.05rem, 4vw, 1.3rem)',
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 'clamp(0.9rem, 3.5vw, 1.1rem)',
                     fontWeight: 800,
                     color: '#fff',
-                    margin: '0 0 0.55rem',
+                    margin: '0 0 0.4rem',
                     lineHeight: 1.25,
                     letterSpacing: '-0.01em',
                     position: 'relative',
                     zIndex: 1,
-                    /* Subtle glow on the headline */
-                    textShadow: '0 0 40px rgba(167,139,250,0.35)',
+                    textShadow: '0 0 30px rgba(167,139,250,0.3)',
                 }}>
                     🚀 Social Media Is Broken. We Fix It.
                 </h3>
@@ -429,22 +424,21 @@ export default function InviteCard({ userName, className, style }: InviteCardPro
                 {/* ── Subtext ───────────────────────────────────────────── */}
                 <p style={{
                     fontFamily: "'Inter', sans-serif",
-                    fontSize: 'clamp(0.72rem, 2.8vw, 0.82rem)',
-                    color: 'rgba(220,210,255,0.75)',
-                    margin: '0 0 1.2rem',
-                    lineHeight: 1.65,
+                    fontSize: 'clamp(0.68rem, 2.5vw, 0.76rem)',
+                    color: 'rgba(220,210,255,0.72)',
+                    margin: '0 0 0.9rem',
+                    lineHeight: 1.6,
                     letterSpacing: '0.01em',
                     position: 'relative',
                     zIndex: 1,
                 }}>
-                    Welcome to{' '}
-                    <span style={{ color: '#a78bfa', fontWeight: 600 }}>PranaVerse</span>
-                    {' '}— your complete{' '}
-                    <span style={{ color: '#22d3ee', fontWeight: 600 }}>Life Management System</span>.
-                    {' '}Enhanced, simplified & automated — not addictive.
-                    Healthy feeds, healthy connections, and AI that works{' '}
-                    <span style={{ color: '#86efac', fontWeight: 600 }}>for you, not against you</span>.
-                    Invite your circle — free them today. ✨
+                    Welcome to PranaVerse — your complete{' '}
+                    <span style={{ color: '#a78bfa', fontWeight: 600 }}>Life Management System</span>
+                    {'. '}Enhanced, simplified &amp; automated — not addictive.{' '}
+                    <span style={{ color: '#22d3ee', fontWeight: 600 }}>Healthy feeds</span>
+                    {', healthy connections, and AI that works '}{
+                    }<span style={{ color: '#86efac', fontWeight: 600 }}>for you</span>
+                    {', not against you. Invite your circle — free them today. ✨'}
                 </p>
 
                 {/* ── CTA Button ────────────────────────────────────────── */}
@@ -511,24 +505,10 @@ export default function InviteCard({ userName, className, style }: InviteCardPro
                         color: '#fff',
                         textShadow: '0 1px 8px rgba(0,0,0,0.4)',
                     }}>
-                        {isSharing ? 'Opening Share…' : 'Invite to PranaVerse'}
+                        {isSharing ? 'Opening Share…' : '✨ Invite to PranaVerse'}
                     </span>
                 </motion.button>
 
-                {/* ── Invite link hint ──────────────────────────────────── */}
-                <p style={{
-                    fontFamily: "'Inter', sans-serif",
-                    fontSize: '0.54rem',
-                    color: 'rgba(255,255,255,0.25)',
-                    textAlign: 'center',
-                    margin: '0.65rem 0 0',
-                    letterSpacing: '0.04em',
-                    position: 'relative',
-                    zIndex: 1,
-                    wordBreak: 'break-all',
-                }}>
-                    {inviteLink}
-                </p>
             </motion.div>
         </>
     );

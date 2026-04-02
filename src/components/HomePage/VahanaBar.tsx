@@ -59,7 +59,7 @@ export default function VahanaBar() {
     const NAV = [
         {
             id: 'gurukul', href: '/vedic-sangrah',
-            label: 'Ultra Gurukul',
+            label: 'Gurukul',
             icon: 'briefcase' as const,
         },
         {
