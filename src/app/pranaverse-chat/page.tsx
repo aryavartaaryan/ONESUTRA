@@ -233,9 +233,9 @@ function SeekerCard({ u, status, isNature, onAdd, onAccept, onDecline, onChat, o
                     </>
                 )}
                 {status === 'none' && !isSent && (
-                    <motion.button whileTap={{ scale: 0.84 }} onClick={e => { e.stopPropagation(); onViewProfile?.(); }}
-                        style={{ ...snapPill, padding: '0.42rem 0.85rem', background: 'linear-gradient(135deg,rgba(167,139,250,0.22),rgba(139,92,246,0.16))', border: '1.5px solid rgba(167,139,250,0.45)', color: '#c4b5fd', fontSize: '0.62rem', boxShadow: '0 2px 14px rgba(139,92,246,0.22)' }}>
-                        <span style={{ fontSize: '0.75rem' }}>👤</span> View
+                    <motion.button whileTap={{ scale: 0.84 }} onClick={e => { e.stopPropagation(); setLocalSent(true); onAdd(); }}
+                        style={{ ...snapPill, padding: '0.42rem 0.85rem', background: 'linear-gradient(135deg,rgba(74,222,128,0.22),rgba(52,211,153,0.16))', border: '1.5px solid rgba(74,222,128,0.45)', color: '#4ade80', fontSize: '0.62rem', boxShadow: '0 2px 14px rgba(74,222,128,0.22)' }}>
+                        <span style={{ fontSize: '0.75rem' }}>➕</span> Add Friend
                     </motion.button>
                 )}
                 {isSent && (

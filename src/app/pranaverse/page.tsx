@@ -1289,16 +1289,18 @@ function FullscreenReelModal({
 
         if (v) {
             v.muted = false;
-            const p = v.play();
-            if (p) p.catch(() => {
-                // Autoplay unmuted failed, handle silently
+            v.play().catch(() => {
+                v.muted = true;
+                setMuted(true);
+                v.play().catch(() => { });
             });
         }
         if (a) {
             a.muted = false;
-            const p = a.play();
-            if (p) p.catch(() => {
-                // Autoplay unmuted failed, handle silently
+            a.play().catch(() => {
+                a.muted = true;
+                setMuted(true);
+                a.play().catch(() => { });
             });
         }
         return () => {
@@ -1785,6 +1787,29 @@ function FullscreenReelModal({
                         <div style={{ position: 'absolute', bottom: 54, left: 0, right: 0, height: 3, background: 'rgba(255,255,255,0.14)', zIndex: 38, pointerEvents: 'none' }}>
                             <div style={{ height: '100%', background: 'linear-gradient(90deg,#a78bfa,#ec4899)', width: `${progress * 100}%`, transition: 'width 0.35s linear', borderRadius: '0 2px 2px 0' }} />
                         </div>
+
+                        {/* Muted nudge — shown when autoplay fell back to muted */}
+                        <AnimatePresence>
+                            {muted && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 10 }}
+                                    onClick={e => { e.stopPropagation(); const v = videoRef.current; const a = audioRef.current; if (v) { v.muted = false; } if (a) { a.muted = false; } setMuted(false); }}
+                                    style={{
+                                        position: 'absolute', bottom: '5.5rem', left: '50%', transform: 'translateX(-50%)',
+                                        display: 'flex', alignItems: 'center', gap: 6,
+                                        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(14px)',
+                                        border: '1px solid rgba(255,255,255,0.22)',
+                                        borderRadius: 99, padding: '0.32rem 0.9rem',
+                                        cursor: 'pointer', zIndex: 30,
+                                    }}
+                                >
+                                    <span style={{ fontSize: '0.88rem' }}>🔇</span>
+                                    <span style={{ fontSize: '0.52rem', fontWeight: 700, color: 'rgba(255,255,255,0.9)', fontFamily: "'Inter',sans-serif", letterSpacing: '0.08em' }}>TAP FOR SOUND</span>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                         {/* Swipe hint */}
                         <motion.div
