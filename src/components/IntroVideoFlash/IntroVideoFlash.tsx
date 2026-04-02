@@ -264,26 +264,9 @@ export default function IntroVideoFlash({ videos, onComplete, onFadeOutStart, bg
                 </div>
             )}
 
-            {/* Skip/Unmute hints */}
+            {/* Skip hints */}
             <div className={styles.skipHint}>
-                {isMuted && !bgAudioSrc ? (
-                    <button
-                        className={styles.unmuteBtn}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            const activeEl = bufferA.active ? videoRefA.current : videoRefB.current;
-                            if (activeEl) {
-                                activeEl.muted = false;
-                                setIsMuted(false);
-                                activeEl.play().catch(() => { });
-                            }
-                        }}
-                    >
-                        🔊 Click to Unmute
-                    </button>
-                ) : (
-                    <span>🕉️ Click anywhere to skip</span>
-                )}
+                <span>🕉️ Click anywhere to skip</span>
             </div>
         </div>
     );

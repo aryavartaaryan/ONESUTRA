@@ -536,19 +536,19 @@ function MantraReelCard({ reel, isActive, reelIndex }: { reel: MantraReel; isAct
     const [liked, setLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(800 + (reelIndex * 347) % 3000);
 
-    // Auto-play/pause when active changes
+    // Auto-play/pause when active changes — ALWAYS try with audio first
     useEffect(() => {
         if (reel.videoSrc) {
             const vid = videoRef.current;
             if (!vid) return;
             if (isActive) {
                 const t = setTimeout(() => {
+                    // Always try unmuted first for best UX
                     vid.muted = false;
                     vid.play()
                         .then(() => setPlaying(true))
                         .catch(() => {
-                            vid.muted = true;
-                            vid.play().then(() => setPlaying(true)).catch(() => { });
+                            // Autoplay unmuted failed, handle silently
                         });
                     setShowMantra(true);
                 }, 350);
@@ -563,6 +563,8 @@ function MantraReelCard({ reel, isActive, reelIndex }: { reel: MantraReel; isAct
             if (!audio) return;
             if (isActive) {
                 const t = setTimeout(() => {
+                    // Always try unmuted first for best UX
+                    audio.muted = false;
                     audio.play().then(() => setPlaying(true)).catch(() => { });
                     setShowMantra(true);
                 }, 350);

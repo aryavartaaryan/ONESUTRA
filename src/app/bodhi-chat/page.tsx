@@ -623,7 +623,7 @@ export default function BodhiChatPage() {
             }} />
             <AnimatedBackground chatState={chatState} />
 
-            <div style={{ position: 'fixed', inset: 0, zIndex: 1, display: 'flex', flexDirection: 'column', maxWidth: 700, margin: '0 auto' }}>
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '100dvh', zIndex: 1, display: 'flex', flexDirection: 'column', maxWidth: 700, margin: '0 auto' }}>
 
                 {/* Header */}
                 <motion.header initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}
@@ -781,7 +781,7 @@ export default function BodhiChatPage() {
                                             isSpeaking ? 'Bodhi bol raha hai…' :
                                                 (lang === 'en' ? 'Task, idea, challenge, or anything…' : 'कार्य, विचार, चुनौती या कुछ भी लिखें…')
                             }
-                            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: isListening ? '#fbbf24' : 'rgba(255,255,255,0.90)', fontSize: '0.88rem', fontWeight: 300, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.01em' }}
+                            style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: isListening ? '#fbbf24' : 'rgba(255,255,255,0.90)', fontSize: '0.88rem', fontWeight: 300, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.01em' }}
                         />
                         <motion.button whileTap={{ scale: 0.88 }} onClick={handleSubmit} disabled={!inputValue.trim() || isThinking || isListening}
                             style={{ flexShrink: 0, width: 40, height: 40, borderRadius: '50%', background: inputValue.trim() && !isThinking && !isListening ? 'linear-gradient(135deg, rgba(251,191,36,0.32), rgba(217,119,6,0.22))' : 'rgba(255,255,255,0.09)', border: inputValue.trim() && !isThinking && !isListening ? '1px solid rgba(251,191,36,0.42)' : '1px solid rgba(255,255,255,0.20)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: inputValue.trim() && !isThinking && !isListening ? 'pointer' : 'default', color: inputValue.trim() && !isThinking && !isListening ? '#fbbf24' : 'rgba(255,255,255,0.50)', transition: 'all 0.25s' }}>

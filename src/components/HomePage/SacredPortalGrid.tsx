@@ -524,6 +524,22 @@ export default function SacredPortalGrid() {
     const [expandedItem, setExpandedItem] = useState<OrbItem | null>(null);
     const [orbitSize, setOrbitSize] = useState(480);
     const [rotation, setRotation] = useState(0);
+    const expandedItemRef = useRef<OrbItem | null>(null);
+    expandedItemRef.current = expandedItem;
+
+    // Notify page-level to hide nav bars; intercept back button to close popup
+    useEffect(() => {
+        window.dispatchEvent(new CustomEvent('sacred-portal-change', { detail: { open: !!expandedItem } }));
+        if (expandedItem) {
+            window.history.pushState({ sacredPortalOpen: true }, '');
+        }
+    }, [expandedItem]);
+
+    useEffect(() => {
+        const onPop = () => setExpandedItem(null);
+        window.addEventListener('popstate', onPop);
+        return () => window.removeEventListener('popstate', onPop);
+    }, []);
 
     const containerRef = useRef<HTMLDivElement>(null);
     const router = useRouter(); // For programmatic navigation
@@ -561,7 +577,7 @@ export default function SacredPortalGrid() {
                     vel.current = AUTO_SPEED;
                 }
             }
-            if (!isPointerDown.current && Math.abs(vel.current) > 0.001) {
+            if (!isPointerDown.current && Math.abs(vel.current) > 0.001 && !expandedItemRef.current) {
                 setRotation(r => (r + vel.current + 360) % 360);
             }
             animRef.current = requestAnimationFrame(tick);

@@ -107,6 +107,8 @@ export default function Home() {
   const [isSakhaActive, setIsSakhaActive] = useState(false);
   const [isAudioUnlocked, setIsAudioUnlocked] = useState(false);
   const [showBreakNotice, setShowBreakNotice] = useState(false);
+  const [isPortalOpen, setIsPortalOpen] = useState(false);
+  const [isStoryOpen, setIsStoryOpen] = useState(false);
 
   const brahmastraState = useBrahmastraState(userId);
 
@@ -218,6 +220,18 @@ export default function Home() {
   }, [lang]);
 
   useEffect(() => {
+    const handler = (e: Event) => setIsPortalOpen((e as CustomEvent<{ open: boolean }>).detail.open);
+    window.addEventListener('sacred-portal-change', handler);
+    return () => window.removeEventListener('sacred-portal-change', handler);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: Event) => setIsStoryOpen((e as CustomEvent<{ open: boolean }>).detail.open);
+    window.addEventListener('story-viewer-change', handler);
+    return () => window.removeEventListener('story-viewer-change', handler);
+  }, []);
+
+  useEffect(() => {
     if (hasStarted) {
       document.documentElement.classList.add('app-zoomed');
     } else {
@@ -299,7 +313,9 @@ export default function Home() {
         )}
 
         {/* ══ FIXED TOP NAV ══ */}
-        <StickyTopNav />
+        <div style={{ display: isPortalOpen ? 'none' : 'block' }}>
+          <StickyTopNav />
+        </div>
 
         {/* ══ Advanced Protocol + SAMKALP — Merged when active ══ */}
         <motion.div
@@ -381,7 +397,7 @@ export default function Home() {
       {/* Isolation wrapper: prevents GPU layer from bleeding into page content */}
       <div style={{ position: 'fixed', bottom: 90, right: 22, zIndex: 1000, isolation: 'isolate', transform: 'translateZ(0)' }}>
       <AnimatePresence>
-        {!isSakhaActive && (
+        {!isSakhaActive && !isStoryOpen && (
           <motion.div
             key="sakha-trigger"
             style={{ position: 'relative' }}
@@ -542,12 +558,14 @@ export default function Home() {
       <UserProfile isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} userName={userName} />
 
       {/* Sticky Feedback Button */}
-      <StickyFeedbackButton />
+      <div style={{ display: isPortalOpen ? 'none' : 'block' }}>
+        <StickyFeedbackButton />
+      </div>
 
       {/* ══ HOME BOTTOM NAV BAR — sleek PranaVerse-style ══ */}
       <nav style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 900,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-around',
+        display: isPortalOpen ? 'none' : 'flex', alignItems: 'center', justifyContent: 'space-around',
         padding: '0.6rem 0.5rem calc(0.6rem + env(safe-area-inset-bottom))',
         background: 'linear-gradient(180deg, rgba(5,2,18,0.88) 0%, rgba(8,3,24,0.97) 100%)',
         backdropFilter: 'blur(28px) saturate(160%)',

@@ -260,7 +260,7 @@ export default function CommentSheet({ postCaption, commentCount, comments, onCl
                                 value={text}
                                 onChange={e => setText(e.target.value)}
                                 onKeyDown={handleKey}
-                                placeholder="Add an echo…"
+                                placeholder="Write your vibes and today's experience"
                                 maxLength={300}
                                 style={{
                                     flex: 1, background: 'none', border: 'none', outline: 'none',

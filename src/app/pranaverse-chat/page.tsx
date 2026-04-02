@@ -894,7 +894,7 @@ export default function PranverseChatHub() {
                                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                                 onFocus={() => setIsFocus(true)} onBlur={() => setIsFocus(false)}
                                 placeholder={activeId === 'bodhi' ? (isBodhiThinking ? 'Bodhi is thinking…' : 'Message Sakha Bodhi…') : `Message ${activeFriend?.name?.split(' ')[0] ?? ''}…`}
-                                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'rgba(255,255,255,0.90)', fontSize: '0.86rem', fontWeight: 300, fontFamily: "'Outfit',sans-serif" }} />
+                                style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: 'rgba(255,255,255,0.90)', fontSize: '0.86rem', fontWeight: 300, fontFamily: "'Outfit',sans-serif" }} />
                             <motion.button whileTap={{ scale: 0.88 }}
                                 onClick={isListening ? stopVoice : startVoice}
                                 animate={isListening ? { scale: [1, 1.1, 1], boxShadow: ['0 0 0 0 rgba(248,113,113,0.4)', '0 0 0 8px rgba(248,113,113,0)', '0 0 0 0 rgba(248,113,113,0)'] } : {}}
@@ -1050,7 +1050,7 @@ export default function PranverseChatHub() {
             {!isNature && <div style={{ position: 'fixed', inset: 0, zIndex: 1, background: 'radial-gradient(ellipse at 20% 10%,rgba(251,191,36,0.05) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(99,102,241,0.07) 0%,transparent 55%)' }} />}
 
             {/* App Shell */}
-            <div style={{ position: 'fixed', inset: 0, zIndex: 2, display: 'flex', fontFamily: "'Outfit',sans-serif", paddingBottom: 'calc(62px + env(safe-area-inset-bottom,0px))' }}>
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '100dvh', zIndex: 2, display: 'flex', fontFamily: "'Outfit',sans-serif", paddingBottom: 'calc(62px + env(safe-area-inset-bottom,0px))' }}>
                 {isMobile ? (
                     <>
                         <AnimatePresence mode="wait">

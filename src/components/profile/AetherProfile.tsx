@@ -2096,7 +2096,7 @@ export default function AetherProfile({ viewedUid, autoEnquire }: { viewedUid?: 
           BOTTOM NAV
       ════════════════════════════════════════ */}
       <nav className={styles.bottomNav}>
-        <button className={styles.navItem} onClick={() => router.push('/dashboard')}>
+        <button className={styles.navItem} onClick={() => router.push('/')}>
           <Home size={20} />
           <span>Home</span>
         </button>

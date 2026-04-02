@@ -565,22 +565,7 @@ function UserStoryViewer({
     onNext: () => void;
     onRemove: (taskId: string) => void;
 }) {
-    const [progress, setProgress] = useState(0);
-    const duration = story.category === 'idea' ? 12000 : 10000;
-
-    useEffect(() => {
-        setProgress(0);
-        let elapsed = 0;
-        const step = 80;
-        const timer = setInterval(() => {
-            elapsed += step;
-            const pct = Math.min((elapsed / duration) * 100, 100);
-            setProgress(pct);
-            if (pct >= 100) { clearInterval(timer); onNext(); }
-        }, step);
-        return () => clearInterval(timer);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [story.id]);
+    const durationSec = story.category === 'idea' ? 12 : 10;
 
     const handleRemove = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -636,10 +621,16 @@ function UserStoryViewer({
                         flex: 1, height: 2.5, borderRadius: 2,
                         background: 'rgba(255,255,255,0.25)', overflow: 'hidden',
                     }}>
-                        <div style={{
-                            height: '100%', background: '#fff',
-                            width: i < globalIndex ? '100%' : i === globalIndex ? `${progress}%` : '0%',
-                        }} />
+                        <div
+                            key={i === globalIndex ? story.id : i}
+                            onAnimationEnd={i === globalIndex ? onNext : undefined}
+                            style={{
+                                height: '100%', background: '#fff',
+                                transformOrigin: 'left center',
+                                transform: i < globalIndex ? 'scaleX(1)' : i > globalIndex ? 'scaleX(0)' : undefined,
+                                animation: i === globalIndex ? `storyFill ${durationSec}s linear forwards` : 'none',
+                            }}
+                        />
                     </div>
                 ))}
             </div>
@@ -1192,25 +1183,10 @@ function calculatePanchang(): PanchangData {
 function CosmicDateViewer({ totalStoryCount, globalIndex, onClose, onNext, onPrev }: {
     totalStoryCount: number; globalIndex: number; onClose: () => void; onNext: () => void; onPrev: () => void;
 }) {
-    const [progress, setProgress] = useState(0);
     const panchang = useMemo(() => calculatePanchang(), []);
     const now = useMemo(() => new Date(), []);
     const modernDate = now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     const modernTime = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-
-    useEffect(() => {
-        let elapsed = 0;
-        const total = 16000;
-        const step = 80;
-        const timer = setInterval(() => {
-            elapsed += step;
-            const pct = Math.min((elapsed / total) * 100, 100);
-            setProgress(pct);
-            if (pct >= 100) { clearInterval(timer); onNext(); }
-        }, step);
-        return () => clearInterval(timer);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     const fields = [
         { icon: '🌤️', label: 'Vaar', value: panchang.vaar },
@@ -1245,7 +1221,16 @@ function CosmicDateViewer({ totalStoryCount, globalIndex, onClose, onNext, onPre
             <div style={{ position: 'absolute', top: 14, left: 12, right: 12, display: 'flex', gap: 4, zIndex: 20 }}>
                 {Array.from({ length: totalStoryCount }).map((_, i) => (
                     <div key={i} style={{ flex: 1, height: 2.5, borderRadius: 2, background: 'rgba(255,255,255,0.20)', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', background: '#fbbf24', width: i < globalIndex ? '100%' : i === globalIndex ? `${progress}%` : '0%' }} />
+                        <div
+                            key={i === globalIndex ? 'cosmic' : i}
+                            onAnimationEnd={i === globalIndex ? onNext : undefined}
+                            style={{
+                                height: '100%', background: '#fbbf24',
+                                transformOrigin: 'left center',
+                                transform: i < globalIndex ? 'scaleX(1)' : i > globalIndex ? 'scaleX(0)' : undefined,
+                                animation: i === globalIndex ? 'storyFill 16s linear forwards' : 'none',
+                            }}
+                        />
                     </div>
                 ))}
             </div>
@@ -1309,10 +1294,12 @@ function StoryViewer({ story, totalStoryCount, globalIndex, onClose, onPrev, onN
     const [progress, setProgress] = useState(0);
     const [muted, setMuted] = useState(false);
     const [paused, setPaused] = useState(false);
+    const lastVideoProgressRef = useRef(0);
 
     // restart when story changes
     useEffect(() => {
         setProgress(0);
+        lastVideoProgressRef.current = 0;
         setPaused(false);
         if (story.type === 'video') {
             const v = vidRef.current;
@@ -1329,26 +1316,15 @@ function StoryViewer({ story, totalStoryCount, globalIndex, onClose, onPrev, onN
         if (vidRef.current) vidRef.current.muted = muted;
     }, [muted]);
 
-    // auto-advance timer for awareness stories (8 seconds)
-    useEffect(() => {
-        if (story.type !== 'awareness') return;
-        let elapsed = 0;
-        const total = 8000;
-        const step = 80;
-        const timer = setInterval(() => {
-            elapsed += step;
-            const pct = Math.min((elapsed / total) * 100, 100);
-            setProgress(pct);
-            if (pct >= 100) { clearInterval(timer); onNext(); }
-        }, step);
-        return () => clearInterval(timer);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [story.id]);
-
+    // throttled video progress — only update state when position changes by ≥1%
     const onTimeUpdate = useCallback(() => {
         const v = vidRef.current;
         if (!v || !v.duration) return;
-        setProgress((v.currentTime / v.duration) * 100);
+        const pct = (v.currentTime / v.duration) * 100;
+        if (Math.abs(pct - lastVideoProgressRef.current) >= 1) {
+            lastVideoProgressRef.current = pct;
+            setProgress(pct);
+        }
     }, []);
 
     const togglePause = (e: React.MouseEvent) => {
@@ -1527,11 +1503,23 @@ function StoryViewer({ story, totalStoryCount, globalIndex, onClose, onPrev, onN
                             flex: 1, height: 2.5, borderRadius: 2,
                             background: 'rgba(255,255,255,0.25)', overflow: 'hidden',
                         }}>
-                            <div style={{
-                                height: '100%', background: '#fff',
-                                width: i < globalIndex ? '100%' : i === globalIndex ? `${progress}%` : '0%',
-                                transition: i === globalIndex ? 'none' : undefined,
-                            }} />
+                            {story.type === 'video' ? (
+                                <div style={{
+                                    height: '100%', background: '#fff',
+                                    width: i < globalIndex ? '100%' : i === globalIndex ? `${progress}%` : '0%',
+                                }} />
+                            ) : (
+                                <div
+                                    key={i === globalIndex ? story.id : i}
+                                    onAnimationEnd={i === globalIndex ? onNext : undefined}
+                                    style={{
+                                        height: '100%', background: '#fff',
+                                        transformOrigin: 'left center',
+                                        transform: i < globalIndex ? 'scaleX(1)' : i > globalIndex ? 'scaleX(0)' : undefined,
+                                        animation: i === globalIndex ? 'storyFill 8s linear forwards' : 'none',
+                                    }}
+                                />
+                            )}
                         </div>
                     ))}
                 </div>
@@ -1635,6 +1623,14 @@ export default function StickyTopNav() {
         return () => clearTimeout(timer);
     }, [tasks, removeTask]);
 
+    // Emit event so parent page can hide Bodhi while stories are open
+    const isStoryViewerOpen = cosmicOpen || activeUserIdx !== null || activeIdx !== null;
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('story-viewer-change', { detail: { open: isStoryViewerOpen } }));
+        }
+    }, [isStoryViewerOpen]);
+
     // Navigation: cosmic → userStories (flat) → STORIES
     const closeAll = () => { setCosmicOpen(false); setActiveIdx(null); setActiveUserIdx(null); };
 
@@ -1686,6 +1682,10 @@ export default function StickyTopNav() {
                 @keyframes logo-pulse {
                     0%, 100% { box-shadow: 0 0 18px rgba(251,191,36,0.30), 0 0 6px rgba(251,191,36,0.15); }
                     50%      { box-shadow: 0 0 32px rgba(251,191,36,0.55), 0 0 12px rgba(251,191,36,0.28); }
+                }
+                @keyframes storyFill {
+                    from { transform: scaleX(0); }
+                    to   { transform: scaleX(1); }
                 }
                 .os-stories-row::-webkit-scrollbar { display: none; }
                 .os-stories-row { -ms-overflow-style: none; scrollbar-width: none; }

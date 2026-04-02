@@ -14,7 +14,7 @@ import HomeStoryBar from '@/components/PranaVerse/HomeStoryBar';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import SakhaBodhiOrb from '@/components/Dashboard/SakhaBodhiOrb';
 import InviteCard from '@/components/PranaVerse/InviteCard';
-import MantraReelFeed, { MANTRA_REELS } from '@/components/PranaVerse/MantraReelFeed';
+import { MANTRA_REELS } from '@/components/PranaVerse/MantraReelFeed';
 import type { MantraReel } from '@/components/PranaVerse/MantraReelFeed';
 
 type Tab = 'story' | 'map' | 'chat' | 'home';
@@ -1233,7 +1233,6 @@ function FullscreenReelModal({
     const [current, setCurrent] = useState(initialIndex);
     const [direction, setDirection] = useState(1);
     const [muted, setMuted] = useState(false);
-    const [showMuteHint, setShowMuteHint] = useState(false);
     const [liked, setLiked] = useState<Set<string>>(new Set());
     const [liveLikes, setLiveLikes] = useState<Record<string, number>>({});
     const [liveComments, setLiveCmts] = useState<Record<string, number>>({});
@@ -1276,7 +1275,7 @@ function FullscreenReelModal({
         return () => window.removeEventListener('keydown', h);
     }, [onClose, items.length]);
 
-    // Start/restart playback when current item changes
+    // Start/restart playback when current item changes — ALWAYS try unmuted first for best UX
     useEffect(() => {
         const v = videoRef.current;
         const a = audioRef.current;
@@ -1284,31 +1283,27 @@ function FullscreenReelModal({
         setIsPlaying(true);
         setShowPlayPause(false);
         if (hideCtrlTimer.current) clearTimeout(hideCtrlTimer.current);
+
+        // Always start unmuted for best user experience
+        setMuted(false);
+
         if (v) {
-            v.muted = muted;
+            v.muted = false;
             const p = v.play();
             if (p) p.catch(() => {
-                v.muted = true;
-                v.play().then(() => {
-                    if (audioUnlocked.current) setTimeout(() => { v.muted = false; setMuted(false); }, 80);
-                    else setMuted(true);
-                }).catch(() => {});
+                // Autoplay unmuted failed, handle silently
             });
         }
         if (a) {
-            a.muted = muted;
+            a.muted = false;
             const p = a.play();
             if (p) p.catch(() => {
-                a.muted = true;
-                a.play().then(() => {
-                    if (audioUnlocked.current) setTimeout(() => { a.muted = false; setMuted(false); }, 80);
-                    else setMuted(true);
-                }).catch(() => {});
+                // Autoplay unmuted failed, handle silently
             });
         }
         return () => {
-            try { v?.pause(); } catch {}
-            try { a?.pause(); } catch {}
+            try { v?.pause(); } catch { }
+            try { a?.pause(); } catch { }
         };
     }, [current]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -1316,15 +1311,11 @@ function FullscreenReelModal({
     useEffect(() => {
         const v = videoRef.current;
         const a = audioRef.current;
-        if (v) { v.muted = muted; if (!muted && v.paused && isPlaying) v.play().catch(() => {}); }
-        if (a) { a.muted = muted; if (!muted && a.paused && isPlaying) a.play().catch(() => {}); }
+        if (v) { v.muted = muted; if (!muted && v.paused && isPlaying) v.play().catch(() => { }); }
+        if (a) { a.muted = muted; if (!muted && a.paused && isPlaying) a.play().catch(() => { }); }
     }, [muted]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    useEffect(() => {
-        if (!showMuteHint) return;
-        const t = setTimeout(() => setShowMuteHint(false), 3000);
-        return () => clearTimeout(t);
-    }, [showMuteHint]);
+
 
     // ── Firebase: real-time likes ──────────────────────────────────────────────
     useEffect(() => {
@@ -1344,6 +1335,24 @@ function FullscreenReelModal({
         })();
         return () => { unsub?.(); };
     }, [reelId]);
+
+    // ── Fetch latest comment for persistent bar preview (one-time, lightweight) ─
+    useEffect(() => {
+        (async () => {
+            if (comments.length > 0) return;
+            try {
+                const { getFirebaseFirestore } = await import('@/lib/firebase');
+                const { collection, query, orderBy, limit, getDocs } = await import('firebase/firestore');
+                const db = await getFirebaseFirestore();
+                const q = query(collection(db, 'pranaverse_reels', reelId, 'comments'), orderBy('ts', 'desc'), limit(1));
+                const snap = await getDocs(q);
+                if (!snap.empty) {
+                    const d = snap.docs[0];
+                    setComments([{ id: d.id, ...(d.data() as { text: string; author: string; ts: number }) }]);
+                }
+            } catch { /* offline */ }
+        })();
+    }, [reelId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ── Firebase: real-time comments (only when sheet is open) ────────────────
     useEffect(() => {
@@ -1398,7 +1407,7 @@ function FullscreenReelModal({
         const a = audioRef.current;
         if (v && v.muted) { v.muted = false; }
         if (a && a.muted) { a.muted = false; }
-        if (muted) { setMuted(false); setShowMuteHint(false); }
+        if (muted) { setMuted(false); }
         audioUnlocked.current = true;
 
         if (now - lastTap.current < 300) {
@@ -1416,7 +1425,7 @@ function FullscreenReelModal({
             setShowPlayPause(true);
             if (hideCtrlTimer.current) clearTimeout(hideCtrlTimer.current);
         } else {
-            v?.play().catch(() => {}); a?.play().catch(() => {});
+            v?.play().catch(() => { }); a?.play().catch(() => { });
             setIsPlaying(true);
             setShowPlayPause(true);
             if (hideCtrlTimer.current) clearTimeout(hideCtrlTimer.current);
@@ -1444,8 +1453,8 @@ function FullscreenReelModal({
         const url = `${window.location.origin}/pranaverse/reel/${reelId}`;
         const title = item.type === 'reel' ? item.mantra.sanskrit
             : item.type === 'resonance' ? item.story.label
-            : item.type === 'portal' ? item.portal.title
-            : item.reel.name;
+                : item.type === 'portal' ? item.portal.title
+                    : item.reel.name;
         if (typeof navigator !== 'undefined' && navigator.share) {
             try { await navigator.share({ title: `🕉️ ${title} — ONE SUTRA`, text: 'Sacred wisdom from PranaVerse', url }); } catch { /* dismissed */ }
         } else {
@@ -1485,9 +1494,9 @@ function FullscreenReelModal({
                             <img
                                 src={
                                     item.type === 'reel' ? item.imageUrl
-                                    : item.type === 'resonance' ? item.story.bg
-                                    : item.type === 'portal' ? item.imageUrl
-                                    : item.reel.imageBg
+                                        : item.type === 'resonance' ? item.story.bg
+                                            : item.type === 'portal' ? item.imageUrl
+                                                : item.reel.imageBg
                                 }
                                 alt=""
                                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
@@ -1495,8 +1504,20 @@ function FullscreenReelModal({
                         )}
                         {/* Hidden audio player for audio-only mantra items */}
                         {item.type === 'mantra' && !item.reel.videoSrc && (
-                            <audio ref={audioRef} src={item.reel.audioSrc} loop autoPlay style={{ display: 'none' }}
-                                onTimeUpdate={e => { const a = e.currentTarget; if (a.duration) setProgress(a.currentTime / a.duration); }} />
+                            <audio
+                                ref={el => {
+                                    audioRef.current = el;
+                                    if (el) {
+                                        el.muted = muted;
+                                        el.play().catch(() => {
+                                            el.muted = true;
+                                            el.play().catch(() => { });
+                                        });
+                                    }
+                                }}
+                                src={item.reel.audioSrc} loop style={{ display: 'none' }}
+                                onTimeUpdate={e => { const a = e.currentTarget; if (a.duration) setProgress(a.currentTime / a.duration); }}
+                            />
                         )}
 
                         {/* ── Premium cinematic gradients ── */}
@@ -1551,89 +1572,114 @@ function FullscreenReelModal({
                             )}
                         </div>
 
-                        {/* ── Floating Action Bar — Instagram/TikTok glass-encircled icons ── */}
-                        <div style={{ position: 'absolute', right: '0.875rem', bottom: '7rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', zIndex: 20 }} onClick={e => e.stopPropagation()}>
+                        {/* ── Floating Action Bar — right sidebar (non-portal items) ── */}
+                        {item.type !== 'portal' && (
+                            <div style={{ position: 'absolute', right: '0.875rem', bottom: '7rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', zIndex: 20 }} onClick={e => e.stopPropagation()}>
 
-                            {/* ❤️ Heart — Instagram style */}
-                            <motion.button whileTap={{ scale: 0.82 }} onClick={e => { e.stopPropagation(); triggerLike(); }}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', padding: 0 }}>
-                                <motion.div
-                                    animate={isLiked ? { scale: [1, 1.35, 0.9, 1.08, 1], rotate: [0, -8, 5, -2, 0] } : { scale: 1, rotate: 0 }}
-                                    transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1] }}
-                                    style={{
+                                {/* ❤️ Heart — elegant like */}
+                                <motion.button whileTap={{ scale: 0.82 }} onClick={e => { e.stopPropagation(); triggerLike(); }}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', padding: 0 }}>
+                                    <motion.div
+                                        animate={isLiked ? { scale: [1, 1.35, 0.9, 1.08, 1], rotate: [0, -8, 5, -2, 0] } : { scale: 1, rotate: 0 }}
+                                        transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1] }}
+                                        style={{
+                                            width: 52, height: 52, borderRadius: '50%',
+                                            background: isLiked ? 'rgba(237,73,86,0.2)' : 'rgba(255,255,255,0.11)',
+                                            backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+                                            border: isLiked ? '1.5px solid rgba(237,73,86,0.6)' : '1.5px solid rgba(255,255,255,0.22)',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            boxShadow: isLiked
+                                                ? '0 4px 22px rgba(237,73,86,0.38), inset 0 1px 0 rgba(255,255,255,0.18)'
+                                                : '0 4px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
+                                            transition: 'background 0.28s, border-color 0.28s, box-shadow 0.28s',
+                                        }}
+                                    >
+                                        <svg width="24" height="24" viewBox="0 0 24 24"
+                                            fill={isLiked ? '#ed4956' : 'none'}
+                                            stroke={isLiked ? '#ed4956' : 'rgba(255,255,255,0.95)'}
+                                            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                                            style={{ filter: isLiked ? 'drop-shadow(0 0 7px rgba(237,73,86,0.7))' : 'none', display: 'block' }}>
+                                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                                        </svg>
+                                    </motion.div>
+                                    <span style={{ fontSize: '0.68rem', color: isLiked ? '#ed4956' : 'rgba(255,255,255,0.92)', fontFamily: "'Inter',sans-serif", fontWeight: 700, letterSpacing: '0.01em', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
+                                        {likes > 999 ? `${(likes / 1000).toFixed(1)}K` : likes}
+                                    </span>
+                                </motion.button>
+
+                                {/* 💬 Comment */}
+                                <motion.button whileTap={{ scale: 0.82 }} onClick={e => { e.stopPropagation(); setShowCmts(v => !v); }}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', padding: 0 }}>
+                                    <motion.div
+                                        animate={showComments ? { scale: [1, 1.15, 0.95, 1.05, 1] } : { scale: 1 }}
+                                        transition={{ duration: 0.38 }}
+                                        style={{
+                                            width: 52, height: 52, borderRadius: '50%',
+                                            background: showComments ? 'rgba(167,139,250,0.18)' : 'rgba(255,255,255,0.11)',
+                                            backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+                                            border: showComments ? '1.5px solid rgba(167,139,250,0.5)' : '1.5px solid rgba(255,255,255,0.22)',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            boxShadow: showComments
+                                                ? '0 4px 22px rgba(167,139,250,0.28), inset 0 1px 0 rgba(255,255,255,0.12)'
+                                                : '0 4px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
+                                            transition: 'background 0.28s, border-color 0.28s, box-shadow 0.28s',
+                                        }}
+                                    >
+                                        <svg width="22" height="22" viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke={showComments ? '#a78bfa' : 'rgba(255,255,255,0.95)'}
+                                            strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"
+                                            style={{ display: 'block' }}>
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                        </svg>
+                                    </motion.div>
+                                    <span style={{ fontSize: '0.68rem', color: showComments ? '#a78bfa' : 'rgba(255,255,255,0.92)', fontFamily: "'Inter',sans-serif", fontWeight: 700, letterSpacing: '0.01em', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
+                                        {cmtCount}
+                                    </span>
+                                </motion.button>
+
+                                {/* 📤 Share */}
+                                <motion.button whileTap={{ scale: 0.82 }} onClick={e => { e.stopPropagation(); handleShare(); }}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', padding: 0 }}>
+                                    <div style={{
                                         width: 52, height: 52, borderRadius: '50%',
-                                        background: isLiked ? 'rgba(237,73,86,0.18)' : 'rgba(255,255,255,0.11)',
+                                        background: 'rgba(255,255,255,0.11)',
                                         backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-                                        border: isLiked ? '1.5px solid rgba(237,73,86,0.5)' : '1.5px solid rgba(255,255,255,0.22)',
+                                        border: '1.5px solid rgba(255,255,255,0.22)',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        boxShadow: isLiked
-                                            ? '0 4px 22px rgba(237,73,86,0.32), inset 0 1px 0 rgba(255,255,255,0.12)'
-                                            : '0 4px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
-                                        transition: 'background 0.28s, border-color 0.28s, box-shadow 0.28s',
-                                    }}
-                                >
-                                    <svg width="24" height="24" viewBox="0 0 24 24"
-                                        fill={isLiked ? '#ed4956' : 'none'}
-                                        stroke={isLiked ? '#ed4956' : 'rgba(255,255,255,0.95)'}
-                                        strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"
-                                        style={{ filter: isLiked ? 'drop-shadow(0 0 6px rgba(237,73,86,0.55))' : 'none', display: 'block' }}>
-                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                                    </svg>
-                                </motion.div>
-                                <span style={{ fontSize: '0.68rem', color: isLiked ? '#ed4956' : 'rgba(255,255,255,0.92)', fontFamily: "'Inter',sans-serif", fontWeight: 700, letterSpacing: '0.01em', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
-                                    {likes > 999 ? `${(likes / 1000).toFixed(1)}K` : likes}
-                                </span>
-                            </motion.button>
+                                        boxShadow: '0 4px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
+                                    }}>
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.95)" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', transform: 'translateX(1px)' }}>
+                                            <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
+                                        </svg>
+                                    </div>
+                                    <span style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.92)', fontFamily: "'Inter',sans-serif", fontWeight: 700, letterSpacing: '0.01em', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>Share</span>
+                                </motion.button>
+                            </div>
+                        )}
 
-                            {/* 💬 Comment */}
-                            <motion.button whileTap={{ scale: 0.82 }} onClick={e => { e.stopPropagation(); setShowCmts(v => !v); }}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', padding: 0 }}>
-                                <motion.div
-                                    animate={showComments ? { scale: [1, 1.15, 0.95, 1.05, 1] } : { scale: 1 }}
-                                    transition={{ duration: 0.38 }}
-                                    style={{
-                                        width: 52, height: 52, borderRadius: '50%',
-                                        background: showComments ? 'rgba(167,139,250,0.18)' : 'rgba(255,255,255,0.11)',
-                                        backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-                                        border: showComments ? '1.5px solid rgba(167,139,250,0.5)' : '1.5px solid rgba(255,255,255,0.22)',
+                        {/* ── Portal Bottom Action Bar — share only ── */}
+                        {item.type === 'portal' && (
+                            <div style={{ position: 'absolute', bottom: 58, left: 0, right: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2rem', zIndex: 22, padding: '0.7rem 1.5rem' }} onClick={e => e.stopPropagation()}>
+                                {/* 📤 Share */}
+                                <motion.button whileTap={{ scale: 0.82 }} onClick={e => { e.stopPropagation(); handleShare(); }}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.28rem', padding: 0 }}>
+                                    <div style={{
+                                        width: 56, height: 56, borderRadius: '50%',
+                                        background: 'rgba(255,255,255,0.10)',
+                                        backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)',
+                                        border: '1.5px solid rgba(255,255,255,0.26)',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        boxShadow: showComments
-                                            ? '0 4px 22px rgba(167,139,250,0.28), inset 0 1px 0 rgba(255,255,255,0.12)'
-                                            : '0 4px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
-                                        transition: 'background 0.28s, border-color 0.28s, box-shadow 0.28s',
-                                    }}
-                                >
-                                    <svg width="22" height="22" viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke={showComments ? '#a78bfa' : 'rgba(255,255,255,0.95)'}
-                                        strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"
-                                        style={{ display: 'block' }}>
-                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                                    </svg>
-                                </motion.div>
-                                <span style={{ fontSize: '0.68rem', color: showComments ? '#a78bfa' : 'rgba(255,255,255,0.92)', fontFamily: "'Inter',sans-serif", fontWeight: 700, letterSpacing: '0.01em', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
-                                    {cmtCount}
-                                </span>
-                            </motion.button>
-
-                            {/* 📤 Share */}
-                            <motion.button whileTap={{ scale: 0.82 }} onClick={e => { e.stopPropagation(); handleShare(); }}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', padding: 0 }}>
-                                <div style={{
-                                    width: 52, height: 52, borderRadius: '50%',
-                                    background: 'rgba(255,255,255,0.11)',
-                                    backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-                                    border: '1.5px solid rgba(255,255,255,0.22)',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    boxShadow: '0 4px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
-                                }}>
-                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.95)" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', transform: 'translateX(1px)' }}>
-                                        <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
-                                    </svg>
-                                </div>
-                                <span style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.92)', fontFamily: "'Inter',sans-serif", fontWeight: 700, letterSpacing: '0.01em', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>Share</span>
-                            </motion.button>
-                        </div>
+                                        boxShadow: '0 6px 20px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.10)',
+                                    }}>
+                                        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.92)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', transform: 'translateX(1px)' }}>
+                                            <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
+                                        </svg>
+                                    </div>
+                                    <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.85)', fontFamily: "'Cormorant Garamond',Georgia,serif", fontWeight: 700, letterSpacing: '0.03em', textShadow: '0 1px 4px rgba(0,0,0,0.9)', fontStyle: 'italic' }}>Share</span>
+                                </motion.button>
+                            </div>
+                        )}
 
                         {/* ── Play/Pause center overlay ── */}
                         <AnimatePresence>
@@ -1648,8 +1694,8 @@ function FullscreenReelModal({
                                 >
                                     <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(0,0,0,0.36)', backdropFilter: 'blur(22px)', WebkitBackdropFilter: 'blur(22px)', border: '1.5px solid rgba(255,255,255,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 36px rgba(0,0,0,0.48)' }}>
                                         {isPlaying
-                                            ? <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16" rx="1.5"/><rect x="14" y="4" width="4" height="16" rx="1.5"/></svg>
-                                            : <svg width="28" height="28" viewBox="0 0 24 24" fill="white" style={{ transform: 'translateX(2px)' }}><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                            ? <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16" rx="1.5" /><rect x="14" y="4" width="4" height="16" rx="1.5" /></svg>
+                                            : <svg width="28" height="28" viewBox="0 0 24 24" fill="white" style={{ transform: 'translateX(2px)' }}><polygon points="5 3 19 12 5 21 5 3" /></svg>
                                         }
                                     </div>
                                 </motion.div>
@@ -1671,14 +1717,14 @@ function FullscreenReelModal({
                             )}
                         </AnimatePresence>
 
-                        {/* ── Comment bottom sheet ── */}
+                        {/* ── Comment bottom sheet (slides up above persistent bar) ── */}
                         <AnimatePresence>
                             {showComments && (
                                 <motion.div
                                     initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
                                     transition={{ type: 'spring', stiffness: 340, damping: 34 }}
                                     onClick={e => e.stopPropagation()}
-                                    style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '62%', background: 'rgba(6,6,14,0.93)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)', borderTop: '1px solid rgba(139,92,246,0.28)', borderRadius: '22px 22px 0 0', display: 'flex', flexDirection: 'column', zIndex: 40 }}
+                                    style={{ position: 'absolute', bottom: 54, left: 0, right: 0, height: '58%', background: 'rgba(6,6,14,0.95)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)', borderTop: '1px solid rgba(139,92,246,0.28)', borderRadius: '22px 22px 0 0', display: 'flex', flexDirection: 'column', zIndex: 40 }}
                                 >
                                     <div style={{ padding: '0.8rem 1.2rem 0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
                                         <span style={{ fontFamily: "'Inter',sans-serif", fontSize: '0.88rem', fontWeight: 700, color: '#fff' }}>
@@ -1704,8 +1750,8 @@ function FullscreenReelModal({
                                     </div>
                                     <div style={{ padding: '0.65rem 1rem 1rem', borderTop: '1px solid rgba(255,255,255,0.07)', display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
                                         <input value={commentText} onChange={e => setCommentText(e.target.value)} onKeyDown={e => e.key === 'Enter' && postComment()}
-                                            placeholder="Add a comment..."
-                                            style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 99, padding: '0.55rem 1rem', color: '#fff', fontSize: '0.78rem', fontFamily: "'Inter',sans-serif", outline: 'none' }} />
+                                            placeholder="Write your vibes and today's experience"
+                                            style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 99, padding: '0.55rem 1rem', color: '#fff', fontSize: '0.78rem', fontFamily: "'Cormorant Garamond','Playfair Display',Georgia,serif", fontStyle: 'italic', outline: 'none' }} />
                                         <motion.button whileTap={{ scale: 0.92 }} onClick={postComment} disabled={!commentText.trim() || posting}
                                             style={{ background: commentText.trim() ? 'linear-gradient(135deg,#8b5cf6,#ec4899)' : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 99, padding: '0.55rem 1.1rem', color: '#fff', fontSize: '0.75rem', fontWeight: 700, fontFamily: "'Inter',sans-serif", cursor: commentText.trim() ? 'pointer' : 'default', whiteSpace: 'nowrap' as const }}>
                                             Post
@@ -1715,16 +1761,26 @@ function FullscreenReelModal({
                             )}
                         </AnimatePresence>
 
-                        {/* ── Tap-to-unmute hint ── */}
-                        {showMuteHint && muted && (
-                            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderRadius: 999, padding: '0.5rem 1.3rem', color: '#fff', fontSize: '0.78rem', fontFamily: "'Inter',sans-serif", fontWeight: 600, letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 7, pointerEvents: 'none', zIndex: 30, border: '1px solid rgba(255,255,255,0.18)' }}>
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" /></svg>
-                                <span>Tap to unmute</span>
+                        {/* ── Persistent Comment Bar (always visible at bottom) ── */}
+                        <div
+                            style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 54, zIndex: 37, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(22px)', WebkitBackdropFilter: 'blur(22px)', borderTop: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', padding: '0 0.9rem', gap: '0.65rem' }}
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'linear-gradient(135deg,#8b5cf6,#ec4899)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.78rem' }}>🙏</div>
+                            <div
+                                onClick={() => setShowCmts(v => !v)}
+                                style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 99, padding: '0.44rem 0.85rem', color: comments.length > 0 ? 'rgba(255,255,255,0.62)' : 'rgba(255,255,255,0.32)', fontSize: '0.72rem', fontFamily: comments.length > 0 ? "'Inter',sans-serif" : "'Cormorant Garamond','Playfair Display',Georgia,serif", fontStyle: comments.length > 0 ? 'normal' : 'italic', cursor: 'pointer', letterSpacing: '0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}
+                            >
+                                {comments.length > 0
+                                    ? `${comments[comments.length - 1]?.author}: ${comments[comments.length - 1]?.text}`
+                                    : "Write your vibes and today's experience"}
                             </div>
-                        )}
+                        </div>
 
-                        {/* ── Progress bar (YouTube-style) ── */}
-                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, background: 'rgba(255,255,255,0.14)', zIndex: 32, pointerEvents: 'none' }}>
+
+
+                        {/* ── Progress bar (uplifted above comment bar) ── */}
+                        <div style={{ position: 'absolute', bottom: 54, left: 0, right: 0, height: 3, background: 'rgba(255,255,255,0.14)', zIndex: 38, pointerEvents: 'none' }}>
                             <div style={{ height: '100%', background: 'linear-gradient(90deg,#a78bfa,#ec4899)', width: `${progress * 100}%`, transition: 'width 0.35s linear', borderRadius: '0 2px 2px 0' }} />
                         </div>
 
@@ -1733,7 +1789,7 @@ function FullscreenReelModal({
                             animate={{ y: [0, -8, 0] }}
                             transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
                             style={{
-                                position: 'absolute', bottom: '6%', left: '50%', transform: 'translateX(-50%)',
+                                position: 'absolute', bottom: '5rem', left: '50%', transform: 'translateX(-50%)',
                                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
                                 zIndex: 10, pointerEvents: 'none',
                             }}
@@ -1832,7 +1888,7 @@ function AuraSpaceInner() {
         const base = buildMixedFeed();
         // Exclude Gayatri from resonance feed — It's already shown as GayatriHeroCard at top
         const resonance = buildResonanceFeedItems().filter(r => r.story.id !== 'gayatri');
-        const allMantras = buildMantraFeedItems();
+        const allMantras = buildMantraFeedItems().filter(m => m.reel.id !== 'gayatri-deep');
         // Vishnu Sahasranamam first, then the rest
         const vishnuIdx = allMantras.findIndex(m => m.reel.id === 'vishnu-sahasranamam');
         const mantras = vishnuIdx > 0
@@ -1852,12 +1908,19 @@ function AuraSpaceInner() {
         return [...mixed, ...resonance];
     }, [timeSlot]);
 
+    const gayatriMantraItem = useMemo<MantraFeedItem>(() => ({
+        id: 'mantra-feed-gayatri-deep',
+        type: 'mantra' as const,
+        reel: MANTRA_REELS[0],
+        reelIndex: 0,
+    }), []);
+
     // ALL content types are swipeable — portals, mantras, reels, resonance in one unified scroll
     const swipeableItems = useMemo(
-        () => feedItems.filter((f): f is (ReelItem | ResonanceItem | PortalItem | MantraFeedItem) =>
+        () => [gayatriMantraItem, ...feedItems.filter((f): f is (ReelItem | ResonanceItem | PortalItem | MantraFeedItem) =>
             f.type === 'reel' || f.type === 'resonance' || f.type === 'portal' || f.type === 'mantra'
-        ),
-        [feedItems]
+        )],
+        [feedItems, gayatriMantraItem]
     );
 
     const [modalOpen, setModalOpen] = useState(false);
@@ -1874,8 +1937,6 @@ function AuraSpaceInner() {
         window.addEventListener('popstate', onPop);
         return () => window.removeEventListener('popstate', onPop);
     }, [modalOpen]);
-    const [mantraOverlayOpen, setMantraOverlayOpen] = useState(false);
-    const [mantraOverlayIdx, setMantraOverlayIdx] = useState(0);
     const [headerVisible, setHeaderVisible] = useState(true);
     const lastScrollY = useRef(0);
 
@@ -2105,11 +2166,7 @@ function AuraSpaceInner() {
                                 padding: 0,
                             }}>
                                 {/* ── GAYATRI MANTRA HERO — full-width first card ── */}
-                                <GayatriHeroCard onClick={() => {
-                                    // Opens the MantraReelFeed fullscreen player at index 0 (Gayatri Mantra with real audio)
-                                    setMantraOverlayIdx(0);
-                                    setMantraOverlayOpen(true);
-                                }} />
+                                <GayatriHeroCard onClick={() => openReel(gayatriMantraItem)} />
                                 {feedItems.map((item) =>
                                     item.type === 'reel' ? (
                                         <ReelGridCard
@@ -2380,28 +2437,6 @@ function AuraSpaceInner() {
                             onClose={() => setModalOpen(false)}
                             authorName={displayUserName}
                         />
-                    )}
-                </AnimatePresence>
-
-                {/* ══ FULLSCREEN MANTRA REEL OVERLAY ══ */}
-                <AnimatePresence>
-                    {mantraOverlayOpen && (
-                        <motion.div
-                            key="mantra-overlay"
-                            initial={{ opacity: 0, y: 40 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 40 }}
-                            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                            style={{
-                                position: 'fixed', inset: 0, zIndex: 2200,
-                                background: '#000',
-                            }}
-                        >
-                            <MantraReelFeed
-                                startIndex={mantraOverlayIdx}
-                                onClose={() => setMantraOverlayOpen(false)}
-                            />
-                        </motion.div>
                     )}
                 </AnimatePresence>
 
