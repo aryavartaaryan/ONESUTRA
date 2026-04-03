@@ -651,6 +651,24 @@ RULES:
                                     },
                                     required: ['task_name'],
                                 },
+                            },
+                            {
+                                name: 'log_activity',
+                                description: "Logs a daily life activity like waking up, meditating, eating, or sleeping so it acts as a timeline story. Trigger: 'I woke up', 'had lunch', 'meditated'.",
+                                parameters: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        activity_name: {
+                                            type: Type.STRING,
+                                            description: 'Name of the activity (e.g. WAKE UP, MEDITATE, LUNCH, STUDY)',
+                                        },
+                                        context: {
+                                            type: Type.STRING,
+                                            description: 'Optional additional context or feelings about the activity.',
+                                        },
+                                    },
+                                    required: ['activity_name'],
+                                },
                             }],
                     }],
                 },
@@ -700,15 +718,9 @@ RULES:
                                             }],
                                         };
                                         if (typeof session.sendToolResponse === 'function') {
-                                            const result = session.sendToolResponse(toolResponse);
-                                            if (result && typeof result.then === 'function') {
-                                                result.catch(() => { });
-                                            }
+                                            session.sendToolResponse(toolResponse)?.catch(() => { });
                                         } else {
-                                            const result = session.sendClientContent({ turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: I have memorized that.` }] }], turnComplete: true });
-                                            if (result && typeof result.then === 'function') {
-                                                result.catch(() => { });
-                                            }
+                                            session.sendClientContent({ turns: [{ role: 'user', parts: [{ functionResponse: { name: fc.name, id: fc.id, response: { status: 'success' } } }] }], turnComplete: true })?.catch(() => { });
                                         }
                                     }
                                 }
@@ -755,7 +767,7 @@ RULES:
                                         if (typeof session.sendToolResponse === 'function') {
                                             session.sendToolResponse(toolResponse)?.catch(() => { });
                                         } else {
-                                            session.sendClientContent({ turns: [{ role: 'user', parts: [{ text: `SYSTEM_RESPONSE: Task "${taskName}" has been removed from list.` }] }], turnComplete: true })?.catch(() => { });
+                                            session.sendClientContent({ turns: [{ role: 'user', parts: [{ functionResponse: { name: fc.name, id: fc.id, response: { status: 'success' } } }] }], turnComplete: true })?.catch(() => { });
                                         }
                                     }
                                 }
@@ -819,24 +831,49 @@ RULES:
                                             }],
                                         };
 
-                                        // Use sendToolResponse if available (newer SDK)
                                         if (typeof session.sendToolResponse === 'function') {
-                                            const result = session.sendToolResponse(toolResponse);
-                                            if (result && typeof result.then === 'function') {
-                                                result.catch(() => { });
-                                            }
+                                            session.sendToolResponse(toolResponse)?.catch(() => { });
                                         } else {
-                                            // Fallback to sendClientContent for older SDK
-                                            const result = session.sendClientContent({
-                                                turns: [{
-                                                    role: 'user',
-                                                    parts: [{ text: `SYSTEM_RESPONSE: Task "${taskName}" has been saved. Confirm warmly in one sentence.` }],
-                                                }],
-                                                turnComplete: true,
-                                            });
-                                            if (result && typeof result.then === 'function') {
-                                                result.catch(() => { });
+                                            session.sendClientContent({ turns: [{ role: 'user', parts: [{ functionResponse: { name: fc.name, id: fc.id, response: { status: 'success' } } }] }], turnComplete: true })?.catch(() => { });
+                                        }
+                                    }
+                                }
+
+                                if (fc.name === 'log_activity') {
+                                    const activityName: string = fc.args?.activity_name ?? 'Activity';
+                                    const context: string = fc.args?.context ?? '';
+                                    const currentUid = userIdRef.current;
+
+                                    if (currentUid) {
+                                        (async () => {
+                                            try {
+                                                const { getFirebaseFirestore } = await import('@/lib/firebase');
+                                                const { doc, setDoc } = await import('firebase/firestore');
+                                                const db = await getFirebaseFirestore();
+                                                const logId = Date.now().toString();
+                                                await setDoc(doc(db, 'users', currentUid, 'logs_daily', logId), {
+                                                    id: logId,
+                                                    text: activityName,
+                                                    context,
+                                                    createdAt: Date.now(),
+                                                    uid: currentUid
+                                                });
+                                                console.log(`[Bodhi Chat] 📓 Log saved: "${activityName}"`);
+                                            } catch (e) {
+                                                console.warn('[Bodhi Chat] Firestore log save failed', e);
                                             }
+                                        })();
+                                    }
+
+                                    if (sessionRef.current) {
+                                        const session = sessionRef.current as any;
+                                        const toolResponse = {
+                                            functionResponses: [{ id: fc.id, name: fc.name, response: { status: 'success', message: 'Logged.' } }],
+                                        };
+                                        if (typeof session.sendToolResponse === 'function') {
+                                            session.sendToolResponse(toolResponse)?.catch(() => { });
+                                        } else {
+                                            session.sendClientContent({ turns: [{ role: 'user', parts: [{ functionResponse: { name: fc.name, id: fc.id, response: { status: 'success' } } }] }], turnComplete: true })?.catch(() => { });
                                         }
                                     }
                                 }
@@ -905,7 +942,7 @@ RULES:
             console.error('[Bodhi Chat] connect() failed:', err);
             setChatState('error');
         }
-         
+
     }, [buildSystemPrompt, base64PCMToFloat32, enqueueAudio]);
 
     // ── Disconnect ─────────────────────────────────────────────────────────────

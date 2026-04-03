@@ -385,10 +385,10 @@ export default function SakhaBodhiOrb({
                                         y: [0, -10, 6, -6, 0],
                                         scale:
                                             sakhaState === 'speaking'
-                                                ? [1, 1.3, 0.85, 1.2, 1]
+                                                ? [1, 1.15, 0.95, 1.1, 1]
                                                 : sakhaState === 'listening'
-                                                    ? [1, 1 + micVolume * 0.5, 1]
-                                                    : [1, 1.08, 1],
+                                                    ? [1, 1 + micVolume * 0.3, 1]
+                                                    : [1, 1.04, 1],
                                     }}
                                     transition={{
                                         duration: sakhaState === 'speaking' ? 1.8 : 9,
@@ -405,8 +405,8 @@ export default function SakhaBodhiOrb({
                                         y: [0, 10, -8, 8, 0],
                                         scale:
                                             sakhaState === 'speaking'
-                                                ? [1, 0.75, 1.25, 0.9, 1]
-                                                : [1, 1.06, 1],
+                                                ? [1, 0.85, 1.15, 0.95, 1]
+                                                : [1, 1.03, 1],
                                     }}
                                     transition={{
                                         duration: sakhaState === 'speaking' ? 2.1 : 11,
@@ -422,7 +422,7 @@ export default function SakhaBodhiOrb({
                                     animate={{
                                         x: [0, 8, -12, 6, 0],
                                         y: [0, -8, 4, -10, 0],
-                                        scale: sakhaState === 'speaking' ? [1, 1.2, 0.8, 1] : [1, 1.04, 1],
+                                        scale: sakhaState === 'speaking' ? [1, 1.1, 0.9, 1] : [1, 1.02, 1],
                                     }}
                                     transition={{
                                         duration: sakhaState === 'speaking' ? 1.5 : 13,
@@ -438,7 +438,7 @@ export default function SakhaBodhiOrb({
                                     animate={{
                                         x: [0, -10, 8, -6, 0],
                                         y: [0, 12, -6, 10, 0],
-                                        scale: sakhaState === 'speaking' ? [1, 1.15, 0.85, 1] : [1, 1.05, 1],
+                                        scale: sakhaState === 'speaking' ? [1, 1.08, 0.92, 1] : [1, 1.02, 1],
                                     }}
                                     transition={{
                                         duration: sakhaState === 'speaking' ? 2.4 : 10,

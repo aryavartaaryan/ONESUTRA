@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, VolumeX, X, Play, Pause, User } from 'lucide-react';
 import { useDailyTasks, type TaskItem } from '@/hooks/useDailyTasks';
+import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 
 // ── Default Bodhi stories (shown when user has no tasks/ideas/etc.) ──────────
 export const BODHI_DEFAULT_STORIES: TaskItem[] = [
@@ -220,7 +221,7 @@ const STORIES = [
 ] as const;
 
 // ── User Story Types (Tasks / Challenges / Ideas) ──────────────────────────────
-type UserStoryCategory = 'task' | 'challenge' | 'idea' | 'issue' | 'wellness';
+type UserStoryCategory = 'task' | 'challenge' | 'idea' | 'issue' | 'wellness' | 'log';
 
 interface UserStory {
     id: string;
@@ -240,7 +241,7 @@ interface UserStory {
 }
 
 function buildUserStories(tasks: TaskItem[], useDefaults = false): UserStory[] {
-    const source = useDefaults ? BODHI_DEFAULT_STORIES : tasks.filter(t => !t.done && ['Task', 'Challenge', 'Idea', 'Wellness', 'Issue'].includes(t.category));
+    const source = useDefaults ? BODHI_DEFAULT_STORIES : tasks.filter(t => !t.done && ['Log', 'Task', 'Challenge', 'Idea', 'Wellness', 'Issue'].includes(t.category));
     if (source.length === 0 && !useDefaults) return buildUserStories([], true);
     const counters: Record<string, number> = {};
     return source
@@ -250,6 +251,13 @@ function buildUserStories(tasks: TaskItem[], useDefaults = false): UserStory[] {
             counters[cat] = (counters[cat] || 0) + 1;
             const num = counters[cat];
             const cfg: Record<string, { emoji: string; ring: string; color: string; accentColor: string; bgGradient: string; sublabel: string }> = {
+                log: {
+                    emoji: t.icon || '📓',
+                    ring: 'conic-gradient(from 0deg, #ec4899, #f472b6, #fbcfe8, #ec4899)',
+                    color: '#f472b6', accentColor: '#ec4899',
+                    bgGradient: 'linear-gradient(160deg, #1a0010 0%, #3d002a 45%, #12000c 100%)',
+                    sublabel: `Life Log ${num}`,
+                },
                 challenge: {
                     emoji: t.icon || '⚡',
                     ring: 'conic-gradient(from 0deg, #38bdf8, #0ea5e9, #7dd3fc, #38bdf8)',
@@ -503,6 +511,7 @@ function CategoryGroupBubble({ category, stories, onOpen, index = 0 }: {
         idea: { emoji: '💡', label: 'Ideas', color: '#fbbf24', accentColor: '#f59e0b' },
         issue: { emoji: '🔥', label: 'Issues', color: '#f87171', accentColor: '#ef4444' },
         wellness: { emoji: '🌿', label: 'Wellness', color: '#34d399', accentColor: '#10b981' },
+        log: { emoji: '📓', label: 'Logs', color: '#60a5fa', accentColor: '#3b82f6' },
     };
     const meta = catMeta[category];
     const bgImg = getCategoryImage(category, 0);
@@ -515,16 +524,17 @@ function CategoryGroupBubble({ category, stories, onOpen, index = 0 }: {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 280, damping: 22, delay: index * 0.09 }}
             style={{
-                flexShrink: 0, width: 65, height: 90,
+                flexShrink: 0, width: 106, height: 154,
                 background: 'none', border: 'none',
                 padding: 0, cursor: 'pointer',
-                position: 'relative', borderRadius: 16,
+                position: 'relative', borderRadius: 22,
                 overflow: 'hidden',
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
+                scrollSnapAlign: 'start', transform: 'translateZ(0)', willChange: 'transform',
             }}
         >
-            <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${bgImg})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: 16 }} />
-            <div style={{ position: 'absolute', inset: 0, borderRadius: 16, background: 'linear-gradient(180deg,rgba(0,0,0,0.08) 0%,rgba(0,0,0,0.06) 35%,rgba(0,0,0,0.22) 55%,rgba(0,0,0,0.68) 75%,rgba(0,0,0,0.82) 100%)' }} />
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${bgImg})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: 22 }} />
+            <div style={{ position: 'absolute', inset: 0, borderRadius: 22, background: 'linear-gradient(180deg,rgba(0,0,0,0.08) 0%,rgba(0,0,0,0.06) 35%,rgba(0,0,0,0.22) 55%,rgba(0,0,0,0.68) 75%,rgba(0,0,0,0.82) 100%)' }} />
             <div style={{ position: 'absolute', inset: 0, borderRadius: 16, background: `linear-gradient(160deg,${meta.color}22 0%,transparent 60%)`, mixBlendMode: 'overlay' }} />
             <motion.div
                 animate={{ opacity: [0.65, 1, 0.65] }}
@@ -533,7 +543,7 @@ function CategoryGroupBubble({ category, stories, onOpen, index = 0 }: {
             />
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '30%', borderRadius: '16px 16px 50% 50%', background: 'linear-gradient(180deg,rgba(255,255,255,0.28) 0%,rgba(255,255,255,0.06) 60%,transparent 100%)', pointerEvents: 'none' }} />
             {/* Emoji holoball */}
-            <div style={{ position: 'absolute', top: 7, left: '50%', transform: 'translateX(-50%)', width: 26, height: 26, borderRadius: '50%', background: `radial-gradient(circle at 35% 30%,rgba(255,255,255,0.55) 0%,${meta.color}50 60%,rgba(0,0,0,0.1) 100%)`, backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 3px 10px rgba(0,0,0,0.4),inset 0 1px 2px rgba(255,255,255,0.55),0 0 12px ${meta.color}70`, border: '1.5px solid rgba(255,255,255,0.45)', fontSize: 12, zIndex: 2 }}>
+            <div style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', width: 32, height: 32, borderRadius: '50%', background: `radial-gradient(circle at 35% 30%,rgba(255,255,255,0.55) 0%,${meta.color}50 60%,rgba(0,0,0,0.1) 100%)`, backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 3px 10px rgba(0,0,0,0.4),inset 0 1px 2px rgba(255,255,255,0.55),0 0 12px ${meta.color}70`, border: '1.5px solid rgba(255,255,255,0.45)', fontSize: 12, zIndex: 2 }}>
                 {meta.emoji}
             </div>
             {/* Count badge */}
@@ -542,9 +552,9 @@ function CategoryGroupBubble({ category, stories, onOpen, index = 0 }: {
             </div>
             {/* Bottom frosted panel */}
             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '5px 6px 7px', background: 'rgba(0,0,0,0.34)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', borderTop: '1px solid rgba(255,255,255,0.14)', zIndex: 2 }}>
-                <div style={{ fontSize: '0.43rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: meta.color, fontFamily: "'Inter',system-ui,sans-serif", textShadow: `0 0 8px ${meta.color}80`, lineHeight: 1.2, marginBottom: 2 }}>{meta.label}</div>
+                <div style={{ fontSize: '0.46rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: meta.color, fontFamily: "'Inter',system-ui,sans-serif", textShadow: `0 0 10px ${meta.color}90`, lineHeight: 1.2, marginBottom: 3 }}>{meta.label}</div>
                 {stories.slice(0, 2).map((s, i) => (
-                    <div key={s.id} style={{ fontSize: '0.38rem', fontWeight: 500, color: `rgba(255,255,255,${0.82 - i * 0.2})`, fontFamily: "'Inter',system-ui,sans-serif", overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', lineHeight: 1.3 }}>{s.text}</div>
+                    <div key={s.id} style={{ fontSize: '0.44rem', fontWeight: 500, color: `rgba(255,255,255,${0.82 - i * 0.2})`, fontFamily: "'Inter',system-ui,sans-serif", overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', lineHeight: 1.3 }}>{s.text}</div>
                 ))}
                 {count > 2 && (
                     <div style={{ fontSize: '0.36rem', fontWeight: 600, color: meta.color, opacity: 0.75, fontFamily: "'Inter',system-ui,sans-serif" }}>+{count - 2} more</div>
@@ -556,7 +566,7 @@ function CategoryGroupBubble({ category, stories, onOpen, index = 0 }: {
 
 // ── User Story Viewer ─────────────────────────────────────────────────────────
 function UserStoryViewer({
-    story, totalStoryCount, globalIndex, onClose, onPrev, onNext, onRemove,
+    story, totalStoryCount, globalIndex, onClose, onPrev, onNext, onRemove, direction = 1,
 }: {
     story: UserStory;
     totalStoryCount: number;
@@ -565,6 +575,7 @@ function UserStoryViewer({
     onPrev: () => void;
     onNext: () => void;
     onRemove: (taskId: string) => void;
+    direction?: number;
 }) {
     const durationSec = story.category === 'idea' ? 12 : 10;
 
@@ -586,16 +597,16 @@ function UserStoryViewer({
 
     return (
         <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30, duration: 0.35 }}
+            initial={{ x: direction > 0 ? '100%' : '-100%', opacity: 0.7 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: direction > 0 ? '-100%' : '100%', opacity: 0 }}
+            transition={{ x: { type: 'spring', stiffness: 420, damping: 38 }, opacity: { duration: 0.14 } }}
             onClick={e => e.stopPropagation()}
             style={{
                 position: 'relative',
                 width: '100%', height: '100dvh',
-                maxWidth: 430, overflow: 'hidden',
-                background: '#000',
+                maxWidth: '100vw', overflow: 'hidden',
+                background: 'transparent',
             }}
         >
             {/* ── Full-screen nature image background ── */}
@@ -641,15 +652,15 @@ function UserStoryViewer({
                 whileTap={{ scale: 0.88 }}
                 onClick={e => { e.stopPropagation(); onClose(); }}
                 style={{
-                    position: 'absolute', top: 30, right: 12,
-                    width: 36, height: 36, borderRadius: '50%',
-                    background: 'rgba(0,0,0,0.38)', backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255,255,255,0.18)',
+                    position: 'absolute', top: 'calc(env(safe-area-inset-top) + 20px)', right: 16,
+                    width: 40, height: 40, borderRadius: '50%',
+                    background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255,255,255,0.25)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', color: '#fff', zIndex: 20,
+                    cursor: 'pointer', color: '#fff', zIndex: 9999,
                 }}
             >
-                <X size={15} />
+                <X size={18} />
             </motion.button>
 
             {/* Ambient glow blobs */}
@@ -809,12 +820,12 @@ function UserStoryViewer({
 
             {/* Tap zones: prev / next */}
             <div onClick={e => { e.stopPropagation(); onPrev(); }} style={{
-                position: 'absolute', left: 0, top: 60, bottom: 60,
-                width: '28%', zIndex: 15, cursor: 'pointer',
+                position: 'absolute', left: 0, top: 90, bottom: 90,
+                width: '30%', zIndex: 15, cursor: 'pointer',
             }} />
             <div onClick={e => { e.stopPropagation(); onNext(); }} style={{
-                position: 'absolute', right: 0, top: 60, bottom: 60,
-                width: '28%', zIndex: 15, cursor: 'pointer',
+                position: 'absolute', right: 0, top: 90, bottom: 90,
+                width: '30%', zIndex: 15, cursor: 'pointer',
             }} />
         </motion.div>
     );
@@ -912,7 +923,7 @@ function FloatingReactionBar() {
                         <motion.button
                             key={emoji}
                             onClick={() => handleReact(emoji)}
-                            whileTap={{ scale: 1.5, rotate: [0, -10, 10, 0] }}
+                            whileTap={{ scale: 1.5, rotate: -15 }}
                             whileHover={{ scale: 1.3 }}
                             transition={{ type: 'spring', stiffness: 500, damping: 18 }}
                             style={{
@@ -944,13 +955,13 @@ function FloatingReactionBar() {
     );
 }
 
-// ── Story Bubble — Rectangular Card (unified with UserStoryBubble) ───────────
+// ── Story Bubble — Large Cinematic Portrait Card ─────────────────────────────
 function StoryBubble({ story, onClick, index = 0 }: { story: typeof STORIES[number]; onClick: () => void; index?: number }) {
     const vidRef = useRef<HTMLVideoElement>(null);
     const isVideo = 'videoSrc' in story;
     const bgImg = isVideo
-        ? VIDEO_THUMBS[story.id] || 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=400&h=600&fit=crop&q=80'
-        : AWARENESS_IMAGES[story.id] || 'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400&h=600&fit=crop&q=80';
+        ? VIDEO_THUMBS[story.id] || 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=400&h=700&fit=crop&q=80'
+        : AWARENESS_IMAGES[story.id] || 'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400&h=700&fit=crop&q=80';
 
     useEffect(() => {
         const v = vidRef.current;
@@ -961,32 +972,35 @@ function StoryBubble({ story, onClick, index = 0 }: { story: typeof STORIES[numb
     return (
         <motion.button
             onClick={onClick}
-            whileTap={{ scale: 0.93 }}
-            whileHover={{ scale: 1.07, y: -5, transition: { duration: 0.22 } }}
-            initial={{ opacity: 0, scale: 0.75, y: 14 }}
+            whileTap={{ scale: 0.94 }}
+            whileHover={{ scale: 1.05, y: -7, transition: { duration: 0.20, ease: [0.22, 1, 0.36, 1] } }}
+            initial={{ opacity: 0, scale: 0.72, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 280, damping: 22, delay: index * 0.06 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20, delay: index * 0.055 }}
             style={{
                 flexShrink: 0,
-                width: 82, height: 112,
+                width: 106, height: 154,
                 background: 'none', border: 'none',
                 padding: 0, cursor: 'pointer',
                 position: 'relative',
-                borderRadius: 20,
+                borderRadius: 22,
                 overflow: 'hidden',
                 display: 'flex', flexDirection: 'column',
                 alignItems: 'center',
+                scrollSnapAlign: 'start',
+                transform: 'translateZ(0)',
+                willChange: 'transform',
             }}
         >
-            {/* ── Nature / video thumbnail background ── */}
+            {/* Full-bleed background image */}
             <div style={{
                 position: 'absolute', inset: 0,
                 backgroundImage: `url(${bgImg})`,
                 backgroundSize: 'cover', backgroundPosition: 'center',
-                borderRadius: 16,
+                borderRadius: 22,
             }} />
 
-            {/* ── Video layer on top (muted thumbnail frame) ── */}
+            {/* Video thumbnail layer */}
             {isVideo && (
                 <video
                     ref={vidRef}
@@ -996,86 +1010,97 @@ function StoryBubble({ story, onClick, index = 0 }: { story: typeof STORIES[numb
                         position: 'absolute', inset: 0,
                         width: '100%', height: '100%',
                         objectFit: 'cover', display: 'block',
-                        borderRadius: 20,
+                        borderRadius: 22,
                     }}
                 />
             )}
 
-            {/* ── Gradient overlay ── */}
+            {/* Cinematic gradient: color-matched top + dark bottom */}
             <div style={{
-                position: 'absolute', inset: 0, borderRadius: 16,
-                background: 'linear-gradient(180deg, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.04) 35%, rgba(0,0,0,0.18) 55%, rgba(0,0,0,0.58) 80%, rgba(0,0,0,0.74) 100%)',
+                position: 'absolute', inset: 0, borderRadius: 22,
+                background: `linear-gradient(180deg, ${story.color}22 0%, rgba(0,0,0,0.02) 28%, rgba(0,0,0,0.12) 52%, rgba(0,0,0,0.62) 75%, rgba(0,0,0,0.88) 100%)`,
             }} />
 
-            {/* ── Glow ring ── */}
+            {/* Pulsing outer glow ring */}
             <motion.div
-                animate={{ opacity: [0.6, 1, 0.6] }}
-                transition={{ duration: 2.8 + index * 0.3, repeat: Infinity, ease: 'easeInOut' }}
+                animate={{ opacity: [0.4, 0.9, 0.4] }}
+                transition={{ duration: 2.6 + index * 0.22, repeat: Infinity, ease: 'easeInOut' }}
                 style={{
-                    position: 'absolute', inset: 0, borderRadius: 16,
-                    boxShadow: `inset 0 0 0 2px rgba(255,255,255,0.50), 0 0 0 2.5px ${story.color}55, 0 8px 24px ${story.color}40, 0 3px 12px rgba(0,0,0,0.45)`,
+                    position: 'absolute', inset: -2, borderRadius: 24,
+                    boxShadow: `0 0 0 2px ${story.color}88, 0 0 32px ${story.color}60, 0 14px 44px ${story.color}35`,
                     pointerEvents: 'none', willChange: 'opacity',
                 }}
             />
 
-            {/* ── Top glass glare ── */}
+            {/* Inner glass highlight ring */}
             <div style={{
-                position: 'absolute', top: 0, left: 0, right: 0,
-                height: '30%', borderRadius: '16px 16px 50% 50%',
-                background: 'linear-gradient(180deg, rgba(255,255,255,0.24) 0%, rgba(255,255,255,0.06) 60%, transparent 100%)',
+                position: 'absolute', inset: 0, borderRadius: 22,
+                boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,0.44)',
                 pointerEvents: 'none',
             }} />
 
-            {/* ── Play badge only for video ── */}
-            {isVideo && (
-                <div style={{
-                    position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)',
-                    width: 24, height: 24, borderRadius: '50%',
-                    background: 'rgba(0,0,0,0.35)',
-                    backdropFilter: 'blur(8px)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
-                    border: '1.5px solid rgba(255,255,255,0.40)',
-                    zIndex: 2,
-                }}>
-                    <Play size={12} color="#fff" fill="#fff" />
-                </div>
-            )}
+            {/* Top glass glare */}
+            <div style={{
+                position: 'absolute', top: 0, left: 0, right: 0,
+                height: '34%', borderRadius: '22px 22px 60% 60%',
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.08) 55%, transparent 100%)',
+                pointerEvents: 'none',
+            }} />
 
-            {/* ── Bottom frosted text panel ── */}
+            {/* Icon badge (top-center) */}
+            <motion.div
+                animate={{ scale: [1, 1.10, 1], y: [0, -2, 0] }}
+                transition={{ duration: 3.2 + index * 0.35, repeat: Infinity, ease: 'easeInOut' }}
+                style={{
+                    position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)',
+                    width: 32, height: 32, borderRadius: '50%',
+                    background: isVideo
+                        ? 'rgba(0,0,0,0.42)'
+                        : `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.55) 0%, ${story.color}55 60%, rgba(0,0,0,0.1) 100%)`,
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: `0 3px 14px rgba(0,0,0,0.45), inset 0 1px 2px rgba(255,255,255,0.55), 0 0 14px ${story.color}70`,
+                    border: '1.5px solid rgba(255,255,255,0.50)',
+                    fontSize: isVideo ? 0 : 14, zIndex: 2,
+                }}
+            >
+                {isVideo ? <Play size={13} color="#fff" fill="#fff" /> : story.preview}
+            </motion.div>
+
+            {/* Bottom frosted-glass label */}
             <div style={{
                 position: 'absolute', bottom: 0, left: 0, right: 0,
-                padding: '4px 5px 6px',
-                background: 'rgba(0,0,0,0.30)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                borderTop: '1px solid rgba(255,255,255,0.12)',
+                padding: '7px 7px 10px',
+                background: 'rgba(0,0,0,0.40)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                borderTop: `1px solid ${story.color}35`,
                 zIndex: 3,
             }}>
                 <div style={{
-                    fontSize: '0.38rem', fontWeight: 700,
-                    letterSpacing: '0.12em', textTransform: 'uppercase',
+                    fontSize: '0.45rem', fontWeight: 800,
+                    letterSpacing: '0.14em', textTransform: 'uppercase',
                     color: story.color,
                     fontFamily: "'Inter', system-ui, sans-serif",
-                    textShadow: `0 0 8px ${story.color}80`,
-                    lineHeight: 1.2, marginBottom: 1,
+                    textShadow: `0 0 10px ${story.color}90`,
+                    lineHeight: 1.2, marginBottom: 2,
                 }}>{story.sublabel}</div>
                 <div style={{
-                    fontSize: '0.43rem', fontWeight: 600,
-                    color: 'rgba(255,255,255,0.90)',
+                    fontSize: '0.52rem', fontWeight: 600,
+                    color: 'rgba(255,255,255,0.92)',
                     fontFamily: "'Inter', system-ui, sans-serif",
-                    textShadow: '0 1px 4px rgba(0,0,0,0.8)',
+                    textShadow: '0 1px 6px rgba(0,0,0,0.9)',
                     lineHeight: 1.3,
                     overflow: 'hidden',
                     display: '-webkit-box',
                     WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical' as const,
+                    WebkitBoxOrient: 'vertical',
                 }}>{story.label}</div>
             </div>
         </motion.button>
     );
 }
-
 
 // ── Cosmic Date Bubble — first story in the bar ────────────────────────────
 const COSMIC_BG = 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400&h=600&fit=crop&q=80';
@@ -1091,11 +1116,11 @@ function CosmicDateBubble({ onClick }: { onClick: () => void }) {
             initial={{ opacity: 0, scale: 0.7, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 280, damping: 22, delay: 0 }}
-            style={{ flexShrink: 0, width: 82, height: 112, background: 'none', border: 'none', padding: 0, cursor: 'pointer', position: 'relative', borderRadius: 20, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+            style={{ flexShrink: 0, width: 106, height: 154, background: 'none', border: 'none', padding: 0, cursor: 'pointer', position: 'relative', borderRadius: 22, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
         >
-            <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${COSMIC_BG})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: 20 }} />
-            <div style={{ position: 'absolute', inset: 0, borderRadius: 20, background: 'linear-gradient(180deg,rgba(10,0,40,0.35) 0%,rgba(30,0,80,0.22) 35%,rgba(0,0,0,0.25) 55%,rgba(0,0,0,0.70) 80%,rgba(0,0,0,0.88) 100%)' }} />
-            <motion.div animate={{ opacity: [0.65, 1, 0.65], scale: [1, 1.03, 1] }} transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }} style={{ position: 'absolute', inset: 0, borderRadius: 20, boxShadow: 'inset 0 0 0 2px rgba(255,255,255,0.60),0 0 0 2.5px #fbbf2470,0 10px 36px #fbbf2455,0 4px 16px rgba(0,0,0,0.5)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${COSMIC_BG})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: 22 }} />
+            <div style={{ position: 'absolute', inset: 0, borderRadius: 22, background: 'linear-gradient(180deg,rgba(10,0,40,0.35) 0%,rgba(30,0,80,0.22) 35%,rgba(0,0,0,0.25) 55%,rgba(0,0,0,0.70) 80%,rgba(0,0,0,0.88) 100%)' }} />
+            <motion.div animate={{ opacity: [0.65, 1, 0.65], scale: [1, 1.03, 1] }} transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }} style={{ position: 'absolute', inset: 0, borderRadius: 22, boxShadow: 'inset 0 0 0 2px rgba(255,255,255,0.60),0 0 0 2.5px #fbbf2470,0 10px 36px #fbbf2455,0 4px 16px rgba(0,0,0,0.5)', pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '30%', borderRadius: '20px 20px 50% 50%', background: 'linear-gradient(180deg,rgba(255,255,255,0.28) 0%,rgba(255,255,255,0.06) 60%,transparent 100%)', pointerEvents: 'none' }} />
             {/* OM holoball */}
             <div style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', width: 34, height: 34, borderRadius: '50%', background: 'radial-gradient(circle at 35% 30%,rgba(255,255,255,0.55) 0%,#fbbf2450 60%,rgba(0,0,0,0.1) 100%)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 3px 12px rgba(0,0,0,0.4),inset 0 1px 2px rgba(255,255,255,0.55),0 0 14px #fbbf2470', border: '1.5px solid rgba(255,255,255,0.45)', fontSize: 16, zIndex: 2 }}>
@@ -1105,7 +1130,7 @@ function CosmicDateBubble({ onClick }: { onClick: () => void }) {
             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '5px 6px 7px', background: 'rgba(10,0,30,0.42)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', borderTop: '1px solid rgba(255,215,0,0.22)', zIndex: 2 }}>
                 <div style={{ fontSize: '0.43rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: '#fbbf24', fontFamily: "'Inter',system-ui,sans-serif", textShadow: '0 0 8px #fbbf2480', lineHeight: 1.2, marginBottom: 2 }}>Cosmic Date</div>
                 <div style={{ fontSize: '0.56rem', fontWeight: 800, color: '#fff', fontFamily: "'Inter',system-ui,sans-serif", lineHeight: 1.2 }}>{day} {month}</div>
-                <div style={{ fontSize: '0.36rem', color: 'rgba(255,215,0,0.75)', fontFamily: "'Inter',system-ui,sans-serif" }}>Cosmic Date ✦</div>
+                <div style={{ fontSize: '0.44rem', color: 'rgba(255,215,0,0.75)', fontFamily: "'Inter',system-ui,sans-serif" }}>Cosmic Date ✦</div>
             </div>
         </motion.button>
     );
@@ -1181,8 +1206,9 @@ function calculatePanchang(): PanchangData {
     return { vaar: VAARS[now.getDay()], tithi, paksha, nakshatra, yoga, sunrise, sunset, festival, masa, samvat };
 }
 
-function CosmicDateViewer({ totalStoryCount, globalIndex, onClose, onNext, onPrev }: {
+function CosmicDateViewer({ totalStoryCount, globalIndex, onClose, onNext, onPrev, direction = 1 }: {
     totalStoryCount: number; globalIndex: number; onClose: () => void; onNext: () => void; onPrev: () => void;
+    direction?: number;
 }) {
     const panchang = useMemo(() => calculatePanchang(), []);
     const now = useMemo(() => new Date(), []);
@@ -1203,12 +1229,12 @@ function CosmicDateViewer({ totalStoryCount, globalIndex, onClose, onNext, onPre
 
     return (
         <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30, duration: 0.35 }}
+            initial={{ x: direction > 0 ? '100%' : '-100%', opacity: 0.7 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: direction > 0 ? '-100%' : '100%', opacity: 0 }}
+            transition={{ x: { type: 'spring', stiffness: 420, damping: 38 }, opacity: { duration: 0.14 } }}
             onClick={e => e.stopPropagation()}
-            style={{ position: 'relative', width: '100%', height: '100dvh', maxWidth: 430, overflow: 'hidden', background: '#050010' }}
+            style={{ position: 'relative', width: '100%', height: '100dvh', maxWidth: '100vw', overflow: 'hidden', background: 'transparent' }}
         >
             {/* Starfield bg */}
             <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${COSMIC_BG})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.4) saturate(1.4)', opacity: 0.7 }} />
@@ -1237,8 +1263,8 @@ function CosmicDateViewer({ totalStoryCount, globalIndex, onClose, onNext, onPre
             </div>
             {/* Close */}
             <motion.button whileTap={{ scale: 0.88 }} onClick={e => { e.stopPropagation(); onClose(); }}
-                style={{ position: 'absolute', top: 30, right: 12, width: 36, height: 36, borderRadius: '50%', background: 'rgba(0,0,0,0.38)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff', zIndex: 20 }}>
-                <X size={15} />
+                style={{ position: 'absolute', top: 'calc(env(safe-area-inset-top) + 20px)', right: 16, width: 40, height: 40, borderRadius: '50%', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff', zIndex: 9999 }}>
+                <X size={18} />
             </motion.button>
             {/* Content */}
             <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4.5rem 1.5rem 2rem', overflowY: 'auto', zIndex: 1 }}>
@@ -1275,20 +1301,21 @@ function CosmicDateViewer({ totalStoryCount, globalIndex, onClose, onNext, onPre
                     ))}
                 </motion.div>
             </div>
-            <div onClick={e => { e.stopPropagation(); onPrev(); }} style={{ position: 'absolute', left: 0, top: 60, bottom: 60, width: '28%', zIndex: 15, cursor: 'pointer' }} />
-            <div onClick={e => { e.stopPropagation(); onNext(); }} style={{ position: 'absolute', right: 0, top: 60, bottom: 60, width: '28%', zIndex: 15, cursor: 'pointer' }} />
+            <div onClick={e => { e.stopPropagation(); onPrev(); }} style={{ position: 'absolute', left: 0, top: 90, bottom: 90, width: '30%', zIndex: 15, cursor: 'pointer' }} />
+            <div onClick={e => { e.stopPropagation(); onNext(); }} style={{ position: 'absolute', right: 0, top: 90, bottom: 90, width: '30%', zIndex: 15, cursor: 'pointer' }} />
         </motion.div>
     );
 }
 
 // ── Full-screen Story Viewer (video + awareness) ──────────────────────────────
-function StoryViewer({ story, totalStoryCount, globalIndex, onClose, onPrev, onNext }: {
+function StoryViewer({ story, totalStoryCount, globalIndex, onClose, onPrev, onNext, direction = 1 }: {
     story: typeof STORIES[number];
     totalStoryCount: number;
     globalIndex: number;
     onClose: () => void;
     onPrev: () => void;
     onNext: () => void;
+    direction?: number;
 }) {
     const router = useRouter();
     const vidRef = useRef<HTMLVideoElement>(null);
@@ -1339,278 +1366,304 @@ function StoryViewer({ story, totalStoryCount, globalIndex, onClose, onPrev, onN
 
     return (
         <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.07 }}
-            onClick={onClose}
+            initial={{ x: direction > 0 ? '100%' : '-100%', opacity: 0.7 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: direction > 0 ? '-100%' : '100%', opacity: 0 }}
+            transition={{ x: { type: 'spring', stiffness: 420, damping: 38 }, opacity: { duration: 0.14 } }}
+            onClick={e => e.stopPropagation()}
             style={{
-                position: 'fixed', inset: 0, zIndex: 99999,
+                position: 'relative',
+                width: '100%', height: '100dvh',
+                maxWidth: '100vw',
+                overflow: 'hidden',
                 background: '#000',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
         >
-            <motion.div
-                onClick={e => e.stopPropagation()}
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 30, duration: 0.35 }}
-                style={{
-                    position: 'relative',
-                    width: '100%', height: '100dvh',
-                    maxWidth: 430,
-                    overflow: 'hidden',
-                    background: '#000',
-                }}
-            >
-                {/* ── VIDEO or AWARENESS CARD ── */}
-                {story.type === 'video' ? (
-                    <>
-                        <video
-                            ref={vidRef}
-                            src={story.videoSrc}
-                            playsInline autoPlay loop={false} muted={muted}
-                            onTimeUpdate={onTimeUpdate}
-                            onEnded={onNext}
-                            style={{
-                                position: 'absolute', inset: 0,
-                                width: '100%', height: '100%',
-                                objectFit: 'cover', display: 'block',
-                            }}
-                        />
-                        <div style={{
+            {/* ── VIDEO or AWARENESS CARD ── */}
+            {story.type === 'video' ? (
+                <>
+                    <video
+                        ref={vidRef}
+                        src={story.videoSrc}
+                        playsInline autoPlay loop={false} muted={muted}
+                        onTimeUpdate={onTimeUpdate}
+                        onEnded={onNext}
+                        style={{
                             position: 'absolute', inset: 0,
-                            background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, transparent 18%, transparent 75%, rgba(0,0,0,0.4) 100%)',
-                            pointerEvents: 'none',
-                        }} />
-                        {/* Bottom label */}
-                        <div style={{
-                            position: 'absolute', bottom: 40, left: 0, right: 0,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            zIndex: 20, pointerEvents: 'none',
-                        }}>
-                            <span style={{
-                                fontSize: '1.15rem', fontWeight: 700,
-                                fontFamily: "'Inter', system-ui, sans-serif",
-                                color: '#fff',
-                                textShadow: '0 2px 16px rgba(0,0,0,0.6)',
-                                letterSpacing: '0.02em',
-                            }}>{story.label} {story.sublabel}</span>
-                        </div>
-                    </>
-                ) : (
-                    /* ── AWARENESS CARD ── */
+                            width: '100%', height: '100%',
+                            objectFit: 'cover', display: 'block',
+                        }}
+                    />
                     <div style={{
                         position: 'absolute', inset: 0,
-                        background: story.bgGradient,
-                        display: 'flex', flexDirection: 'column',
-                        alignItems: 'center', justifyContent: 'center',
-                        padding: '5rem 2rem 3rem', textAlign: 'center',
-                        overflow: 'hidden',
+                        background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, transparent 18%, transparent 75%, rgba(0,0,0,0.4) 100%)',
+                        pointerEvents: 'none',
+                    }} />
+                    {/* Bottom label */}
+                    <div style={{
+                        position: 'absolute', bottom: 40, left: 0, right: 0,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        zIndex: 20, pointerEvents: 'none',
                     }}>
-                        {/* Ambient glow blobs */}
-                        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
-                            <div style={{
-                                position: 'absolute', width: 340, height: 340,
-                                background: `radial-gradient(circle, ${story.accentColor}22, transparent 70%)`,
-                                top: '5%', left: '50%', transform: 'translateX(-50%)',
-                                filter: 'blur(55px)',
-                            }} />
-                            <div style={{
-                                position: 'absolute', width: 240, height: 240,
-                                background: `radial-gradient(circle, ${story.accentColor}18, transparent 70%)`,
-                                bottom: '10%', left: '10%', filter: 'blur(40px)',
-                            }} />
-                            <div style={{
-                                position: 'absolute', width: 180, height: 180,
-                                background: `radial-gradient(circle, ${story.accentColor}12, transparent 70%)`,
-                                bottom: '20%', right: '8%', filter: 'blur(30px)',
-                            }} />
-                        </div>
-
-                        {/* Floating emoji icon */}
-                        <motion.div
-                            animate={{ scale: [1, 1.1, 1], y: [0, -10, 0] }}
-                            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                            style={{
-                                fontSize: 'clamp(3.5rem, 10vw, 5rem)',
-                                marginBottom: '1.6rem',
-                                position: 'relative', zIndex: 1,
-                                filter: `drop-shadow(0 0 24px ${story.accentColor}80)`,
-                            }}
-                        >
-                            {story.preview}
-                        </motion.div>
-
-                        {/* Headline */}
-                        <h2 style={{
-                            fontSize: 'clamp(1.7rem, 6vw, 2.8rem)', fontWeight: 800,
-                            color: '#fff', margin: '0 0 1rem',
-                            fontFamily: "'Playfair Display', Georgia, serif",
-                            lineHeight: 1.12, position: 'relative', zIndex: 1,
-                            textShadow: `0 0 48px ${story.accentColor}60`,
-                            letterSpacing: '-0.01em',
-                        }}>{story.headline}</h2>
-
-                        {/* Thin accent divider */}
-                        <div style={{
-                            width: 48, height: 2, borderRadius: 2,
-                            background: story.accentColor,
-                            marginBottom: '1.2rem',
-                            boxShadow: `0 0 12px ${story.accentColor}80`,
-                            position: 'relative', zIndex: 1,
-                        }} />
-
-                        {/* Description */}
-                        <p style={{
-                            fontSize: 'clamp(0.9rem, 2.8vw, 1.05rem)',
-                            color: 'rgba(255,255,255,0.68)',
-                            lineHeight: 1.8, maxWidth: '300px',
-                            margin: '0 0 2.8rem',
-                            position: 'relative', zIndex: 1,
-                            fontWeight: 300, letterSpacing: '0.012em',
-                        }}>{story.description}</p>
-
-                        {/* ── Elegant CTA Button ── */}
-                        <motion.button
-                            onClick={e => { e.stopPropagation(); router.push(story.destination); onClose(); }}
-                            whileHover={{ scale: 1.06, boxShadow: `0 8px 40px ${story.accentColor}60` }}
-                            whileTap={{ scale: 0.96 }}
-                            style={{
-                                padding: '0.95rem 2.4rem',
-                                background: `linear-gradient(135deg, ${story.accentColor}ee 0%, ${story.accentColor}99 100%)`,
-                                border: `1.5px solid ${story.accentColor}`,
-                                borderRadius: 50,
-                                color: '#fff', fontSize: '1rem', fontWeight: 700,
-                                cursor: 'pointer', position: 'relative', zIndex: 10,
-                                backdropFilter: 'blur(14px)',
-                                boxShadow: `0 6px 32px ${story.accentColor}44, inset 0 1px 0 rgba(255,255,255,0.24)`,
-                                letterSpacing: '0.04em',
-                                fontFamily: "'Inter', system-ui, sans-serif",
-                                textShadow: '0 1px 4px rgba(0,0,0,0.3)',
-                            }}
-                        >{story.cta}</motion.button>
+                        <span style={{
+                            fontSize: '1.15rem', fontWeight: 700,
+                            fontFamily: "'Inter', system-ui, sans-serif",
+                            color: '#fff',
+                            textShadow: '0 2px 16px rgba(0,0,0,0.6)',
+                            letterSpacing: '0.02em',
+                        }}>{story.label} {story.sublabel}</span>
                     </div>
-                )}
-
-                {/* ── Progress bars ── */}
+                </>
+            ) : (
+                /* ── AWARENESS CARD ── */
                 <div style={{
-                    position: 'absolute', top: 14, left: 12, right: 12,
-                    display: 'flex', gap: 4, zIndex: 20,
+                    position: 'absolute', inset: 0,
+                    background: story.bgGradient,
+                    display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', justifyContent: 'center',
+                    padding: '5rem 2rem 3rem', textAlign: 'center',
+                    overflow: 'hidden',
                 }}>
-                    {Array.from({ length: totalStoryCount }).map((_, i) => (
-                        <div key={i} style={{
-                            flex: 1, height: 2.5, borderRadius: 2,
-                            background: 'rgba(255,255,255,0.25)', overflow: 'hidden',
-                        }}>
-                            {story.type === 'video' ? (
-                                <div style={{
-                                    height: '100%', background: '#fff',
-                                    width: i < globalIndex ? '100%' : i === globalIndex ? `${progress}%` : '0%',
-                                }} />
-                            ) : (
-                                <div
-                                    key={i === globalIndex ? story.id : i}
-                                    onAnimationEnd={i === globalIndex ? onNext : undefined}
-                                    style={{
-                                        height: '100%', background: '#fff',
-                                        transformOrigin: 'left center',
-                                        transform: i < globalIndex ? 'scaleX(1)' : i > globalIndex ? 'scaleX(0)' : undefined,
-                                        animation: i === globalIndex ? 'storyFill 8s linear forwards' : 'none',
-                                    }}
-                                />
-                            )}
-                        </div>
-                    ))}
+                    {/* Ambient glow blobs */}
+                    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+                        <div style={{
+                            position: 'absolute', width: 340, height: 340,
+                            background: `radial-gradient(circle, ${story.accentColor}22, transparent 70%)`,
+                            top: '5%', left: '50%', transform: 'translateX(-50%)',
+                            filter: 'blur(55px)',
+                        }} />
+                        <div style={{
+                            position: 'absolute', width: 240, height: 240,
+                            background: `radial-gradient(circle, ${story.accentColor}18, transparent 70%)`,
+                            bottom: '10%', left: '10%', filter: 'blur(40px)',
+                        }} />
+                        <div style={{
+                            position: 'absolute', width: 180, height: 180,
+                            background: `radial-gradient(circle, ${story.accentColor}12, transparent 70%)`,
+                            bottom: '20%', right: '8%', filter: 'blur(30px)',
+                        }} />
+                    </div>
+
+                    {/* Floating emoji icon */}
+                    <motion.div
+                        animate={{ scale: [1, 1.1, 1], y: [0, -10, 0] }}
+                        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                        style={{
+                            fontSize: 'clamp(3.5rem, 10vw, 5rem)',
+                            marginBottom: '1.6rem',
+                            position: 'relative', zIndex: 1,
+                            filter: `drop-shadow(0 0 24px ${story.accentColor}80)`,
+                        }}
+                    >
+                        {story.preview}
+                    </motion.div>
+
+                    {/* Headline */}
+                    <h2 style={{
+                        fontSize: 'clamp(1.7rem, 6vw, 2.8rem)', fontWeight: 800,
+                        color: '#fff', margin: '0 0 1rem',
+                        fontFamily: "'Playfair Display', Georgia, serif",
+                        lineHeight: 1.12, position: 'relative', zIndex: 1,
+                        textShadow: `0 0 48px ${story.accentColor}60`,
+                        letterSpacing: '-0.01em',
+                    }}>{story.headline}</h2>
+
+                    {/* Thin accent divider */}
+                    <div style={{
+                        width: 48, height: 2, borderRadius: 2,
+                        background: story.accentColor,
+                        marginBottom: '1.2rem',
+                        boxShadow: `0 0 12px ${story.accentColor}80`,
+                        position: 'relative', zIndex: 1,
+                    }} />
+
+                    {/* Description */}
+                    <p style={{
+                        fontSize: 'clamp(0.9rem, 2.8vw, 1.05rem)',
+                        color: 'rgba(255,255,255,0.68)',
+                        lineHeight: 1.8, maxWidth: '300px',
+                        margin: '0 0 2.8rem',
+                        position: 'relative', zIndex: 1,
+                        fontWeight: 300, letterSpacing: '0.012em',
+                    }}>{story.description}</p>
+
+                    {/* ── Elegant CTA Button ── */}
+                    <motion.button
+                        onClick={e => { e.stopPropagation(); router.push(story.destination); onClose(); }}
+                        whileHover={{ scale: 1.06, boxShadow: `0 8px 40px ${story.accentColor}60` }}
+                        whileTap={{ scale: 0.96 }}
+                        style={{
+                            padding: '0.95rem 2.4rem',
+                            background: `linear-gradient(135deg, ${story.accentColor}ee 0%, ${story.accentColor}99 100%)`,
+                            border: `1.5px solid ${story.accentColor}`,
+                            borderRadius: 50,
+                            color: '#fff', fontSize: '1rem', fontWeight: 700,
+                            cursor: 'pointer', position: 'relative', zIndex: 10,
+                            backdropFilter: 'blur(14px)',
+                            boxShadow: `0 6px 32px ${story.accentColor}44, inset 0 1px 0 rgba(255,255,255,0.24)`,
+                            letterSpacing: '0.04em',
+                            fontFamily: "'Inter', system-ui, sans-serif",
+                            textShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                        }}
+                    >{story.cta}</motion.button>
                 </div>
+            )}
 
-                {/* ── Top-right controls ── */}
-                <div style={{
-                    position: 'absolute', top: 30, right: 12,
-                    display: 'flex', gap: 8, zIndex: 20,
-                }}>
-                    {story.type === 'video' && (
-                        <motion.button whileTap={{ scale: 0.88 }} onClick={e => { e.stopPropagation(); setMuted(m => !m); }} style={{
-                            width: 36, height: 36, borderRadius: '50%',
-                            background: 'rgba(0,0,0,0.38)', backdropFilter: 'blur(10px)',
-                            border: '1px solid rgba(255,255,255,0.18)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            cursor: 'pointer', color: '#fff',
-                        }}>
-                            {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
-                        </motion.button>
-                    )}
-                    <motion.button whileTap={{ scale: 0.88 }} onClick={e => { e.stopPropagation(); onClose(); }} style={{
-                        width: 36, height: 36, borderRadius: '50%',
-                        background: 'rgba(0,0,0,0.38)', backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255,255,255,0.18)',
+            {/* ── Progress bars ── */}
+            <div style={{
+                position: 'absolute', top: 14, left: 12, right: 12,
+                display: 'flex', gap: 4, zIndex: 20,
+            }}>
+                {Array.from({ length: totalStoryCount }).map((_, i) => (
+                    <div key={i} style={{
+                        flex: 1, height: 2.5, borderRadius: 2,
+                        background: 'rgba(255,255,255,0.25)', overflow: 'hidden',
+                    }}>
+                        {story.type === 'video' ? (
+                            <div style={{
+                                height: '100%', background: '#fff',
+                                width: i < globalIndex ? '100%' : i === globalIndex ? `${progress}%` : '0%',
+                            }} />
+                        ) : (
+                            <div
+                                key={i === globalIndex ? story.id : i}
+                                onAnimationEnd={i === globalIndex ? onNext : undefined}
+                                style={{
+                                    height: '100%', background: '#fff',
+                                    transformOrigin: 'left center',
+                                    transform: i < globalIndex ? 'scaleX(1)' : i > globalIndex ? 'scaleX(0)' : undefined,
+                                    animation: i === globalIndex ? 'storyFill 8s linear forwards' : 'none',
+                                }}
+                            />
+                        )}
+                    </div>
+                ))}
+            </div>
+
+            {/* ── Top-right controls ── */}
+            <div style={{
+                position: 'absolute', top: 'calc(env(safe-area-inset-top) + 20px)', right: 16,
+                display: 'flex', gap: 12, zIndex: 9999,
+            }}>
+                {story.type === 'video' && (
+                    <motion.button whileTap={{ scale: 0.88 }} onClick={e => { e.stopPropagation(); setMuted(m => !m); }} style={{
+                        width: 40, height: 40, borderRadius: '50%',
+                        background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255,255,255,0.25)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         cursor: 'pointer', color: '#fff',
                     }}>
-                        <X size={15} />
+                        {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
                     </motion.button>
-                </div>
-
-                {/* ── Center tap-to-pause (video only) ── */}
-                {story.type === 'video' && (
-                    <div onClick={togglePause} style={{ position: 'absolute', inset: 0, zIndex: 10 }} />
                 )}
+                <motion.button whileTap={{ scale: 0.88 }} onClick={e => { e.stopPropagation(); onClose(); }} style={{
+                    width: 40, height: 40, borderRadius: '50%',
+                    background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255,255,255,0.25)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', color: '#fff',
+                }}>
+                    <X size={18} />
+                </motion.button>
+            </div>
 
-                {/* ── Pause icon flash ── */}
-                <AnimatePresence>
-                    {paused && story.type === 'video' && (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.6 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.8 }}
-                            style={{
-                                position: 'absolute', top: '50%', left: '50%',
-                                transform: 'translate(-50%,-50%)',
-                                zIndex: 30, pointerEvents: 'none',
-                                width: 64, height: 64, borderRadius: '50%',
-                                background: 'rgba(0,0,0,0.5)',
-                                backdropFilter: 'blur(8px)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            }}
-                        >
-                            <Pause size={28} fill="#fff" color="#fff" />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+            {/* ── Center tap-to-pause (video only) ── */}
+            {story.type === 'video' && (
+                <div onClick={togglePause} style={{ position: 'absolute', inset: 0, zIndex: 10 }} />
+            )}
 
-                {/* ── Emoji Reaction Bar ── */}
-                <FloatingReactionBar />
+            {/* ── Pause icon flash ── */}
+            <AnimatePresence>
+                {paused && story.type === 'video' && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.6 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        style={{
+                            position: 'absolute', top: '50%', left: '50%',
+                            transform: 'translate(-50%,-50%)',
+                            zIndex: 30, pointerEvents: 'none',
+                            width: 64, height: 64, borderRadius: '50%',
+                            background: 'rgba(0,0,0,0.5)',
+                            backdropFilter: 'blur(8px)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}
+                    >
+                        <Pause size={28} fill="#fff" color="#fff" />
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                {/* ── Tap zones: prev (left) / next (right) ── */}
-                <div onClick={e => { e.stopPropagation(); onPrev(); }} style={{
-                    position: 'absolute', left: 0, top: 60, bottom: 60,
-                    width: '28%', zIndex: 15, cursor: 'pointer',
-                }} />
-                <div onClick={e => { e.stopPropagation(); onNext(); }} style={{
-                    position: 'absolute', right: 0, top: 60, bottom: 60,
-                    width: '28%', zIndex: 15, cursor: 'pointer',
-                }} />
-            </motion.div>
+            {/* ── Emoji Reaction Bar ── */}
+            <FloatingReactionBar />
+
+            {/* ── Tap zones: prev (left) / next (right) ── */}
+            <div onClick={e => { e.stopPropagation(); onPrev(); }} style={{
+                position: 'absolute', left: 0, top: 90, bottom: 90,
+                width: '30%', zIndex: 15, cursor: 'pointer',
+            }} />
+            <div onClick={e => { e.stopPropagation(); onNext(); }} style={{
+                position: 'absolute', right: 0, top: 90, bottom: 90,
+                width: '30%', zIndex: 15, cursor: 'pointer',
+            }} />
         </motion.div>
     );
 }
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function StickyTopNav() {
+    const { user } = useOneSutraAuth();
+    const [dailyLogs, setDailyLogs] = useState<any[]>([]);
     const [activeIdx, setActiveIdx] = useState<number | null>(null);
     const [activeUserIdx, setActiveUserIdx] = useState<number | null>(null);
     const [cosmicOpen, setCosmicOpen] = useState(false);
     const [headerVisible, setHeaderVisible] = useState(true);
     const lastScrollY = useRef(0);
+    const swipeDir = useRef<1 | -1>(1);
     const { tasks, removeTask } = useDailyTasks();
 
-    const userStories = useMemo(() => buildUserStories(tasks), [tasks]);
+    useEffect(() => {
+        if (!user?.uid) return;
+        let unsub = () => { };
+        (async () => {
+            const { getFirebaseFirestore } = await import('@/lib/firebase');
+            const { collection, onSnapshot, query } = await import('firebase/firestore');
+            const db = await getFirebaseFirestore();
+
+            const q = query(collection(db, 'users', user.uid, 'logs_daily'));
+
+            unsub = onSnapshot(q, (snap) => {
+                const startOfDay = new Date();
+                startOfDay.setHours(0, 0, 0, 0);
+
+                const logsContext = snap.docs.map(d => d.data())
+                    .filter(l => l.createdAt >= startOfDay.getTime())
+                    .sort((a, b) => a.createdAt - b.createdAt);
+
+                setDailyLogs(logsContext);
+            });
+        })();
+        return () => unsub();
+    }, [user?.uid]);
+
+    const userStories = useMemo(() => {
+        const mappedLogs: TaskItem[] = dailyLogs.map(l => ({
+            id: `log-${l.id}`,
+            text: l.text + (l.context ? ` ✦ ${l.context}` : ''),
+            category: 'Log' as any,
+            done: false,
+            createdAt: l.createdAt,
+            icon: '📓',
+            colorClass: 'bg-white/10 text-white',
+            accentColor: '#ffffff',
+        }));
+        return buildUserStories([...mappedLogs, ...tasks]);
+    }, [tasks, dailyLogs]);
     const [isMounted, setIsMounted] = useState(false);
     useEffect(() => { setIsMounted(true); }, []);
 
     // Groups: one entry per category that has items
-    const CATS = ['task', 'challenge', 'idea', 'issue', 'wellness'] as const;
+    const CATS = ['log', 'task', 'challenge', 'idea', 'issue', 'wellness'] as const;
     const groupedCategories = useMemo(() =>
         CATS.filter(c => userStories.some(s => s.category === c)),
         [userStories]
@@ -1632,8 +1685,8 @@ export default function StickyTopNav() {
     useEffect(() => {
         const onScroll = () => {
             const y = window.scrollY;
-            if (y > lastScrollY.current + 6) setHeaderVisible(false);
-            else if (y < lastScrollY.current - 6) setHeaderVisible(true);
+            if (y > lastScrollY.current + 24 && y > 90) setHeaderVisible(false);
+            else if (y < lastScrollY.current - 8) setHeaderVisible(true);
             lastScrollY.current = y;
         };
         window.addEventListener('scroll', onScroll, { passive: true });
@@ -1654,33 +1707,38 @@ export default function StickyTopNav() {
 
     const openCosmicStory = () => { setCosmicOpen(true); setActiveIdx(null); setActiveUserIdx(null); };
     const nextCosmicStory = () => {
+        swipeDir.current = 1;
         setCosmicOpen(false);
         if (userStories.length > 0) setActiveUserIdx(0);
         else if (STORIES.length > 0) setActiveIdx(0);
     };
     const prevCosmicStory = () => { }; // first story, nowhere to go back
 
-    const openStory = (i: number) => { setActiveIdx(i); setActiveUserIdx(null); setCosmicOpen(false); };
+    const openStory = (i: number) => { swipeDir.current = 1; setActiveIdx(i); setActiveUserIdx(null); setCosmicOpen(false); };
     const closeStory = () => closeAll();
     const nextStory = () => {
+        swipeDir.current = 1;
         if (activeIdx === null) return;
         activeIdx < STORIES.length - 1 ? setActiveIdx(activeIdx + 1) : closeAll();
     };
     const prevStory = () => {
+        swipeDir.current = -1;
         if (activeIdx === null) return;
         if (activeIdx > 0) setActiveIdx(activeIdx - 1);
         else if (userStories.length > 0) { setActiveIdx(null); setActiveUserIdx(userStories.length - 1); }
         else openCosmicStory();
     };
 
-    const openUserStory = (i: number) => { setActiveUserIdx(i); setActiveIdx(null); setCosmicOpen(false); };
+    const openUserStory = (i: number) => { swipeDir.current = 1; setActiveUserIdx(i); setActiveIdx(null); setCosmicOpen(false); };
     const nextUserStory = () => {
+        swipeDir.current = 1;
         if (activeUserIdx === null) return;
         if (activeUserIdx < userStories.length - 1) setActiveUserIdx(activeUserIdx + 1);
         else if (STORIES.length > 0) { setActiveUserIdx(null); setActiveIdx(0); }
         else closeAll();
     };
     const prevUserStory = () => {
+        swipeDir.current = -1;
         if (activeUserIdx === null) return;
         if (activeUserIdx > 0) setActiveUserIdx(activeUserIdx - 1);
         else openCosmicStory();
@@ -1713,15 +1771,15 @@ export default function StickyTopNav() {
                 position: 'fixed',
                 top: 0, left: 0, right: 0,
                 zIndex: 1000,
-                background: 'rgba(20, 20, 30, 0.40)',
-                backdropFilter: 'blur(20px) saturate(140%)',
-                WebkitBackdropFilter: 'blur(20px) saturate(140%)',
-                borderBottom: '1px solid rgba(251, 191, 36, 0.25)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-                overflow: 'hidden',
-                borderRadius: '0 0 24px 24px',
+                background: 'rgba(12, 12, 22, 0.72)',
+                backdropFilter: 'blur(24px) saturate(160%)',
+                WebkitBackdropFilter: 'blur(24px) saturate(160%)',
+                borderBottom: '1px solid rgba(251, 191, 36, 0.20)',
+                boxShadow: '0 8px 40px rgba(0, 0, 0, 0.55)',
+                /* No overflow:hidden — story cards at 154px need full vertical space */
+                borderRadius: '0 0 28px 28px',
                 transform: headerVisible ? 'translateY(0)' : 'translateY(-110%)',
-                transition: 'transform 0.32s cubic-bezier(0.4,0,0.2,1)',
+                transition: 'transform 0.48s cubic-bezier(0.4,0,0.2,1)',
                 willChange: 'transform',
             }}>
                 {/* Golden ambient glow */}
@@ -1850,49 +1908,67 @@ export default function StickyTopNav() {
                     );
                 })()}
 
-                {/* ── ROW 2: Story bubbles — horizontal scroll, Instagram-style ── */}
-                <div
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        alignItems: 'flex-start',
-                        gap: 6,
-                        padding: '2px 0.85rem 8px',
-                        overflowX: 'auto',
-                        overflowY: 'hidden',
-                        scrollbarWidth: 'none',
-                        WebkitOverflowScrolling: 'touch',
-                        position: 'relative', zIndex: 2,
-                    }}
-                >
-                    <style>{`div::-webkit-scrollbar{display:none}`}</style>
-                    {/* ── Cosmic Date — always first ── */}
-                    <CosmicDateBubble onClick={openCosmicStory} />
-                    {/* Thin cosmic divider */}
-                    <div style={{ width: 1, height: 52, background: 'rgba(251,191,36,0.20)', alignSelf: 'center', flexShrink: 0, borderRadius: 1 }} />
-                    {/* ── ONE grouped card per category ── */}
-                    {groupedCategories.map((cat, i) => (
-                        <CategoryGroupBubble
-                            key={cat}
-                            category={cat}
-                            stories={userStories.filter(s => s.category === cat)}
-                            onOpen={() => openUserStory(userStories.findIndex(s => s.category === cat))}
-                            index={i}
-                        />
-                    ))}
-                    {groupedCategories.length > 0 && (
-                        <div style={{ width: 1, height: 52, background: 'rgba(255,255,255,0.08)', alignSelf: 'center', flexShrink: 0, borderRadius: 1 }} />
-                    )}
-                    {/* ── Regular stories (video + awareness) ── */}
-                    {STORIES.map((story, i) => (
-                        <StoryBubble key={story.id} story={story} index={i} onClick={() => openStory(i)} />
-                    ))}
-                </div>
             </header>
 
-            {
-                /* ── UNIFIED STORY OVERLAY — portal-rendered to document.body to escape stacking context ── */
-            }
+            {/* ── STORY BAR TITLE ── */}
+            <div style={{
+                padding: '0.85rem 0.85rem 0.35rem',
+                background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%)',
+            }}>
+                <h2 style={{
+                    margin: 0,
+                    fontSize: '1.05rem',
+                    fontWeight: 700,
+                    color: 'rgba(255, 255, 255, 0.95)',
+                    fontFamily: "'Playfair Display', Georgia, serif",
+                    letterSpacing: '-0.01em',
+                    textShadow: '0 2px 8px rgba(0,0,0,0.4)',
+                }}>
+                    Watch the stories and plan your life.✨
+                </h2>
+            </div>
+            {/* ── STORY BAR: in page flow — renders below the unified glass card — scrolls naturally ── */}
+            <div
+                className="os-stories-row"
+                style={{
+                    display: 'flex', flexDirection: 'row', alignItems: 'flex-start',
+                    gap: 8, padding: '8px 0.85rem 14px',
+                    overflowX: 'auto', overflowY: 'visible',
+                    scrollbarWidth: 'none',
+                    WebkitOverflowScrolling: 'touch',
+                    scrollSnapType: 'x proximity',
+                    overscrollBehaviorX: 'contain',
+                    touchAction: 'pan-x',
+                    WebkitTapHighlightColor: 'transparent',
+                    transform: 'translateZ(0)',
+                    willChange: 'scroll-position',
+                    background: 'linear-gradient(180deg,rgba(0,0,0,0.38) 0%,rgba(0,0,0,0.16) 100%)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    borderBottom: '1px solid rgba(251,191,36,0.08)',
+                    boxShadow: '0 6px 24px rgba(0,0,0,0.22)',
+                }}
+            >
+                <CosmicDateBubble onClick={openCosmicStory} />
+                <div style={{ width: 1, height: 80, background: 'rgba(251,191,36,0.22)', alignSelf: 'center', flexShrink: 0, borderRadius: 1 }} />
+                {groupedCategories.map((cat, i) => (
+                    <CategoryGroupBubble
+                        key={cat}
+                        category={cat}
+                        stories={userStories.filter(s => s.category === cat)}
+                        onOpen={() => openUserStory(userStories.findIndex(s => s.category === cat))}
+                        index={i}
+                    />
+                ))}
+                {groupedCategories.length > 0 && (
+                    <div style={{ width: 1, height: 80, background: 'rgba(255,255,255,0.10)', alignSelf: 'center', flexShrink: 0, borderRadius: 1 }} />
+                )}
+                {STORIES.map((story, i) => (
+                    <StoryBubble key={story.id} story={story} index={i} onClick={() => openStory(i)} />
+                ))}
+            </div>
+
+
             {isMounted && createPortal(
                 <AnimatePresence mode="wait">
                     {(cosmicOpen || activeUserIdx !== null || activeIdx !== null) && (
@@ -1904,14 +1980,16 @@ export default function StickyTopNav() {
                             transition={{ duration: 0.22, ease: 'easeInOut' }}
                             style={{
                                 position: 'fixed', inset: 0, zIndex: 99999,
-                                background: '#000',
+                                background: 'rgba(0,0,0,0.15)',
+                                backdropFilter: 'blur(0px)',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 isolation: 'isolate',
+                                overflow: 'hidden',
                             }}
                             onClick={closeAll}
                         >
-                            {/* Inner content crossfades without backdrop flicker */}
-                            <AnimatePresence mode="wait">
+                            {/* Horizontal slide between stories — no black gap */}
+                            <AnimatePresence>
                                 {cosmicOpen && (
                                     <CosmicDateViewer
                                         key="cosmic"
@@ -1920,6 +1998,7 @@ export default function StickyTopNav() {
                                         onClose={closeAll}
                                         onNext={nextCosmicStory}
                                         onPrev={prevCosmicStory}
+                                        direction={swipeDir.current}
                                     />
                                 )}
                                 {!cosmicOpen && activeUserIdx !== null && userStories[activeUserIdx] && (
@@ -1932,6 +2011,7 @@ export default function StickyTopNav() {
                                         onNext={nextUserStory}
                                         onPrev={prevUserStory}
                                         onRemove={removeTask}
+                                        direction={swipeDir.current}
                                     />
                                 )}
                                 {!cosmicOpen && activeUserIdx === null && activeIdx !== null && (
@@ -1943,6 +2023,7 @@ export default function StickyTopNav() {
                                         onClose={closeStory}
                                         onNext={nextStory}
                                         onPrev={prevStory}
+                                        direction={swipeDir.current}
                                     />
                                 )}
                             </AnimatePresence>

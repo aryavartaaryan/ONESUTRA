@@ -10,7 +10,7 @@ import { BODHI_DEFAULT_STORIES } from '@/components/HomePage/StickyTopNav';
 import { MANTRA_REELS } from '@/components/PranaVerse/MantraReelFeed';
 
 // ── User story types (mirroring StickyTopNav) ─────────────────────────
-type UserStoryCategory = 'task' | 'challenge' | 'idea' | 'issue' | 'wellness';
+type UserStoryCategory = 'task' | 'challenge' | 'idea' | 'issue' | 'wellness' | 'log';
 
 interface UserTaskStory {
     id: string;
@@ -42,6 +42,7 @@ function buildUserTaskStories(tasks: TaskItem[]): UserTaskStory[] {
             challenge: { emoji: t.icon || '⚡', color: '#fb923c', accentColor: '#f97316', bgGradient: 'linear-gradient(135deg,#1a0500,#3d0f00)', ringColors: ['#fb923c', '#fed7aa'], sublabel: `Challenge ${num}` },
             wellness: { emoji: t.icon || '🌿', color: '#34d399', accentColor: '#10b981', bgGradient: 'linear-gradient(135deg,#001a0f,#003d20)', ringColors: ['#34d399', '#6ee7b7'], sublabel: `Wellness ${num}` },
             issue: { emoji: t.icon || '🔥', color: '#f87171', accentColor: '#ef4444', bgGradient: 'linear-gradient(135deg,#1a0000,#3d0000)', ringColors: ['#f87171', '#fca5a5'], sublabel: `Issue ${num}` },
+            log: { emoji: t.icon || '📓', color: '#60a5fa', accentColor: '#3b82f6', bgGradient: 'linear-gradient(135deg,#001020,#002040)', ringColors: ['#60a5fa', '#93c5fd'], sublabel: `Log ${num}` },
         };
         const c = cfg[cat] ?? cfg.task;
         return {
@@ -337,6 +338,7 @@ function UserCategoryGroupBubble({ category, stories, onOpen, isViewed, idx }: {
         idea: { emoji: '💡', label: 'Ideas', color: '#fbbf24', accentColor: '#f59e0b', ringColors: ['#fbbf24', '#fde68a'] },
         issue: { emoji: '🔥', label: 'Issues', color: '#f87171', accentColor: '#ef4444', ringColors: ['#f87171', '#fca5a5'] },
         wellness: { emoji: '🌿', label: 'Wellness', color: '#34d399', accentColor: '#10b981', ringColors: ['#34d399', '#6ee7b7'] },
+        log: { emoji: '📓', label: 'Logs', color: '#60a5fa', accentColor: '#3b82f6', ringColors: ['#60a5fa', '#93c5fd'] },
     };
     const meta = catMeta[category];
     const bgImg = BG_TASK_IMAGES[category]?.[0] ?? BG_TASK_IMAGES.task[0];
@@ -1130,11 +1132,36 @@ function VideoStoryViewer({ story, allVideoStories, startIdx, onClose, onFinishe
                 @keyframes reactionPop{0%{transform:scale(1)}40%{transform:scale(1.45)}70%{transform:scale(0.9)}100%{transform:scale(1)}}
             `}</style>
 
-            <div ref={scrollerRef} onScroll={handleScroll} style={{ position: 'absolute', inset: 0, width: '100vw', height: '100svh', overflowY: 'scroll', scrollSnapType: 'y mandatory', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', display: 'flex', flexDirection: 'column' }}>
+            <div ref={scrollerRef} onScroll={handleScroll} style={{
+                position: 'absolute', inset: 0,
+                width: '100vw', height: '100svh',
+                overflowY: 'scroll',
+                scrollSnapType: 'y mandatory',
+                WebkitOverflowScrolling: 'touch',
+                /* Only handle vertical pan — horizontal taps are for prev/next, not page nav */
+                touchAction: 'pan-y',
+                /* No rubber-band at top/bottom — eliminates edge flicker */
+                overscrollBehavior: 'contain',
+                scrollbarWidth: 'none',
+                display: 'flex', flexDirection: 'column',
+                /* GPU compositing on the scroll container */
+                transform: 'translateZ(0)',
+                willChange: 'scroll-position',
+                WebkitTapHighlightColor: 'transparent',
+            }}>
                 {allVideoStories.map((s, idx) => {
                     const isActiveOrNear = Math.abs(idx - currentIdx) <= 1;
                     return (
-                        <div key={s.id} style={{ position: 'relative', width: '100%', height: '100svh', flexShrink: 0, scrollSnapAlign: 'start', scrollSnapStop: 'always', display: 'flex', justifyContent: 'center', background: '#000', transform: 'translateZ(0)', willChange: 'transform' }}>
+                        <div key={s.id} style={{
+                            position: 'relative', width: '100%', height: '100svh',
+                            flexShrink: 0, scrollSnapAlign: 'start', scrollSnapStop: 'always',
+                            display: 'flex', justifyContent: 'center', background: '#000',
+                            /* Per-slide GPU layer — no paint on scroll */
+                            transform: 'translateZ(0)',
+                            backfaceVisibility: 'hidden',
+                            WebkitBackfaceVisibility: 'hidden',
+                            willChange: 'transform',
+                        }}>
                             <div style={{ position: 'relative', width: '100%', maxWidth: 480, height: '100%' }}>
                                 {/* Skeleton placeholder — always rendered to preserve scroll width */}
                                 {!isActiveOrNear && (
@@ -1755,7 +1782,20 @@ export default function HomeStoryBar() {
                 display: 'flex', gap: '0.65rem',
                 padding: '0.75rem 0.85rem 0.65rem',
                 overflowX: 'auto', scrollbarWidth: 'none',
-                WebkitOverflowScrolling: 'touch', scrollSnapType: 'x mandatory', scrollBehavior: 'smooth',
+                /* iOS momentum scroll */
+                WebkitOverflowScrolling: 'touch',
+                /* Snap but proximity so drag feels natural – NOT 'smooth' (that causes lag) */
+                scrollSnapType: 'x mandatory',
+                /* GPU layer on the scroll container */
+                transform: 'translateZ(0)',
+                willChange: 'scroll-position',
+                /* CRITICAL: tell browser this element only handles horizontal pan.
+                 * Eliminates vertical-scroll hijack that causes jank on mobile. */
+                touchAction: 'pan-x',
+                /* No rubber-band snap at the edges – kills the flicker */
+                overscrollBehaviorX: 'contain',
+                /* Remove tap flash on iOS/Android */
+                WebkitTapHighlightColor: 'transparent',
                 background: 'linear-gradient(180deg,rgba(0,0,0,0.94) 0%,rgba(0,0,0,0.6) 100%)',
                 backdropFilter: 'blur(20px)',
                 borderBottom: '1px solid rgba(251,191,36,0.06)',

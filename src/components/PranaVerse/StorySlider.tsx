@@ -570,16 +570,26 @@ export default function StorySlider({
                             /* 'scroll' (not 'auto') required for iOS momentum + consistent snap */
                             overflowX: 'scroll',
                             overflowY: 'hidden',
-                            /* Native CSS scroll snap — GPU-composited. NO scrollBehavior here
-                             * — smooth on the container fights native drag deceleration causing lag */
+                            /* Native CSS scroll snap — GPU-composited.
+                             * DO NOT add scrollBehavior:smooth here — it fights native drag
+                             * deceleration and causes exactly the lag / flicker the user sees. */
                             scrollSnapType: 'x mandatory',
                             /* Hide scrollbar on all browsers */
                             scrollbarWidth: 'none',
-                            /* Force hardware compositing on the container */
+                            /* CRITICAL for mobile: forces the browser to handle only horizontal
+                             * pan in this element. Vertical page scroll is never hijacked mid-swipe.
+                             * This is the single biggest contributor to Instagram-level smoothness. */
+                            touchAction: 'pan-x',
+                            /* Prevent rubber-band overscroll at first/last slide — eliminates
+                             * the flicker when reaching the boundary on iOS. */
+                            overscrollBehavior: 'contain',
+                            /* Force hardware compositing on the container itself */
                             transform: 'translateZ(0)',
                             willChange: 'scroll-position',
-                            /* Momentum scroll on iOS */
+                            /* Momentum scroll on iOS (legacy but still required for WKWebView) */
                             WebkitOverflowScrolling: 'touch',
+                            /* Remove blue tap flash on mobile — pure visual polish */
+                            WebkitTapHighlightColor: 'transparent',
                         } as React.CSSProperties}
                         onScroll={() => {/* passthrough — IntersectionObserver drives state */ }}
                     >
@@ -587,6 +597,8 @@ export default function StorySlider({
                         <style>{`
                             .pv-story-scroll::-webkit-scrollbar { display: none; }
                             .pv-story-scroll { -webkit-overflow-scrolling: touch; }
+                            /* GPU rasterization hint for animated slides */
+                            .pv-story-scroll > * { will-change: transform; }
                         `}</style>
 
                         {slides.map((slide, index) => {
@@ -604,12 +616,18 @@ export default function StorySlider({
                                         width: '100%',
                                         height: '100%',
                                         scrollSnapAlign: 'center',
-                                        /* GPU layer per slide — prevents paint flicker */
+                                        /* GPU compositing: translateZ + backfaceVisibility together
+                                         * ensure each slide has its own GPU layer so the compositor
+                                         * can slide them without triggering paints — zero flicker. */
                                         transform: 'translateZ(0)',
+                                        backfaceVisibility: 'hidden',
+                                        WebkitBackfaceVisibility: 'hidden',
                                         willChange: 'transform',
                                         position: 'relative',
+                                        /* Inherit touch handling from container */
+                                        touchAction: 'pan-x',
                                     }}
-                                    /* Tap left 35% → prev, right 35% → next */
+                                    /* Tap left 35% → prev, right 35% → next (desktop/iPad) */
                                     onClick={(e) => {
                                         const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
                                         const relX = e.clientX - rect.left;

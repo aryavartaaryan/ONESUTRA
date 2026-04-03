@@ -193,7 +193,7 @@
 @keyframes cymatics {
     0% {
         transform: translate(-50%, -50%) scale(0.75);
-        opacity: 0.85;
+        opacity: 0.35;
     }
 
     100% {
