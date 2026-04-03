@@ -12,7 +12,7 @@ interface Message {
 }
 
 const DEMO_MESSAGES: Message[] = [
-    { id: '1', sender: 'other', text: 'Hari Om 🙏 How did your morning Sadhana go today?', time: '7:14 AM' },
+    { id: '1', sender: 'other', text: 'Namaste 🙏 How did your morning Sadhana go today?', time: '7:14 AM' },
     { id: '2', sender: 'me', text: 'Shubh Prabhat! It was very peaceful. Completed the Gayatri 108 cycle.', time: '7:18 AM' },
     { id: '3', sender: 'other', text: 'That\'s beautiful. I could feel a shift in energy since yesterday\'s session too.', time: '7:20 AM' },
 ];

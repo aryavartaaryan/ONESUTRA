@@ -519,7 +519,7 @@ RULES:
 
    ☀️ NOON (12 PM – 4 PM IST) — pick one:
      • "☀️ Shubh Madhyahna, ${firstName}! Madhyahna kaal ki tej roshni mein aapka prana bhi jagmagaata hai."
-     • "☀️ Hari Om, ${firstName}! Madhyahna ka yeh golden hour — focus aur shakti ka sabse uttam kshan."
+     • "☀️ Namaste, ${firstName}! Madhyahna ka yeh golden hour — focus aur shakti ka sabse uttam kshan."
      • "☀️ Shubh Madhyahna, ${firstName}! Din ki tej dhoop mein aap bhi chamakate rahein — yeh kshan aapka hai."
 
    🪔 EVENING (4 PM – 9 PM IST) — pick one:

@@ -383,7 +383,7 @@ Your VERY FIRST sentence MUST be a SHORT, POETIC, time-of-day Sanskrit greeting 
       "🌅 Namaskar, ${firstName}! Yeh taazi subah ek naya avsar aur nayi shakti lekar aayi hai."
   - MIDDAY  → Pick one (short, poetic):
       "☀️ Shubh Madhyahna, ${firstName}! Madhyahna kaal ki tej roshni mein aapka prana bhi jagmagaata hai."
-      "☀️ Hari Om, ${firstName}! Madhyahna ka yeh golden hour — focus aur shakti ka sabse uttam kshan."
+      "☀️ Namaste, ${firstName}! Madhyahna ka yeh golden hour — focus aur shakti ka sabse uttam kshan."
   - EVENING → Pick one (short, poetic):
       "🪔 Shubh Sandhya, ${firstName}! Sandhya ka yeh sacred kaal — diya jalao, mann ko shaant karo."
       "🪔 Shubh Sandhya, ${firstName}! Ishwar aur swayam se jodne ka yeh sabse uttam samay hai."
@@ -487,7 +487,7 @@ ${phase === 'morning' ? `
             }
 ` : phase === 'midday' ? `
 ☀️ MIDDAY — Deep Work & Focus Time:
-→ UPLIFTING OPENER (FIRST WORDS): "Hari Om, ${firstName}! ☀️ Aap aaj duniya ko apni chamak se jagmaga rahe ho — main yeh dekh ke khush hoon! Iss dopahar kya jordar karein saath mein? 💫" (Then flow naturally)
+→ UPLIFTING OPENER (FIRST WORDS): "Namaste, ${firstName}! ☀️ Aap aaj duniya ko apni chamak se jagmaga rahe ho — main yeh dekh ke khush hoon! Iss dopahar kya jordar karein saath mein? 💫" (Then flow naturally)
 → Energy check करें: "दिन कैसा जा रहा है? कुछ achha hua aaj?"
 → Pending tasks में से एक naturally pick करें और actionable help offer करें।
 → अगर stressed लगें: 4-7-8 breathing technique offer करें।
@@ -1468,7 +1468,7 @@ export function useSakhaConversation({
             }
             break; // One alert per chatMeta change — avoid flooding
         }
-         
+
     }, [chatMeta]);
 
     // Detect phase on mount (IST timezone)
@@ -2701,68 +2701,68 @@ RULE: Your FIRST sentence MUST naturally weave in when you last spoke. Be specif
                                     if (alreadyExists) {
                                         responseMessage = `SKIP: "${taskName}" is already saved. Tell user warmly in ONE sentence it is already in the list. Do NOT add again.`;
                                     } else {
-                                    const allocatedMins: number | undefined = fcArgs.allocated_time_minutes && fcArgs.allocated_time_minutes > 0
-                                        ? fcArgs.allocated_time_minutes
-                                        : undefined;
-                                    const startTime: string = fcArgs.start_time ?? '';
-                                    // Map category from tool args
-                                    const rawCat = (fcArgs.category ?? 'Task').toString();
-                                    const catMap: Record<string, string> = {
-                                        task: 'Task', Task: 'Task',
-                                        idea: 'Idea', Idea: 'Idea',
-                                        challenge: 'Challenge', Challenge: 'Challenge',
-                                        issue: 'Issue', Issue: 'Issue',
-                                    };
-                                    const mappedCategory = catMap[rawCat] ?? 'Task';
-                                    const iconMap: Record<string, string> = { Task: '✅', Idea: '💡', Challenge: '⚡', Issue: '🔥' };
-                                    const current = [...sankalpaRef.current];
-                                    const newTask: TaskItem = {
-                                        id: Date.now().toString(),
-                                        text: taskName,
-                                        done: false,
-                                        category: mappedCategory,
-                                        colorClass: 'gold',
-                                        accentColor: 'rgba(251,191,36,0.85)',
-                                        icon: startTime ? '📅' : (iconMap[mappedCategory] ?? '✨'),
-                                        createdAt: Date.now(),
-                                        ...(allocatedMins !== undefined && { allocatedMinutes: allocatedMins }),
-                                        startTime: startTime || undefined,
-                                    };
-                                    // 1. Optimistic in-memory update so Bodhi's ref stays fresh this session
-                                    sankalpaRef.current = [...current, newTask];
-                                    onSankalpaUpdateRef.current([...current, newTask]);
+                                        const allocatedMins: number | undefined = fcArgs.allocated_time_minutes && fcArgs.allocated_time_minutes > 0
+                                            ? fcArgs.allocated_time_minutes
+                                            : undefined;
+                                        const startTime: string = fcArgs.start_time ?? '';
+                                        // Map category from tool args
+                                        const rawCat = (fcArgs.category ?? 'Task').toString();
+                                        const catMap: Record<string, string> = {
+                                            task: 'Task', Task: 'Task',
+                                            idea: 'Idea', Idea: 'Idea',
+                                            challenge: 'Challenge', Challenge: 'Challenge',
+                                            issue: 'Issue', Issue: 'Issue',
+                                        };
+                                        const mappedCategory = catMap[rawCat] ?? 'Task';
+                                        const iconMap: Record<string, string> = { Task: '✅', Idea: '💡', Challenge: '⚡', Issue: '🔥' };
+                                        const current = [...sankalpaRef.current];
+                                        const newTask: TaskItem = {
+                                            id: Date.now().toString(),
+                                            text: taskName,
+                                            done: false,
+                                            category: mappedCategory,
+                                            colorClass: 'gold',
+                                            accentColor: 'rgba(251,191,36,0.85)',
+                                            icon: startTime ? '📅' : (iconMap[mappedCategory] ?? '✨'),
+                                            createdAt: Date.now(),
+                                            ...(allocatedMins !== undefined && { allocatedMinutes: allocatedMins }),
+                                            startTime: startTime || undefined,
+                                        };
+                                        // 1. Optimistic in-memory update so Bodhi's ref stays fresh this session
+                                        sankalpaRef.current = [...current, newTask];
+                                        onSankalpaUpdateRef.current([...current, newTask]);
 
-                                    // 1. Send straight to parent prop if missing direct SDK access
-                                    if (onAddTaskRef.current) {
-                                        onAddTaskRef.current(newTask).catch(err => {
-                                            console.warn('[Bodhi SDK] onAddTask fallback failed:', err);
-                                        });
-                                    }
+                                        // 1. Send straight to parent prop if missing direct SDK access
+                                        if (onAddTaskRef.current) {
+                                            onAddTaskRef.current(newTask).catch(err => {
+                                                console.warn('[Bodhi SDK] onAddTask fallback failed:', err);
+                                            });
+                                        }
 
-                                    // 2. Direct Firestore write using always-current userIdRef
-                                    //    (bypasses stale onAddTaskRef captured during uid=null phase)
-                                    const currentUid = userIdRef.current;
-                                    if (currentUid) {
-                                        (async () => {
-                                            try {
-                                                const { getFirebaseFirestore } = await import('@/lib/firebase');
-                                                const { doc, setDoc } = await import('firebase/firestore');
-                                                const db = await getFirebaseFirestore();
-                                                await setDoc(
-                                                    doc(db, 'users', currentUid, 'tasks', newTask.id),
-                                                    { ...newTask, uid: currentUid }
-                                                );
-                                                console.log(`[Bodhi SDK] ✅ Firestore ADD success: "${taskName}"`);
-                                            } catch (e) {
-                                                console.warn('[Bodhi SDK] Direct Firestore ADD failed. relying on sync logic.', e);
-                                            }
-                                        })();
-                                    }
+                                        // 2. Direct Firestore write using always-current userIdRef
+                                        //    (bypasses stale onAddTaskRef captured during uid=null phase)
+                                        const currentUid = userIdRef.current;
+                                        if (currentUid) {
+                                            (async () => {
+                                                try {
+                                                    const { getFirebaseFirestore } = await import('@/lib/firebase');
+                                                    const { doc, setDoc } = await import('firebase/firestore');
+                                                    const db = await getFirebaseFirestore();
+                                                    await setDoc(
+                                                        doc(db, 'users', currentUid, 'tasks', newTask.id),
+                                                        { ...newTask, uid: currentUid }
+                                                    );
+                                                    console.log(`[Bodhi SDK] ✅ Firestore ADD success: "${taskName}"`);
+                                                } catch (e) {
+                                                    console.warn('[Bodhi SDK] Direct Firestore ADD failed. relying on sync logic.', e);
+                                                }
+                                            })();
+                                        }
 
-                                    const timeDesc = allocatedMins ? ` (${allocatedMins} min)` : '';
-                                    const scheduleDesc = startTime ? ` scheduled for ${startTime}` : '';
-                                    responseMessage = `DONE: Task "${taskName}"${timeDesc}${scheduleDesc} successfully added to Sankalpa list. Current time: ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}. Say a warm ONE-sentence confirmation in Hindi ONCE only. If startTime is in the future, do NOT tell user to do it now. DO NOT repeat the confirmation.`;
-                                    console.log(`[Bodhi SDK] ✅ add_sankalpa_task: "${taskName}" | cat:${mappedCategory} | ${allocatedMins ?? 'no'} min | startTime: ${startTime || 'none'}`);
+                                        const timeDesc = allocatedMins ? ` (${allocatedMins} min)` : '';
+                                        const scheduleDesc = startTime ? ` scheduled for ${startTime}` : '';
+                                        responseMessage = `DONE: Task "${taskName}"${timeDesc}${scheduleDesc} successfully added to Sankalpa list. Current time: ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}. Say a warm ONE-sentence confirmation in Hindi ONCE only. If startTime is in the future, do NOT tell user to do it now. DO NOT repeat the confirmation.`;
+                                        console.log(`[Bodhi SDK] ✅ add_sankalpa_task: "${taskName}" | cat:${mappedCategory} | ${allocatedMins ?? 'no'} min | startTime: ${startTime || 'none'}`);
                                     } // end !alreadyExists
                                 }
 

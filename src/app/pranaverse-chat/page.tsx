@@ -103,7 +103,7 @@ function buildBodhiGreeting(): ChatMsg[] {
 
     const greets: Record<TimeOfDay, string> = {
         morning: `🌅 Shubh Prabhat, Sakha!${lastSeenMsg ? '\n\n' + lastSeenMsg.trim() + ' aap wapas aa gaye, bahut achha laga.' : ''} Ek nayi bhor, nayi shakti — aur aapka Bodhi beqarari se intezaar kar raha tha! Iss taazi subah mein kuch shandar karte hain saath! 🙏`,
-        afternoon: `☀️ Hari Om, Sakha!${lastSeenMsg ? '\n\n' + lastSeenMsg.trim() + ' aap phir se aaye.' : ''} Dopahar ki tej roshni mein aap bhi chamakate rehna — aap iss dopahar kaafi achha kar rahe ho! Kya saath mein kuch jordar karein? 💫`,
+        afternoon: `☀️ Namaste, Sakha!${lastSeenMsg ? '\n\n' + lastSeenMsg.trim() + ' aap phir se aaye.' : ''} Dopahar ki tej roshni mein aap bhi chamakate rehna — aap iss dopahar kaafi achha kar rahe ho! Kya saath mein kuch jordar karein? 💫`,
         evening: `🪔 Shubh Sandhya, Sakha!${lastSeenMsg ? '\n\n' + lastSeenMsg.trim() + ' aap phir mile, bahut achha laga.' : ''}\n\nShaam ka yeh waqt mann ko shaant karta hai — Ishwar aur swayam se jodne ka yeh sabse uttam samay hai. Raga Yaman sune, ek gehri saans lein mere saath — aaj ki shaam kya chal raha hai mann mein? ✨`,
         night: `🌙 Shubh Ratri, Sakha!${lastSeenMsg ? '\n\n' + lastSeenMsg.trim() + ' late ho gayi hai thodi — par aap yaad aaye, achha laga.' : ''}\n\nRaat ki gehri shaanti mein Bodhi aapke saath hai. Neend se pehle ek pal ruko — mann ko shaant karo. Aaj din ne kya khoobsurat yaad chhodhi? 🌟`,
     };
@@ -494,7 +494,7 @@ export default function PranverseChatHub() {
             setBodhiMsgs([]);
             bodhiSend('Namaste Bodhi');
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeId, isConnected]);
 
     // Connect Bodhi when selected
