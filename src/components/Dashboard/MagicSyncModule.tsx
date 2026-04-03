@@ -988,7 +988,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                 style={{
                     position: 'relative',
                     borderRadius: 24,
-                    padding: '0.4rem 0.65rem 0.35rem',
+                    padding: '0.15rem 0.65rem 0.15rem',
                     background: 'transparent',
                     backdropFilter: 'none',
                     WebkitBackdropFilter: 'none',

@@ -329,6 +329,7 @@ export default function Home() {
               boxShadow: 'none',
               position: 'relative', zIndex: 10,
               overflow: 'hidden',
+              marginBottom: '-0.3rem'
             }}
           >
             <div aria-hidden style={{
@@ -346,7 +347,7 @@ export default function Home() {
                   : 'Silence the noise. Guard the inner fire.'
               }
             />
-            <div style={{ paddingBottom: '0.5rem' }}>
+            <div style={{ paddingBottom: '0.1rem' }}>
               <MagicSyncModule
                 items={sankalpaItems}
                 onToggle={toggleTaskDone}
@@ -361,7 +362,7 @@ export default function Home() {
         {/* ══ StickyTopNav: fixed header floats on top always;
              its story bar div renders in page flow right here
              — BELOW the glass card, scrolls off naturally ══ */}
-        <div style={{ display: isPortalOpen ? 'none' : 'block', marginTop: '-0.3rem' }}>
+        <div style={{ display: isPortalOpen ? 'none' : 'block', marginTop: '-0.6rem' }}>
           <StickyTopNav />
         </div>
 
