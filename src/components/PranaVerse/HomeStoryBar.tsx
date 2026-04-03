@@ -1482,9 +1482,17 @@ function MantraStoryViewer({
 
     const togglePlay = () => {
         const audio = audioRef.current;
+        const video = videoRef.current;
         if (!audio) return;
-        if (playing) { audio.pause(); setPlaying(false); }
-        else { audio.play().then(() => setPlaying(true)).catch(() => { }); }
+        // Check actual DOM state to avoid React state desync
+        const actuallyPlaying = !audio.paused;
+        if (actuallyPlaying) {
+            audio.pause();
+            video?.pause();
+            setPlaying(false);
+        } else {
+            audio.play().then(() => { setPlaying(true); video?.play().catch(() => {}); }).catch(() => { });
+        }
     };
 
     const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
@@ -1650,6 +1658,8 @@ function MantraStoryViewer({
             <audio
                 ref={audioRef}
                 src={reel.audioSrc}
+                onPlay={() => setPlaying(true)}
+                onPause={() => setPlaying(false)}
                 onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)}
                 onDurationChange={() => setDuration(audioRef.current?.duration || 0)}
                 onEnded={() => { setPlaying(false); if (idx < mantras.length - 1) setIdx(i => i + 1); }}

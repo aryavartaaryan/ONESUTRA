@@ -337,6 +337,15 @@ export default function Home() {
               background: 'linear-gradient(90deg, transparent, rgba(251,191,36,0.35), transparent)',
               pointerEvents: 'none',
             }} />
+            <div style={{ paddingBottom: '0.1rem' }}>
+              <MagicSyncModule
+                items={sankalpaItems}
+                onToggle={toggleTaskDone}
+                onRemove={removeTask}
+                onAdd={addTask}
+                onUpdate={updateTask}
+              />
+            </div>
             <BrahmastraFocusCard
               active={brahmastraState.active}
               focusWindowMinutes={brahmastraState.focusWindowMinutes}
@@ -347,15 +356,6 @@ export default function Home() {
                   : 'Silence the noise. Guard the inner fire.'
               }
             />
-            <div style={{ paddingBottom: '0.1rem' }}>
-              <MagicSyncModule
-                items={sankalpaItems}
-                onToggle={toggleTaskDone}
-                onRemove={removeTask}
-                onAdd={addTask}
-                onUpdate={updateTask}
-              />
-            </div>
           </motion.div>
         )}
 

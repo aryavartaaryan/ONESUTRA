@@ -1246,6 +1246,23 @@ function FullscreenReelModal({
 
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    // Callback refs: play immediately when video/audio node mounts.
+    // CRITICAL: guard the null case — AnimatePresence holds the exiting reel in the DOM for
+    // ~320 ms (exit animation). When it finally unmounts, React calls ref(null) on the OLD
+    // element. Since both entering and exiting <video>/<audio> share the same stable callback
+    // ref, that null call would overwrite videoRef.current with null, breaking every subsequent
+    // tap. Skipping null keeps videoRef.current pointing at the ACTIVE (live) media element.
+    const videoCallbackRef = useCallback((node: HTMLVideoElement | null) => {
+        if (!node) return; // exiting element unmount — don't null-poison the active ref
+        videoRef.current = node;
+        node.muted = false; node.play().catch(() => { });
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    const audioCallbackRef = useCallback((node: HTMLAudioElement | null) => {
+        if (!node) return; // exiting element unmount — don't null-poison the active ref
+        audioRef.current = node;
+        node.muted = false; node.play().catch(() => { });
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
     const hideCtrlTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const dragStartY = useRef(0);
     const lastTap = useRef(0);
@@ -1274,23 +1291,17 @@ function FullscreenReelModal({
         return () => window.removeEventListener('keydown', h);
     }, [onClose, items.length]);
 
-    // Start/restart playback when current item changes
+    // Reset UI state and pause old media when navigating between reels
     useEffect(() => {
         const v = videoRef.current;
         const a = audioRef.current;
         setProgress(0);
         setIsPlaying(true);
         setShowPlayPause(false);
+        setComments([]);
         if (hideCtrlTimer.current) clearTimeout(hideCtrlTimer.current);
-
-        if (v) {
-            v.muted = false;
-            v.play().catch(() => { });
-        }
-        if (a) {
-            a.muted = false;
-            a.play().catch(() => { });
-        }
+        // Cleanup: pause the video that was playing BEFORE this navigation
+        // (v/a captured here = the old video, before new one mounts via callbackRef)
         return () => {
             try { v?.pause(); } catch { }
             try { a?.pause(); } catch { }
@@ -1318,23 +1329,7 @@ function FullscreenReelModal({
         return () => { unsub?.(); };
     }, [reelId]);
 
-    // ── Fetch latest comment for persistent bar preview (one-time, lightweight) ─
-    useEffect(() => {
-        (async () => {
-            if (comments.length > 0) return;
-            try {
-                const { getFirebaseFirestore } = await import('@/lib/firebase');
-                const { collection, query, orderBy, limit, getDocs } = await import('firebase/firestore');
-                const db = await getFirebaseFirestore();
-                const q = query(collection(db, 'pranaverse_reels', reelId, 'comments'), orderBy('ts', 'desc'), limit(1));
-                const snap = await getDocs(q);
-                if (!snap.empty) {
-                    const d = snap.docs[0];
-                    setComments([{ id: d.id, ...(d.data() as { text: string; author: string; ts: number }) }]);
-                }
-            } catch { /* offline */ }
-        })();
-    }, [reelId]); // eslint-disable-line react-hooks/exhaustive-deps
+    // (latest-comment pre-fetch removed — bar always shows placeholder)
 
     // ── Firebase: real-time comments (only when sheet is open) ────────────────
     useEffect(() => {
@@ -1469,14 +1464,18 @@ function FullscreenReelModal({
                     >
                         {/* ── Media background ── */}
                         {item.type === 'reel' && item.localVideoSrc ? (
-                            <video ref={videoRef} src={item.localVideoSrc}
+                            <video ref={videoCallbackRef} src={item.localVideoSrc}
                                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                                loop playsInline autoPlay
+                                loop playsInline
+                                onPlay={() => setIsPlaying(true)}
+                                onPause={() => setIsPlaying(false)}
                                 onTimeUpdate={e => { const v = e.currentTarget; if (v.duration) setProgress(v.currentTime / v.duration); }} />
                         ) : item.type === 'mantra' && item.reel.videoSrc ? (
-                            <video ref={videoRef} src={item.reel.videoSrc}
+                            <video ref={videoCallbackRef} src={item.reel.videoSrc}
                                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                                loop playsInline autoPlay
+                                loop playsInline
+                                onPlay={() => setIsPlaying(true)}
+                                onPause={() => setIsPlaying(false)}
                                 onTimeUpdate={e => { const v = e.currentTarget; if (v.duration) setProgress(v.currentTime / v.duration); }} />
                         ) : (
                             <img
@@ -1493,14 +1492,10 @@ function FullscreenReelModal({
                         {/* Hidden audio player for audio-only mantra items */}
                         {item.type === 'mantra' && !item.reel.videoSrc && (
                             <audio
-                                ref={el => {
-                                    audioRef.current = el;
-                                    if (el) {
-                                        el.muted = false;
-                                        el.play().catch(() => { });
-                                    }
-                                }}
+                                ref={audioCallbackRef}
                                 src={item.reel.audioSrc} loop style={{ display: 'none' }}
+                                onPlay={() => setIsPlaying(true)}
+                                onPause={() => setIsPlaying(false)}
                                 onTimeUpdate={e => { const a = e.currentTarget; if (a.duration) setProgress(a.currentTime / a.duration); }}
                             />
                         )}
@@ -1748,20 +1743,29 @@ function FullscreenReelModal({
                             )}
                         </AnimatePresence>
 
-                        {/* ── Persistent Comment Bar (always visible at bottom) ── */}
+                        {/* ── Persistent Comment Bar — Instagram-style input ── */}
                         <div
-                            style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 54, zIndex: 37, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(22px)', WebkitBackdropFilter: 'blur(22px)', borderTop: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', padding: '0 0.9rem', gap: '0.65rem' }}
+                            style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 54, zIndex: 37, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(22px)', WebkitBackdropFilter: 'blur(22px)', borderTop: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', padding: '0 0.75rem', gap: '0.55rem' }}
                             onClick={e => e.stopPropagation()}
                         >
                             <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'linear-gradient(135deg,#8b5cf6,#ec4899)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.78rem' }}>🙏</div>
-                            <div
-                                onClick={() => setShowCmts(v => !v)}
-                                style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 99, padding: '0.44rem 0.85rem', color: comments.length > 0 ? 'rgba(255,255,255,0.62)' : 'rgba(255,255,255,0.32)', fontSize: '0.72rem', fontFamily: comments.length > 0 ? "'Inter',sans-serif" : "'Cormorant Garamond','Playfair Display',Georgia,serif", fontStyle: comments.length > 0 ? 'normal' : 'italic', cursor: 'pointer', letterSpacing: '0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}
-                            >
-                                {comments.length > 0
-                                    ? `${comments[comments.length - 1]?.author}: ${comments[comments.length - 1]?.text}`
-                                    : "Write your vibes and today's experience"}
-                            </div>
+                            <input
+                                value={commentText}
+                                onChange={e => setCommentText(e.target.value)}
+                                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); postComment(); } }}
+                                placeholder="Write your today vibes and experience…"
+                                style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 99, padding: '0.44rem 0.85rem', color: '#fff', fontSize: '0.72rem', fontFamily: "'Cormorant Garamond','Playfair Display',Georgia,serif", fontStyle: 'italic', outline: 'none', letterSpacing: '0.01em' }}
+                            />
+                            {commentText.trim() && (
+                                <motion.button
+                                    whileTap={{ scale: 0.88 }}
+                                    onClick={postComment}
+                                    disabled={posting}
+                                    style={{ background: 'linear-gradient(135deg,#8b5cf6,#ec4899)', border: 'none', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'translateX(1px)' }}><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
+                                </motion.button>
+                            )}
                         </div>
 
 

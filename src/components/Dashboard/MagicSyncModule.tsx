@@ -912,22 +912,22 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                     style={{
                         width: '100%',
                         maxWidth: 360,
-                        margin: '0 auto 0.6rem',
+                        margin: '0 auto 0.3rem',
                         background: 'rgba(8,6,22,0.75)',
                         backdropFilter: 'blur(20px)',
                         WebkitBackdropFilter: 'blur(20px)',
                         border: '1px solid rgba(255,255,255,0.10)',
                         borderRadius: 999,
-                        padding: '8px 12px',
+                        padding: '5px 10px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: 8,
+                        gap: 6,
                         zIndex: 10,
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.35)',
+                        boxShadow: '0 2px 14px rgba(0,0,0,0.30)',
                     }}
                 >
-                    <span style={{ fontSize: '0.50rem', color: 'rgba(255,255,255,0.45)', fontFamily: "'Inter', system-ui, sans-serif", textTransform: 'uppercase', letterSpacing: '0.08em', marginRight: 4, whiteSpace: 'nowrap' }}>How are you feeling?</span>
+                    <span style={{ fontSize: '0.47rem', color: 'rgba(255,255,255,0.45)', fontFamily: "'Inter', system-ui, sans-serif", textTransform: 'uppercase', letterSpacing: '0.08em', marginRight: 2, whiteSpace: 'nowrap' }}>How are you feeling?</span>
                     {[
                         { emoji: '😔', label: 'low', color: '#f87171' },
                         { emoji: '😌', label: 'calm', color: '#2dd4bf' },
@@ -945,9 +945,9 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                                 border: mood === m.label ? `1px solid ${m.color}` : '1px solid rgba(255,255,255,0.08)',
                                 borderRadius: '50%',
                                 cursor: 'pointer',
-                                fontSize: '1.1rem',
-                                width: 32,
-                                height: 32,
+                                fontSize: '0.95rem',
+                                width: 27,
+                                height: 27,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -1073,7 +1073,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.9, duration: 0.5 }}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginBottom: '0.1rem', position: 'relative', zIndex: 3 }}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: '0.05rem', position: 'relative', zIndex: 3 }}
                 >
                     <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }} style={{ fontSize: '0.7rem' }}>👇</motion.span>
                     <span style={{ fontSize: '0.46rem', color: 'rgba(255,255,255,0.35)', fontStyle: 'italic', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.04em' }}>
@@ -1149,7 +1149,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                         return (
                             <div style={{
                                 display: 'flex', justifyContent: 'center', alignItems: 'flex-end',
-                                gap: '0.35rem', marginBottom: '0.35rem',
+                                gap: '0.25rem', marginBottom: '0.2rem',
                                 position: 'relative', zIndex: 4,
                                 flexWrap: 'nowrap',
                             }}>
@@ -1280,7 +1280,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                     </motion.div>
 
                     {/* Footer hint */}
-                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.2rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.08rem' }}>
                         <span style={{ fontSize: '0.48em', color: 'rgba(255,255,255,0.40)', fontStyle: 'italic', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.02em' }}>
                             Drag bubble → bar · or type · Enter to send to Bodhi
                         </span>
