@@ -370,7 +370,7 @@ function UserStoryBubble({ story, onClick, index = 0 }: { story: UserStory; onCl
             transition={{ type: 'spring', stiffness: 280, damping: 22, delay: index * 0.07 }}
             style={{
                 flexShrink: 0,
-                width: 82, height: 112,
+                width: 88, height: 112,
                 background: 'none', border: 'none',
                 padding: 0, cursor: 'pointer',
                 position: 'relative',
@@ -524,7 +524,7 @@ function CategoryGroupBubble({ category, stories, onOpen, index = 0 }: {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 280, damping: 22, delay: index * 0.09 }}
             style={{
-                flexShrink: 0, width: 106, height: 154,
+                flexShrink: 0, width: 122, height: 154,
                 background: 'none', border: 'none',
                 padding: 0, cursor: 'pointer',
                 position: 'relative', borderRadius: 22,
@@ -979,7 +979,7 @@ function StoryBubble({ story, onClick, index = 0 }: { story: typeof STORIES[numb
             transition={{ type: 'spring', stiffness: 260, damping: 20, delay: index * 0.055 }}
             style={{
                 flexShrink: 0,
-                width: 106, height: 154,
+                width: 122, height: 154,
                 background: 'none', border: 'none',
                 padding: 0, cursor: 'pointer',
                 position: 'relative',
@@ -1116,7 +1116,7 @@ function CosmicDateBubble({ onClick }: { onClick: () => void }) {
             initial={{ opacity: 0, scale: 0.7, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 280, damping: 22, delay: 0 }}
-            style={{ flexShrink: 0, width: 106, height: 154, background: 'none', border: 'none', padding: 0, cursor: 'pointer', position: 'relative', borderRadius: 22, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+            style={{ flexShrink: 0, width: 122, height: 154, background: 'none', border: 'none', padding: 0, cursor: 'pointer', position: 'relative', borderRadius: 22, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
         >
             <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${COSMIC_BG})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: 22 }} />
             <div style={{ position: 'absolute', inset: 0, borderRadius: 22, background: 'linear-gradient(180deg,rgba(10,0,40,0.35) 0%,rgba(30,0,80,0.22) 35%,rgba(0,0,0,0.25) 55%,rgba(0,0,0,0.70) 80%,rgba(0,0,0,0.88) 100%)' }} />
@@ -1913,7 +1913,7 @@ export default function StickyTopNav() {
             {/* ── STORY BAR TITLE ── */}
             <div style={{
                 padding: '0.85rem 0.85rem 0.35rem',
-                background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%)',
+                background: 'transparent',
             }}>
                 <h2 style={{
                     margin: 0,
@@ -1942,11 +1942,11 @@ export default function StickyTopNav() {
                     WebkitTapHighlightColor: 'transparent',
                     transform: 'translateZ(0)',
                     willChange: 'scroll-position',
-                    background: 'linear-gradient(180deg,rgba(0,0,0,0.38) 0%,rgba(0,0,0,0.16) 100%)',
-                    backdropFilter: 'blur(16px)',
-                    WebkitBackdropFilter: 'blur(16px)',
-                    borderBottom: '1px solid rgba(251,191,36,0.08)',
-                    boxShadow: '0 6px 24px rgba(0,0,0,0.22)',
+                    background: 'transparent',
+                    backdropFilter: 'none',
+                    WebkitBackdropFilter: 'none',
+                    borderBottom: 'none',
+                    boxShadow: 'none',
                 }}
             >
                 <CosmicDateBubble onClick={openCosmicStory} />

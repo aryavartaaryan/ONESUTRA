@@ -321,7 +321,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
             style={{
-              background: 'linear-gradient(180deg, rgba(6, 6, 18, 0.40) 0%, rgba(6, 6, 18, 0.05) 100%)',
+              background: 'transparent',
               backdropFilter: 'none',
               WebkitBackdropFilter: 'none',
               border: '1px solid rgba(251,191,36,0.08)',
