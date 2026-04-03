@@ -77,7 +77,7 @@
     background: linear-gradient(180deg, #FDFBF7 0%, #F9F6F0 50%, #F5F1EA 100%);
     padding: 0 0 7rem;
     /* Fixed nav is ~78px only — story bar is now in page flow below nav */
-    padding-top: 78px;
+    padding-top: 48px;
     position: relative;
     overflow-x: hidden;
     font-family: 'Inter', sans-serif;

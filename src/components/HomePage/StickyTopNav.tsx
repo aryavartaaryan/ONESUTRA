@@ -370,7 +370,7 @@ function UserStoryBubble({ story, onClick, index = 0 }: { story: UserStory; onCl
             transition={{ type: 'spring', stiffness: 280, damping: 22, delay: index * 0.07 }}
             style={{
                 flexShrink: 0,
-                width: 82, height: 112,
+                width: 91, height: 112,
                 background: 'none', border: 'none',
                 padding: 0, cursor: 'pointer',
                 position: 'relative',
@@ -524,7 +524,7 @@ function CategoryGroupBubble({ category, stories, onOpen, index = 0 }: {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 280, damping: 22, delay: index * 0.09 }}
             style={{
-                flexShrink: 0, width: 106, height: 154,
+                flexShrink: 0, width: 118, height: 154,
                 background: 'none', border: 'none',
                 padding: 0, cursor: 'pointer',
                 position: 'relative', borderRadius: 22,
@@ -979,7 +979,7 @@ function StoryBubble({ story, onClick, index = 0 }: { story: typeof STORIES[numb
             transition={{ type: 'spring', stiffness: 260, damping: 20, delay: index * 0.055 }}
             style={{
                 flexShrink: 0,
-                width: 106, height: 154,
+                width: 118, height: 154,
                 background: 'none', border: 'none',
                 padding: 0, cursor: 'pointer',
                 position: 'relative',
@@ -1116,7 +1116,7 @@ function CosmicDateBubble({ onClick }: { onClick: () => void }) {
             initial={{ opacity: 0, scale: 0.7, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 280, damping: 22, delay: 0 }}
-            style={{ flexShrink: 0, width: 106, height: 154, background: 'none', border: 'none', padding: 0, cursor: 'pointer', position: 'relative', borderRadius: 22, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+            style={{ flexShrink: 0, width: 118, height: 154, background: 'none', border: 'none', padding: 0, cursor: 'pointer', position: 'relative', borderRadius: 22, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
         >
             <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${COSMIC_BG})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: 22 }} />
             <div style={{ position: 'absolute', inset: 0, borderRadius: 22, background: 'linear-gradient(180deg,rgba(10,0,40,0.35) 0%,rgba(30,0,80,0.22) 35%,rgba(0,0,0,0.25) 55%,rgba(0,0,0,0.70) 80%,rgba(0,0,0,0.88) 100%)' }} />
