@@ -594,7 +594,7 @@ const InlineBubble = ({ b, index, dropZoneRef, dropHighlight, setDropHighlight, 
             setTimeout(() => {
                 inputRef.current?.focus();
                 setPendingMessage(msg);
-                router.push('/pranaverse-chat');
+                router.push('/bodhi-chat');
             }, 650);
         } else if (totalMove < 10 && b.isFolder) {
             setActiveLayer(b.isFolder);
@@ -623,7 +623,7 @@ const InlineBubble = ({ b, index, dropZoneRef, dropHighlight, setDropHighlight, 
             } catch { /* silent */ }
             const msg = `${b.label}: `;
             setPendingMessage(msg);
-            setTimeout(() => router.push('/pranaverse-chat'), 400);
+            setTimeout(() => router.push('/bodhi-chat'), 400);
         }
     };
 
@@ -789,14 +789,14 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
     const router = useRouter();
     const setPendingMessage = useBodhiChatStore(s => s.setPendingMessage);
 
-    // ── Core submit: intercept → persist → route to /pranaverse-chat ─────────────
+    // ── Core submit: intercept → persist → route to /bodhi-chat ─────────────
     const submitMessage = useCallback((overrideText?: string) => {
         const text = (overrideText ?? inputValue).trim();
         if (!text) return;
         setInputValue('');
         if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(55);
         setPendingMessage(text);
-        router.push('/pranaverse-chat');
+        router.push('/bodhi-chat');
     }, [inputValue, setPendingMessage, router]);
 
     const handleSubmit = useCallback(() => submitMessage(), [submitMessage]);
@@ -896,7 +896,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
         // Set pending message and navigate to bodhi chat after brief delay
         setTimeout(() => {
             setPendingMessage(displayText);
-            router.push('/pranaverse-chat');
+            router.push('/bodhi-chat');
         }, 700);
     }, [router, setPendingMessage]);
 
@@ -1229,7 +1229,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                         <motion.button
                             whileTap={{ scale: 0.94 }}
                             whileHover={{ scale: 1.06 }}
-                            onClick={() => router.push('/pranaverse-chat')}
+                            onClick={() => router.push('/bodhi-chat')}
                             style={{
                                 background: 'rgba(251,191,36,0.12)',
                                 backdropFilter: 'blur(8px)',
