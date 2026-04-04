@@ -1063,7 +1063,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                     }, [])}
                     onPointerLeave={useCallback(() => setDropHighlight(false), [])}
                 >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.2rem', padding: '0 0.5rem', marginBottom: '1.5rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.8rem', padding: '0 0.5rem', marginBottom: '1.5rem', width: '100%' }}>
                         {/* Time Context Logic for Logging */}
                         {(() => {
                             const h = new Date().getHours();
