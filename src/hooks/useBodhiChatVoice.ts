@@ -116,6 +116,8 @@ interface UseBodhiChatVoiceOptions {
     onAddTask?: (task: Record<string, unknown>) => Promise<void>;
     /** Called to remove a task by ID */
     onRemoveTask?: (taskId: string) => Promise<void>;
+    /** Called when an activity is logged — provides timing verdict + Hinglish reaction */
+    onLogActivity?: (activity: string, verdict: LogVerdict, hinglishReaction: string) => void;
 }
 
 function sanitizeBodhiReply(text: string, preferredLanguage: 'hi' | 'en'): string {
@@ -192,6 +194,101 @@ function sanitizeBodhiReply(text: string, preferredLanguage: 'hi' | 'en'): strin
     return cleaned;
 }
 
+// ── Log timing intelligence ────────────────────────────────────────────────────
+type LogVerdict = 'early' | 'on_time' | 'late' | 'very_late';
+
+function computeLogTiming(activityName: string): { verdict: LogVerdict; istHour: number; istMin: number; suggestion: string; hinglishReaction: string } {
+    const istStr = new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: false });
+    const parts = istStr.split(':').map(Number);
+    const h = parts[0] % 24;
+    const m = parts[1] ?? 0;
+    const totalMin = h * 60 + m;
+    const act = activityName.toLowerCase();
+
+    if (/wake|jaag|uth|woke|good morning|subah|uthna/.test(act)) {
+        if (totalMin < 5 * 60) return { verdict: 'early', istHour: h, istMin: m, suggestion: 'Bahut jaldi uthe — Brahma muhurta ka faayda uthaao, thoda pranayam karo.', hinglishReaction: 'Arre waah! Brahma muhurta mein jaagna — yeh toh aapne aaj ka gold standard set kar diya. Seedha 5 minutes deep breathing karo, din magical hoga.' };
+        if (totalMin <= 9 * 60) return { verdict: 'on_time', istHour: h, istMin: m, suggestion: '', hinglishReaction: 'Perfect timing! Subah ki yeh taazgi aapki sabse badi asset hai. Ek glass paani piyo aur bolo — aaj kya conquer karna hai?' };
+        if (totalMin <= 11 * 60) return { verdict: 'late', istHour: h, istMin: m, suggestion: 'Thodi deri ho gayi jaagne mein — par ab ek quick stretch aur paani zaroor piyo.', hinglishReaction: 'Aaj jaagne mein thodi deri ho gayi — no stress at all, par ab turant ek bada glass paani piyo aur 5-minute stretch karo. Din abhi bhi completely aapka hai!' };
+        return { verdict: 'very_late', istHour: h, istMin: m, suggestion: 'Dopahar mein aankhein khuli — hydrate karo turant aur kal thoda jaldi jaago.', hinglishReaction: 'Dopahar mein sawera hua aaj! Koi baat nahi — abhi turant 2 glass paani piyo, body restart chahti hai. Aur kal raat screen 10 PM pe band — deal?' };
+    }
+    if (/breakfast|nashta|nasta|morning meal|subah ka khana/.test(act)) {
+        if (totalMin < 7 * 60) return { verdict: 'early', istHour: h, istMin: m, suggestion: '', hinglishReaction: 'Subah jaldi nashta — gut health ke liye gold hai yeh habit. Din ki shuruaat fuel ke saath ki, waah!' };
+        if (totalMin <= 9 * 60 + 30) return { verdict: 'on_time', istHour: h, istMin: m, suggestion: '', hinglishReaction: 'Morning fuel logged at the perfect hour! Body ko dhanyavaad dena chahiye. Aaj ka pehla milestone complete — aage kya hai?' };
+        if (totalMin <= 11 * 60) return { verdict: 'late', istHour: h, istMin: m, suggestion: 'Nashte mein thodi der ho gayi — kal 8 AM target rakho.', hinglishReaction: 'Nashta thoda late hua aaj — par logged kiya, yeh important hai! Kal subah 8 AM ka alarm set karein breakfast ke liye?' };
+        return { verdict: 'very_late', istHour: h, istMin: m, suggestion: 'Yeh brunch zyada lag raha hai — aaj lunch ka time thoda adjust karo.', hinglishReaction: 'Yeh nashta kam brunch zyada lag raha hai! Aaj lunch ka time automatically shift ho gaya — halka khana lo aur kal 8 AM ka target set karein.' };
+    }
+    if (/lunch|dopahar|दोपहर|afternoon meal|din ka khana/.test(act)) {
+        if (totalMin < 12 * 60) return { verdict: 'early', istHour: h, istMin: m, suggestion: '', hinglishReaction: 'Early lunch — consistent energy ka secret yahi hai! Afternoon completely distraction-free rahegi.' };
+        if (totalMin <= 14 * 60) return { verdict: 'on_time', istHour: h, istMin: m, suggestion: '', hinglishReaction: 'Midday fuel at the perfect hour — digestive fire is at its peak right now. 10-minute post-lunch walk karo toh din ki productivity double ho jaayegi.' };
+        if (totalMin <= 16 * 60) return { verdict: 'late', istHour: h, istMin: m, suggestion: 'Lunch thoda late hua — ek chhoti walk lo baad mein digestion ke liye.', hinglishReaction: 'Aaj lunch thoda late ho gaya — no judgment, par 10-minute walk zaroor lo baad mein. Digestion happy toh brain happy!' };
+        return { verdict: 'very_late', istHour: h, istMin: m, suggestion: 'Dinner time pe lunch hua — raat ka khana aaj light rakhna.', hinglishReaction: 'Yeh lunch aur dinner ke beech wala meal ban gaya aaj! Raat ka khana bilkul light rakhna — fruits ya soup best rahega.' };
+    }
+    if (/dinner|raat|supper|raat ka khana|evening meal/.test(act)) {
+        if (totalMin < 19 * 60) return { verdict: 'early', istHour: h, istMin: m, suggestion: '', hinglishReaction: 'Early dinner — body ko rest aur repair ka sabse zyada time milega aaj raat! Yeh ek habit jo life badal deti hai.' };
+        if (totalMin <= 21 * 60) return { verdict: 'on_time', istHour: h, istMin: m, suggestion: '', hinglishReaction: 'Dinner logged at the golden hour! Sleep quality tonight will be top-tier. Koi light walk ya reading plan hai baad mein?' };
+        if (totalMin <= 22 * 60 + 30) return { verdict: 'late', istHour: h, istMin: m, suggestion: 'Thoda late dinner — raat ko light walk karo aur 2 ghante baad so jaao.', hinglishReaction: 'Dinner thoda late hua aaj — par achha kiya log kiya! Abhi ek light walk lo aur 2 ghante baad sone ki koshish karo. Deal?' };
+        return { verdict: 'very_late', istHour: h, istMin: m, suggestion: 'Bahut late khana — kal 8 PM try karo.', hinglishReaction: 'Bahut raat ko khana ho gaya — aaj ki neend thodi affected ho sakti hai. Kal 8 PM dinner ka ek chhota sa experiment karke dekhein?' };
+    }
+    if (/sleep|so gaya|so gayi|neend|sona|bed|goodnight/.test(act)) {
+        if (totalMin >= 21 * 60 || totalMin < 1 * 60) return { verdict: 'on_time', istHour: h, istMin: m, suggestion: '', hinglishReaction: 'Perfect sleep time! Body deep repair mode mein jaayegi aaj raat. Shubh ratri — kal ka din powerful hoga.' };
+        if (totalMin < 23 * 60) return { verdict: 'late', istHour: h, istMin: m, suggestion: 'Thoda late hai — kal 10:30 PM target rakho.', hinglishReaction: 'Thoda late hai aaj neend — par logged kiya, yeh self-awareness hai! Kal ek screen-free wind-down routine try karo 9:30 se. Shubh ratri!' };
+        return { verdict: 'very_late', istHour: h, istMin: m, suggestion: 'Bahut late soye — kal screen 9 PM pe band karo.', hinglishReaction: 'Bahut raat ho gayi — recovery ke liye kal 30-minute zyada sone ki koshish karna. Aur kal raat phone 9 PM ke baad airplane mode. Promise?' };
+    }
+    if (/meditat|dhyan|breath|pranayam|mindful/.test(act)) {
+        if (h < 9) return { verdict: 'on_time', istHour: h, istMin: m, suggestion: '', hinglishReaction: 'Morning meditation logged — yeh ek pal ne din ka trajectory set kar diya. Neuroplasticity abhi sabse zyada hai. Waah!' };
+        if (h < 17) return { verdict: 'on_time', istHour: h, istMin: m, suggestion: '', hinglishReaction: 'Mid-day mindfulness logged! Mental reset complete — ab 2 ghante ka focused work block ready hai. Kya karna hai next?' };
+        return { verdict: 'on_time', istHour: h, istMin: m, suggestion: '', hinglishReaction: 'Evening mindfulness logged — perfect wind-down ritual! Body aur mind dono ko signal gaya ki aaj ki race complete ho gayi.' };
+    }
+    if (/workout|exercise|gym|yoga|run|walk|fitness|cardio/.test(act)) {
+        if (h < 10) return { verdict: 'on_time', istHour: h, istMin: m, suggestion: '', hinglishReaction: 'Morning workout — elite level habit confirmed! Cortisol + endorphin combo abhi peak pe hai. Poora din energized rahoge, guaranteed.' };
+        if (h < 17) return { verdict: 'on_time', istHour: h, istMin: m, suggestion: '', hinglishReaction: 'Workout logged! Body temperature abhi perfect hai strength ke liye. Recovery ke liye aaj protein snack zaroor lo.' };
+        if (h < 21) return { verdict: 'on_time', istHour: h, istMin: m, suggestion: '', hinglishReaction: 'Evening workout complete — stress ka antidote yahi hai! Baad mein light stretching aur warm shower karo, neend gold-level hogi.' };
+        return { verdict: 'late', istHour: h, istMin: m, suggestion: 'Late workout — kal 9 PM se pehle rakhne ki koshish karo.', hinglishReaction: 'Late workout — respect for the commitment! Par kal 9 PM ke pehle try karo, nahi toh neend affect ho sakti hai. Abhi light stretching karo.' };
+    }
+    if (/water|paani|hydrat/.test(act)) {
+        return { verdict: 'on_time', istHour: h, istMin: m, suggestion: '', hinglishReaction: 'Hydration logged! 70% log yeh step skip karte hain — aap nahi. Brain function, energy, skin — sab improve hoga.' };
+    }
+    return { verdict: 'on_time', istHour: h, istMin: m, suggestion: '', hinglishReaction: 'Activity logged and your daily story is updated! Consistency hi transformation hai. Aage kya?' };
+}
+
+// ── Singular daily event detection (for anti-duplicate logic) ─────────────────
+function isSingularEvent(activityName: string): string | null {
+    const act = activityName.toLowerCase();
+    if (/wake|woke|jaag|uth|good morning|subah|uthna/.test(act)) return 'wake_up';
+    if (/breakfast|nashta|nasta|morning meal|subah ka khana/.test(act)) return 'breakfast';
+    if (/\blunch\b|dopahar|din ka khana/.test(act)) return 'lunch';
+    if (/\bdinner\b|raat ka khana|supper/.test(act)) return 'dinner';
+    if (/\bsleep\b|so gaya|so gayi|neend|sona|goodnight|bed time/.test(act)) return 'sleep';
+    return null;
+}
+
+// ── Singular-event localStorage persistence (survives page navigations) ────────
+function getTodayLogKey(): string {
+    return `bodhi_singular_${new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
+}
+function loadLoggedSingulars(): Set<string> {
+    if (typeof window === 'undefined') return new Set();
+    try {
+        const raw = localStorage.getItem(getTodayLogKey());
+        return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+    } catch { return new Set(); }
+}
+function persistLoggedSingular(key: string): void {
+    if (typeof window === 'undefined') return;
+    try {
+        const s = loadLoggedSingulars();
+        s.add(key);
+        localStorage.setItem(getTodayLogKey(), JSON.stringify([...s]));
+    } catch { /* ignore */ }
+}
+
+// ── Ayurvedic Vata-fasting risk detection ─────────────────────────────────────
+function hasFastingVataRisk(activityName: string, memories: string[], mood: string): boolean {
+    if (!/fast|fasting|intermittent|upvaas/.test(activityName.toLowerCase())) return false;
+    const combined = [...memories, mood].join(' ').toLowerCase();
+    return /anxi|restless|dry|scatter|vata|stress|worry|nerv/.test(combined);
+}
+
 // ── Hook ──────────────────────────────────────────────────────────────────────
 export function useBodhiChatVoice({
     userName,
@@ -202,6 +299,7 @@ export function useBodhiChatVoice({
     onMessage,
     onAddTask,
     onRemoveTask,
+    onLogActivity,
 }: UseBodhiChatVoiceOptions) {
     const [chatState, setChatState] = useState<BodhiChatState>('idle');
     const [isSpeaking, setIsSpeaking] = useState(false);
@@ -234,7 +332,10 @@ export function useBodhiChatVoice({
     const onMessageRef = useRef(onMessage);
     const onAddTaskRef = useRef(onAddTask);
     const onRemoveTaskRef = useRef(onRemoveTask);
+    const onLogActivityRef = useRef(onLogActivity);
     const userMoodRef = useRef(userMood);
+
+    const loggedSingularRef = useRef<Set<string>>(loadLoggedSingulars());
 
     useEffect(() => { userNameRef.current = userName; }, [userName]);
     useEffect(() => { preferredLanguageRef.current = preferredLanguage; }, [preferredLanguage]);
@@ -243,6 +344,7 @@ export function useBodhiChatVoice({
     useEffect(() => { onMessageRef.current = onMessage; }, [onMessage]);
     useEffect(() => { onAddTaskRef.current = onAddTask; }, [onAddTask]);
     useEffect(() => { onRemoveTaskRef.current = onRemoveTask; }, [onRemoveTask]);
+    useEffect(() => { onLogActivityRef.current = onLogActivity; }, [onLogActivity]);
     useEffect(() => { userMoodRef.current = userMood; }, [userMood]);
 
     // Keep memory refs synced for buildSystemPrompt
@@ -519,7 +621,7 @@ RULES:
 
    ☀️ NOON (12 PM – 4 PM IST) — pick one:
      • "☀️ Shubh Madhyahna, ${firstName}! Madhyahna kaal ki tej roshni mein aapka prana bhi jagmagaata hai."
-     • "☀️ Namaste, ${firstName}! Madhyahna ka yeh golden hour — focus aur shakti ka sabse uttam kshan."
+     • "☀️ Shubh Madhyahna, ${firstName}! Madhyahna ka yeh golden hour — focus aur shakti ka sabse uttam kshan."
      • "☀️ Shubh Madhyahna, ${firstName}! Din ki tej dhoop mein aap bhi chamakate rahein — yeh kshan aapka hai."
 
    🪔 EVENING (4 PM – 9 PM IST) — pick one:
@@ -548,7 +650,80 @@ RULES:
 9. Match ${firstName}'s energy — if they're excited, be excited. If they're stressed, be calm and grounding.
 10. Use humor warmly and naturally when the moment allows. A single well-placed wit beats a paragraph of advice.
 11. HINDI RESPECT RULE: When speaking Hindi, ALWAYS use "आप" (aap) — NEVER "तुम" (tum) or "तू". Aap is the respectful form and must always be used.
-12. TASK ALREADY SAVED: Tasks listed under "DUE NOW / OVERDUE TASKS" are ALREADY in the planner. NEVER call add_sankalpa_task for any task already in that list. Only save genuinely new tasks.`;
+12. TASK ALREADY SAVED: Tasks listed under "DUE NOW / OVERDUE TASKS" are ALREADY in the planner. NEVER call add_sankalpa_task for any task already in that list. Only save genuinely new tasks.
+
+13. LOGGING REACTIONS — ULTRA-ADVANCED TIMING INTELLIGENCE:
+   When log_activity fires, use timing_verdict from tool response as your STYLE CUE (not verbatim script).
+
+   VERDICT "early" → Celebrate the discipline! Warm, excited energy.
+     Wake-up: "Waah! Itni subah jaagna — aapne pure din ka tone set kar diya. Seedha 5 minutes breathwork karo, din magical hoga."
+
+   VERDICT "on_time" → Affirm the flow state. Warm + gentle next step.
+     Wake-up: "Perfect timing. Morning energy is your biggest unfair advantage right now. Ek glass paani piyo — din shuru karte hain?"
+     Lunch: "Logged. Eating on time is literally a performance upgrade — digestion stays sharp, focus stays high."
+
+   VERDICT "late" → Gentle, non-judgmental nudge. NEVER make them feel bad.
+     Wake-up: "Aaj jaagne mein thodi deri ho gayi — no stress at all, par ab ek quick stretch aur paani zaroor piyo. Din abhi bhi completely aapka hai!"
+     Lunch: "Got it, logging your lunch. A bit late today — make sure to take a quick walk so your digestion doesn't feel sluggish."
+
+   VERDICT "very_late" → Warm concern + 1-line fix. Never lecture.
+     Wake-up: "Dopahar mein sawera hua aaj! Turant 2 glass paani piyo — body restart chahti hai. Kal raat screen 10 PM pe band karo — deal?"
+
+   LOG REACTION RULES:
+   - EXACTLY 2 sentences per log reaction. No more, no less.
+   - NEVER repeat the activity name robotically. Sound like a warm friend.
+   - ALWAYS end with a question OR a micro-action they can do RIGHT NOW.
+   - Celebrate consistency: if user logs regularly, weave in "Yeh streak mat todna!"
+   - After the log reaction, do NOT push new tasks unless user asks.
+
+14. GREETING ENHANCEMENT — HINGLISH WARMTH LAYER:
+   Your 2nd line (after the Sanskrit greeting) MUST feel like a brilliant best friend — NOT a formal assistant.
+   Bad: "How are you today? What would you like to accomplish?"
+   Good: "Yaar, kuch din ho gaye — in beech mein kuch khaas hua jo Bodhi ko pata hona chahiye?"
+   Good: "Aaj kuch alag sa feel ho raha hai? Ya phir wahi 'chalo kaam karte hain' wala mode on hai?"
+   Good (after long gap): "3 din baad mila — kaafi miss kiya, sach mein. Kuch bata, kya chal raha hai life mein?"
+
+15. ANTI-DUPLICATE RULE: If tool response has status "already_logged":
+   Speak warmly, casually, with mild humor — NEVER like a system error or formal bot.
+   Example: "Arre, yeh toh aaj pehle hi ho chuka hai! Ek lunch hi kaafi hota hai din mein — warna main bhi jealous ho jaunga."
+   Then ask ONE short question: "Kya kuch alag khaya dobara, ya ek hi tha?"
+   Only call log_activity again if user explicitly confirms something new happened. If they say 'same' or ignore it, move on naturally.
+
+16. AYURVEDIC GUARDRAIL (SILENT): If tool response contains "ayurvedic_note":
+   Weave in ONE protective line naturally. Example: "Ek baat — warm fluids keep energy grounded during fasts, especially when your system tends to run a little anxious."
+   NEVER say "Ayurveda", "Vata", or "dosha" — sound like a caring friend, not a textbook.
+
+17. UI_EVENT ROUTING — SMART LOG FLOW:
+   SILENT LOG RULE (CRITICAL): When you detect an activity to log, call log_activity IMMEDIATELY without speaking any text first. Do NOT produce any spoken words before the tool call completes. Only speak AFTER you receive the tool response. This prevents you from speaking twice.
+
+   CASE A — UI_EVENT message WITH a " — " detail (user already chose what to log):
+   The user has already picked their activity. Do:
+   1. Call log_activity immediately (no pre-tool speech at all)
+   2. After tool response: give ONE combined response — brief warm greeting + log confirmation + timing micro-tip. Max 2-3 sentences total. Stop completely after that.
+   Example: "Shubh Madhyahna! Roti-sabzi logged — solid midday fuel. Digestion ka peak time hai abhi, thodi walk baad mein kaafi hai."
+   NEVER give a full two-part greeting (rule 6) when a log detail is already in the message.
+
+   CASE B — UI_EVENT message WITHOUT a " — " detail (no specific activity chosen yet):
+   Ask ONE short question about what they did. Match the time:
+   [UI_EVENT: MORNING_LOGS_CLICKED] → "Subah shubh! Kya log karein — jaagna, sunlight, paani, ya breathwork?"
+   [UI_EVENT: NOON_LOGS_CLICKED] → "Dopahar! Lunch, focus sprint, ya screen break — kya hua aaj?"
+   [UI_EVENT: EVENING_LOGS_CLICKED] → "Shubh Sandhya! Dinner, digital sunset, ya brain dump — kya karun log?"
+
+18. "NOT FEELING WELL" ROUTING:
+   If user logs or mentions they’re unwell, ask EXACTLY ONE gentle diagnostic question — nothing more:
+   "I’m sorry you’re feeling off. Is it a burned-out, overheated feeling — or more of a heavy, brain-fog fatigue?"
+   Then immediately call log_activity with category "unwell" and their description as context.
+   ONE question only. Never stack multiple questions.
+
+19. NO REPETITION RULE: NEVER repeat the same sentence or phrase twice in a single response. Generate your reply once, concisely, and stop. Conversational replies: 2–3 sentences MAX unless the user asks for a deep-dive.
+
+20. UNDERCOVER SPIRITUALITY RULE: Frame all ancient concepts in modern performance language. NEVER use religious jargon directly:
+   Pranayama → "breathwork" / "breathing reset"
+   Sun Gazing / Surya Namaskar → "morning light ritual" / "solar activation"
+   Pratyahara → "screen break" / "sense reset"
+   Swadhyaya → "brain dump" / "self-audit"
+   Trataka → "focus flame" / "visual anchor"
+   NEVER use the word "Sadhana" under any circumstance.`;
     }, []);
 
     // ── Cleanup ────────────────────────────────────────────────────────────────
@@ -652,22 +827,43 @@ RULES:
                                     required: ['task_name'],
                                 },
                             },
-                            {
-                                name: 'log_activity',
-                                description: "Logs a daily life activity like waking up, meditating, eating, or sleeping so it acts as a timeline story. Trigger: 'I woke up', 'had lunch', 'meditated'.",
+                            {   name: 'log_activity',
+                                description: "Logs a daily activity as a story on the user's home screen. Triggers: 'I woke up', 'had lunch', 'meditated', 'going to sleep', 'worked out', 'doing intermittent fasting', 'not feeling well', 'grateful today', etc. Singular daily events (wake_up, breakfast, lunch, dinner, sleep) are auto-checked for duplicates.",
                                 parameters: {
                                     type: Type.OBJECT,
                                     properties: {
                                         activity_name: {
                                             type: Type.STRING,
-                                            description: 'Name of the activity (e.g. WAKE UP, MEDITATE, LUNCH, STUDY)',
+                                            description: 'Human-readable name of the activity (e.g. WAKE UP, MEDITATION, LUNCH, BREATHWORK, DIGITAL SUNSET)',
+                                        },
+                                        category: {
+                                            type: Type.STRING,
+                                            description: 'Structured category — MUST be one of: wake_up | go_to_sleep | mindfulness | breathwork | morning_light | diet | fasting | workout | deep_work | screen_break | digital_sunset | mood | unwell | relationship_conflict | gratitude',
                                         },
                                         context: {
                                             type: Type.STRING,
-                                            description: 'Optional additional context or feelings about the activity.',
+                                            description: 'Optional extra detail or user feeling about the activity.',
                                         },
                                     },
-                                    required: ['activity_name'],
+                                    required: ['activity_name', 'category'],
+                                },
+                            },
+                            {
+                                name: 'set_reminder',
+                                description: "Sets a future reminder for the user. Use when user says 'remind me', 'set an alarm', 'alert me at'.",
+                                parameters: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        reminder_text: {
+                                            type: Type.STRING,
+                                            description: 'The reminder message to show the user.',
+                                        },
+                                        trigger_time_iso: {
+                                            type: Type.STRING,
+                                            description: 'ISO 8601 datetime string for when the reminder should fire (e.g. 2025-04-05T14:30:00+05:30).',
+                                        },
+                                    },
+                                    required: ['reminder_text', 'trigger_time_iso'],
                                 },
                             }],
                     }],
@@ -684,9 +880,10 @@ RULES:
                     onmessage: async (message: any) => {
                         // ── Tool calls ────────────────────────────────────────────
                         if (message.toolCall?.functionCalls?.length > 0) {
-                            // Discard any pre-tool text already buffered — only the post-tool
-                            // confirmation should appear in chat (prevents duplicate messages)
+                            // Flush pre-tool text AND audio — only post-tool response should play.
+                            // This prevents Bodhi from speaking twice (once before, once after tool).
                             textBufferRef.current = '';
+                            audioQueueRef.current = [];
                             for (const fc of message.toolCall.functionCalls) {
                                 if (fc.name === 'save_memory') {
                                     const memoryStr: string = fc.args?.memory;
@@ -841,7 +1038,106 @@ RULES:
 
                                 if (fc.name === 'log_activity') {
                                     const activityName: string = fc.args?.activity_name ?? 'Activity';
+                                    const category: string = fc.args?.category ?? 'mood';
                                     const context: string = fc.args?.context ?? '';
+                                    const currentUid = userIdRef.current;
+
+                                    // ── Anti-duplicate: block re-logging singular daily events ────────
+                                    const singularKey = isSingularEvent(activityName);
+                                    if (singularKey && loggedSingularRef.current.has(singularKey)) {
+                                        if (sessionRef.current) {
+                                            const session = sessionRef.current as any;
+                                            const dupResponse = {
+                                                functionResponses: [{
+                                                    id: fc.id,
+                                                    name: fc.name,
+                                                    response: {
+                                                        status: 'already_logged',
+                                                        message: `"${activityName}" was already logged today in this session.`,
+                                                        instruction: `STOP. Do NOT log this again yet. Clarify with the user immediately in your next spoken line: "Wait, didn't we already log your ${activityName.toLowerCase()} today? Are you going for round two, or did you tap that by mistake?" Only log again if user explicitly confirms.`,
+                                                    },
+                                                }],
+                                            };
+                                            if (typeof session.sendToolResponse === 'function') {
+                                                session.sendToolResponse(dupResponse)?.catch(() => { });
+                                            } else {
+                                                session.sendClientContent({ turns: [{ role: 'user', parts: [{ functionResponse: { name: fc.name, id: fc.id, response: { status: 'already_logged' } } }] }], turnComplete: true })?.catch(() => { });
+                                            }
+                                        }
+                                    } else {
+                                        // Mark singular event as logged for this session + persist to localStorage
+                                        if (singularKey) {
+                                            loggedSingularRef.current.add(singularKey);
+                                            persistLoggedSingular(singularKey);
+                                        }
+
+                                        // ── Ayurvedic fasting guardrail ──────────────────────────────
+                                        const vataWarning = hasFastingVataRisk(activityName, memoriesRef.current, userMoodRef.current)
+                                            ? 'AYURVEDIC_GUARDRAIL: User shows Vata/anxiety tendencies. After logging, gently add one line: staying hydrated with warm fluids is extra important for them during fasts. Weave this in naturally — never lecture.'
+                                            : '';
+
+                                        // Compute timing intelligence
+                                        const timing = computeLogTiming(activityName);
+                                        const istTime = new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true });
+
+                                        // Notify UI for story toast animation
+                                        onLogActivityRef.current?.(activityName, timing.verdict, timing.hinglishReaction);
+
+                                        if (currentUid) {
+                                            (async () => {
+                                                try {
+                                                    const { getFirebaseFirestore } = await import('@/lib/firebase');
+                                                    const { doc, setDoc } = await import('firebase/firestore');
+                                                    const db = await getFirebaseFirestore();
+                                                    const logId = Date.now().toString();
+                                                    await setDoc(doc(db, 'users', currentUid, 'logs_daily', logId), {
+                                                        id: logId,
+                                                        text: activityName,
+                                                        category,
+                                                        context,
+                                                        timing_verdict: timing.verdict,
+                                                        ist_hour: timing.istHour,
+                                                        singular_key: singularKey ?? null,
+                                                        createdAt: Date.now(),
+                                                        uid: currentUid
+                                                    });
+                                                    console.log(`[Bodhi Chat] 📓 Log saved: "${activityName}" [${timing.verdict} @ ${istTime}]`);
+                                                } catch (e) {
+                                                    console.warn('[Bodhi Chat] Firestore log save failed', e);
+                                                }
+                                            })();
+                                        }
+
+                                        if (sessionRef.current) {
+                                            const session = sessionRef.current as any;
+                                            const toolResponse = {
+                                                functionResponses: [{
+                                                    id: fc.id,
+                                                    name: fc.name,
+                                                    response: {
+                                                        status: 'success',
+                                                        message: `"${activityName}" logged at ${istTime}.`,
+                                                        category,
+                                                        timing_verdict: timing.verdict,
+                                                        hinglish_reaction_guide: timing.hinglishReaction,
+                                                        suggestion: timing.suggestion || 'Great consistency!',
+                                                        ist_time: istTime,
+                                                        ...(vataWarning ? { ayurvedic_note: vataWarning } : {}),
+                                                    },
+                                                }],
+                                            };
+                                            if (typeof session.sendToolResponse === 'function') {
+                                                session.sendToolResponse(toolResponse)?.catch(() => { });
+                                            } else {
+                                                session.sendClientContent({ turns: [{ role: 'user', parts: [{ functionResponse: { name: fc.name, id: fc.id, response: { status: 'success', timing_verdict: timing.verdict } } }] }], turnComplete: true })?.catch(() => { });
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (fc.name === 'set_reminder') {
+                                    const reminderText: string = fc.args?.reminder_text ?? 'Reminder';
+                                    const triggerTimeIso: string = fc.args?.trigger_time_iso ?? '';
                                     const currentUid = userIdRef.current;
 
                                     if (currentUid) {
@@ -850,17 +1146,18 @@ RULES:
                                                 const { getFirebaseFirestore } = await import('@/lib/firebase');
                                                 const { doc, setDoc } = await import('firebase/firestore');
                                                 const db = await getFirebaseFirestore();
-                                                const logId = Date.now().toString();
-                                                await setDoc(doc(db, 'users', currentUid, 'logs_daily', logId), {
-                                                    id: logId,
-                                                    text: activityName,
-                                                    context,
+                                                const reminderId = Date.now().toString();
+                                                await setDoc(doc(db, 'users', currentUid, 'reminders', reminderId), {
+                                                    id: reminderId,
+                                                    text: reminderText,
+                                                    trigger_time_iso: triggerTimeIso,
                                                     createdAt: Date.now(),
-                                                    uid: currentUid
+                                                    fired: false,
+                                                    uid: currentUid,
                                                 });
-                                                console.log(`[Bodhi Chat] 📓 Log saved: "${activityName}"`);
+                                                console.log(`[Bodhi Chat] ⏰ Reminder saved: "${reminderText}" @ ${triggerTimeIso}`);
                                             } catch (e) {
-                                                console.warn('[Bodhi Chat] Firestore log save failed', e);
+                                                console.warn('[Bodhi Chat] Firestore reminder save failed', e);
                                             }
                                         })();
                                     }
@@ -868,7 +1165,11 @@ RULES:
                                     if (sessionRef.current) {
                                         const session = sessionRef.current as any;
                                         const toolResponse = {
-                                            functionResponses: [{ id: fc.id, name: fc.name, response: { status: 'success', message: 'Logged.' } }],
+                                            functionResponses: [{
+                                                id: fc.id,
+                                                name: fc.name,
+                                                response: { status: 'success', message: `Reminder set: "${reminderText}" at ${triggerTimeIso}.` },
+                                            }],
                                         };
                                         if (typeof session.sendToolResponse === 'function') {
                                             session.sendToolResponse(toolResponse)?.catch(() => { });

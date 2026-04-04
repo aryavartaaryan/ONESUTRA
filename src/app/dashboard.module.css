@@ -75,9 +75,9 @@
 .dashboardPage {
     min-height: 100vh;
     background: linear-gradient(180deg, #FDFBF7 0%, #F9F6F0 50%, #F5F1EA 100%);
-    padding: 0 0 7rem;
-    /* Fixed nav is ~80px — story bar is now in page flow below nav */
-    padding-top: 84px;
+    padding: 0 0 6rem;
+    /* Fixed nav is ~68px — story bar is now in page flow below nav */
+    padding-top: 68px;
     position: relative;
     overflow-x: hidden;
     font-family: 'Inter', sans-serif;

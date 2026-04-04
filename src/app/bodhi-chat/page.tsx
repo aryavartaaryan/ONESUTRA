@@ -73,6 +73,274 @@ function getTimeAgo(timestamp: number): string {
 }
 
 
+// ─── Parse log messages from dashboard UI events ────────────────────────────
+interface ParsedLog {
+    activityKey: string;
+    icon: string;
+    color: string;
+    label: string;
+    detail?: string;
+}
+
+function parseLogMessage(text: string): ParsedLog | null {
+    if (!/\[UI_EVENT:/.test(text)) return null;
+    const withoutTag = text.replace(/\s*\[UI_EVENT:[^\]]+\]/, '').trim();
+    const dashIdx = withoutTag.indexOf(' \u2014 ');
+    const activityText = (dashIdx >= 0 ? withoutTag.slice(0, dashIdx) : withoutTag).trim();
+    const detail = dashIdx >= 0 ? withoutTag.slice(dashIdx + 3).trim() : undefined;
+    const lc = (activityText + ' ' + (detail ?? '')).toLowerCase();
+    if (/\blunch\b|dopahar/.test(lc)) return { activityKey: 'lunch', icon: '\uD83C\uDF71', color: '#f59e0b', label: 'LUNCH', detail };
+    if (/breakfast|nashta/.test(lc)) return { activityKey: 'breakfast', icon: '\uD83E\uDD63', color: '#34d399', label: 'BREAKFAST', detail };
+    if (/\bdinner\b|raat ka/.test(lc)) return { activityKey: 'dinner', icon: '\uD83C\uDF19', color: '#a78bfa', label: 'DINNER', detail };
+    if (/workout|gym|\brun\b|yoga|exercise|fitness|cardio/.test(lc)) return { activityKey: 'workout', icon: '\uD83D\uDCAA', color: '#f87171', label: 'WORKOUT', detail };
+    if (/\bwake\b|\bwoke\b|rise/.test(lc)) return { activityKey: 'wake_up', icon: '\uD83C\uDF05', color: '#fbbf24', label: 'RISE & SHINE', detail };
+    if (/sleep|goodnight/.test(lc)) return { activityKey: 'sleep', icon: '\uD83D\uDCA4', color: '#818cf8', label: 'SLEEP', detail };
+    if (/meditat|breathwork|pranayam/.test(lc)) return { activityKey: 'mindfulness', icon: '\uD83E\uDDD8', color: '#818cf8', label: 'MINDFULNESS', detail };
+    if (/hydrat|\bwater\b|paani/.test(lc)) return { activityKey: 'hydration', icon: '\uD83D\uDCA7', color: '#60a5fa', label: 'HYDRATED', detail };
+    if (/grateful|gratitud/.test(lc)) return { activityKey: 'gratitude', icon: '\uD83D\uDE4F', color: '#fbbf24', label: 'GRATITUDE', detail };
+    if (/deep work|focus sprint/.test(lc)) return { activityKey: 'deep_work', icon: '\uD83C\uDFAF', color: '#4ade80', label: 'DEEP WORK', detail };
+    if (/sunlight|morning sun|morning light|solar/.test(lc)) return { activityKey: 'morning_light', icon: '\u2600\uFE0F', color: '#fb923c', label: 'MORNING LIGHT', detail };
+    if (/screen break|eye reset/.test(lc)) return { activityKey: 'screen_break', icon: '\uD83D\uDC41\uFE0F', color: '#22d3ee', label: 'SCREEN BREAK', detail };
+    if (/digital sunset/.test(lc)) return { activityKey: 'digital_sunset', icon: '\uD83D\uDCF5', color: '#fb923c', label: 'DIGITAL SUNSET', detail };
+    if (/brain dump|journa|reflect/.test(lc)) return { activityKey: 'brain_dump', icon: '\uD83D\uDCD3', color: '#2dd4bf', label: 'BRAIN DUMP', detail };
+    if (/read.*bed|book.*night/.test(lc)) return { activityKey: 'read', icon: '\uD83D\uDCDA', color: '#34d399', label: 'READING', detail };
+    if (/\bwalk\b/.test(lc)) return { activityKey: 'walk', icon: '\uD83D\uDEB6', color: '#22d3ee', label: 'WALK', detail };
+    return { activityKey: 'general', icon: '\u2726', color: '#4ade80', label: activityText.replace(/^I (had|did|went|took|got|am|woke|going|setting|heading|starting)\s+/i, '').slice(0, 18).toUpperCase(), detail };
+}
+
+// ─── Activity-specific smart chips after logging ──────────────────────────────
+function getActivitySpecificChips(key: string): Array<{ icon: string; label: string; message: string }> {
+    switch (key) {
+        case 'lunch': return [
+            { icon: '\uD83D\uDCA7', label: 'Drink water', message: 'I drank water after lunch' },
+            { icon: '\uD83D\uDEB6', label: 'Post-lunch walk', message: 'I went for a short walk after lunch' },
+            { icon: '\uD83C\uDFAF', label: 'Focus sprint', message: 'Starting a deep work sprint now' },
+            { icon: '\u23F0', label: 'Dinner later', message: 'Remind me for dinner at 8 PM' },
+        ];
+        case 'breakfast': return [
+            { icon: '\uD83D\uDCA7', label: 'Hydrate', message: 'I drank water after breakfast' },
+            { icon: '\uD83E\uDDD8', label: 'Meditate', message: 'I meditated this morning' },
+            { icon: '\u2600\uFE0F', label: 'Morning sun', message: 'I got morning sunlight exposure' },
+            { icon: '\uD83C\uDFAF', label: 'Plan today', message: "Help me plan today's priorities" },
+        ];
+        case 'dinner': return [
+            { icon: '\uD83D\uDEB6', label: 'Evening walk', message: 'Going for a post-dinner walk' },
+            { icon: '\uD83D\uDCF5', label: 'Screens off', message: 'Setting digital sunset \u2014 screens going off for the night [UI_EVENT: EVENING_LOGS_CLICKED]' },
+            { icon: '\uD83D\uDCD3', label: 'Brain dump', message: 'I did an evening brain dump and reflection [UI_EVENT: EVENING_LOGS_CLICKED]' },
+            { icon: '\uD83D\uDCA4', label: 'Sleep soon', message: 'Going to sleep now, goodnight [UI_EVENT: NIGHT_LOGS]' },
+        ];
+        case 'workout': return [
+            { icon: '\uD83D\uDCA7', label: 'Hydrate', message: 'I drank water after my workout' },
+            { icon: '\uD83E\uDD57', label: 'Recovery meal', message: 'Had a recovery meal after workout' },
+            { icon: '\uD83D\uDE4C', label: 'How I felt', message: 'Let me tell you how my workout felt today' },
+            { icon: '\uD83E\uDDD8', label: 'Cool down', message: 'Doing a cool down stretch after workout' },
+        ];
+        case 'wake_up': return [
+            { icon: '\uD83E\uDD63', label: 'Breakfast', message: 'I had breakfast' },
+            { icon: '\uD83E\uDDD8', label: 'Meditate', message: 'I meditated this morning' },
+            { icon: '\u2600\uFE0F', label: 'Morning sun', message: 'I got morning sunlight exposure' },
+            { icon: '\uD83D\uDCA7', label: 'Hydrate', message: 'I drank water' },
+        ];
+        case 'sleep': return [
+            { icon: '\uD83D\uDE4F', label: 'Gratitude', message: 'I am feeling grateful today' },
+            { icon: '\uD83D\uDCD6', label: 'Read first', message: 'I read before bed tonight' },
+            { icon: '\uD83C\uDF19', label: 'Goodnight', message: 'Goodnight Bodhi, see you tomorrow' },
+        ];
+        case 'mindfulness': return [
+            { icon: '\uD83D\uDCA7', label: 'Hydrate', message: 'I drank water after meditation' },
+            { icon: '\u2600\uFE0F', label: 'Morning sun', message: 'I got morning sunlight exposure' },
+            { icon: '\uD83E\uDD63', label: 'Breakfast', message: 'I had breakfast' },
+            { icon: '\uD83C\uDFAF', label: 'Plan today', message: "Help me plan today's priorities" },
+        ];
+        case 'deep_work': return [
+            { icon: '\uD83D\uDCA7', label: 'Hydrate', message: 'I drank water' },
+            { icon: '\uD83D\uDC41\uFE0F', label: 'Eye break', message: 'I took a screen break' },
+            { icon: '\uD83C\uDF71', label: 'Log lunch', message: 'I had lunch' },
+            { icon: '\uD83D\uDE4F', label: 'Grateful', message: 'I am feeling grateful today' },
+        ];
+        case 'hydration': return [
+            { icon: '\uD83E\uDDD8', label: 'Meditate', message: 'I meditated today' },
+            { icon: '\uD83C\uDFAF', label: 'Focus sprint', message: 'Starting a deep work sprint now' },
+            { icon: '\uD83D\uDEB6', label: 'Walk', message: 'Going for a short walk' },
+            { icon: '\uD83D\uDE4F', label: 'Grateful', message: 'I am feeling grateful today' },
+        ];
+        case 'gratitude': return [
+            { icon: '\uD83D\uDCA4', label: 'Sleep', message: 'Going to sleep now, goodnight' },
+            { icon: '\uD83D\uDCF5', label: 'Screens off', message: 'Setting digital sunset \u2014 screens going off for the night [UI_EVENT: EVENING_LOGS_CLICKED]' },
+            { icon: '\uD83D\uDCD6', label: 'Read', message: 'I read before bed tonight' },
+            { icon: '\uD83C\uDF19', label: 'Goodnight', message: 'Goodnight Bodhi, see you tomorrow' },
+        ];
+        case 'morning_light': return [
+            { icon: '\uD83E\uDD63', label: 'Breakfast', message: 'I had breakfast' },
+            { icon: '\uD83E\uDDD8', label: 'Meditate', message: 'I meditated this morning' },
+            { icon: '\uD83D\uDCA7', label: 'Hydrate', message: 'I drank water' },
+            { icon: '\uD83C\uDFAF', label: 'Plan today', message: "Help me plan today's priorities" },
+        ];
+        case 'digital_sunset': return [
+            { icon: '\uD83D\uDE4F', label: 'Gratitude', message: 'I am feeling grateful today' },
+            { icon: '\uD83D\uDCD6', label: 'Read', message: 'I read before bed tonight' },
+            { icon: '\uD83D\uDCA4', label: 'Sleep', message: 'Going to sleep now, goodnight' },
+        ];
+        case 'brain_dump': return [
+            { icon: '\uD83D\uDCA4', label: 'Sleep', message: 'Going to sleep now, goodnight' },
+            { icon: '\uD83D\uDE4F', label: 'Gratitude', message: 'I am feeling grateful today' },
+            { icon: '\uD83D\uDCA7', label: 'Hydrate', message: 'I drank water' },
+        ];
+        default: return [
+            { icon: '\uD83D\uDCA7', label: 'Hydrate', message: 'I drank water' },
+            { icon: '\uD83D\uDE4F', label: 'Grateful', message: 'I am feeling grateful today' },
+            { icon: '\uD83C\uDFAF', label: 'Focus', message: 'Starting a deep work sprint now' },
+            { icon: '\uD83D\uDCAC', label: 'Check in', message: 'Let me tell you how I am feeling right now' },
+        ];
+    }
+}
+
+// ─── Log Card ─────────────────────────────────────────────────────────────────
+function LogCard({ parsed, timestamp, uid, userName }: { parsed: ParsedLog; timestamp: number; uid?: string | null; userName?: string }) {
+    const timeStr = new Date(timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' });
+    const [isPublic, setIsPublic] = React.useState(false);
+    const [publishing, setPublishing] = React.useState(false);
+
+    const togglePublic = React.useCallback(async () => {
+        if (!uid || publishing) return;
+        const next = !isPublic;
+        setIsPublic(next);
+        setPublishing(true);
+        try {
+            const { getFirebaseFirestore } = await import('@/lib/firebase');
+            const { collection, addDoc, query, where, getDocs, deleteDoc } = await import('firebase/firestore');
+            const db = await getFirebaseFirestore();
+            if (next) {
+                await addDoc(collection(db, 'public_logs'), {
+                    uid,
+                    userName: userName || 'Seeker',
+                    icon: parsed.icon,
+                    label: parsed.label,
+                    detail: parsed.detail || null,
+                    color: parsed.color,
+                    activityKey: parsed.activityKey,
+                    createdAt: timestamp,
+                    isPublic: true,
+                });
+            } else {
+                const snap = await getDocs(query(collection(db, 'public_logs'), where('uid', '==', uid), where('createdAt', '==', timestamp)));
+                await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+            }
+        } catch { /* offline */ }
+        setPublishing(false);
+    }, [uid, isPublic, publishing, parsed, timestamp, userName]);
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 14, scale: 0.93 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 26 }}
+            style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.75rem', padding: '0 0.25rem' }}
+        >
+            <div style={{
+                maxWidth: '82%',
+                background: `radial-gradient(135deg at 15% 10%, ${parsed.color}28 0%, rgba(6,3,18,0.97) 72%)`,
+                backdropFilter: 'blur(32px) saturate(200%)',
+                WebkitBackdropFilter: 'blur(32px) saturate(200%)',
+                border: `1px solid ${isPublic ? '#4ade8088' : parsed.color + '55'}`,
+                borderRadius: '18px 4px 18px 18px',
+                padding: '0.80rem 1rem 0.65rem',
+                boxShadow: `inset 0 1.5px 0 rgba(255,255,255,0.18), 0 6px 30px rgba(0,0,0,0.30), 0 0 28px ${parsed.color}22`,
+                position: 'relative',
+                overflow: 'hidden',
+            }}>
+                {/* Top shimmer */}
+                <div aria-hidden style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '48%', background: 'linear-gradient(180deg, rgba(255,255,255,0.09) 0%, transparent 100%)', pointerEvents: 'none', borderRadius: '18px 4px 0 0' }} />
+                {/* Color accent bar */}
+                <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: `linear-gradient(180deg, ${parsed.color} 0%, ${parsed.color}44 100%)`, borderRadius: '3px 0 0 3px' }} />
+                {/* Main row */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.62rem', paddingLeft: '0.55rem', position: 'relative', zIndex: 1 }}>
+                    {/* Icon with colored halo circle */}
+                    <div style={{ flexShrink: 0, marginTop: 2, position: 'relative' }}>
+                        <motion.div
+                            animate={{ scale: [1, 1.08, 1], opacity: [0.55, 0.80, 0.55] }}
+                            transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+                            style={{
+                                position: 'absolute', inset: -5, borderRadius: '50%',
+                                background: `radial-gradient(circle, ${parsed.color}35 0%, transparent 75%)`,
+                                pointerEvents: 'none',
+                            }}
+                        />
+                        <motion.span
+                            animate={{ scale: [1, 1.14, 1] }}
+                            transition={{ duration: 3.0, repeat: Infinity, ease: 'easeInOut' }}
+                            style={{ fontSize: '1.75rem', lineHeight: 1, filter: `drop-shadow(0 0 12px ${parsed.color}99)`, display: 'block' }}
+                        >
+                            {parsed.icon}
+                        </motion.span>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.40rem', flexWrap: 'wrap', marginBottom: '0.25rem' }}>
+                            <span style={{
+                                fontSize: '0.60rem', fontWeight: 900, color: parsed.color,
+                                letterSpacing: '0.18em', textTransform: 'uppercase',
+                                fontFamily: "'Outfit', sans-serif",
+                                filter: `drop-shadow(0 0 8px ${parsed.color}80)`,
+                            }}>
+                                {parsed.label}
+                            </span>
+                            <motion.div
+                                initial={{ scale: 0.5, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ delay: 0.30, type: 'spring', stiffness: 420, damping: 18 }}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: 4,
+                                    background: `${parsed.color}20`, border: `1px solid ${parsed.color}55`,
+                                    borderRadius: 999, padding: '0.12rem 0.42rem',
+                                    boxShadow: `0 0 8px ${parsed.color}22`,
+                                }}
+                            >
+                                <CheckCircle2 size={9} style={{ color: parsed.color }} />
+                                <span style={{ fontSize: '0.40rem', color: parsed.color, fontWeight: 800, letterSpacing: '0.12em', fontFamily: "'Outfit', sans-serif", textTransform: 'uppercase' }}>Logged</span>
+                            </motion.div>
+                            <span style={{ fontSize: '0.42rem', color: `${parsed.color}88`, fontFamily: 'monospace', letterSpacing: '0.06em' }}>{timeStr}</span>
+                        </div>
+                        {parsed.detail ? (
+                            <p style={{ margin: 0, fontSize: '0.88rem', lineHeight: 1.55, color: 'rgba(255,255,255,0.90)', fontFamily: "'Outfit', sans-serif", fontWeight: 400 }}>
+                                {parsed.detail}
+                            </p>
+                        ) : (
+                            <p style={{ margin: 0, fontSize: '0.76rem', color: 'rgba(255,255,255,0.42)', fontFamily: "'Outfit', sans-serif", fontStyle: 'italic' }}>
+                                ✦ Saved to daily story
+                            </p>
+                        )}
+                        {/* Public / Private toggle */}
+                        {uid && (
+                            <motion.button
+                                whileTap={{ scale: 0.88 }}
+                                onClick={togglePublic}
+                                disabled={publishing}
+                                style={{
+                                    marginTop: '0.55rem',
+                                    display: 'flex', alignItems: 'center', gap: 5,
+                                    padding: '0.28rem 0.70rem',
+                                    borderRadius: 999,
+                                    background: isPublic ? 'rgba(74,222,128,0.18)' : 'rgba(255,255,255,0.06)',
+                                    border: `1px solid ${isPublic ? 'rgba(74,222,128,0.55)' : 'rgba(255,255,255,0.14)'}`,
+                                    color: isPublic ? '#4ade80' : 'rgba(255,255,255,0.45)',
+                                    fontSize: '0.42rem', fontWeight: 700,
+                                    fontFamily: "'Outfit', sans-serif",
+                                    letterSpacing: '0.10em', textTransform: 'uppercase',
+                                    cursor: 'pointer', transition: 'all 0.22s',
+                                    boxShadow: isPublic ? '0 0 10px rgba(74,222,128,0.22)' : 'none',
+                                }}
+                            >
+                                <span style={{ fontSize: '0.62rem' }}>{publishing ? '…' : isPublic ? '🌐' : '🔒'}</span>
+                                {isPublic ? 'Public · Friends can see' : 'Private · Make public'}
+                            </motion.button>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </motion.div>
+    );
+}
+
 // ─── Chat bubble ──────────────────────────────────────────────────────────────
 const INTENT_META: Record<IntentType, { icon: string; color: string; label: string } | null> = {
     task: { icon: '✅', color: '#fbbf24', label: 'Task saved' },
@@ -82,7 +350,9 @@ const INTENT_META: Record<IntentType, { icon: string; color: string; label: stri
     general: null,
 };
 
-function ChatBubble({ msg, isLive = false, showTimestamp = true }: { msg: ChatMessage; isLive?: boolean; showTimestamp?: boolean }) {
+function ChatBubble({ msg, isLive = false, showTimestamp = true, uid, userName }: { msg: ChatMessage; isLive?: boolean; showTimestamp?: boolean; uid?: string | null; userName?: string }) {
+    const parsed = parseLogMessage(msg.text);
+    if (msg.role === 'user' && parsed) return <LogCard parsed={parsed} timestamp={msg.timestamp} uid={uid} userName={userName} />;
     const isUser = msg.role === 'user';
     const meta = msg.intent ? INTENT_META[msg.intent] : null;
     const [showFullTime, setShowFullTime] = useState(false);
@@ -328,6 +598,100 @@ function VoiceInputButton({
     );
 }
 
+// ─── Log Story Toast ──────────────────────────────────────────────────────────
+type LogVerdict = 'early' | 'on_time' | 'late' | 'very_late';
+
+const VERDICT_META: Record<LogVerdict, { icon: string; color: string; label: string }> = {
+    early:     { icon: '⚡', color: '#22d3ee', label: 'Early Bird' },
+    on_time:   { icon: '✦', color: '#4ade80', label: 'Perfect Timing' },
+    late:      { icon: '🌙', color: '#fb923c', label: 'Logged' },
+    very_late: { icon: '💧', color: '#f87171', label: 'Better Late Than Never' },
+};
+
+function LogStoryToast({
+    activity,
+    verdict,
+    onDone,
+}: {
+    activity: string;
+    verdict: LogVerdict;
+    onDone: () => void;
+}) {
+    const meta = VERDICT_META[verdict];
+    useEffect(() => {
+        const t = setTimeout(onDone, 3800);
+        return () => clearTimeout(t);
+    }, [onDone]);
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.88 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.92 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 22 }}
+            style={{
+                position: 'fixed',
+                bottom: 160,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 9000,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.65rem',
+                background: 'radial-gradient(ellipse at 30% 30%, rgba(255,255,255,0.13) 0%, rgba(8,4,28,0.97) 100%)',
+                backdropFilter: 'blur(32px) saturate(200%)',
+                WebkitBackdropFilter: 'blur(32px) saturate(200%)',
+                border: `1px solid ${meta.color}44`,
+                borderRadius: 999,
+                padding: '0.55rem 1.1rem 0.55rem 0.65rem',
+                boxShadow: `0 0 0 1px ${meta.color}22, 0 8px 36px rgba(0,0,0,0.45), 0 0 32px ${meta.color}28`,
+                minWidth: 220,
+                maxWidth: 340,
+                pointerEvents: 'none',
+            }}
+        >
+            {/* Glowing ring */}
+            <motion.div
+                animate={{ scale: [1, 1.25, 1], opacity: [0.7, 0.2, 0.7] }}
+                transition={{ duration: 1.8, repeat: Infinity }}
+                style={{
+                    width: 38, height: 38, borderRadius: '50%', flexShrink: 0,
+                    background: `radial-gradient(circle at center, ${meta.color}55 0%, transparent 72%)`,
+                    border: `1.5px solid ${meta.color}80`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '1rem',
+                }}
+            >
+                {meta.icon}
+            </motion.div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.12rem' }}>
+                    <span style={{ fontSize: '0.46rem', fontWeight: 800, color: meta.color, letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'monospace' }}>
+                        ◎ Story Updated
+                    </span>
+                    <span style={{ fontSize: '0.40rem', color: `${meta.color}88`, fontFamily: 'monospace', letterSpacing: '0.08em' }}>
+                        · {meta.label}
+                    </span>
+                </div>
+                <p style={{ margin: 0, fontSize: '0.78rem', color: 'rgba(255,255,255,0.90)', fontFamily: "'Outfit', sans-serif", fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {activity}
+                </p>
+            </div>
+            {/* Shimmer sweep */}
+            <motion.div
+                animate={{ x: ['-120%', '220%'] }}
+                transition={{ duration: 1.6, delay: 0.3, ease: 'easeInOut' }}
+                style={{
+                    position: 'absolute', inset: 0, borderRadius: 999,
+                    background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%)',
+                    pointerEvents: 'none',
+                    overflow: 'hidden',
+                }}
+            />
+        </motion.div>
+    );
+}
+
 // ─── Animated Background ────────────────────────────────────────────────────
 function AnimatedBackground({ chatState }: { chatState: string }) {
     const getGradient = () => {
@@ -359,7 +723,161 @@ function AnimatedBackground({ chatState }: { chatState: string }) {
     );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ─── Activity emoji map ─────────────────────────────────────────────────────────────────────────────
+function getActivityEmoji(name: string): string {
+    const n = name.toLowerCase();
+    if (/wake|woke|subah|uthna/.test(n)) return '🌅';
+    if (/breakfast|nashta|nasta/.test(n)) return '🥣';
+    if (/\blunch\b|dopahar/.test(n)) return '🍱';
+    if (/\bdinner\b|raat ka khana/.test(n)) return '🌙';
+    if (/\bsleep\b|neend|sona|goodnight/.test(n)) return '💤';
+    if (/meditat|dhyan|breath|pranayam/.test(n)) return '🧘';
+    if (/workout|gym|run|yoga|fitness|cardio/.test(n)) return '💪';
+    if (/\bwalk\b/.test(n)) return '🚶';
+    if (/water|paani|hydrat/.test(n)) return '💧';
+    if (/gratit|grateful/.test(n)) return '🙏';
+    if (/fast|fasting|upvaas/.test(n)) return '⏳';
+    if (/deep work|focus|study/.test(n)) return '🎯';
+    return '✶';
+}
+
+// ─── Daily Story Strip (logged activities for today) ──────────────────────────────────────────────────
+function DailyStoryStrip({ activities }: { activities: Array<{ name: string; verdict: LogVerdict; timestamp: number }> }) {
+    if (activities.length === 0) return null;
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="story-strip"
+            style={{ display: 'flex', gap: '0.32rem', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 3, marginBottom: '0.30rem' }}
+        >
+            <style>{`.story-strip::-webkit-scrollbar{display:none}`}</style>
+            <span style={{ flexShrink: 0, fontSize: '0.38rem', color: 'rgba(255,255,255,0.28)', letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'monospace', alignSelf: 'center', marginRight: 2 }}>Today</span>
+            {activities.map((a, i) => {
+                const meta = VERDICT_META[a.verdict];
+                const emoji = getActivityEmoji(a.name);
+                const timeStr = new Date(a.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' });
+                return (
+                    <motion.div
+                        key={i}
+                        initial={{ opacity: 0, scale: 0.78 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: i * 0.05, type: 'spring', stiffness: 380, damping: 24 }}
+                        title={`${a.name} — ${meta.label} @ ${timeStr}`}
+                        style={{
+                            flexShrink: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            background: `radial-gradient(circle at 30% 30%, ${meta.color}1a 0%, rgba(4,2,16,0.88) 100%)`,
+                            border: `1px solid ${meta.color}44`,
+                            borderRadius: 999,
+                            padding: '0.20rem 0.48rem 0.20rem 0.30rem',
+                            boxShadow: `0 0 8px ${meta.color}18`,
+                        }}
+                    >
+                        <span style={{ fontSize: '0.72rem', lineHeight: 1 }}>{emoji}</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <span style={{ fontSize: '0.40rem', fontWeight: 700, color: meta.color, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                                {meta.icon} {a.name.length > 11 ? a.name.slice(0, 11) + '…' : a.name}
+                            </span>
+                            <span style={{ fontSize: '0.35rem', color: 'rgba(255,255,255,0.32)', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                                {timeStr}
+                            </span>
+                        </div>
+                    </motion.div>
+                );
+            })}
+        </motion.div>
+    );
+}
+
+// ─── Contextual quick-log chips (time-aware) ─────────────────────────────────────────────────────────
+function getContextualLogChips(): Array<{ icon: string; label: string; message: string }> {
+    const istH = parseInt(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', hour12: false }), 10) % 24;
+    if (istH >= 3 && istH < 11) return [
+        { icon: '🌅', label: 'Wake Up', message: 'I just woke up' },
+        { icon: '🥣', label: 'Breakfast', message: 'I had breakfast' },
+        { icon: '🧘', label: 'Meditate', message: 'I meditated today' },
+        { icon: '💧', label: 'Hydrate', message: 'I drank water' },
+    ];
+    if (istH >= 11 && istH < 15) return [
+        { icon: '🍱', label: 'Lunch', message: 'I had lunch' },
+        { icon: '💧', label: 'Hydrate', message: 'I drank water' },
+        { icon: '🎯', label: 'Deep Work', message: 'Starting a deep work session now' },
+        { icon: '🚶', label: 'Walk', message: 'I went for a post-lunch walk' },
+    ];
+    if (istH >= 15 && istH < 21) return [
+        { icon: '💪', label: 'Workout', message: 'I worked out today' },
+        { icon: '🌙', label: 'Dinner', message: 'I had dinner' },
+        { icon: '🙏', label: 'Grateful', message: 'I am feeling grateful today' },
+        { icon: '💧', label: 'Hydrate', message: 'I drank water' },
+    ];
+    return [
+        { icon: '💤', label: 'Sleep', message: 'Going to sleep now, goodnight' },
+        { icon: '🌙', label: 'Dinner', message: 'I had dinner' },
+        { icon: '🙏', label: 'Grateful', message: 'I am feeling grateful today' },
+        { icon: '📖', label: 'Read', message: 'I read before bed' },
+    ];
+}
+
+// ─── Follow-up chip helper (shown when UI_EVENT msg has no pre-selected detail) ──────────────
+type FollowUpChip = { icon: string; label: string; reply: string };
+
+function getFollowUpChips(msg: string): FollowUpChip[] | null {
+    if (msg.includes(' — ')) return null; // detail already chosen via sub-option panel
+    const m = msg.toLowerCase();
+    if (/\blunch\b|dopahar/.test(m)) return [
+        { icon: '🍚', label: 'Dal rice', reply: 'Had dal rice for lunch' },
+        { icon: '🫓', label: 'Roti sabzi', reply: 'Had roti and sabzi' },
+        { icon: '🥗', label: 'Light salad', reply: 'Had a light salad' },
+        { icon: '🍕', label: 'Outside food', reply: 'Ate outside / ordered in' },
+        { icon: '⏭️', label: 'Skipped', reply: 'Skipped lunch today' },
+    ];
+    if (/breakfast|nashta/.test(m)) return [
+        { icon: '🥣', label: 'Oats & fruits', reply: 'Had oats with fruits for breakfast' },
+        { icon: '🫓', label: 'Parathas', reply: 'Had parathas this morning' },
+        { icon: '🍳', label: 'Eggs', reply: 'Had eggs for breakfast' },
+        { icon: '🍵', label: 'Just chai', reply: 'Just had chai, light start today' },
+    ];
+    if (/\bdinner\b|raat ka/.test(m)) return [
+        { icon: '🥗', label: 'Light & clean', reply: 'Had a light clean dinner' },
+        { icon: '🍚', label: 'Full meal', reply: 'Had a full dinner meal' },
+        { icon: '🫓', label: 'Roti sabzi', reply: 'Had roti sabzi for dinner' },
+        { icon: '⏭️', label: 'Skipped', reply: 'Skipping dinner tonight' },
+    ];
+    if (/workout|gym|exercise/.test(m)) return [
+        { icon: '🏋️', label: 'Gym session', reply: 'Full gym session done' },
+        { icon: '🏃', label: 'Evening run', reply: 'Went for an evening run' },
+        { icon: '🧘', label: 'Yoga', reply: 'Did a yoga flow session' },
+        { icon: '🚶', label: 'Walk', reply: 'Took an evening walk' },
+    ];
+    if (/wake|woke|morning/.test(m)) return [
+        { icon: '⚡', label: '5 AM sharp', reply: 'Woke up at 5 AM' },
+        { icon: '🌄', label: '6–7 AM', reply: 'Woke up around 6–7 AM' },
+        { icon: '☀️', label: 'Around 8 AM', reply: 'Woke up around 8 AM' },
+        { icon: '😅', label: 'A bit late', reply: 'Woke up a bit late today' },
+    ];
+    if (/sleep|goodnight/.test(m)) return [
+        { icon: '🌙', label: 'Before 10 PM', reply: 'Sleeping before 10 PM tonight' },
+        { icon: '🕙', label: '10–11 PM', reply: 'Sleeping around 10–11 PM' },
+        { icon: '🌃', label: '11 PM–midnight', reply: 'Sleeping around midnight' },
+        { icon: '🦉', label: 'Night owl', reply: 'Late night — past midnight' },
+    ];
+    if (/breathwork|pranayam/.test(m)) return [
+        { icon: '⏱️', label: '5 min reset', reply: '5 minute breathing session done' },
+        { icon: '🕐', label: '10 min flow', reply: '10 minute pranayama flow done' },
+        { icon: '✨', label: '20+ min deep', reply: 'Full 20+ minute breathwork session' },
+    ];
+    if (/sunlight|morning light|sun/.test(m)) return [
+        { icon: '👁️', label: 'Sun gazing', reply: 'Did morning sun gazing ritual' },
+        { icon: '🚶', label: 'Morning walk', reply: 'Took a morning walk in sunlight' },
+        { icon: '☕', label: 'Chai outside', reply: 'Had chai in the morning sun' },
+    ];
+    return null;
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────────────────────
 export default function BodhiChatPage() {
     const router = useRouter();
     const { user } = useOneSutraAuth();
@@ -378,6 +896,11 @@ export default function BodhiChatPage() {
     const [selectedMoodLabel, setSelectedMoodLabel] = useState<string>('');
     const [showMoodPicker, setShowMoodPicker] = useState(false);
     const [showEmoji, setShowEmoji] = useState(false);
+    const [logToast, setLogToast] = useState<{ id: string; activity: string; verdict: LogVerdict } | null>(null);
+    const [loggedActivities, setLoggedActivities] = useState<Array<{ name: string; verdict: LogVerdict; timestamp: number }>>([])
+    const [followUpChips, setFollowUpChips] = useState<FollowUpChip[] | null>(null);
+    const [lastLoggedActivity, setLastLoggedActivity] = useState<string | null>(null);
+    const [activeQuickChip, setActiveQuickChip] = useState<string | null>(null);
 
     const inputRef = useRef<HTMLInputElement>(null);
     const chatEndRef = useRef<HTMLDivElement>(null);
@@ -386,6 +909,7 @@ export default function BodhiChatPage() {
     const connectCalledRef = useRef(false);
     const recognitionRef = useRef<any>(null);
     const proactiveSentRef = useRef(false);
+    const lastSendTimeRef = useRef<number>(0);
 
     const displayName = user?.name || 'Mitra';
     const pendingCount = tasks.filter(t => !t.done && t.category !== 'Idea' && t.category !== 'Challenge').length;
@@ -399,6 +923,10 @@ export default function BodhiChatPage() {
         userMood: selectedMoodEmoji ? `${selectedMoodEmoji} ${selectedMoodLabel}` : '',
         onAddTask: async (task) => { await addTask(task as unknown as Parameters<typeof addTask>[0]); },
         onRemoveTask: async (taskId) => { await removeTask(taskId); },
+        onLogActivity: (activity, verdict, _reaction) => {
+            setLogToast({ id: `${Date.now()}`, activity, verdict });
+            setLoggedActivities(prev => [...prev, { name: activity, verdict, timestamp: Date.now() }]);
+        },
         onMessage: (text) => {
             const bodhiMsg: ChatMessage = {
                 id: `b_${Date.now()}`,
@@ -412,12 +940,16 @@ export default function BodhiChatPage() {
 
     const isThinking = chatState === 'thinking' || chatState === 'connecting';
 
-    // Core send function - defined before voice input handlers
+    // Core send function - 2s debounce lock prevents double-fire from React re-renders
     const sendMessage = useCallback((text: string) => {
         if (!text.trim() || isThinking) return;
+        const now = Date.now();
+        if (now - lastSendTimeRef.current < 2000) return;
+        lastSendTimeRef.current = now;
         const userMsg: ChatMessage = { id: `u_${Date.now()}`, role: 'user', text: text.trim(), timestamp: Date.now() };
         setMessages(prev => [...prev, userMsg]);
         setInputValue('');
+        setFollowUpChips(getFollowUpChips(text.trim()));
         bodhiSend(text.trim());
     }, [isThinking, bodhiSend]);
 
@@ -499,7 +1031,12 @@ export default function BodhiChatPage() {
                         text: m.text,
                         timestamp: m.timestamp,
                     }));
-                    setMessages(historicalMsgs);
+                    // Prepend history without overwriting any messages already added this session
+                    setMessages(prev => {
+                        const histIds = new Set(historicalMsgs.map(m => m.id));
+                        const sessionMsgs = prev.filter(m => !histIds.has(m.id));
+                        return [...historicalMsgs, ...sessionMsgs];
+                    });
                 }
                 setHistoryLoaded(true);
             } catch { setHistoryLoaded(true); }
@@ -565,7 +1102,19 @@ export default function BodhiChatPage() {
         pendingSentRef.current = true;
         const msg = pendingMessage;
         clearPendingMessage();
-        setTimeout(() => sendMessage(msg), 600);
+        const logInfo = parseLogMessage(msg);
+        if (logInfo) setLastLoggedActivity(logInfo.activityKey);
+        // Add LogCard to chat immediately — visible the moment user lands on this page
+        const immediateMsg: ChatMessage = {
+            id: `pending_${Date.now()}`,
+            role: 'user',
+            text: msg.trim(),
+            timestamp: Date.now(),
+        };
+        setMessages(prev => [...prev, immediateMsg]);
+        setFollowUpChips(getFollowUpChips(msg.trim()));
+        // Send to Bodhi directly — skip local sendMessage to avoid adding a duplicate bubble
+        setTimeout(() => bodhiSend(msg), 600);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pendingMessage, chatState]);
 
@@ -617,6 +1166,18 @@ export default function BodhiChatPage() {
 
     return (
         <>
+            {/* Log Story Toast — fires when Bodhi logs an activity */}
+            <AnimatePresence>
+                {logToast && (
+                    <LogStoryToast
+                        key={logToast.id}
+                        activity={logToast.activity}
+                        verdict={logToast.verdict}
+                        onDone={() => setLogToast(null)}
+                    />
+                )}
+            </AnimatePresence>
+
             <div style={{
                 position: 'fixed',
                 inset: 0,
@@ -684,7 +1245,7 @@ export default function BodhiChatPage() {
                     )}
 
                     <AnimatePresence initial={false}>
-                        {messages.map(msg => <ChatBubble key={msg.id} msg={msg} />)}
+                        {messages.map(msg => <ChatBubble key={msg.id} msg={msg} uid={uid} userName={displayName} />)}
                     </AnimatePresence>
 
                     <AnimatePresence>
@@ -791,29 +1352,238 @@ export default function BodhiChatPage() {
                         </motion.button>
                     </div>
 
-                    {/* Compact quick-action + mood row */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.40rem', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 2 }}>
+                    {/* Bodhi follow-up chips — appear when a UI_EVENT log needs detail */}
+                    <AnimatePresence>
+                        {followUpChips && followUpChips.length > 0 && (
+                            <motion.div
+                                key="follow-up-chips"
+                                initial={{ opacity: 0, y: 6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 4 }}
+                                transition={{ duration: 0.18 }}
+                                style={{ marginBottom: '0.35rem' }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.28rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <motion.span animate={{ scale: [1, 1.18, 1] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }} style={{ fontSize: '0.82rem', lineHeight: 1 }}>🤔</motion.span>
+                                        <span style={{ fontSize: '0.44rem', color: 'rgba(251,191,36,0.92)', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: "'Outfit', sans-serif", textShadow: '0 0 10px rgba(251,191,36,0.35)' }}>Bodhi asks</span>
+                                    </div>
+                                    <motion.button whileTap={{ scale: 0.82 }} onClick={() => setFollowUpChips(null)} style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.40)', fontSize: '0.55rem', flexShrink: 0 }}>✕</motion.button>
+                                </div>
+                                <div style={{ display: 'flex', gap: '0.25rem', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 2 }}>
+                                    <style>{`.followchips::-webkit-scrollbar{display:none}`}</style>
+                                    {followUpChips.map((chip, i) => (
+                                        <motion.button
+                                            key={chip.label}
+                                            initial={{ opacity: 0, x: -8 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: i * 0.04 }}
+                                            whileTap={{ scale: 0.86 }}
+                                            onClick={() => { setFollowUpChips(null); sendMessage(chip.reply); }}
+                                            disabled={isThinking}
+                                            style={{
+                                                flexShrink: 0,
+                                                display: 'flex', alignItems: 'center', gap: 4,
+                                                background: 'rgba(251,191,36,0.08)',
+                                                border: '1px solid rgba(251,191,36,0.25)',
+                                                borderRadius: 999,
+                                                padding: '0.25rem 0.55rem 0.25rem 0.38rem',
+                                                cursor: isThinking ? 'default' : 'pointer',
+                                                opacity: isThinking ? 0.45 : 1,
+                                                backdropFilter: 'blur(8px)',
+                                            }}
+                                        >
+                                            <span style={{ fontSize: '0.76rem' }}>{chip.icon}</span>
+                                            <span style={{ fontSize: '0.43rem', color: 'rgba(255,255,255,0.72)', fontWeight: 600, letterSpacing: '0.04em', whiteSpace: 'nowrap', fontFamily: "'Outfit', sans-serif" }}>{chip.label}</span>
+                                        </motion.button>
+                                    ))}
+                                    <motion.button
+                                        initial={{ opacity: 0, x: -8 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: followUpChips.length * 0.04 }}
+                                        whileTap={{ scale: 0.86 }}
+                                        onClick={() => setFollowUpChips(null)}
+                                        style={{
+                                            flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4,
+                                            background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.16)',
+                                            borderRadius: 999, padding: '0.25rem 0.50rem',
+                                            cursor: 'pointer',
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '0.56rem', color: 'rgba(255,255,255,0.32)', lineHeight: 1 }}>✏️</span>
+                                        <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.32)', fontWeight: 600, fontFamily: "'Outfit', sans-serif" }}>type freely</span>
+                                    </motion.button>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Daily Story Strip — logged activities for today */}
+                    <DailyStoryStrip activities={loggedActivities} />
+
+                    {/* Smart context-aware chips — activity-specific after logging, time-based otherwise */}
+                    <AnimatePresence mode="wait">
+                        {lastLoggedActivity ? (
+                            <motion.div
+                                key={`activity_${lastLoggedActivity}`}
+                                initial={{ opacity: 0, y: 6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -4 }}
+                                transition={{ duration: 0.20 }}
+                                style={{ marginBottom: '0.30rem' }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.22rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}>
+                                            <Sparkles size={12} style={{ color: '#fbbf24', flexShrink: 0, filter: 'drop-shadow(0 0 6px rgba(251,191,36,0.6))' }} />
+                                        </motion.div>
+                                        <span style={{ fontSize: '0.45rem', color: 'rgba(251,191,36,0.95)', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', fontFamily: "'Outfit', sans-serif", textShadow: '0 0 12px rgba(251,191,36,0.40)' }}>What&apos;s next?</span>
+                                    </div>
+                                    <motion.button whileTap={{ scale: 0.82 }} onClick={() => setLastLoggedActivity(null)} style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.40)', fontSize: '0.55rem', flexShrink: 0 }}>✕</motion.button>
+                                </div>
+                                <div style={{ display: 'flex', gap: '0.28rem', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 2 }}>
+                                    {getActivitySpecificChips(lastLoggedActivity).map((chip, i) => (
+                                        <motion.button
+                                            key={chip.label}
+                                            initial={{ opacity: 0, x: -8 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: i * 0.05 }}
+                                            whileTap={{ scale: 0.86 }}
+                                            onClick={() => { setLastLoggedActivity(null); sendMessage(chip.message); }}
+                                            disabled={isThinking}
+                                            style={{
+                                                flexShrink: 0,
+                                                display: 'flex', alignItems: 'center', gap: 5,
+                                                background: 'rgba(251,191,36,0.09)',
+                                                border: '1px solid rgba(251,191,36,0.28)',
+                                                borderRadius: 999,
+                                                padding: '0.25rem 0.60rem 0.25rem 0.40rem',
+                                                cursor: isThinking ? 'default' : 'pointer',
+                                                opacity: isThinking ? 0.45 : 1,
+                                                backdropFilter: 'blur(8px)',
+                                            }}
+                                        >
+                                            <span style={{ fontSize: '0.80rem' }}>{chip.icon}</span>
+                                            <span style={{ fontSize: '0.43rem', color: 'rgba(255,255,255,0.80)', fontWeight: 600, letterSpacing: '0.04em', whiteSpace: 'nowrap', fontFamily: "'Outfit', sans-serif" }}>{chip.label}</span>
+                                        </motion.button>
+                                    ))}
+                                    <motion.button
+                                        initial={{ opacity: 0, x: -8 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.22 }}
+                                        whileTap={{ scale: 0.86 }}
+                                        onClick={() => setLastLoggedActivity(null)}
+                                        style={{
+                                            flexShrink: 0, display: 'flex', alignItems: 'center', gap: 3,
+                                            background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.15)',
+                                            borderRadius: 999, padding: '0.25rem 0.48rem',
+                                            cursor: 'pointer',
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '0.50rem', color: 'rgba(255,255,255,0.28)', lineHeight: 1 }}>✕</span>
+                                        <span style={{ fontSize: '0.40rem', color: 'rgba(255,255,255,0.28)', fontFamily: "'Outfit', sans-serif" }}>close</span>
+                                    </motion.button>
+                                </div>
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="contextual_chips"
+                                initial={{ opacity: 0, y: 4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -4 }}
+                                transition={{ duration: 0.18 }}
+                                style={{ display: 'flex', gap: '0.28rem', overflowX: 'auto', scrollbarWidth: 'none', marginBottom: '0.30rem', paddingBottom: 2 }}
+                            >
+                                {getContextualLogChips().map((chip, idx) => {
+                                    const CHIP_PALETTES = [
+                                        { bg: 'rgba(251,191,36,0.10)', border: 'rgba(251,191,36,0.28)', text: 'rgba(251,191,36,0.88)', glow: 'rgba(251,191,36,0.20)' },
+                                        { bg: 'rgba(34,211,238,0.10)', border: 'rgba(34,211,238,0.28)', text: 'rgba(34,211,238,0.88)', glow: 'rgba(34,211,238,0.20)' },
+                                        { bg: 'rgba(167,139,250,0.10)', border: 'rgba(167,139,250,0.28)', text: 'rgba(167,139,250,0.88)', glow: 'rgba(167,139,250,0.20)' },
+                                        { bg: 'rgba(74,222,128,0.10)', border: 'rgba(74,222,128,0.28)', text: 'rgba(74,222,128,0.88)', glow: 'rgba(74,222,128,0.20)' },
+                                    ];
+                                    const p = CHIP_PALETTES[idx % 4];
+                                    return (
+                                        <motion.button
+                                            key={chip.label}
+                                            initial={{ opacity: 0, x: -6 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: idx * 0.05, type: 'spring', stiffness: 320, damping: 24 }}
+                                            whileTap={{ scale: 0.86 }}
+                                            onClick={() => sendMessage(chip.message)}
+                                            disabled={isThinking}
+                                            title={`Log: ${chip.label}`}
+                                            style={{
+                                                flexShrink: 0,
+                                                display: 'flex', alignItems: 'center', gap: 5,
+                                                background: p.bg,
+                                                border: `1px solid ${p.border}`,
+                                                borderRadius: 999,
+                                                padding: '0.24rem 0.58rem 0.24rem 0.40rem',
+                                                cursor: isThinking ? 'default' : 'pointer',
+                                                opacity: isThinking ? 0.45 : 1,
+                                                transition: 'all 0.2s',
+                                                boxShadow: `0 0 10px ${p.glow}`,
+                                            }}
+                                        >
+                                            <span style={{ fontSize: '0.82rem', filter: `drop-shadow(0 0 4px ${p.glow})` }}>{chip.icon}</span>
+                                            <span style={{ fontSize: '0.43rem', color: p.text, fontWeight: 700, letterSpacing: '0.06em', whiteSpace: 'nowrap', fontFamily: "'Outfit', sans-serif" }}>{chip.label}</span>
+                                        </motion.button>
+                                    );
+                                })}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* ── Premium Smart Quick-Action Chips + Mood ── */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.28rem', marginTop: '0.12rem', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 2 }}>
                         <style>{`.qrow::-webkit-scrollbar{display:none}`}</style>
-                        {[
-                            { icon: '✅', prompt: 'I need to ', title: 'Task' },
-                            { icon: '💡', prompt: 'I have an idea: ', title: 'Idea' },
-                            { icon: '⚡', prompt: "I'm facing: ", title: 'Challenge' },
-                            { icon: '🔥', prompt: "There's an issue: ", title: 'Issue' },
-                            { icon: '📋', prompt: 'What are my pending tasks?', title: 'Pending' },
-                        ].map(chip => (
-                            <motion.button key={chip.title} whileTap={{ scale: 0.88 }}
-                                onClick={() => { setInputValue(chip.prompt); inputRef.current?.focus(); }}
-                                title={chip.title}
-                                style={{ flexShrink: 0, width: 32, height: 32, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '0.85rem' }}>
-                                {chip.icon}
-                            </motion.button>
-                        ))}
-                        <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.10)', flexShrink: 0, margin: '0 0.1rem' }} />
+                        {([
+                            { icon: '✅', prompt: 'I need to ', title: 'Task', color: '#4ade80', bg: 'rgba(74,222,128,0.12)', border: 'rgba(74,222,128,0.38)', glow: 'rgba(74,222,128,0.22)' },
+                            { icon: '💡', prompt: 'I have an idea: ', title: 'Idea', color: '#22d3ee', bg: 'rgba(34,211,238,0.12)', border: 'rgba(34,211,238,0.38)', glow: 'rgba(34,211,238,0.22)' },
+                            { icon: '⚡', prompt: "I'm facing: ", title: 'Challenge', color: '#fb923c', bg: 'rgba(251,146,60,0.12)', border: 'rgba(251,146,60,0.38)', glow: 'rgba(251,146,60,0.22)' },
+                            { icon: '🔥', prompt: "There's an issue: ", title: 'Issue', color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.38)', glow: 'rgba(248,113,113,0.22)' },
+                            { icon: '📋', prompt: 'What are my pending tasks?', title: 'Tasks', color: '#a78bfa', bg: 'rgba(167,139,250,0.12)', border: 'rgba(167,139,250,0.38)', glow: 'rgba(167,139,250,0.22)' },
+                        ] as const).map((chip, idx) => {
+                            const isActive = activeQuickChip === chip.title;
+                            return (
+                                <motion.button
+                                    key={chip.title}
+                                    initial={{ opacity: 0, x: -6 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: idx * 0.04, type: 'spring', stiffness: 340, damping: 24 }}
+                                    whileTap={{ scale: 0.84 }}
+                                    onClick={() => {
+                                        if (isActive) { setActiveQuickChip(null); setInputValue(''); }
+                                        else { setActiveQuickChip(chip.title); setInputValue(chip.prompt); inputRef.current?.focus(); }
+                                    }}
+                                    title={chip.title}
+                                    style={{
+                                        flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4,
+                                        background: isActive ? chip.bg : 'rgba(255,255,255,0.05)',
+                                        border: `1px solid ${isActive ? chip.border : 'rgba(255,255,255,0.10)'}`,
+                                        borderRadius: 999,
+                                        padding: '0.24rem 0.52rem 0.24rem 0.36rem',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.22s ease',
+                                        boxShadow: isActive ? `0 0 16px ${chip.glow}, inset 0 1px 0 rgba(255,255,255,0.10)` : 'none',
+                                    }}
+                                >
+                                    <span style={{ fontSize: '0.84rem', filter: isActive ? `drop-shadow(0 0 5px ${chip.color}99)` : 'none', transition: 'filter 0.2s', lineHeight: 1 }}>{chip.icon}</span>
+                                    <span style={{ fontSize: '0.43rem', color: isActive ? chip.color : 'rgba(255,255,255,0.52)', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', whiteSpace: 'nowrap', fontFamily: "'Outfit', sans-serif", transition: 'color 0.22s' }}>{chip.title}</span>
+                                    <AnimatePresence>
+                                        {isActive && (
+                                            <motion.span initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }} style={{ fontSize: '0.52rem', color: chip.color, lineHeight: 1, marginLeft: 1 }}>✕</motion.span>
+                                        )}
+                                    </AnimatePresence>
+                                </motion.button>
+                            );
+                        })}
+                        <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.10)', flexShrink: 0, margin: '0 0.08rem' }} />
                         <motion.button whileTap={{ scale: 0.88 }} onClick={() => setShowMoodPicker(p => !p)}
-                            style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5, background: selectedMoodEmoji ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.05)', border: `1px solid ${selectedMoodEmoji ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.09)'}`, borderRadius: 999, padding: '0.22rem 0.55rem', cursor: 'pointer' }}>
-                            <span style={{ fontSize: '0.82rem' }}>{selectedMoodEmoji || '😊'}</span>
-                            <span style={{ fontSize: '0.44rem', color: 'rgba(255,255,255,0.50)', fontWeight: 600, letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>{selectedMoodLabel || 'Mood'}</span>
-                            <motion.span animate={{ rotate: showMoodPicker ? 180 : 0 }} transition={{ duration: 0.2 }} style={{ fontSize: '0.44rem', color: 'rgba(255,255,255,0.35)', display: 'inline-block' }}>▾</motion.span>
+                            style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5, background: showMoodPicker || selectedMoodEmoji ? 'rgba(167,139,250,0.10)' : 'rgba(255,255,255,0.05)', border: `1px solid ${showMoodPicker || selectedMoodEmoji ? 'rgba(167,139,250,0.35)' : 'rgba(255,255,255,0.09)'}`, borderRadius: 999, padding: '0.24rem 0.55rem', cursor: 'pointer', transition: 'all 0.22s', boxShadow: showMoodPicker ? '0 0 14px rgba(167,139,250,0.28)' : 'none' }}>
+                            <span style={{ fontSize: '0.84rem', lineHeight: 1 }}>{selectedMoodEmoji || '😊'}</span>
+                            <span style={{ fontSize: '0.43rem', color: showMoodPicker || selectedMoodEmoji ? 'rgba(167,139,250,0.92)' : 'rgba(255,255,255,0.50)', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', whiteSpace: 'nowrap', fontFamily: "'Outfit', sans-serif", transition: 'color 0.22s' }}>{selectedMoodLabel || 'Mood'}</span>
+                            <motion.span animate={{ rotate: showMoodPicker ? 180 : 0 }} transition={{ duration: 0.2 }} style={{ fontSize: '0.44rem', color: showMoodPicker ? 'rgba(167,139,250,0.72)' : 'rgba(255,255,255,0.32)', display: 'inline-block' }}>▾</motion.span>
                         </motion.button>
                     </div>
 

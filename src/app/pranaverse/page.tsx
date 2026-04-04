@@ -4,6 +4,7 @@ import React, {
     useState,
     useRef,
     useEffect,
+    useLayoutEffect,
     useMemo,
     useCallback,
 } from 'react';
@@ -312,6 +313,24 @@ function MantraReelGridCard({ item, onOpen }: { item: MantraFeedItem; onOpen: ()
     const { reel, reelIndex } = item;
     const [liked, setLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(800 + (reelIndex * 347) % 3000);
+    const mantraGridVideoRef = useRef<HTMLVideoElement | null>(null);
+
+    useEffect(() => {
+        const el = mantraGridVideoRef.current;
+        if (!el || !reel.videoSrc) return;
+        const obs = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    el.play().catch(() => {});
+                } else {
+                    el.pause();
+                }
+            },
+            { threshold: 0.5 }
+        );
+        obs.observe(el);
+        return () => obs.disconnect();
+    }, [reel.videoSrc]);
 
     return (
         <motion.div
@@ -321,8 +340,10 @@ function MantraReelGridCard({ item, onOpen }: { item: MantraFeedItem; onOpen: ()
             {/* Background — video if available, else static image */}
             {reel.videoSrc ? (
                 <video
+                    ref={mantraGridVideoRef}
                     src={reel.videoSrc}
-                    muted autoPlay loop playsInline
+                    muted loop playsInline
+                    preload="metadata"
                     onClick={onOpen}
                     style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.6) saturate(1.3)' }}
                 />
@@ -605,6 +626,24 @@ function ReelGridCard({ item, onClick }: { item: ReelItem; onClick: () => void }
     const [liked, setLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(item.likes);
     const [imgLoaded, setImgLoaded] = useState(false);
+    const gridVideoRef = useRef<HTMLVideoElement | null>(null);
+
+    useEffect(() => {
+        const el = gridVideoRef.current;
+        if (!el || !item.localVideoSrc) return;
+        const obs = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    el.play().catch(() => {});
+                } else {
+                    el.pause();
+                }
+            },
+            { threshold: 0.5 }
+        );
+        obs.observe(el);
+        return () => obs.disconnect();
+    }, [item.localVideoSrc]);
 
     return (
         <motion.div
@@ -626,11 +665,12 @@ function ReelGridCard({ item, onClick }: { item: ReelItem; onClick: () => void }
             <div onClick={onClick} style={{ position: 'absolute', inset: 0, cursor: 'pointer', zIndex: 2 }}>
                 {item.localVideoSrc ? (
                     <video
+                        ref={gridVideoRef}
                         src={item.localVideoSrc}
                         muted
-                        autoPlay
                         loop
                         playsInline
+                        preload="metadata"
                         poster={item.imageUrl}
                         onLoadedData={() => setImgLoaded(true)}
                         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
@@ -1254,14 +1294,25 @@ function FullscreenReelModal({
     // ref, that null call would overwrite videoRef.current with null, breaking every subsequent
     // tap. Skipping null keeps videoRef.current pointing at the ACTIVE (live) media element.
     const videoCallbackRef = useCallback((node: HTMLVideoElement | null) => {
-        if (!node) return; // exiting element unmount — don't null-poison the active ref
+        if (!node) return; // exiting element unmount — ignore
+        // Pause OLD video synchronously during React commit — before new one plays.
+        // This runs BEFORE useEffect cleanup, so it's the only reliable place to
+        // prevent audio bleed when AnimatePresence keeps both elements alive.
+        if (videoRef.current && videoRef.current !== node) {
+            try { videoRef.current.pause(); videoRef.current.currentTime = 0; } catch { }
+        }
         videoRef.current = node;
-        node.muted = false; node.play().catch(() => { });
+        node.muted = false;
+        node.play().catch(() => { });
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
     const audioCallbackRef = useCallback((node: HTMLAudioElement | null) => {
-        if (!node) return; // exiting element unmount — don't null-poison the active ref
+        if (!node) return; // exiting element unmount — ignore
+        if (audioRef.current && audioRef.current !== node) {
+            try { audioRef.current.pause(); audioRef.current.currentTime = 0; } catch { }
+        }
         audioRef.current = node;
-        node.muted = false; node.play().catch(() => { });
+        node.muted = false;
+        node.play().catch(() => { });
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
     const hideCtrlTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const dragStartY = useRef(0);
@@ -1291,21 +1342,42 @@ function FullscreenReelModal({
         return () => window.removeEventListener('keydown', h);
     }, [onClose, items.length]);
 
-    // Reset UI state and pause old media when navigating between reels
+    // ── CORRECT media-stop on reel navigation ─────────────────────────────────
+    // useLayoutEffect CLEANUP runs in React's commit phase BEFORE DOM mutations,
+    // meaning videoRef.current / audioRef.current still point to the OUTGOING
+    // (old) elements at cleanup time.  The callback refs (videoCallbackRef /
+    // audioCallbackRef) fire AFTER this cleanup, so they always see fresh refs.
+    //
+    // Why not useEffect? useEffect runs AFTER the callback refs have already
+    // updated the refs to the NEW elements — pausing them instead of the old ones.
+    //
+    // Covers ALL cross-type cases:
+    //   video → audio-only   audio → image   video → portal   etc.
+    useLayoutEffect(() => {
+        return () => {
+            // Pause outgoing media and NULL the refs before next commit.
+            // Nulling is critical: the callback refs use `if (!node) return` so they
+            // never clear refs on unmount.  Without nulling, audioRef.current keeps
+            // pointing at old audio even after we navigate to a video reel — and
+            // handleScreenTap's `a?.play()` replays the stale mantra audio on resume.
+            if (videoRef.current) {
+                try { videoRef.current.pause(); videoRef.current.currentTime = 0; } catch { }
+                videoRef.current = null;
+            }
+            if (audioRef.current) {
+                try { audioRef.current.pause(); audioRef.current.currentTime = 0; } catch { }
+                audioRef.current = null;
+            }
+        };
+    }, [current]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Reset UI state only — media is handled above in the layout effect
     useEffect(() => {
-        const v = videoRef.current;
-        const a = audioRef.current;
         setProgress(0);
         setIsPlaying(true);
         setShowPlayPause(false);
         setComments([]);
         if (hideCtrlTimer.current) clearTimeout(hideCtrlTimer.current);
-        // Cleanup: pause the video that was playing BEFORE this navigation
-        // (v/a captured here = the old video, before new one mounts via callbackRef)
-        return () => {
-            try { v?.pause(); } catch { }
-            try { a?.pause(); } catch { }
-        };
     }, [current]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
@@ -1811,6 +1883,25 @@ function FullscreenReelModal({
                 </AnimatePresence>
             </div>
 
+            {/* ── Hidden preloader: buffer next reel video for instant play ── */}
+            {(() => {
+                const next = items[current + 1];
+                const nextSrc =
+                    next?.type === 'reel' ? (next as ReelItem).localVideoSrc
+                    : next?.type === 'mantra' ? (next as MantraFeedItem).reel.videoSrc
+                    : undefined;
+                return nextSrc ? (
+                    <video
+                        key={`preload-${current + 1}`}
+                        src={nextSrc}
+                        preload="auto"
+                        muted
+                        playsInline
+                        style={{ display: 'none', position: 'absolute', pointerEvents: 'none' }}
+                    />
+                ) : null;
+            })()}
+
             {/* Prev / Next nav buttons (desktop) */}
             <button
                 onClick={goPrev}
@@ -2045,10 +2136,10 @@ function AuraSpaceInner() {
                     </div>
 
                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        {/* Profile icon — click opens self-profile sheet */}
+                        {/* Profile icon — click goes directly to own profile */}
                         <motion.button
                             whileTap={{ scale: 0.9 }}
-                            onClick={() => setShowSelfProfile(true)}
+                            onClick={() => router.push('/profile')}
                             style={{
                                 background: 'none', border: 'none', padding: 0, cursor: 'pointer',
                                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,

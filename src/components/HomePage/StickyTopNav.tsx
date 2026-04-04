@@ -1912,19 +1912,19 @@ export default function StickyTopNav() {
 
             {/* ── STORY BAR TITLE ── */}
             <div style={{
-                padding: '0.85rem 0.85rem 0.35rem',
+                padding: '0.3rem 0.85rem 0.12rem',
                 background: 'transparent',
             }}>
                 <h2 style={{
                     margin: 0,
-                    fontSize: '1.05rem',
+                    fontSize: '0.95rem',
                     fontWeight: 700,
                     color: 'rgba(255, 255, 255, 0.95)',
                     fontFamily: "'Playfair Display', Georgia, serif",
                     letterSpacing: '-0.01em',
                     textShadow: '0 2px 8px rgba(0,0,0,0.4)',
                 }}>
-                    Watch the stories and plan your life.✨
+                    Watch the stories and amplify your life.✨
                 </h2>
             </div>
             {/* ── STORY BAR: in page flow — renders below the unified glass card — scrolls naturally ── */}
@@ -1932,7 +1932,7 @@ export default function StickyTopNav() {
                 className="os-stories-row"
                 style={{
                     display: 'flex', flexDirection: 'row', alignItems: 'flex-start',
-                    gap: 8, padding: '8px 0.85rem 14px',
+                    gap: 8, padding: '4px 0.85rem 6px',
                     overflowX: 'auto', overflowY: 'visible',
                     scrollbarWidth: 'none',
                     WebkitOverflowScrolling: 'touch',

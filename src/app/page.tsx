@@ -15,6 +15,7 @@ import SacredPortalGrid from '@/components/HomePage/SacredPortalGrid';
 import ConsciousManifesto from '@/components/HomePage/ConsciousManifesto';
 import SacredCanvas from '@/components/SacredCanvas/SacredCanvas';
 import SakhaBodhiOrb from '@/components/Dashboard/SakhaBodhiOrb';
+import SmartLogBubbles from '@/components/Dashboard/SmartLogBubbles';
 
 import EphemeralGreeting from '@/components/HomePage/EphemeralGreeting';
 import StickyTopNav from '@/components/HomePage/StickyTopNav';
@@ -162,7 +163,7 @@ export default function Home() {
     ],
     evening: [
       'https://images.unsplash.com/photo-1518623489648-a173ef7824f3?w=1400&q=80', // dramatic sunset coast
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1400&q=80', // golden hour canyon
+      'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=1400&q=80', // golden hour fields landscape
       'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1400&q=80', // sunset mountain silhouette
     ],
     night: [
@@ -329,7 +330,7 @@ export default function Home() {
               boxShadow: 'none',
               position: 'relative', zIndex: 10,
               overflow: 'hidden',
-              marginBottom: '-0.3rem'
+              marginBottom: '-0.5rem'
             }}
           >
             <div aria-hidden style={{
@@ -362,10 +363,30 @@ export default function Home() {
         {/* ══ StickyTopNav: fixed header floats on top always;
              its story bar div renders in page flow right here
              — BELOW the glass card, scrolls off naturally ══ */}
-        <div style={{ display: isPortalOpen ? 'none' : 'block', marginTop: '-0.6rem' }}>
+        <div style={{ display: isPortalOpen ? 'none' : 'block', marginTop: '-0.8rem' }}>
           <StickyTopNav />
         </div>
 
+        {/* ══ SMART LOG BUBBLES — time-contextual quick-log with sub-options ══ */}
+        {!isPortalOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              position: 'relative', zIndex: 10,
+              background: 'rgba(4,2,18,0.55)',
+              backdropFilter: 'blur(18px)',
+              WebkitBackdropFilter: 'blur(18px)',
+              border: '1px solid rgba(255,255,255,0.07)',
+              borderRadius: 18,
+              margin: '0.15rem 0.6rem 0.1rem',
+              boxShadow: '0 4px 30px rgba(0,0,0,0.25)',
+            }}
+          >
+            <SmartLogBubbles />
+          </motion.div>
+        )}
 
         <div className={dashStyles.dashboardGrid}>
 

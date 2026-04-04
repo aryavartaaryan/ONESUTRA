@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { Send, Mic, MicOff, Leaf, Moon, ArrowLeft, Check, X, Search, Smile, Paperclip, Home, MapPin, MessageCircle, Zap, Camera, Plus, Users } from 'lucide-react';
+import { Send, Mic, MicOff, Leaf, Moon, ArrowLeft, Check, X, Search, Smile, Paperclip, Home, MapPin, MessageCircle, Zap, Camera, Plus, Users, UserPlus } from 'lucide-react';
 import { useBodhiChatVoice } from '@/hooks/useBodhiChatVoice';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { useLanguage } from '@/context/LanguageContext';
@@ -339,6 +339,9 @@ export default function PranverseChatHub() {
     // Profile sheet
     const [profileUser, setProfileUser] = useState<SutraUser | null>(null);
     const [showSelfProfile, setShowSelfProfile] = useState(false);
+    // Find Friends popup
+    const [showFindFriends, setShowFindFriends] = useState(false);
+    const [findFriendsQuery, setFindFriendsQuery] = useState('');
 
     // ── Real users from Firebase ──────────────────────────────────────────────
     const { users: allUsers } = useUsers(uid);
@@ -351,6 +354,7 @@ export default function PranverseChatHub() {
     const recogRef = useRef<any>(null);
     const connectCalledRef = useRef(false);
     const prevActiveIdRef = useRef<string | null>(null);
+    const pendingAskBodhiRef = useRef<string | null>(null);
     const bodhiUnread = bodhiMsgs.filter(m => m.role === 'bodhi').length > 0 && activeId !== 'bodhi' ? 1 : 0;
 
     const displayName = user?.name || 'Mitra';
@@ -490,9 +494,15 @@ export default function PranverseChatHub() {
     useEffect(() => {
         if (activeId === 'bodhi' && isConnected && !greetingReadRef.current) {
             greetingReadRef.current = true;
-            // Clear static pre-built greeting; Bodhi will generate & speak its own via Gemini Live
             setBodhiMsgs([]);
-            bodhiSend('Namaste Bodhi');
+            if (pendingAskBodhiRef.current) {
+                const msg = pendingAskBodhiRef.current;
+                pendingAskBodhiRef.current = null;
+                setBodhiMsgs([{ id: `u_ask_${Date.now()}`, role: 'me', text: msg, ts: Date.now() }]);
+                bodhiSend(msg);
+            } else {
+                bodhiSend('Namaste Bodhi');
+            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeId, isConnected]);
@@ -684,6 +694,10 @@ export default function PranverseChatHub() {
                             <motion.button whileTap={{ scale: 0.88 }} whileHover={{ scale: 1.04 }} onClick={() => setShowCreateCircle(true)}
                                 style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0.32rem 0.75rem', borderRadius: 99, background: 'linear-gradient(135deg, rgba(167,139,250,0.22), rgba(124,58,237,0.18))', border: '1.5px solid rgba(167,139,250,0.50)', cursor: 'pointer', color: '#c084fc', fontSize: '0.50rem', fontWeight: 800, boxShadow: '0 0 12px rgba(167,139,250,0.28)', letterSpacing: '0.04em' }}>
                                 <Users size={11} /> Circle
+                            </motion.button>
+                            <motion.button whileTap={{ scale: 0.88 }} whileHover={{ scale: 1.04 }} onClick={() => { setFindFriendsQuery(''); setShowFindFriends(true); }}
+                                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0.32rem 0.75rem', borderRadius: 99, background: 'linear-gradient(135deg, rgba(74,222,128,0.22), rgba(52,211,153,0.18))', border: '1.5px solid rgba(74,222,128,0.50)', cursor: 'pointer', color: '#4ade80', fontSize: '0.50rem', fontWeight: 800, boxShadow: '0 0 12px rgba(74,222,128,0.28)', letterSpacing: '0.04em' }}>
+                                <UserPlus size={11} /> Friends
                             </motion.button>
                         </div>
                     </div>
@@ -1432,7 +1446,19 @@ export default function PranverseChatHub() {
                                 {/* Ask Bodhi */}
                                 <div style={{ display: 'flex', gap: '0.55rem', padding: '0 1.4rem', width: '100%', boxSizing: 'border-box', marginBottom: '0.65rem' }}>
                                     <motion.button whileTap={{ scale: 0.94 }}
-                                        onClick={() => { setProfileUser(null); router.push(`/profile/${pu.uid}?enquire=true`); }}
+                                        onClick={() => {
+                                            const bio = (pu as any).bio || 'OneSUTRA Seeker · Walking the conscious path';
+                                            const askMsg = `Tell me about ${pu.name}, a fellow seeker on OneSUTRA. Their profile says: "${bio}". Who are they as a person? What does their spiritual journey look like? Speak in your warm, insightful Bodhi voice — as if you know them deeply.`;
+                                            setProfileUser(null);
+                                            if (activeId === 'bodhi' && isConnected) {
+                                                setBodhiMsgs(prev => [...prev, { id: `u_ask_${Date.now()}`, role: 'me', text: askMsg, ts: Date.now() }]);
+                                                bodhiSend(askMsg);
+                                            } else {
+                                                pendingAskBodhiRef.current = askMsg;
+                                                greetingReadRef.current = false;
+                                                handleSelect('bodhi');
+                                            }
+                                        }}
                                         style={{ flex: 1, padding: '0.62rem 0.5rem', borderRadius: 12, background: 'rgba(167,139,250,0.10)', border: '1px solid rgba(167,139,250,0.28)', color: '#c4b5fd', fontSize: '0.75rem', fontWeight: 700, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
                                         ✦ Ask Bodhi About {pu.name.split(' ')[0]}
                                     </motion.button>
@@ -1477,6 +1503,75 @@ export default function PranverseChatHub() {
                         </motion.div>
                     );
                 })()}
+            </AnimatePresence>
+
+            {/* ── FIND FRIENDS MODAL ── */}
+            <AnimatePresence>
+                {showFindFriends && (
+                    <motion.div key="ff-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        onClick={() => setShowFindFriends(false)}
+                        style={{ position: 'fixed', inset: 0, zIndex: 400, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+                        <motion.div key="ff-sheet" initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                            transition={{ type: 'spring', stiffness: 340, damping: 34 }}
+                            onClick={e => e.stopPropagation()}
+                            style={{ width: '100%', maxWidth: 520, maxHeight: '82dvh', background: 'linear-gradient(160deg,rgba(5,2,18,0.99) 0%,rgba(9,4,28,0.99) 100%)', backdropFilter: 'blur(36px)', WebkitBackdropFilter: 'blur(36px)', border: '1px solid rgba(74,222,128,0.22)', borderRadius: '28px 28px 0 0', display: 'flex', flexDirection: 'column', overflow: 'hidden', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+                            {/* Ambient glow */}
+                            <div style={{ position: 'absolute', top: -60, left: '50%', transform: 'translateX(-50%)', width: 280, height: 120, borderRadius: '50%', background: 'radial-gradient(ellipse,rgba(74,222,128,0.16) 0%,transparent 70%)', pointerEvents: 'none' }} />
+                            {/* Drag handle */}
+                            <div style={{ width: 36, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.14)', alignSelf: 'center', margin: '0.85rem 0 0' }} />
+                            {/* Header */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.9rem 1.2rem 0.6rem' }}>
+                                <div>
+                                    <span style={{ fontSize: '1rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", background: 'linear-gradient(120deg,#4ade80 0%,#34d399 45%,#a78bfa 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', display: 'block' }}>Find Seekers</span>
+                                    <span style={{ fontSize: '0.50rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit',sans-serif" }}>Search and add friends on PranaVerse</span>
+                                </div>
+                                <button onClick={() => setShowFindFriends(false)} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.50)', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
+                            </div>
+                            {/* Search input */}
+                            <div style={{ margin: '0 1.2rem 0.75rem', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(74,222,128,0.30)', borderRadius: 14, padding: '0.55rem 0.9rem' }}>
+                                <Search size={14} style={{ color: 'rgba(74,222,128,0.70)', flexShrink: 0 }} />
+                                <input
+                                    autoFocus
+                                    value={findFriendsQuery}
+                                    onChange={e => setFindFriendsQuery(e.target.value)}
+                                    placeholder="Search by name…"
+                                    style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: 'rgba(255,255,255,0.90)', fontSize: '0.82rem', fontFamily: "'Outfit',sans-serif", caretColor: '#4ade80' }}
+                                />
+                                {findFriendsQuery && <button onClick={() => setFindFriendsQuery('')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.35)', cursor: 'pointer', fontSize: '0.9rem', padding: 0 }}>✕</button>}
+                            </div>
+                            {/* User list */}
+                            <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none' }}>
+                                <style>{`.ff-scroll::-webkit-scrollbar{display:none}`}</style>
+                                {(() => {
+                                    const q = findFriendsQuery.toLowerCase().trim();
+                                    const filtered = allUsers.filter(u => u.uid !== uid && (q === '' || u.name.toLowerCase().includes(q)));
+                                    if (filtered.length === 0) return (
+                                        <div style={{ padding: '2rem', textAlign: 'center' }}>
+                                            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🔍</div>
+                                            <p style={{ color: 'rgba(255,255,255,0.40)', fontFamily: "'Outfit',sans-serif", fontSize: '0.82rem' }}>{q ? 'No seekers found' : 'No seekers yet'}</p>
+                                        </div>
+                                    );
+                                    return filtered.map(u => {
+                                        const isFr = acceptedFriendIds.has(u.uid);
+                                        const isSent = sentRequestUids.has(u.uid);
+                                        const pendingFrom = pendingRequests.find(r => r.user.uid === u.uid);
+                                        const status: SeekerStatus = isFr ? 'friends' : pendingFrom ? 'received' : isSent ? 'sent' : 'none';
+                                        return (
+                                            <SeekerCard key={u.uid} u={u} status={status} isNature={isNature}
+                                                onAdd={() => sendFriendRequest(u.uid, u.name)}
+                                                onAccept={() => pendingFrom && acceptRequest(pendingFrom.doc.id)}
+                                                onDecline={() => pendingFrom && declineRequest(pendingFrom.doc.id)}
+                                                onChat={() => { setShowFindFriends(false); handleSelect(u.uid); }}
+                                                onViewProfile={() => { setShowFindFriends(false); setProfileUser(u); }}
+                                            />
+                                        );
+                                    });
+                                })()}
+                                <div style={{ height: '1rem' }} />
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
             </AnimatePresence>
 
             {/* ── SELF PROFILE SHEET ── */}

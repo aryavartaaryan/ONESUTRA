@@ -517,7 +517,7 @@ function playDropSound() {
 
 // ── Main Component ─────────────────────────────────────────────────────────
 // ── Inline Draggable Bubble Subcomponent ──
-const InlineBubble = ({ b, index, dropZoneRef, dropHighlight, setDropHighlight, inputValue, setInputValue, inputRef, setPendingMessage, handleCategoryClick, router, setActiveLayer }: any) => {
+const InlineBubble = ({ b, index, dropZoneRef, dropHighlight, setDropHighlight, inputValue, setInputValue, inputRef, setPendingMessage, handleCategoryClick, router, setActiveLayer, onLogTap }: any) => {
     const isPlanner = !!b.isPlanner;
     const [burstKey, setBurstKey] = useState<number>(0);
     const [isBursting, setIsBursting] = useState(false);
@@ -587,7 +587,7 @@ const InlineBubble = ({ b, index, dropZoneRef, dropHighlight, setDropHighlight, 
                 setTimeout(() => ctx.close(), 1000);
             } catch { /* silent */ }
 
-            const msg = `${b.label}: `;
+            const msg = b.logMsg || `${b.label}: `;
             setInputValue(msg);
             setDropHighlight(true);
             setTimeout(() => setDropHighlight(false), 900);
@@ -600,6 +600,14 @@ const InlineBubble = ({ b, index, dropZoneRef, dropHighlight, setDropHighlight, 
             setActiveLayer(b.isFolder);
         } else if (totalMove < 10 && isPlanner) {
             router.push('/vedic-planner');
+        } else if (totalMove < 10 && b.isLog && onLogTap) {
+            setIsBursting(true);
+            setBurstKey(k => k + 1);
+            setTimeout(() => setIsBursting(false), 450);
+            setDragPos({ x: e.clientX, y: e.clientY });
+            setGhostBursting(true);
+            setTimeout(() => { setDragPos(null); setGhostBursting(false); }, 400);
+            onLogTap(b);
         } else if (totalMove < 10) {
             // Tap: burst at tap point → open Bodhi chat with label pre-filled
             setIsBursting(true);
@@ -621,7 +629,7 @@ const InlineBubble = ({ b, index, dropZoneRef, dropHighlight, setDropHighlight, 
                 });
                 setTimeout(() => ctx.close(), 1000);
             } catch { /* silent */ }
-            const msg = `${b.label}: `;
+            const msg = b.logMsg || `${b.label}: `;
             setPendingMessage(msg);
             setTimeout(() => router.push('/bodhi-chat'), 400);
         }
@@ -683,6 +691,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
     const [mood, setMood] = useState<string | null>(null);
     const [showMoodCheck, setShowMoodCheck] = useState(true);
     const [dropHighlight, setDropHighlight] = useState(false);
+    const [activeLogBubble, setActiveLogBubble] = useState<any | null>(null);
     const [filterDate, setFilterDate] = useState<string | null>(null);
     // ── Mini Task Summary ───────────────────────────────────────────────────
     const TaskSummary = () => {
@@ -1077,7 +1086,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                 >
                     <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }} style={{ fontSize: '0.7rem' }}>👇</motion.span>
                     <span style={{ fontSize: '0.46rem', color: 'rgba(255,255,255,0.35)', fontStyle: 'italic', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.04em' }}>
-                        Drag bubble → bar — Bodhi guides
+                        Touch bubbles → Transform your life — Bodhi guides
                     </span>
                     <motion.span animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }} style={{ fontSize: '0.7rem' }}>✨</motion.span>
                 </motion.div>
@@ -1098,27 +1107,27 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                         const h = new Date().getHours();
                         let timeLogs: any[] = [];
                         if (h >= 5 && h < 12) {
-                            // Morning block (5 AM - 12 PM)
                             timeLogs = [
-                                { key: 'LogWake', label: 'WAKE UP', emoji: '🌅', color: '#fde047', bg: 'rgba(253,224,71,0.3)', glare: 'rgba(253,224,71,0.6)', anim: 'msFloat4', dur: 4.5, size: 60, arcY: -18, isLog: true },
-                                { key: 'LogMeditate', label: 'MEDITATE', emoji: '🧘', color: '#67e8f9', bg: 'rgba(103,232,249,0.3)', glare: 'rgba(103,232,249,0.5)', anim: 'msFloat0', dur: 3.2, size: 62, arcY: -28, isLog: true },
-                                { key: 'LogBreakfast', label: 'BREAKFAST', emoji: '🍳', color: '#fed7aa', bg: 'rgba(254,215,170,0.3)', glare: 'rgba(254,215,170,0.6)', anim: 'msFloat2', dur: 4.1, size: 55, arcY: -12, isLog: true },
+                                { key: 'LogWake', label: 'Rise & Shine!', emoji: '🌅', logMsg: 'I woke up this morning [UI_EVENT: MORNING_LOGS_CLICKED]', subOptions: [{ icon: '⚡', label: '5 AM sharp', detail: 'woke up at 5 AM sharp' }, { icon: '🌄', label: '6–7 AM', detail: 'woke up around 6–7 AM' }, { icon: '☀️', label: '~8 AM', detail: 'woke up around 8 AM' }, { icon: '😅', label: 'A bit late', detail: 'woke up a bit late today' }], color: '#fde047', bg: 'rgba(253,224,71,0.3)', glare: 'rgba(253,224,71,0.6)', anim: 'msFloat4', dur: 4.5, size: 60, arcY: -18, isLog: true },
+                                { key: 'LogBreakfast', label: 'Morning Fuel!', emoji: '🍳', logMsg: 'I had breakfast today [UI_EVENT: MORNING_LOGS_CLICKED]', subOptions: [{ icon: '🥣', label: 'Oats & fruits', detail: 'had oats with fruits' }, { icon: '🫓', label: 'Parathas', detail: 'had parathas this morning' }, { icon: '🍳', label: 'Eggs', detail: 'had eggs for breakfast' }, { icon: '🍵', label: 'Just chai', detail: 'just had chai today' }], color: '#fed7aa', bg: 'rgba(254,215,170,0.3)', glare: 'rgba(254,215,170,0.6)', anim: 'msFloat2', dur: 4.1, size: 58, arcY: -12, isLog: true },
+                                { key: 'LogMeditate', label: 'Breathwork Done?', emoji: '🧘', logMsg: 'I did morning breathwork [UI_EVENT: MORNING_LOGS_CLICKED]', subOptions: [{ icon: '⏱️', label: '5 min reset', detail: '5 minute breathing reset done' }, { icon: '🕐', label: '10 min flow', detail: '10 minute pranayama done' }, { icon: '✨', label: '20+ min deep', detail: 'full 20+ minute breathwork session' }, { icon: '📅', label: 'Will do later', detail: 'planning breathwork later today' }], color: '#67e8f9', bg: 'rgba(103,232,249,0.3)', glare: 'rgba(103,232,249,0.5)', anim: 'msFloat0', dur: 3.2, size: 62, arcY: -28, isLog: true },
                             ];
                         } else if (h >= 12 && h < 16) {
-                            // Lunch block (12 PM - 4 PM)
                             timeLogs = [
-                                { key: 'LogLunch', label: 'LUNCH', emoji: '🥗', color: '#86efac', bg: 'rgba(134,239,172,0.3)', glare: 'rgba(134,239,172,0.6)', anim: 'msFloat1', dur: 3.5, size: 66, arcY: -22, isLog: true }
+                                { key: 'LogLunch', label: "Lunch O'Clock!", emoji: '🍱', logMsg: 'I had lunch today [UI_EVENT: NOON_LOGS_CLICKED]', subOptions: [{ icon: '🍚', label: 'Dal rice', detail: 'had dal rice for lunch' }, { icon: '🫓', label: 'Roti sabzi', detail: 'had roti and sabzi' }, { icon: '🥗', label: 'Light salad', detail: 'had a light salad' }, { icon: '🍕', label: 'Outside food', detail: 'ate outside or ordered in' }, { icon: '⏭️', label: 'Skipped it', detail: 'skipped lunch today' }], color: '#86efac', bg: 'rgba(134,239,172,0.3)', glare: 'rgba(134,239,172,0.6)', anim: 'msFloat1', dur: 3.5, size: 66, arcY: -22, isLog: true },
+                                { key: 'LogDeepWork', label: 'Deep Sprint?', emoji: '🎯', logMsg: 'I completed a deep work session [UI_EVENT: NOON_LOGS_CLICKED]', subOptions: [{ icon: '⏰', label: '1 hour', detail: '1 hour focused deep work sprint' }, { icon: '🕑', label: '2 hours', detail: '2 hour deep work block done' }, { icon: '🔥', label: 'Still in flow!', detail: 'still in deep flow state right now' }, { icon: '😵', label: 'Struggled today', detail: 'struggled to focus today' }], color: '#4ade80', bg: 'rgba(74,222,128,0.3)', glare: 'rgba(74,222,128,0.6)', anim: 'msFloat2', dur: 4.1, size: 58, arcY: -15, isLog: true },
                             ];
                         } else if (h >= 16 && h < 20) {
-                            // Evening block (4 PM - 8 PM)
                             timeLogs = [
-                                { key: 'LogMeditate', label: 'MEDITATE', emoji: '🧘', color: '#67e8f9', bg: 'rgba(103,232,249,0.3)', glare: 'rgba(103,232,249,0.5)', anim: 'msFloat0', dur: 3.8, size: 66, arcY: -22, isLog: true }
+                                { key: 'LogWorkout', label: 'Physical Exercise & Games? 💪', emoji: '🏋️', logMsg: 'I worked out today [UI_EVENT: EVENING_LOGS_CLICKED]', subOptions: [{ icon: '🏋️', label: 'Gym session', detail: 'full gym session done' }, { icon: '🏃', label: 'Evening run', detail: 'went for an evening run' }, { icon: '🧘', label: 'Yoga flow', detail: 'yoga flow session done' }, { icon: '🚶', label: 'Walk', detail: 'took an evening walk' }, { icon: '🏠', label: 'Home workout', detail: 'home workout session done' }], color: '#f87171', bg: 'rgba(248,113,113,0.3)', glare: 'rgba(248,113,113,0.6)', anim: 'msFloat0', dur: 3.8, size: 62, arcY: -20, isLog: true },
+                                { key: 'LogDinner', label: 'Dinner Served!', emoji: '🍽️', logMsg: 'I had dinner tonight [UI_EVENT: EVENING_LOGS_CLICKED]', subOptions: [{ icon: '🥗', label: 'Light & clean', detail: 'had a light clean dinner' }, { icon: '🍚', label: 'Full meal', detail: 'had a full dinner meal' }, { icon: '🫓', label: 'Roti sabzi', detail: 'had roti and sabzi for dinner' }, { icon: '⏭️', label: 'Skipping', detail: 'skipping dinner tonight' }], color: '#fdba74', bg: 'rgba(253,186,116,0.3)', glare: 'rgba(253,186,116,0.6)', anim: 'msFloat3', dur: 3.8, size: 60, arcY: -15, isLog: true },
+                                { key: 'LogMeditate', label: 'Eve Breathe?', emoji: '🧘', logMsg: 'I did evening meditation [UI_EVENT: EVENING_LOGS_CLICKED]', subOptions: [{ icon: '⏱️', label: '5 min calm', detail: '5 minute evening calm down' }, { icon: '🕐', label: '15 min deep', detail: '15 minute deep meditation' }, { icon: '📿', label: 'Mantra', detail: 'mantra meditation session done' }], color: '#67e8f9', bg: 'rgba(103,232,249,0.3)', glare: 'rgba(103,232,249,0.5)', anim: 'msFloat4', dur: 4.0, size: 56, arcY: -18, isLog: true },
                             ];
                         } else {
-                            // Night block (8 PM - 5 AM)
                             timeLogs = [
-                                { key: 'LogDinner', label: 'DINNER', emoji: '🍽️', color: '#fdba74', bg: 'rgba(253,186,116,0.3)', glare: 'rgba(253,186,116,0.6)', anim: 'msFloat3', dur: 3.8, size: 55, arcY: -15, isLog: true },
-                                { key: 'LogSleep', label: 'SLEEP', emoji: '🌙', color: '#c4b5fd', bg: 'rgba(196,181,253,0.3)', glare: 'rgba(196,181,253,0.6)', anim: 'msFloat0', dur: 4.5, size: 62, arcY: -25, isLog: true }
+                                { key: 'LogDinner', label: 'Dinner Time!', emoji: '🌙', logMsg: 'I had dinner tonight [UI_EVENT: NIGHT_LOGS]', subOptions: [{ icon: '🥗', label: 'Light meal', detail: 'had a light dinner tonight' }, { icon: '🍚', label: 'Full dinner', detail: 'had a full dinner meal' }, { icon: '⏭️', label: 'Skipping', detail: 'skipping dinner tonight' }], color: '#fdba74', bg: 'rgba(253,186,116,0.3)', glare: 'rgba(253,186,116,0.6)', anim: 'msFloat3', dur: 3.8, size: 55, arcY: -15, isLog: true },
+                                { key: 'LogSleep', label: 'Rest Mode On', emoji: '💤', logMsg: 'Going to sleep now, goodnight [UI_EVENT: NIGHT_LOGS]', subOptions: [{ icon: '🌙', label: 'Before 10 PM', detail: 'early sleep before 10 PM tonight' }, { icon: '🕙', label: '10–11 PM', detail: 'sleeping around 10–11 PM' }, { icon: '🌃', label: '~Midnight', detail: 'sleeping around midnight tonight' }, { icon: '🦉', label: 'Night owl', detail: 'very late night, past midnight' }], color: '#c4b5fd', bg: 'rgba(196,181,253,0.3)', glare: 'rgba(196,181,253,0.6)', anim: 'msFloat0', dur: 4.5, size: 62, arcY: -25, isLog: true },
+                                { key: 'LogGratitude', label: 'Grateful Today?', emoji: '🙏', logMsg: 'I am feeling grateful today [UI_EVENT: NIGHT_LOGS]', subOptions: [{ icon: '✨', label: '3 good things', detail: 'named 3 things I am grateful for' }, { icon: '🙏', label: 'Short prayer', detail: 'said a short prayer of gratitude' }, { icon: '💛', label: 'Just felt it', detail: 'felt deep gratitude in my heart' }], color: '#fbbf24', bg: 'rgba(251,191,36,0.3)', glare: 'rgba(251,191,36,0.6)', anim: 'msFloat2', dur: 4.0, size: 56, arcY: -10, isLog: true },
                             ];
                         }
 
@@ -1168,6 +1177,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                                                 inputValue={inputValue} setInputValue={setInputValue} inputRef={inputRef}
                                                 setPendingMessage={setPendingMessage} handleCategoryClick={handleCategoryClick} router={router}
                                                 setActiveLayer={setActiveLayer}
+                                                onLogTap={b.isLog ? setActiveLogBubble : undefined}
                                             />
                                         </motion.div>
                                     ))}
@@ -1175,6 +1185,93 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                             </div>
                         );
                     })()}
+
+                    {/* ── Log sub-option panel — appears on log bubble tap ── */}
+                    <AnimatePresence>
+                        {activeLogBubble && (
+                            <motion.div
+                                key={activeLogBubble.key + '_panel'}
+                                initial={{ opacity: 0, y: -10, scale: 0.97 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                                style={{
+                                    margin: '0 0 0.4rem',
+                                    padding: '0.65rem 0.75rem 0.55rem',
+                                    background: `radial-gradient(ellipse at 20% 0%, ${activeLogBubble.bg}, rgba(6,3,18,0.92))`,
+                                    backdropFilter: 'blur(20px)',
+                                    WebkitBackdropFilter: 'blur(20px)',
+                                    border: `1px solid ${activeLogBubble.color}45`,
+                                    borderRadius: 18,
+                                    boxShadow: `0 8px 32px rgba(0,0,0,0.45), 0 0 0 1px ${activeLogBubble.color}18`,
+                                    position: 'relative', zIndex: 5,
+                                }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.32rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <span style={{ fontSize: '1rem', lineHeight: 1 }}>{activeLogBubble.emoji}</span>
+                                        <span style={{ fontSize: '0.50rem', fontWeight: 800, color: activeLogBubble.color, letterSpacing: '0.09em', textTransform: 'uppercase', fontFamily: "'Inter', system-ui, sans-serif", filter: `drop-shadow(0 0 6px ${activeLogBubble.color}70)` }}>
+                                            {activeLogBubble.label}
+                                        </span>
+                                        <span style={{ fontSize: '0.40rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.04em' }}>— tap to log ✦</span>
+                                    </div>
+                                    <button onClick={() => setActiveLogBubble(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.32)', fontSize: '0.9rem', padding: '0 4px', lineHeight: 1, flexShrink: 0 }}>✕</button>
+                                </div>
+                                <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                                    {(activeLogBubble.subOptions || []).map((sub: any, si: number) => (
+                                        <motion.button
+                                            key={sub.label}
+                                            initial={{ opacity: 0, x: -6 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: si * 0.04, type: 'spring', stiffness: 400, damping: 28 }}
+                                            whileTap={{ scale: 0.86 }}
+                                            onClick={() => {
+                                                const msg = `${activeLogBubble.logMsg} — ${sub.detail}`;
+                                                setPendingMessage(msg);
+                                                setActiveLogBubble(null);
+                                                router.push('/bodhi-chat');
+                                            }}
+                                            style={{
+                                                display: 'flex', alignItems: 'center', gap: 5,
+                                                background: 'rgba(255,255,255,0.07)',
+                                                border: `1px solid ${activeLogBubble.color}38`,
+                                                borderRadius: 999,
+                                                padding: '0.27rem 0.62rem 0.27rem 0.40rem',
+                                                cursor: 'pointer',
+                                                backdropFilter: 'blur(10px)',
+                                                WebkitBackdropFilter: 'blur(10px)',
+                                                boxShadow: `0 2px 10px ${activeLogBubble.color}12`,
+                                            }}
+                                        >
+                                            <span style={{ fontSize: '0.82rem', lineHeight: 1 }}>{sub.icon}</span>
+                                            <span style={{ fontSize: '0.43rem', fontWeight: 600, color: 'rgba(255,255,255,0.78)', letterSpacing: '0.03em', whiteSpace: 'nowrap', fontFamily: "'Inter', system-ui, sans-serif" }}>{sub.label}</span>
+                                        </motion.button>
+                                    ))}
+                                    <motion.button
+                                        initial={{ opacity: 0, x: -6 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: (activeLogBubble.subOptions?.length || 0) * 0.04 }}
+                                        whileTap={{ scale: 0.86 }}
+                                        onClick={() => {
+                                            setPendingMessage(activeLogBubble.logMsg);
+                                            setActiveLogBubble(null);
+                                            router.push('/bodhi-chat');
+                                        }}
+                                        style={{
+                                            display: 'flex', alignItems: 'center', gap: 4,
+                                            background: 'transparent',
+                                            border: '1px dashed rgba(255,255,255,0.18)',
+                                            borderRadius: 999,
+                                            padding: '0.27rem 0.60rem',
+                                            cursor: 'pointer',
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '0.43rem', fontWeight: 600, color: 'rgba(255,255,255,0.38)', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.03em' }}>✏️ Tell Bodhi</span>
+                                    </motion.button>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                     {/* ── Centered narrow drop zone input bar ── */}
                     <motion.div
