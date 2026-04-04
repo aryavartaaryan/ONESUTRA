@@ -316,6 +316,7 @@ export function useBodhiChatVoice({
     const playbackCtxRef = useRef<AudioContext | null>(null);
     const audioQueueRef = useRef<Float32Array[]>([]);
     const isPlayingRef = useRef(false);
+    const audioGenRef = useRef(0);
     const isConnectedRef = useRef(false);
     const textBufferRef = useRef('');
 
@@ -452,6 +453,7 @@ RULE: Your FIRST line MUST be the elegant Sanskrit greeting from rule 6. Then yo
     }, []);
 
     const playNextAudio = useCallback(() => {
+        const myGen = audioGenRef.current;
         if (audioQueueRef.current.length === 0) {
             isPlayingRef.current = false;
             setIsSpeaking(false);
@@ -489,7 +491,13 @@ RULE: Your FIRST line MUST be the elegant Sanskrit greeting from rule 6. Then yo
         gain.gain.value = 1.0;
         src.connect(gain);
         gain.connect(ctx.destination);
-        src.onended = () => playNextAudio();
+        src.onended = () => {
+            if (audioGenRef.current !== myGen) {
+                isPlayingRef.current = false;
+                return;
+            }
+            playNextAudio();
+        };
         src.start();
     }, [applyCrossfade]);
 
@@ -884,6 +892,13 @@ RULES:
                             // This prevents Bodhi from speaking twice (once before, once after tool).
                             textBufferRef.current = '';
                             audioQueueRef.current = [];
+                            audioGenRef.current++;
+                            isPlayingRef.current = false;
+                            // Immediately silence any currently-playing audio chunk
+                            if (playbackCtxRef.current) {
+                                playbackCtxRef.current.suspend().catch(() => { });
+                                setTimeout(() => { playbackCtxRef.current?.resume().catch(() => { }); }, 80);
+                            }
                             for (const fc of message.toolCall.functionCalls) {
                                 if (fc.name === 'save_memory') {
                                     const memoryStr: string = fc.args?.memory;

@@ -491,14 +491,12 @@ function DraggableBubble({
     );
 }
 
-// ── Sound effect helper ────────────────────────────────────────────────────
+// ── Sound helpers ─────────────────────────────────────────────────────────
 function playDropSound() {
     if (typeof window === 'undefined') return;
     try {
         const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        // Gentle wind-chime drop: two short tones
-        const freqs = [880, 1046];
-        freqs.forEach((freq, i) => {
+        [880, 1046].forEach((freq, i) => {
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
             osc.type = 'sine';
@@ -506,13 +504,47 @@ function playDropSound() {
             gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.08);
             gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + i * 0.08 + 0.02);
             gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 0.38);
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start(ctx.currentTime + i * 0.08);
-            osc.stop(ctx.currentTime + i * 0.08 + 0.40);
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(ctx.currentTime + i * 0.08); osc.stop(ctx.currentTime + i * 0.08 + 0.40);
         });
         setTimeout(() => ctx.close(), 900);
     } catch { /* silently ignore */ }
+}
+
+function playOrbitSound() {
+    try {
+        if (typeof window === 'undefined') return;
+        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(); osc.stop(ctx.currentTime + 0.3);
+        setTimeout(() => ctx.close(), 500);
+    } catch { /* ignored */ }
+}
+
+function playSubmitSound() {
+    try {
+        if (typeof window === 'undefined') return;
+        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const freqs = [523.25, 659.25, 783.99]; // C5, E5, G5
+        freqs.forEach((f, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.frequency.setValueAtTime(f, ctx.currentTime + i * 0.1);
+            gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.1);
+            gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + i * 0.1 + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.1 + 0.4);
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(ctx.currentTime + i * 0.1); osc.stop(ctx.currentTime + i * 0.1 + 0.5);
+        });
+        setTimeout(() => ctx.close(), 1000);
+    } catch { /* ignored */ }
 }
 
 // ── Main Component ─────────────────────────────────────────────────────────
@@ -541,6 +573,7 @@ const InlineBubble = ({ b, index, dropZoneRef, dropHighlight, setDropHighlight, 
         startRef.current = { cx: e.clientX, cy: e.clientY, bx: r.left + r.width / 2, by: r.top + r.height / 2 };
         setIsDragging(true);
         setDragPos({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+        playOrbitSound();
     };
 
     const onPtrMove = (e: React.PointerEvent) => {
@@ -631,7 +664,8 @@ const InlineBubble = ({ b, index, dropZoneRef, dropHighlight, setDropHighlight, 
             } catch { /* silent */ }
             const msg = b.logMsg || `${b.label}: `;
             setPendingMessage(msg);
-            setTimeout(() => router.push('/bodhi-chat'), 400);
+            playSubmitSound();
+            setTimeout(() => router.push('/bodhi-chat'), 450);
         }
     };
 
@@ -688,8 +722,6 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
     const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
     const [aiAdvice, setAiAdvice] = useState<Record<string, string>>({});
     const [isGeneratingAdvice, setIsGeneratingAdvice] = useState<string | null>(null);
-    const [mood, setMood] = useState<string | null>(null);
-    const [showMoodCheck, setShowMoodCheck] = useState(true);
     const [dropHighlight, setDropHighlight] = useState(false);
     const [activeLogBubble, setActiveLogBubble] = useState<any | null>(null);
     const [filterDate, setFilterDate] = useState<string | null>(null);
@@ -804,6 +836,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
         if (!text) return;
         setInputValue('');
         if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(55);
+        playSubmitSound();
         setPendingMessage(text);
         router.push('/bodhi-chat');
     }, [inputValue, setPendingMessage, router]);
@@ -909,85 +942,12 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
         }, 700);
     }, [router, setPendingMessage]);
 
-    // ── Mood Check Component — horizontal top bar, NOT sticky
-    const MoodCheck = () => (
-        <AnimatePresence>
-            {showMoodCheck && !mood && (
-                <motion.div
-                    initial={{ opacity: 0, y: -12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -12 }}
-                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                    style={{
-                        width: '100%',
-                        maxWidth: 360,
-                        margin: '0 auto 0.3rem',
-                        background: 'rgba(8,6,22,0.75)',
-                        backdropFilter: 'blur(20px)',
-                        WebkitBackdropFilter: 'blur(20px)',
-                        border: '1px solid rgba(255,255,255,0.10)',
-                        borderRadius: 999,
-                        padding: '5px 10px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 6,
-                        zIndex: 10,
-                        boxShadow: '0 2px 14px rgba(0,0,0,0.30)',
-                    }}
-                >
-                    <span style={{ fontSize: '0.47rem', color: 'rgba(255,255,255,0.45)', fontFamily: "'Inter', system-ui, sans-serif", textTransform: 'uppercase', letterSpacing: '0.08em', marginRight: 2, whiteSpace: 'nowrap' }}>How are you feeling?</span>
-                    {[
-                        { emoji: '😔', label: 'low', color: '#f87171' },
-                        { emoji: '😌', label: 'calm', color: '#2dd4bf' },
-                        { emoji: '🙂', label: 'good', color: '#4ade80' },
-                        { emoji: '⚡', label: 'energetic', color: '#fbbf24' },
-                        { emoji: '🧘', label: 'mindful', color: '#c4b5fd' },
-                    ].map((m) => (
-                        <motion.button
-                            key={m.label}
-                            whileHover={{ scale: 1.15 }}
-                            whileTap={{ scale: 0.88 }}
-                            onClick={() => { setMood(m.label); setShowMoodCheck(false); }}
-                            style={{
-                                background: mood === m.label ? `${m.color}25` : 'transparent',
-                                border: mood === m.label ? `1px solid ${m.color}` : '1px solid rgba(255,255,255,0.08)',
-                                borderRadius: '50%',
-                                cursor: 'pointer',
-                                fontSize: '0.95rem',
-                                width: 27,
-                                height: 27,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                transition: 'all 0.2s',
-                                padding: 0,
-                            }}
-                            title={m.label}
-                        >
-                            {m.emoji}
-                        </motion.button>
-                    ))}
-                    <button
-                        onClick={() => setShowMoodCheck(false)}
-                        style={{
-                            background: 'none', border: 'none',
-                            color: 'rgba(255,255,255,0.35)', cursor: 'pointer',
-                            fontSize: '0.8rem', marginLeft: 2, padding: '0 4px', lineHeight: 1,
-                        }}
-                    >×</button>
-                </motion.div>
-            )}
-        </AnimatePresence>
-    );
-
     return (
         <div ref={moduleRef} style={{
             width: '100%',
             display: 'flex', flexDirection: 'column', gap: '0.25rem',
             position: 'relative',
         }}>
-            <MoodCheck />
 
             {/* ── SMART MANAGER PREMIUM GLASS CARD ── */}
             <motion.div
@@ -997,7 +957,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                 style={{
                     position: 'relative',
                     borderRadius: 24,
-                    padding: '0.15rem 0.65rem 0.15rem',
+                    padding: '0.4rem 0.8rem 0.4rem',
                     background: 'transparent',
                     backdropFilter: 'none',
                     WebkitBackdropFilter: 'none',
@@ -1014,20 +974,20 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                 }} />
 
                 {/* ── SMART MANAGER HEADER ── */}
-                <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.2rem' }}>
                     <div style={{ flex: 1 }}>
                         <h2 style={{
-                            margin: 0, fontSize: '0.60rem',
+                            margin: 0, fontSize: '0.85rem',
                             fontWeight: 700, lineHeight: 1.2, letterSpacing: '0.12em',
                             color: '#fbbf24',
                             fontFamily: "'Inter', system-ui, sans-serif",
                             textTransform: 'uppercase',
                         }}>
-                            <span style={{ marginRight: 5 }}>✦</span>
+                            <span style={{ marginRight: 6 }}>✦</span>
                             Smart Life Planner
                         </h2>
                         <p style={{
-                            margin: '0.18rem 0 0', fontSize: '0.54rem',
+                            margin: '0.2rem 0 0', fontSize: '0.68rem',
                             color: 'rgba(255, 255, 255, 0.45)',
                             fontFamily: "'Inter', system-ui, sans-serif",
                             letterSpacing: '0.01em',
@@ -1075,6 +1035,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                     @keyframes msBarPulse{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,0.5),inset 0 1px 0 rgba(255,255,255,0.2)}50%{box-shadow:0 0 0 8px rgba(251,191,36,0.08),inset 0 1px 0 rgba(255,255,255,0.2)}}
                     .ms-drag-bubble{touch-action:none;cursor:grab;}
                     .ms-drag-bubble:active{cursor:grabbing!important;}
+                    @keyframes msGlowPulse{0%,100%{box-shadow:0 0 10px rgba(251,191,36,0.1)}50%{box-shadow:0 0 25px rgba(251,191,36,0.4)}}
                 `}</style>
 
                 {/* Drag hint */}
@@ -1082,18 +1043,18 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.9, duration: 0.5 }}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: '0.05rem', position: 'relative', zIndex: 3 }}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: '1.5rem', position: 'relative', zIndex: 3 }}
                 >
-                    <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }} style={{ fontSize: '0.7rem' }}>👇</motion.span>
-                    <span style={{ fontSize: '0.46rem', color: 'rgba(255,255,255,0.35)', fontStyle: 'italic', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.04em' }}>
+                    <motion.span animate={{ x: [0, 8, 0] }} transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }} style={{ fontSize: '1.2rem' }}>👇</motion.span>
+                    <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fbbf24', fontStyle: 'italic', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.04em', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
                         Touch bubbles → Transform your life — Bodhi guides
                     </span>
-                    <motion.span animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }} style={{ fontSize: '0.7rem' }}>✨</motion.span>
+                    <motion.span animate={{ scale: [1, 1.4, 1] }} transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }} style={{ fontSize: '1.2rem' }}>✨</motion.span>
                 </motion.div>
 
                 {/* ── Arc orbit container ── */}
                 <div
-                    style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingBottom: '0.1rem' }}
+                    style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingBottom: '0.8rem', marginTop: '0.3rem' }}
                     onPointerMove={useCallback((e: React.PointerEvent<HTMLDivElement>) => {
                         if (!dropZoneRef.current) return;
                         const r = dropZoneRef.current.getBoundingClientRect();
@@ -1102,444 +1063,446 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                     }, [])}
                     onPointerLeave={useCallback(() => setDropHighlight(false), [])}
                 >
-                    {/* Time Context Logic for Logging */}
-                    {(() => {
-                        const h = new Date().getHours();
-                        let timeLogs: any[] = [];
-                        if (h >= 5 && h < 12) {
-                            timeLogs = [
-                                { key: 'LogWake', label: 'Rise & Shine!', emoji: '🌅', logMsg: 'I woke up this morning [UI_EVENT: MORNING_LOGS_CLICKED]', subOptions: [{ icon: '⚡', label: '5 AM sharp', detail: 'woke up at 5 AM sharp' }, { icon: '🌄', label: '6–7 AM', detail: 'woke up around 6–7 AM' }, { icon: '☀️', label: '~8 AM', detail: 'woke up around 8 AM' }, { icon: '😅', label: 'A bit late', detail: 'woke up a bit late today' }], color: '#fde047', bg: 'rgba(253,224,71,0.3)', glare: 'rgba(253,224,71,0.6)', anim: 'msFloat4', dur: 4.5, size: 60, arcY: -18, isLog: true },
-                                { key: 'LogBreakfast', label: 'Morning Fuel!', emoji: '🍳', logMsg: 'I had breakfast today [UI_EVENT: MORNING_LOGS_CLICKED]', subOptions: [{ icon: '🥣', label: 'Oats & fruits', detail: 'had oats with fruits' }, { icon: '🫓', label: 'Parathas', detail: 'had parathas this morning' }, { icon: '🍳', label: 'Eggs', detail: 'had eggs for breakfast' }, { icon: '🍵', label: 'Just chai', detail: 'just had chai today' }], color: '#fed7aa', bg: 'rgba(254,215,170,0.3)', glare: 'rgba(254,215,170,0.6)', anim: 'msFloat2', dur: 4.1, size: 58, arcY: -12, isLog: true },
-                                { key: 'LogMeditate', label: 'Breathwork Done?', emoji: '🧘', logMsg: 'I did morning breathwork [UI_EVENT: MORNING_LOGS_CLICKED]', subOptions: [{ icon: '⏱️', label: '5 min reset', detail: '5 minute breathing reset done' }, { icon: '🕐', label: '10 min flow', detail: '10 minute pranayama done' }, { icon: '✨', label: '20+ min deep', detail: 'full 20+ minute breathwork session' }, { icon: '📅', label: 'Will do later', detail: 'planning breathwork later today' }], color: '#67e8f9', bg: 'rgba(103,232,249,0.3)', glare: 'rgba(103,232,249,0.5)', anim: 'msFloat0', dur: 3.2, size: 62, arcY: -28, isLog: true },
-                            ];
-                        } else if (h >= 12 && h < 16) {
-                            timeLogs = [
-                                { key: 'LogLunch', label: "Lunch O'Clock!", emoji: '🍱', logMsg: 'I had lunch today [UI_EVENT: NOON_LOGS_CLICKED]', subOptions: [{ icon: '🍚', label: 'Dal rice', detail: 'had dal rice for lunch' }, { icon: '🫓', label: 'Roti sabzi', detail: 'had roti and sabzi' }, { icon: '🥗', label: 'Light salad', detail: 'had a light salad' }, { icon: '🍕', label: 'Outside food', detail: 'ate outside or ordered in' }, { icon: '⏭️', label: 'Skipped it', detail: 'skipped lunch today' }], color: '#86efac', bg: 'rgba(134,239,172,0.3)', glare: 'rgba(134,239,172,0.6)', anim: 'msFloat1', dur: 3.5, size: 66, arcY: -22, isLog: true },
-                                { key: 'LogDeepWork', label: 'Deep Sprint?', emoji: '🎯', logMsg: 'I completed a deep work session [UI_EVENT: NOON_LOGS_CLICKED]', subOptions: [{ icon: '⏰', label: '1 hour', detail: '1 hour focused deep work sprint' }, { icon: '🕑', label: '2 hours', detail: '2 hour deep work block done' }, { icon: '🔥', label: 'Still in flow!', detail: 'still in deep flow state right now' }, { icon: '😵', label: 'Struggled today', detail: 'struggled to focus today' }], color: '#4ade80', bg: 'rgba(74,222,128,0.3)', glare: 'rgba(74,222,128,0.6)', anim: 'msFloat2', dur: 4.1, size: 58, arcY: -15, isLog: true },
-                            ];
-                        } else if (h >= 16 && h < 20) {
-                            timeLogs = [
-                                { key: 'LogWorkout', label: 'Physical Exercise & Games? 💪', emoji: '🏋️', logMsg: 'I worked out today [UI_EVENT: EVENING_LOGS_CLICKED]', subOptions: [{ icon: '🏋️', label: 'Gym session', detail: 'full gym session done' }, { icon: '🏃', label: 'Evening run', detail: 'went for an evening run' }, { icon: '🧘', label: 'Yoga flow', detail: 'yoga flow session done' }, { icon: '🚶', label: 'Walk', detail: 'took an evening walk' }, { icon: '🏠', label: 'Home workout', detail: 'home workout session done' }], color: '#f87171', bg: 'rgba(248,113,113,0.3)', glare: 'rgba(248,113,113,0.6)', anim: 'msFloat0', dur: 3.8, size: 62, arcY: -20, isLog: true },
-                                { key: 'LogDinner', label: 'Dinner Served!', emoji: '🍽️', logMsg: 'I had dinner tonight [UI_EVENT: EVENING_LOGS_CLICKED]', subOptions: [{ icon: '🥗', label: 'Light & clean', detail: 'had a light clean dinner' }, { icon: '🍚', label: 'Full meal', detail: 'had a full dinner meal' }, { icon: '🫓', label: 'Roti sabzi', detail: 'had roti and sabzi for dinner' }, { icon: '⏭️', label: 'Skipping', detail: 'skipping dinner tonight' }], color: '#fdba74', bg: 'rgba(253,186,116,0.3)', glare: 'rgba(253,186,116,0.6)', anim: 'msFloat3', dur: 3.8, size: 60, arcY: -15, isLog: true },
-                                { key: 'LogMeditate', label: 'Eve Breathe?', emoji: '🧘', logMsg: 'I did evening meditation [UI_EVENT: EVENING_LOGS_CLICKED]', subOptions: [{ icon: '⏱️', label: '5 min calm', detail: '5 minute evening calm down' }, { icon: '🕐', label: '15 min deep', detail: '15 minute deep meditation' }, { icon: '📿', label: 'Mantra', detail: 'mantra meditation session done' }], color: '#67e8f9', bg: 'rgba(103,232,249,0.3)', glare: 'rgba(103,232,249,0.5)', anim: 'msFloat4', dur: 4.0, size: 56, arcY: -18, isLog: true },
-                            ];
-                        } else {
-                            timeLogs = [
-                                { key: 'LogDinner', label: 'Dinner Time!', emoji: '🌙', logMsg: 'I had dinner tonight [UI_EVENT: NIGHT_LOGS]', subOptions: [{ icon: '🥗', label: 'Light meal', detail: 'had a light dinner tonight' }, { icon: '🍚', label: 'Full dinner', detail: 'had a full dinner meal' }, { icon: '⏭️', label: 'Skipping', detail: 'skipping dinner tonight' }], color: '#fdba74', bg: 'rgba(253,186,116,0.3)', glare: 'rgba(253,186,116,0.6)', anim: 'msFloat3', dur: 3.8, size: 55, arcY: -15, isLog: true },
-                                { key: 'LogSleep', label: 'Rest Mode On', emoji: '💤', logMsg: 'Going to sleep now, goodnight [UI_EVENT: NIGHT_LOGS]', subOptions: [{ icon: '🌙', label: 'Before 10 PM', detail: 'early sleep before 10 PM tonight' }, { icon: '🕙', label: '10–11 PM', detail: 'sleeping around 10–11 PM' }, { icon: '🌃', label: '~Midnight', detail: 'sleeping around midnight tonight' }, { icon: '🦉', label: 'Night owl', detail: 'very late night, past midnight' }], color: '#c4b5fd', bg: 'rgba(196,181,253,0.3)', glare: 'rgba(196,181,253,0.6)', anim: 'msFloat0', dur: 4.5, size: 62, arcY: -25, isLog: true },
-                                { key: 'LogGratitude', label: 'Grateful Today?', emoji: '🙏', logMsg: 'I am feeling grateful today [UI_EVENT: NIGHT_LOGS]', subOptions: [{ icon: '✨', label: '3 good things', detail: 'named 3 things I am grateful for' }, { icon: '🙏', label: 'Short prayer', detail: 'said a short prayer of gratitude' }, { icon: '💛', label: 'Just felt it', detail: 'felt deep gratitude in my heart' }], color: '#fbbf24', bg: 'rgba(251,191,36,0.3)', glare: 'rgba(251,191,36,0.6)', anim: 'msFloat2', dur: 4.0, size: 56, arcY: -10, isLog: true },
-                            ];
-                        }
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.2rem', padding: '0 0.5rem', marginBottom: '1.5rem' }}>
+                        {/* Time Context Logic for Logging */}
+                        {(() => {
+                            const h = new Date().getHours();
+                            let timeLogs: any[] = [];
+                            if (h >= 5 && h < 12) {
+                                timeLogs = [
+                                    { key: 'LogWake', label: 'Rise & Shine!', emoji: '🌅', logMsg: 'I woke up this morning [UI_EVENT: MORNING_LOGS_CLICKED]', subOptions: [{ icon: '⚡', label: '5 AM sharp', detail: 'woke up at 5 AM sharp' }, { icon: '🌄', label: '6–7 AM', detail: 'woke up around 6–7 AM' }, { icon: '☀️', label: '~8 AM', detail: 'woke up around 8 AM' }, { icon: '😅', label: 'A bit late', detail: 'woke up a bit late today' }], color: '#fde047', bg: 'rgba(253,224,71,0.3)', glare: 'rgba(253,224,71,0.6)', anim: 'msFloat4', dur: 4.5, size: 68, arcY: -18, isLog: true },
+                                    { key: 'LogBreakfast', label: 'Morning Fuel!', emoji: '🍳', logMsg: 'I had breakfast today [UI_EVENT: MORNING_LOGS_CLICKED]', subOptions: [{ icon: '🥣', label: 'Oats & fruits', detail: 'had oats with fruits' }, { icon: '🫓', label: 'Parathas', detail: 'had parathas this morning' }, { icon: '🍳', label: 'Eggs', detail: 'had eggs for breakfast' }, { icon: '🍵', label: 'Just chai', detail: 'just had chai today' }], color: '#fed7aa', bg: 'rgba(254,215,170,0.3)', glare: 'rgba(254,215,170,0.6)', anim: 'msFloat2', dur: 4.1, size: 66, arcY: -12, isLog: true },
+                                    { key: 'LogMeditate', label: 'Breathwork Done?', emoji: '🧘', logMsg: 'I did morning breathwork [UI_EVENT: MORNING_LOGS_CLICKED]', subOptions: [{ icon: '⏱️', label: '5 min reset', detail: '5 minute breathing reset done' }, { icon: '🕐', label: '10 min flow', detail: '10 minute pranayama done' }, { icon: '✨', label: '20+ min deep', detail: 'full 20+ minute breathwork session' }, { icon: '📅', label: 'Will do later', detail: 'planning breathwork later today' }], color: '#67e8f9', bg: 'rgba(103,232,249,0.3)', glare: 'rgba(103,232,249,0.5)', anim: 'msFloat0', dur: 3.2, size: 70, arcY: -28, isLog: true },
+                                ];
+                            } else if (h >= 12 && h < 16) {
+                                timeLogs = [
+                                    { key: 'LogLunch', label: "Lunch O'Clock!", emoji: '🍱', logMsg: 'I had lunch today [UI_EVENT: NOON_LOGS_CLICKED]', subOptions: [{ icon: '🍚', label: 'Dal rice', detail: 'had dal rice for lunch' }, { icon: '🫓', label: 'Roti sabzi', detail: 'had roti and sabzi' }, { icon: '🥗', label: 'Light salad', detail: 'had a light salad' }, { icon: '🍕', label: 'Outside food', detail: 'ate outside or ordered in' }, { icon: '⏭️', label: 'Skipped it', detail: 'skipped lunch today' }], color: '#86efac', bg: 'rgba(134,239,172,0.3)', glare: 'rgba(134,239,172,0.6)', anim: 'msFloat1', dur: 3.5, size: 74, arcY: -22, isLog: true },
+                                    { key: 'LogDeepWork', label: 'Deep Sprint?', emoji: '🎯', logMsg: 'I completed a deep work session [UI_EVENT: NOON_LOGS_CLICKED]', subOptions: [{ icon: '⏰', label: '1 hour', detail: '1 hour focused deep work sprint' }, { icon: '🕑', label: '2 hours', detail: '2 hour deep work block done' }, { icon: '🔥', label: 'Still in flow!', detail: 'still in deep flow state right now' }, { icon: '😵', label: 'Struggled today', detail: 'struggled to focus today' }], color: '#4ade80', bg: 'rgba(74,222,128,0.3)', glare: 'rgba(74,222,128,0.6)', anim: 'msFloat2', dur: 4.1, size: 66, arcY: -15, isLog: true },
+                                ];
+                            } else if (h >= 16 && h < 20) {
+                                timeLogs = [
+                                    { key: 'LogWorkout', label: 'Physicals & Games 💪', emoji: '🏋️', logMsg: 'I worked out today [UI_EVENT: EVENING_LOGS_CLICKED]', subOptions: [{ icon: '🏋️', label: 'Gym session', detail: 'full gym session done' }, { icon: '🏃', label: 'Evening run', detail: 'went for an evening run' }, { icon: '🧘', label: 'Yoga flow', detail: 'yoga flow session done' }, { icon: '🚶', label: 'Walk', detail: 'took an evening walk' }, { icon: '🏠', label: 'Home workout', detail: 'home workout session done' }], color: '#f87171', bg: 'rgba(248,113,113,0.3)', glare: 'rgba(248,113,113,0.6)', anim: 'msFloat0', dur: 3.8, size: 70, arcY: -20, isLog: true },
+                                    { key: 'LogDinner', label: 'Dinner Served!', emoji: '🍽️', logMsg: 'I had dinner tonight [UI_EVENT: EVENING_LOGS_CLICKED]', subOptions: [{ icon: '🥗', label: 'Light & clean', detail: 'had a light clean dinner' }, { icon: '🍚', label: 'Full meal', detail: 'had a full dinner meal' }, { icon: '🫓', label: 'Roti sabzi', detail: 'had roti and sabzi for dinner' }, { icon: '⏭️', label: 'Skipping', detail: 'skipping dinner tonight' }], color: '#fdba74', bg: 'rgba(253,186,116,0.3)', glare: 'rgba(253,186,116,0.6)', anim: 'msFloat3', dur: 3.8, size: 66, arcY: -15, isLog: true },
+                                    { key: 'LogMeditate', label: 'Eve Meditate', emoji: '🧘', logMsg: 'I did evening meditation [UI_EVENT: EVENING_LOGS_CLICKED]', subOptions: [{ icon: '⏱️', label: '5 min calm', detail: '5 minute evening calm down' }, { icon: '🕐', label: '15 min deep', detail: '15 minute deep meditation' }, { icon: '📿', label: 'Mantra', detail: 'mantra meditation session done' }], color: '#67e8f9', bg: 'rgba(103,232,249,0.3)', glare: 'rgba(103,232,249,0.5)', anim: 'msFloat4', dur: 4.0, size: 64, arcY: -18, isLog: true },
+                                ];
+                            } else {
+                                timeLogs = [
+                                    { key: 'LogDinner', label: 'Dinner Time!', emoji: '🌙', logMsg: 'I had dinner tonight [UI_EVENT: NIGHT_LOGS]', subOptions: [{ icon: '🥗', label: 'Light meal', detail: 'had a light dinner tonight' }, { icon: '🍚', label: 'Full dinner', detail: 'had a full dinner meal' }, { icon: '⏭️', label: 'Skipping', detail: 'skipping dinner tonight' }], color: '#fdba74', bg: 'rgba(253,186,116,0.3)', glare: 'rgba(253,186,116,0.6)', anim: 'msFloat3', dur: 3.8, size: 62, arcY: -15, isLog: true },
+                                    { key: 'LogSleep', label: 'Rest Mode On', emoji: '💤', logMsg: 'Going to sleep now, goodnight [UI_EVENT: NIGHT_LOGS]', subOptions: [{ icon: '🌙', label: 'Before 10 PM', detail: 'early sleep before 10 PM tonight' }, { icon: '🕙', label: '10–11 PM', detail: 'sleeping around 10–11 PM' }, { icon: '🌃', label: '~Midnight', detail: 'sleeping around midnight tonight' }, { icon: '🦉', label: 'Night owl', detail: 'very late night, past midnight' }], color: '#c4b5fd', bg: 'rgba(196,181,253,0.3)', glare: 'rgba(196,181,253,0.6)', anim: 'msFloat0', dur: 4.5, size: 70, arcY: -25, isLog: true },
+                                    { key: 'LogGratitude', label: 'Grateful Today?', emoji: '🙏', logMsg: 'I am feeling grateful today [UI_EVENT: NIGHT_LOGS]', subOptions: [{ icon: '✨', label: '3 good things', detail: 'named 3 things I am grateful for' }, { icon: '🙏', label: 'Short prayer', detail: 'said a short prayer of gratitude' }, { icon: '💛', label: 'Just felt it', detail: 'felt deep gratitude in my heart' }], color: '#fbbf24', bg: 'rgba(251,191,36,0.3)', glare: 'rgba(251,191,36,0.6)', anim: 'msFloat2', dur: 4.0, size: 64, arcY: -10, isLog: true },
+                                ];
+                            }
 
-                        const activeLogs = timeLogs;
+                            const activeLogs = timeLogs;
 
-                        let currentBubbles: any[] = [];
-                        if (activeLayer === 'root') {
-                            currentBubbles = [
-                                { key: 'FolderWork', label: 'WORK', emoji: '💼', count: 0, color: '#3b82f6', bg: 'rgba(59,130,246,0.32)', glare: 'rgba(59,130,246,0.85)', anim: 'msFloat1', dur: 4.2, size: 68, arcY: -5, isFolder: 'work' },
-                                { key: 'FolderLogs', label: 'LOGS', emoji: '📝', count: 0, color: '#f59e0b', bg: 'rgba(245,158,11,0.32)', glare: 'rgba(245,158,11,0.85)', anim: 'msFloat2', dur: 3.8, size: 68, arcY: 8, isFolder: 'logs' },
-                                { key: 'Planner', label: 'SMART', emoji: '🗓️', count: 0, color: '#a78bfa', bg: 'rgba(167,139,250,0.40)', glare: 'rgba(167,139,250,0.85)', anim: 'msFloat4', dur: 4.0, size: 80, arcY: -15, isPlanner: true },
-                            ];
-                        } else if (activeLayer === 'work') {
-                            currentBubbles = [
-                                { key: 'BackRoot', label: 'BACK', emoji: '⬅️', count: 0, color: '#9ca3af', bg: 'rgba(156,163,175,0.4)', glare: 'rgba(156,163,175,0.7)', anim: 'msFloat0', dur: 3.5, size: 52, arcY: -4, isFolder: 'root' },
-                                { key: 'Task', label: 'TASKS', emoji: '✅', count: categoryStats.find(c => c.key === 'Task')?.count ?? 0, color: '#4ade80', bg: 'rgba(74,222,128,0.32)', glare: 'rgba(74,222,128,0.65)', anim: 'msFloat1', dur: 3.8, size: 64, arcY: -6 },
-                                { key: 'Challenge', label: 'CHALLENGE', emoji: '⚡', count: categoryStats.find(c => c.key === 'Challenge')?.count ?? 0, color: '#fb923c', bg: 'rgba(251,146,60,0.32)', glare: 'rgba(251,146,60,0.65)', anim: 'msFloat2', dur: 4.3, size: 58, arcY: 10 },
-                                { key: 'Idea', label: 'IDEA', emoji: '💡', count: categoryStats.find(c => c.key === 'Idea')?.count ?? 0, color: '#fbbf24', bg: 'rgba(251,191,36,0.32)', glare: 'rgba(251,191,36,0.70)', anim: 'msFloat3', dur: 3.5, size: 74, arcY: -14 },
-                                { key: 'Issue', label: 'ISSUE', emoji: '🔥', count: categoryStats.find(c => c.key === 'Issue')?.count ?? 0, color: '#f87171', bg: 'rgba(248,113,113,0.32)', glare: 'rgba(248,113,113,0.65)', anim: 'msFloat4', dur: 4.7, size: 56, arcY: 8 },
-                            ];
-                        } else if (activeLayer === 'logs') {
-                            currentBubbles = [
-                                { key: 'BackRoot', label: 'BACK', emoji: '⬅️', count: 0, color: '#9ca3af', bg: 'rgba(156,163,175,0.4)', glare: 'rgba(156,163,175,0.7)', anim: 'msFloat0', dur: 3.5, size: 52, arcY: -4, isFolder: 'root' },
-                                ...activeLogs,
-                            ];
-                        }
+                            let currentBubbles: any[] = [];
+                            if (activeLayer === 'root') {
+                                currentBubbles = [
+                                    { key: 'FolderWork', label: 'WORK', emoji: '💼', count: 0, color: '#3b82f6', bg: 'rgba(59,130,246,0.32)', glare: 'rgba(59,130,246,0.85)', anim: 'msFloat1', dur: 4.2, size: 76, arcY: -5, isFolder: 'work' },
+                                    { key: 'FolderLogs', label: 'LOGS', emoji: '📝', count: 0, color: '#f59e0b', bg: 'rgba(245,158,11,0.32)', glare: 'rgba(245,158,11,0.85)', anim: 'msFloat2', dur: 3.8, size: 76, arcY: 8, isFolder: 'logs' },
+                                    { key: 'Planner', label: 'SMART', emoji: '🗓️', count: 0, color: '#a78bfa', bg: 'rgba(167,139,250,0.40)', glare: 'rgba(167,139,250,0.85)', anim: 'msFloat4', dur: 4.0, size: 88, arcY: -15, isPlanner: true },
+                                ];
+                            } else if (activeLayer === 'work') {
+                                currentBubbles = [
+                                    { key: 'BackRoot', label: 'BACK', emoji: '⬅️', count: 0, color: '#9ca3af', bg: 'rgba(156,163,175,0.4)', glare: 'rgba(156,163,175,0.7)', anim: 'msFloat0', dur: 3.5, size: 58, arcY: -4, isFolder: 'root' },
+                                    { key: 'Task', label: 'TASKS', emoji: '✅', count: categoryStats.find(c => c.key === 'Task')?.count ?? 0, color: '#4ade80', bg: 'rgba(74,222,128,0.32)', glare: 'rgba(74,222,128,0.65)', anim: 'msFloat1', dur: 3.8, size: 70, arcY: -6 },
+                                    { key: 'Challenge', label: 'CHALLENGE', emoji: '⚡', count: categoryStats.find(c => c.key === 'Challenge')?.count ?? 0, color: '#fb923c', bg: 'rgba(251,146,60,0.32)', glare: 'rgba(251,146,60,0.65)', anim: 'msFloat2', dur: 4.3, size: 64, arcY: 10 },
+                                    { key: 'Idea', label: 'IDEA', emoji: '💡', count: categoryStats.find(c => c.key === 'Idea')?.count ?? 0, color: '#fbbf24', bg: 'rgba(251,191,36,0.32)', glare: 'rgba(251,191,36,0.70)', anim: 'msFloat3', dur: 3.5, size: 78, arcY: -14 },
+                                    { key: 'Issue', label: 'ISSUE', emoji: '🔥', count: categoryStats.find(c => c.key === 'Issue')?.count ?? 0, color: '#f87171', bg: 'rgba(248,113,113,0.32)', glare: 'rgba(248,113,113,0.65)', anim: 'msFloat4', dur: 4.7, size: 62, arcY: 8 },
+                                ];
+                            } else if (activeLayer === 'logs') {
+                                currentBubbles = [
+                                    { key: 'BackRoot', label: 'BACK', emoji: '⬅️', count: 0, color: '#9ca3af', bg: 'rgba(156,163,175,0.4)', glare: 'rgba(156,163,175,0.7)', anim: 'msFloat0', dur: 3.5, size: 58, arcY: -4, isFolder: 'root' },
+                                    ...activeLogs,
+                                ];
+                            }
 
-                        return (
-                            <div style={{
-                                display: 'flex', justifyContent: 'center', alignItems: 'flex-end',
-                                gap: '0.25rem', marginBottom: '0.2rem',
-                                position: 'relative', zIndex: 4,
-                                flexWrap: 'nowrap',
-                            }}>
-                                <AnimatePresence mode="popLayout">
-                                    {currentBubbles.map((b, i) => (
-                                        <motion.div
-                                            key={b.key}
-                                            initial={{ opacity: 0, scale: 0.6, y: 15 }}
-                                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                                            exit={{ opacity: 0, scale: 0.6, y: 15 }}
-                                            transition={{ duration: 0.25, delay: i * 0.05, ease: 'easeOut' }}
-                                        >
-                                            <InlineBubble
-                                                b={b} index={i}
-                                                dropZoneRef={dropZoneRef} dropHighlight={dropHighlight} setDropHighlight={setDropHighlight}
-                                                inputValue={inputValue} setInputValue={setInputValue} inputRef={inputRef}
-                                                setPendingMessage={setPendingMessage} handleCategoryClick={handleCategoryClick} router={router}
-                                                setActiveLayer={setActiveLayer}
-                                                onLogTap={b.isLog ? setActiveLogBubble : undefined}
-                                            />
-                                        </motion.div>
-                                    ))}
-                                </AnimatePresence>
-                            </div>
-                        );
-                    })()}
-
-                    {/* ── Log sub-option panel — appears on log bubble tap ── */}
-                    <AnimatePresence>
-                        {activeLogBubble && (
-                            <motion.div
-                                key={activeLogBubble.key + '_panel'}
-                                initial={{ opacity: 0, y: -10, scale: 0.97 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: -8, scale: 0.97 }}
-                                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                                style={{
-                                    margin: '0 0 0.4rem',
-                                    padding: '0.65rem 0.75rem 0.55rem',
-                                    background: `radial-gradient(ellipse at 20% 0%, ${activeLogBubble.bg}, rgba(6,3,18,0.92))`,
-                                    backdropFilter: 'blur(20px)',
-                                    WebkitBackdropFilter: 'blur(20px)',
-                                    border: `1px solid ${activeLogBubble.color}45`,
-                                    borderRadius: 18,
-                                    boxShadow: `0 8px 32px rgba(0,0,0,0.45), 0 0 0 1px ${activeLogBubble.color}18`,
-                                    position: 'relative', zIndex: 5,
-                                }}
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.32rem' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                        <span style={{ fontSize: '1rem', lineHeight: 1 }}>{activeLogBubble.emoji}</span>
-                                        <span style={{ fontSize: '0.50rem', fontWeight: 800, color: activeLogBubble.color, letterSpacing: '0.09em', textTransform: 'uppercase', fontFamily: "'Inter', system-ui, sans-serif", filter: `drop-shadow(0 0 6px ${activeLogBubble.color}70)` }}>
-                                            {activeLogBubble.label}
-                                        </span>
-                                        <span style={{ fontSize: '0.40rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.04em' }}>— tap to log ✦</span>
-                                    </div>
-                                    <button onClick={() => setActiveLogBubble(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.32)', fontSize: '0.9rem', padding: '0 4px', lineHeight: 1, flexShrink: 0 }}>✕</button>
+                            return (
+                                <div style={{
+                                    display: 'flex', justifyContent: 'center', alignItems: 'flex-end',
+                                    gap: '0.25rem', marginBottom: '0.2rem',
+                                    position: 'relative', zIndex: 4,
+                                    flexWrap: 'nowrap',
+                                }}>
+                                    <AnimatePresence mode="popLayout">
+                                        {currentBubbles.map((b, i) => (
+                                            <motion.div
+                                                key={b.key}
+                                                initial={{ opacity: 0, scale: 0.6, y: 15 }}
+                                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                exit={{ opacity: 0, scale: 0.6, y: 15 }}
+                                                transition={{ duration: 0.25, delay: i * 0.05, ease: 'easeOut' }}
+                                            >
+                                                <InlineBubble
+                                                    b={b} index={i}
+                                                    dropZoneRef={dropZoneRef} dropHighlight={dropHighlight} setDropHighlight={setDropHighlight}
+                                                    inputValue={inputValue} setInputValue={setInputValue} inputRef={inputRef}
+                                                    setPendingMessage={setPendingMessage} handleCategoryClick={handleCategoryClick} router={router}
+                                                    setActiveLayer={setActiveLayer}
+                                                    onLogTap={b.isLog ? setActiveLogBubble : undefined}
+                                                />
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
                                 </div>
-                                <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
-                                    {(activeLogBubble.subOptions || []).map((sub: any, si: number) => (
+                            );
+                        })()}
+
+                        {/* ── Log sub-option panel — appears on log bubble tap ── */}
+                        <AnimatePresence>
+                            {activeLogBubble && (
+                                <motion.div
+                                    key={activeLogBubble.key + '_panel'}
+                                    initial={{ opacity: 0, y: -10, scale: 0.97 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                                    style={{
+                                        margin: '0 0 0.4rem',
+                                        padding: '0.65rem 0.75rem 0.55rem',
+                                        background: `radial-gradient(ellipse at 20% 0%, ${activeLogBubble.bg}, rgba(6,3,18,0.92))`,
+                                        backdropFilter: 'blur(20px)',
+                                        WebkitBackdropFilter: 'blur(20px)',
+                                        border: `1px solid ${activeLogBubble.color}45`,
+                                        borderRadius: 18,
+                                        boxShadow: `0 8px 32px rgba(0,0,0,0.45), 0 0 0 1px ${activeLogBubble.color}18`,
+                                        position: 'relative', zIndex: 5,
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.32rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                            <span style={{ fontSize: '1rem', lineHeight: 1 }}>{activeLogBubble.emoji}</span>
+                                            <span style={{ fontSize: '0.50rem', fontWeight: 800, color: activeLogBubble.color, letterSpacing: '0.09em', textTransform: 'uppercase', fontFamily: "'Inter', system-ui, sans-serif", filter: `drop-shadow(0 0 6px ${activeLogBubble.color}70)` }}>
+                                                {activeLogBubble.label}
+                                            </span>
+                                            <span style={{ fontSize: '0.40rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.04em' }}>— tap to log ✦</span>
+                                        </div>
+                                        <button onClick={() => setActiveLogBubble(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.32)', fontSize: '0.9rem', padding: '0 4px', lineHeight: 1, flexShrink: 0 }}>✕</button>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                                        {(activeLogBubble.subOptions || []).map((sub: any, si: number) => (
+                                            <motion.button
+                                                key={sub.label}
+                                                initial={{ opacity: 0, x: -6 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: si * 0.04, type: 'spring', stiffness: 400, damping: 28 }}
+                                                whileTap={{ scale: 0.86 }}
+                                                onClick={() => {
+                                                    const msg = `${activeLogBubble.logMsg} — ${sub.detail}`;
+                                                    setPendingMessage(msg);
+                                                    setActiveLogBubble(null);
+                                                    router.push('/bodhi-chat');
+                                                }}
+                                                style={{
+                                                    display: 'flex', alignItems: 'center', gap: 5,
+                                                    background: 'rgba(255,255,255,0.07)',
+                                                    border: `1px solid ${activeLogBubble.color}38`,
+                                                    borderRadius: 999,
+                                                    padding: '0.27rem 0.62rem 0.27rem 0.40rem',
+                                                    cursor: 'pointer',
+                                                    backdropFilter: 'blur(10px)',
+                                                    WebkitBackdropFilter: 'blur(10px)',
+                                                    boxShadow: `0 2px 10px ${activeLogBubble.color}12`,
+                                                }}
+                                            >
+                                                <span style={{ fontSize: '0.82rem', lineHeight: 1 }}>{sub.icon}</span>
+                                                <span style={{ fontSize: '0.43rem', fontWeight: 600, color: 'rgba(255,255,255,0.78)', letterSpacing: '0.03em', whiteSpace: 'nowrap', fontFamily: "'Inter', system-ui, sans-serif" }}>{sub.label}</span>
+                                            </motion.button>
+                                        ))}
                                         <motion.button
-                                            key={sub.label}
                                             initial={{ opacity: 0, x: -6 }}
                                             animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: si * 0.04, type: 'spring', stiffness: 400, damping: 28 }}
+                                            transition={{ delay: (activeLogBubble.subOptions?.length || 0) * 0.04 }}
                                             whileTap={{ scale: 0.86 }}
                                             onClick={() => {
-                                                const msg = `${activeLogBubble.logMsg} — ${sub.detail}`;
-                                                setPendingMessage(msg);
+                                                setPendingMessage(activeLogBubble.logMsg);
                                                 setActiveLogBubble(null);
                                                 router.push('/bodhi-chat');
                                             }}
                                             style={{
-                                                display: 'flex', alignItems: 'center', gap: 5,
-                                                background: 'rgba(255,255,255,0.07)',
-                                                border: `1px solid ${activeLogBubble.color}38`,
+                                                display: 'flex', alignItems: 'center', gap: 4,
+                                                background: 'transparent',
+                                                border: '1px dashed rgba(255,255,255,0.18)',
                                                 borderRadius: 999,
-                                                padding: '0.27rem 0.62rem 0.27rem 0.40rem',
+                                                padding: '0.27rem 0.60rem',
                                                 cursor: 'pointer',
-                                                backdropFilter: 'blur(10px)',
-                                                WebkitBackdropFilter: 'blur(10px)',
-                                                boxShadow: `0 2px 10px ${activeLogBubble.color}12`,
                                             }}
                                         >
-                                            <span style={{ fontSize: '0.82rem', lineHeight: 1 }}>{sub.icon}</span>
-                                            <span style={{ fontSize: '0.43rem', fontWeight: 600, color: 'rgba(255,255,255,0.78)', letterSpacing: '0.03em', whiteSpace: 'nowrap', fontFamily: "'Inter', system-ui, sans-serif" }}>{sub.label}</span>
+                                            <span style={{ fontSize: '0.43rem', fontWeight: 600, color: 'rgba(255,255,255,0.38)', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.03em' }}>✏️ Tell Bodhi</span>
                                         </motion.button>
-                                    ))}
-                                    <motion.button
-                                        initial={{ opacity: 0, x: -6 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: (activeLogBubble.subOptions?.length || 0) * 0.04 }}
-                                        whileTap={{ scale: 0.86 }}
-                                        onClick={() => {
-                                            setPendingMessage(activeLogBubble.logMsg);
-                                            setActiveLogBubble(null);
-                                            router.push('/bodhi-chat');
-                                        }}
-                                        style={{
-                                            display: 'flex', alignItems: 'center', gap: 4,
-                                            background: 'transparent',
-                                            border: '1px dashed rgba(255,255,255,0.18)',
-                                            borderRadius: 999,
-                                            padding: '0.27rem 0.60rem',
-                                            cursor: 'pointer',
-                                        }}
-                                    >
-                                        <span style={{ fontSize: '0.43rem', fontWeight: 600, color: 'rgba(255,255,255,0.38)', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.03em' }}>✏️ Tell Bodhi</span>
-                                    </motion.button>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    {/* ── Centered narrow drop zone input bar ── */}
-                    <motion.div
-                        ref={dropZoneRef}
-                        animate={dropHighlight
-                            ? { borderColor: 'rgba(251,191,36,0.80)', boxShadow: '0 0 0 4px rgba(251,191,36,0.18), 0 6px 28px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.25)', background: 'rgba(251,191,36,0.06)' }
-                            : { borderColor: 'rgba(255,255,255,0.17)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), 0 6px 24px rgba(0,0,0,0.38)', background: 'rgba(255,255,255,0.05)' }
-                        }
-                        transition={{ duration: 0.22 }}
-                        style={{
-                            display: 'flex', alignItems: 'center', gap: '0.3rem',
-                            padding: '0.35rem 0.45rem',
-                            borderRadius: 999,
-                            width: '92%',
-                            maxWidth: 340,
-                            backdropFilter: 'blur(12px) saturate(140%)',
-                            WebkitBackdropFilter: 'blur(12px) saturate(140%)',
-                            border: '1px solid rgba(255,255,255,0.15)',
-                            position: 'relative', zIndex: 3,
-                            animation: dropHighlight ? 'msBarPulse 1s ease-in-out infinite' : 'none',
-                        }}
-                    >
-                        {/* Icon */}
-                        <motion.span
-                            animate={dropHighlight ? { scale: [1, 1.5, 1], rotate: [0, 20, -20, 0] } : { scale: 1, rotate: 0 }}
-                            transition={{ duration: 0.45 }}
-                            style={{ fontSize: '0.95rem', flexShrink: 0, lineHeight: 1 }}
-                        >
-                            {dropHighlight ? '✨' : '🎯'}
-                        </motion.span>
-
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            value={inputValue}
-                            onChange={e => setInputValue(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-                            placeholder="Drop bubble or type task..."
-                            style={{
-                                flex: 1, minWidth: 0,
-                                background: 'transparent',
-                                border: 'none', outline: 'none',
-                                color: dropHighlight ? '#fbbf24' : 'rgba(255,255,255,0.92)',
-                                fontSize: '0.80rem', fontWeight: 400,
-                                fontFamily: "'Inter', system-ui, sans-serif",
-                                padding: '0.22rem 0.3rem',
-                                transition: 'color 0.25s ease',
-                            }}
-                        />
-
-                        {/* BODHI btn */}
-                        <motion.button
-                            whileTap={{ scale: 0.94 }}
-                            whileHover={{ scale: 1.06 }}
-                            onClick={() => router.push('/bodhi-chat')}
-                            style={{
-                                background: 'rgba(251,191,36,0.12)',
-                                backdropFilter: 'blur(8px)',
-                                border: '1px solid rgba(251,191,36,0.28)',
-                                borderRadius: 999,
-                                padding: '0.32rem 0.65rem',
-                                display: 'flex', alignItems: 'center', gap: 4,
-                                cursor: 'pointer',
-                                color: '#fbbf24',
-                                fontSize: '0.58rem',
-                                fontWeight: 700,
-                                fontFamily: "'Inter', system-ui, sans-serif",
-                                letterSpacing: '0.08em',
-                                flexShrink: 0,
-                                transition: 'all 0.2s ease',
-                            }}
-                        >
-                            <Sparkles size={10} />
-                            BODHI
-                        </motion.button>
-
-                        {/* Send btn */}
-                        <AnimatePresence>
-                            {inputValue.trim() && (
-                                <motion.button
-                                    key="send"
-                                    initial={{ scale: 0, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    exit={{ scale: 0, opacity: 0 }}
-                                    transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    onClick={handleSubmit}
-                                    style={{
-                                        background: 'linear-gradient(135deg, rgba(251,191,36,0.95) 0%, rgba(245,158,11,0.95) 100%)',
-                                        border: 'none', borderRadius: 999,
-                                        padding: '0.55rem',
-                                        cursor: 'pointer',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        color: '#000',
-                                        boxShadow: '0 4px 16px rgba(251,191,36,0.48)',
-                                        flexShrink: 0,
-                                    }}
-                                >
-                                    <Send size={14} />
-                                </motion.button>
+                                    </div>
+                                </motion.div>
                             )}
                         </AnimatePresence>
-                    </motion.div>
 
-                    {/* Footer hint */}
-                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.08rem' }}>
-                        <span style={{ fontSize: '0.48em', color: 'rgba(255,255,255,0.40)', fontStyle: 'italic', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.02em' }}>
-                            Drag bubble → bar · or type · Enter to send to Bodhi
-                        </span>
-                    </div>
-                </div>
+                        {/* ── Centered narrow drop zone input bar ── */}
+                        <motion.div
+                            ref={dropZoneRef}
+                            animate={dropHighlight
+                                ? { borderColor: 'rgba(251,191,36,0.80)', boxShadow: '0 0 0 4px rgba(251,191,36,0.18), 0 6px 28px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.25)', background: 'rgba(251,191,36,0.06)' }
+                                : { borderColor: 'rgba(255,255,255,0.17)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), 0 6px 24px rgba(0,0,0,0.38)', background: 'rgba(255,255,255,0.05)' }
+                            }
+                            transition={{ duration: 0.22 }}
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: '0.3rem',
+                                padding: '0.35rem 0.45rem',
+                                borderRadius: 999,
+                                width: '92%',
+                                maxWidth: 340,
+                                backdropFilter: 'blur(12px) saturate(140%)',
+                                WebkitBackdropFilter: 'blur(12px) saturate(140%)',
+                                border: '1px solid rgba(255,255,255,0.15)',
+                                position: 'relative', zIndex: 3,
+                                animation: dropHighlight ? 'msBarPulse 1s ease-in-out infinite' : 'none',
+                            }}
+                        >
+                            {/* Icon */}
+                            <motion.span
+                                animate={dropHighlight ? { scale: [1, 1.5, 1], rotate: [0, 20, -20, 0] } : { scale: 1, rotate: 0 }}
+                                transition={{ duration: 0.45 }}
+                                style={{ fontSize: '0.95rem', flexShrink: 0, lineHeight: 1 }}
+                            >
+                                {dropHighlight ? '✨' : '🎯'}
+                            </motion.span>
 
-                <AnimatePresence>
-                    {expandedCategory && (() => {
-                        const categoryItems = tasks.filter(t => t.category === expandedCategory && !t.done);
-                        const categoryConfig = [
-                            { key: 'Task', label: 'Tasks', color: '#4ade80', bg: 'rgba(74, 222, 128, 0.15)' },
-                            { key: 'Challenge', label: 'Challenges', color: '#fb923c', bg: 'rgba(251, 146, 60, 0.15)' },
-                            { key: 'Idea', label: 'Ideas', color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.15)' },
-                            { key: 'Issue', label: 'Issues', color: '#f87171', bg: 'rgba(248, 113, 113, 0.15)' },
-                        ].find(c => c.key === expandedCategory);
-
-                        return (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                value={inputValue}
+                                onChange={e => setInputValue(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+                                placeholder="Drop bubble or type task..."
                                 style={{
-                                    overflow: 'hidden',
-                                    marginBottom: '0.85rem',
+                                    flex: 1, minWidth: 0,
+                                    background: 'transparent',
+                                    border: 'none', outline: 'none',
+                                    color: dropHighlight ? '#fbbf24' : 'rgba(255,255,255,0.92)',
+                                    fontSize: '0.80rem', fontWeight: 400,
+                                    fontFamily: "'Inter', system-ui, sans-serif",
+                                    padding: '0.22rem 0.3rem',
+                                    transition: 'color 0.25s ease',
+                                }}
+                            />
+
+                            {/* BODHI btn */}
+                            <motion.button
+                                whileTap={{ scale: 0.94 }}
+                                whileHover={{ scale: 1.06 }}
+                                onClick={() => router.push('/bodhi-chat')}
+                                style={{
+                                    background: 'rgba(251,191,36,0.12)',
+                                    backdropFilter: 'blur(8px)',
+                                    border: '1px solid rgba(251,191,36,0.28)',
+                                    borderRadius: 999,
+                                    padding: '0.32rem 0.65rem',
+                                    display: 'flex', alignItems: 'center', gap: 4,
+                                    cursor: 'pointer',
+                                    color: '#fbbf24',
+                                    fontSize: '0.58rem',
+                                    fontWeight: 700,
+                                    fontFamily: "'Inter', system-ui, sans-serif",
+                                    letterSpacing: '0.08em',
+                                    flexShrink: 0,
+                                    transition: 'all 0.2s ease',
                                 }}
                             >
-                                <div style={{
-                                    background: 'rgba(20, 20, 35, 0.40)',
-                                    backdropFilter: 'blur(20px) saturate(160%)',
-                                    borderRadius: 20,
-                                    border: `1px solid ${categoryConfig?.color || '#fbbf24'}40`,
-                                    padding: '1rem',
-                                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
-                                }}>
-                                    {/* Header */}
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                            <Brain size={18} style={{ color: categoryConfig?.color || '#fbbf24' }} />
-                                            <span style={{
-                                                fontSize: '0.75rem', fontWeight: 700,
-                                                color: categoryConfig?.color || '#fbbf24',
-                                                letterSpacing: '0.08em', textTransform: 'uppercase',
-                                                fontFamily: "'Inter', system-ui, sans-serif",
-                                            }}>{categoryConfig?.label}</span>
-                                            <span style={{
-                                                fontSize: '0.65rem', color: 'rgba(255, 255, 255, 0.50)',
-                                                fontFamily: "'Inter', system-ui, sans-serif",
-                                            }}>({categoryItems.length})</span>
-                                        </div>
-                                        <button
-                                            onClick={() => setExpandedCategory(null)}
-                                            style={{
-                                                background: 'none', border: 'none', cursor: 'pointer',
-                                                color: 'rgba(255, 255, 255, 0.50)', padding: 4,
-                                            }}
-                                        >
-                                            <X size={16} />
-                                        </button>
-                                    </div>
+                                <Sparkles size={10} />
+                                BODHI
+                            </motion.button>
 
-                                    {/* AI Advice Section */}
+                            {/* Send btn */}
+                            <AnimatePresence>
+                                {inputValue.trim() && (
+                                    <motion.button
+                                        key="send"
+                                        initial={{ scale: 0, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        exit={{ scale: 0, opacity: 0 }}
+                                        transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={handleSubmit}
+                                        style={{
+                                            background: 'linear-gradient(135deg, rgba(251,191,36,0.95) 0%, rgba(245,158,11,0.95) 100%)',
+                                            border: 'none', borderRadius: 999,
+                                            padding: '0.55rem',
+                                            cursor: 'pointer',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            color: '#000',
+                                            boxShadow: '0 4px 16px rgba(251,191,36,0.48)',
+                                            flexShrink: 0,
+                                        }}
+                                    >
+                                        <Send size={14} />
+                                    </motion.button>
+                                )}
+                            </AnimatePresence>
+                        </motion.div>
+
+                        {/* Footer hint */}
+                        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.08rem' }}>
+                            <span style={{ fontSize: '0.48em', color: 'rgba(255,255,255,0.40)', fontStyle: 'italic', fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.02em' }}>
+                                Drag bubble → bar · or type · Enter to send to Bodhi
+                            </span>
+                        </div>
+                    </div>
+
+                    <AnimatePresence>
+                        {expandedCategory && (() => {
+                            const categoryItems = tasks.filter(t => t.category === expandedCategory && !t.done);
+                            const categoryConfig = [
+                                { key: 'Task', label: 'Tasks', color: '#4ade80', bg: 'rgba(74, 222, 128, 0.15)' },
+                                { key: 'Challenge', label: 'Challenges', color: '#fb923c', bg: 'rgba(251, 146, 60, 0.15)' },
+                                { key: 'Idea', label: 'Ideas', color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.15)' },
+                                { key: 'Issue', label: 'Issues', color: '#f87171', bg: 'rgba(248, 113, 113, 0.15)' },
+                            ].find(c => c.key === expandedCategory);
+
+                            return (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                                    style={{
+                                        overflow: 'hidden',
+                                        marginBottom: '0.85rem',
+                                    }}
+                                >
                                     <div style={{
-                                        background: 'rgba(251, 191, 36, 0.10)',
-                                        borderRadius: 12,
-                                        padding: '0.75rem',
-                                        marginBottom: '0.75rem',
-                                        border: '1px solid rgba(251, 191, 36, 0.25)',
+                                        background: 'rgba(20, 20, 35, 0.40)',
+                                        backdropFilter: 'blur(20px) saturate(160%)',
+                                        borderRadius: 20,
+                                        border: `1px solid ${categoryConfig?.color || '#fbbf24'}40`,
+                                        padding: '1rem',
+                                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
                                     }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                                            <Sparkles size={14} style={{ color: '#fbbf24' }} />
-                                            <span style={{
-                                                fontSize: '0.6rem', fontWeight: 700, color: '#fbbf24',
-                                                letterSpacing: '0.1em', textTransform: 'uppercase',
-                                                fontFamily: "'Inter', system-ui, sans-serif",
-                                            }}>AI Sakha Bodhi Advice</span>
+                                        {/* Header */}
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                <Brain size={18} style={{ color: categoryConfig?.color || '#fbbf24' }} />
+                                                <span style={{
+                                                    fontSize: '0.75rem', fontWeight: 700,
+                                                    color: categoryConfig?.color || '#fbbf24',
+                                                    letterSpacing: '0.08em', textTransform: 'uppercase',
+                                                    fontFamily: "'Inter', system-ui, sans-serif",
+                                                }}>{categoryConfig?.label}</span>
+                                                <span style={{
+                                                    fontSize: '0.65rem', color: 'rgba(255, 255, 255, 0.50)',
+                                                    fontFamily: "'Inter', system-ui, sans-serif",
+                                                }}>({categoryItems.length})</span>
+                                            </div>
+                                            <button
+                                                onClick={() => setExpandedCategory(null)}
+                                                style={{
+                                                    background: 'none', border: 'none', cursor: 'pointer',
+                                                    color: 'rgba(255, 255, 255, 0.50)', padding: 4,
+                                                }}
+                                            >
+                                                <X size={16} />
+                                            </button>
                                         </div>
 
-                                        {isGeneratingAdvice === expandedCategory ? (
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                <div style={{ display: 'flex', gap: 3 }}>
-                                                    {[0, 0.15, 0.3].map(d => (
-                                                        <motion.div key={d}
-                                                            animate={{ y: [0, -4, 0] }}
-                                                            transition={{ duration: 0.6, repeat: Infinity, delay: d }}
-                                                            style={{ width: 5, height: 5, borderRadius: '50%', background: '#fbbf24' }}
-                                                        />
-                                                    ))}
-                                                </div>
+                                        {/* AI Advice Section */}
+                                        <div style={{
+                                            background: 'rgba(251, 191, 36, 0.10)',
+                                            borderRadius: 12,
+                                            padding: '0.75rem',
+                                            marginBottom: '0.75rem',
+                                            border: '1px solid rgba(251, 191, 36, 0.25)',
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                                                <Sparkles size={14} style={{ color: '#fbbf24' }} />
                                                 <span style={{
-                                                    fontSize: '0.7rem', color: 'rgba(255, 255, 255, 0.70)',
-                                                    fontStyle: 'italic',
-                                                }}>Bodhi is generating wisdom...</span>
+                                                    fontSize: '0.6rem', fontWeight: 700, color: '#fbbf24',
+                                                    letterSpacing: '0.1em', textTransform: 'uppercase',
+                                                    fontFamily: "'Inter', system-ui, sans-serif",
+                                                }}>AI Sakha Bodhi Advice</span>
                                             </div>
-                                        ) : (
-                                            <p style={{
-                                                margin: 0, fontSize: '0.72rem', lineHeight: 1.5,
-                                                color: 'rgba(255, 255, 255, 0.90)',
-                                                fontStyle: 'italic',
-                                            }}>{aiAdvice[expandedCategory] || "Click to receive personalized guidance from your AI Sakha."}</p>
-                                        )}
-                                    </div>
 
-                                    {/* Items List */}
-                                    {categoryItems.length > 0 ? (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                            {categoryItems.map((item, idx) => (
-                                                <motion.div
-                                                    key={item.id}
-                                                    initial={{ opacity: 0, x: -10 }}
-                                                    animate={{ opacity: 1, x: 0 }}
-                                                    transition={{ delay: idx * 0.05 }}
-                                                    style={{
-                                                        display: 'flex', alignItems: 'center', gap: '0.6rem',
-                                                        padding: '0.6rem 0.75rem',
-                                                        background: 'rgba(255, 255, 255, 0.06)',
-                                                        borderRadius: 12,
-                                                        border: '1px solid rgba(255, 255, 255, 0.10)',
-                                                    }}
-                                                >
-                                                    <span style={{ fontSize: '1rem' }}>{item.icon || '✨'}</span>
+                                            {isGeneratingAdvice === expandedCategory ? (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                    <div style={{ display: 'flex', gap: 3 }}>
+                                                        {[0, 0.15, 0.3].map(d => (
+                                                            <motion.div key={d}
+                                                                animate={{ y: [0, -4, 0] }}
+                                                                transition={{ duration: 0.6, repeat: Infinity, delay: d }}
+                                                                style={{ width: 5, height: 5, borderRadius: '50%', background: '#fbbf24' }}
+                                                            />
+                                                        ))}
+                                                    </div>
                                                     <span style={{
-                                                        flex: 1, fontSize: '0.75rem',
-                                                        color: 'rgba(255, 255, 255, 0.90)',
-                                                        lineHeight: 1.4,
-                                                    }}>{item.text}</span>
-                                                    <button
-                                                        onClick={() => handleComplete(item)}
+                                                        fontSize: '0.7rem', color: 'rgba(255, 255, 255, 0.70)',
+                                                        fontStyle: 'italic',
+                                                    }}>Bodhi is generating wisdom...</span>
+                                                </div>
+                                            ) : (
+                                                <p style={{
+                                                    margin: 0, fontSize: '0.72rem', lineHeight: 1.5,
+                                                    color: 'rgba(255, 255, 255, 0.90)',
+                                                    fontStyle: 'italic',
+                                                }}>{aiAdvice[expandedCategory] || "Click to receive personalized guidance from your AI Sakha."}</p>
+                                            )}
+                                        </div>
+
+                                        {/* Items List */}
+                                        {categoryItems.length > 0 ? (
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                                {categoryItems.map((item, idx) => (
+                                                    <motion.div
+                                                        key={item.id}
+                                                        initial={{ opacity: 0, x: -10 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        transition={{ delay: idx * 0.05 }}
                                                         style={{
-                                                            background: categoryConfig?.bg || 'rgba(251, 191, 36, 0.15)',
-                                                            border: `1px solid ${categoryConfig?.color || '#fbbf24'}40`,
-                                                            borderRadius: 999,
-                                                            padding: '0.35rem 0.7rem',
-                                                            cursor: 'pointer',
-                                                            color: categoryConfig?.color || '#fbbf24',
-                                                            fontSize: '0.55rem',
-                                                            fontWeight: 700,
-                                                            letterSpacing: '0.06em',
-                                                            textTransform: 'uppercase',
-                                                            display: 'flex', alignItems: 'center', gap: 4,
+                                                            display: 'flex', alignItems: 'center', gap: '0.6rem',
+                                                            padding: '0.6rem 0.75rem',
+                                                            background: 'rgba(255, 255, 255, 0.06)',
+                                                            borderRadius: 12,
+                                                            border: '1px solid rgba(255, 255, 255, 0.10)',
                                                         }}
                                                     >
-                                                        <Check size={10} />
-                                                        Done
-                                                    </button>
-                                                </motion.div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div style={{
-                                            textAlign: 'center', padding: '1.5rem',
-                                            color: 'rgba(255, 255, 255, 0.50)',
-                                        }}>
-                                            <span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem' }}>✨</span>
-                                            <span style={{ fontSize: '0.7rem' }}>No {categoryConfig?.label.toLowerCase()} yet. Add one below!</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </motion.div>
-                        );
-                    })()}
-                </AnimatePresence>
+                                                        <span style={{ fontSize: '1rem' }}>{item.icon || '✨'}</span>
+                                                        <span style={{
+                                                            flex: 1, fontSize: '0.75rem',
+                                                            color: 'rgba(255, 255, 255, 0.90)',
+                                                            lineHeight: 1.4,
+                                                        }}>{item.text}</span>
+                                                        <button
+                                                            onClick={() => handleComplete(item)}
+                                                            style={{
+                                                                background: categoryConfig?.bg || 'rgba(251, 191, 36, 0.15)',
+                                                                border: `1px solid ${categoryConfig?.color || '#fbbf24'}40`,
+                                                                borderRadius: 999,
+                                                                padding: '0.35rem 0.7rem',
+                                                                cursor: 'pointer',
+                                                                color: categoryConfig?.color || '#fbbf24',
+                                                                fontSize: '0.55rem',
+                                                                fontWeight: 700,
+                                                                letterSpacing: '0.06em',
+                                                                textTransform: 'uppercase',
+                                                                display: 'flex', alignItems: 'center', gap: 4,
+                                                            }}
+                                                        >
+                                                            <Check size={10} />
+                                                            Done
+                                                        </button>
+                                                    </motion.div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div style={{
+                                                textAlign: 'center', padding: '1.5rem',
+                                                color: 'rgba(255, 255, 255, 0.50)',
+                                            }}>
+                                                <span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem' }}>✨</span>
+                                                <span style={{ fontSize: '0.7rem' }}>No {categoryConfig?.label.toLowerCase()} yet. Add one below!</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            );
+                        })()}
+                    </AnimatePresence>
+                </div>
 
             </motion.div>
 

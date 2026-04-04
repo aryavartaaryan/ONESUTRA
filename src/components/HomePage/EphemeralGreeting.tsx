@@ -8,7 +8,7 @@ import { useTimeOfDay } from '@/hooks/useTimeOfDay';
 const THOUGHTS: Record<string, { greeting: string; thought: string; sub: string }[]> = {
     morning: [
         {
-            greeting: 'Good Morning',
+            greeting: 'Shubh Prabhat',
             thought: 'The morning is not just a time — it is a rebirth.',
             sub: 'Cortisol peaks at dawn to energise you. Ride it with intention.',
         },
@@ -18,7 +18,7 @@ const THOUGHTS: Record<string, { greeting: string; thought: string; sub: string 
             sub: 'Ancient rishis called the Brahma Muhurta — 4 to 6 AM — the hour of creation.',
         },
         {
-            greeting: 'Rise and Align',
+            greeting: 'Shubh Prabhat',
             thought: 'Serotonin rises with sunlight. Let it fill your mind before screens do.',
             sub: 'Your dopamine is at full capacity. Spend it on what matters most.',
         },
@@ -42,7 +42,7 @@ const THOUGHTS: Record<string, { greeting: string; thought: string; sub: string 
     ],
     evening: [
         {
-            greeting: 'Good Evening',
+            greeting: 'Shubh Sandhya',
             thought: 'Sunsets are reminders that endings can be extraordinarily beautiful.',
             sub: 'Serotonin prepares to become melatonin. Let your body move toward rest and reflection.',
         },
@@ -52,14 +52,14 @@ const THOUGHTS: Record<string, { greeting: string; thought: string; sub: string 
             sub: 'Evening Rāgas trigger theta brainwaves linked to creativity, insight, and emotional healing.',
         },
         {
-            greeting: 'Ease into Evening',
+            greeting: 'Shubh Sandhya',
             thought: 'You have done enough today. Now let ancient sound dissolve the stress you carried.',
             sub: 'Rāga Yaman has calmed the minds of warriors, artists and scholars for 5,000 years.',
         },
     ],
     night: [
         {
-            greeting: 'Good Night',
+            greeting: 'Shubh Ratri',
             thought: 'Sleep is not downtime — it is the most productive thing you will do today.',
             sub: 'Growth hormone surges during deep sleep. Your body rebuilds. Your mind consolidates.',
         },
@@ -69,7 +69,7 @@ const THOUGHTS: Record<string, { greeting: string; thought: string; sub: string 
             sub: 'Delta brainwaves during sleep repair neural pathways. Tomorrow\'s genius is built tonight.',
         },
         {
-            greeting: 'Sacred Rest',
+            greeting: 'Shubh Ratri',
             thought: 'Every master in history protected their sleep. Rest is not weakness — it is strategy.',
             sub: 'Cortisol drops, melatonin rises, and ancient Rāgas can deepen your journey into delta.',
         },

@@ -107,7 +107,7 @@ const NOON_BUBBLES: LogBubble[] = [
 
 const EVENING_BUBBLES: LogBubble[] = [
     {
-        id: 'workout', icon: '💪', label: 'Physical Exercise & Games?', sublabel: 'Movement logged', color: '#f87171',
+        id: 'workout', icon: '💪', label: 'Physicals & Games', sublabel: 'Movement logged', color: '#f87171',
         logMessage: 'I worked out today [UI_EVENT: EVENING_LOGS_CLICKED]',
         subOptions: [
             { icon: '🏋️', label: 'Gym session', detail: 'full gym session completed' },
@@ -238,7 +238,7 @@ export default function SmartLogBubbles() {
                 marginBottom: '0.45rem',
             }}>
                 <span style={{
-                    fontSize: '0.42rem',
+                    fontSize: '0.72rem',
                     fontWeight: 800,
                     color: timeLabel.color,
                     letterSpacing: '0.13em',
@@ -250,7 +250,7 @@ export default function SmartLogBubbles() {
                 </span>
                 <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${timeLabel.color}30, transparent)` }} />
                 <span style={{
-                    fontSize: '0.38rem',
+                    fontSize: '0.65rem',
                     color: 'rgba(255,255,255,0.28)',
                     fontFamily: "'Outfit', sans-serif",
                     letterSpacing: '0.08em',
@@ -295,15 +295,15 @@ export default function SmartLogBubbles() {
                                         : { duration: 4 + i * 0.5, repeat: Infinity, ease: 'easeInOut', delay: i * 0.3 }
                                 }
                                 style={{
-                                    width: 64,
-                                    height: 64,
+                                    width: 84,
+                                    height: 84,
                                     borderRadius: '50%',
-                                    background: `radial-gradient(circle at 36% 28%, ${bubble.color}32 0%, rgba(8,4,30,0.92) 68%)`,
-                                    border: `1.5px solid ${bubble.color}${isActive ? '88' : '38'}`,
+                                    background: `radial-gradient(circle at 36% 28%, ${bubble.color}18 0%, rgba(4,2,18,0.15) 75%)`,
+                                    border: `1.2px solid ${bubble.color}${isActive ? '88' : '38'}`,
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    fontSize: '1.45rem',
+                                    fontSize: '1.95rem',
                                     backdropFilter: 'blur(14px)',
                                     WebkitBackdropFilter: 'blur(14px)',
                                     position: 'relative',
@@ -334,12 +334,12 @@ export default function SmartLogBubbles() {
                             {/* Catchy label */}
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
                                 <span style={{
-                                    fontSize: '0.43rem',
+                                    fontSize: '0.8rem',
                                     fontWeight: 700,
                                     color: isActive ? bubble.color : 'rgba(255,255,255,0.65)',
                                     letterSpacing: '0.03em',
                                     textAlign: 'center',
-                                    maxWidth: 70,
+                                    maxWidth: 100,
                                     lineHeight: 1.3,
                                     fontFamily: "'Outfit', sans-serif",
                                     whiteSpace: 'nowrap',
@@ -351,7 +351,7 @@ export default function SmartLogBubbles() {
                                     {bubble.label}
                                 </span>
                                 <span style={{
-                                    fontSize: '0.36rem',
+                                    fontSize: '0.66rem',
                                     color: 'rgba(255,255,255,0.28)',
                                     fontFamily: "'Outfit', sans-serif",
                                     letterSpacing: '0.04em',
@@ -379,7 +379,7 @@ export default function SmartLogBubbles() {
                         {/* Context hint */}
                         <p style={{
                             margin: '0.4rem 0 0.25rem',
-                            fontSize: '0.42rem',
+                            fontSize: '0.72rem',
                             color: active.color,
                             fontFamily: "'Outfit', sans-serif",
                             letterSpacing: '0.06em',
@@ -411,16 +411,16 @@ export default function SmartLogBubbles() {
                                         background: `radial-gradient(circle at 28% 28%, ${active.color}1e, rgba(8,4,30,0.90))`,
                                         border: `1px solid ${active.color}48`,
                                         borderRadius: 999,
-                                        padding: '0.28rem 0.65rem 0.28rem 0.42rem',
+                                        padding: '0.32rem 0.75rem 0.32rem 0.50rem',
                                         cursor: 'pointer',
                                         backdropFilter: 'blur(10px)',
                                         WebkitBackdropFilter: 'blur(10px)',
                                         boxShadow: `0 2px 10px ${active.color}14`,
                                     }}
                                 >
-                                    <span style={{ fontSize: '0.82rem', lineHeight: 1 }}>{sub.icon}</span>
+                                    <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>{sub.icon}</span>
                                     <span style={{
-                                        fontSize: '0.44rem',
+                                        fontSize: '0.72rem',
                                         fontWeight: 600,
                                         color: 'rgba(255,255,255,0.78)',
                                         letterSpacing: '0.03em',
@@ -451,9 +451,9 @@ export default function SmartLogBubbles() {
                                     cursor: 'pointer',
                                 }}
                             >
-                                <span style={{ fontSize: '0.82rem', lineHeight: 1 }}>✏️</span>
+                                <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>✏️</span>
                                 <span style={{
-                                    fontSize: '0.44rem',
+                                    fontSize: '0.72rem',
                                     fontWeight: 600,
                                     color: 'rgba(255,255,255,0.40)',
                                     letterSpacing: '0.03em',

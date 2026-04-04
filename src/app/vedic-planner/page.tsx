@@ -10,6 +10,57 @@ import { useBrahmastraState } from '@/hooks/useBrahmastraState';
 import BrahmastraFocusCard from '@/components/Dashboard/BrahmastraFocusCard';
 import styles from './page.module.css';
 
+// ─── Daily Log Entry ──────────────────────────────────────────────────────────
+
+interface DailyLogEntry {
+    id: string;
+    timestamp: number;
+    emoji: string;
+    category: string;
+    detail: string;
+    color: string;
+}
+
+const LOG_QUICK_PRESETS = [
+    { emoji: '💧', label: 'Hydrated', color: '#60a5fa', category: 'Wellness' },
+    { emoji: '🧘', label: 'Meditated', color: '#a78bfa', category: 'Wellness' },
+    { emoji: '🏃', label: 'Worked out', color: '#f87171', category: 'Fitness' },
+    { emoji: '📖', label: 'Read', color: '#34d399', category: 'Learning' },
+    { emoji: '🍱', label: 'Healthy meal', color: '#fbbf24', category: 'Nutrition' },
+    { emoji: '😴', label: 'Rested', color: '#818cf8', category: 'Wellness' },
+    { emoji: '🎯', label: 'Deep work', color: '#4ade80', category: 'Focus' },
+    { emoji: '🙏', label: 'Gratitude', color: '#fde047', category: 'Spiritual' },
+];
+
+function getDailyLogsFromStorage(): DailyLogEntry[] {
+    if (typeof window === 'undefined') return [];
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        const raw = localStorage.getItem(`pranav_daily_logs_${today}`);
+        return raw ? JSON.parse(raw) : [];
+    } catch { return []; }
+}
+
+function persistDailyLog(entry: Omit<DailyLogEntry, 'id' | 'timestamp'>): DailyLogEntry {
+    const today = new Date().toISOString().split('T')[0];
+    const newEntry: DailyLogEntry = { ...entry, id: `log_${Date.now()}`, timestamp: Date.now() };
+    try {
+        const existing = getDailyLogsFromStorage();
+        localStorage.setItem(`pranav_daily_logs_${today}`, JSON.stringify([newEntry, ...existing]));
+    } catch { }
+    return newEntry;
+}
+
+function computeSmartScore(done: number, total: number, logCount: number): number {
+    const completionPct = total > 0 ? (done / total) * 55 : 0;
+    const logPct = Math.min(logCount * 6, 35);
+    return Math.min(Math.round(completionPct + logPct + 10), 100);
+}
+
+function fmtTime(ts: number): string {
+    return new Date(ts).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+}
+
 // ─── Background pools (serene nature, circadian) ─────────────────────────────
 
 const BG_POOLS: Record<string, string[]> = {
@@ -229,6 +280,14 @@ export default function VedicPlannerPage() {
     const [isMounted, setIsMounted] = useState(false);
     const [isAudioUnlocked, setIsAudioUnlocked] = useState(false);
 
+    // Smart logs + quick-add state
+    const [dailyLogs, setDailyLogs] = useState<DailyLogEntry[]>([]);
+    const [showLogs, setShowLogs] = useState(false);
+    const [quickAddText, setQuickAddText] = useState('');
+    const [quickAddCategory, setQuickAddCategory] = useState('Task');
+    const [quickAddTime, setQuickAddTime] = useState('');
+    const [isQuickAdding, setIsQuickAdding] = useState(false);
+
     const { tasks, addTask, toggleTaskDone, removeTask } = useDailyTasks();
     const brahmastraState = useBrahmastraState(userId);
 
@@ -252,6 +311,7 @@ export default function VedicPlannerPage() {
     useEffect(() => {
         setIsMounted(true);
         setCurrentHour(new Date().getHours());
+        setDailyLogs(getDailyLogsFromStorage());
 
         // Get Firebase UID
         Promise.all([import('@/lib/firebase'), import('firebase/auth')]).then(([{ getFirebaseAuth }, { onAuthStateChanged }]) => {
@@ -326,8 +386,36 @@ export default function VedicPlannerPage() {
     }, [router]);
 
     const handleNavigateToPlanner = useCallback(() => {
-        // Already on planner page — no-op or just close Bodhi
         setIsSakhaActive(false);
+    }, []);
+
+    const handleQuickAdd = useCallback(async () => {
+        const text = quickAddText.trim();
+        if (!text) return;
+        setIsQuickAdding(true);
+        const catEmoji: Record<string, string> = { Task: '✅', Idea: '💡', Challenge: '⚡', Issue: '🔥', Wellness: '🧘', Focus: '🎯' };
+        const catAccent: Record<string, string> = { Task: '251,191,36', Idea: '45,212,191', Challenge: '251,146,60', Issue: '248,113,113', Wellness: '167,139,250', Focus: '74,222,128' };
+        const newTask: TaskItem = {
+            id: `quick_${Date.now()}`,
+            text,
+            icon: catEmoji[quickAddCategory] || '✅',
+            category: quickAddCategory,
+            colorClass: 'amber',
+            accentColor: catAccent[quickAddCategory] || '251,191,36',
+            done: false,
+            startTime: quickAddTime || undefined,
+            createdAt: Date.now(),
+            scheduledDate: new Date().toISOString().split('T')[0],
+        };
+        await addTask(newTask);
+        setQuickAddText('');
+        setQuickAddTime('');
+        setIsQuickAdding(false);
+    }, [quickAddText, quickAddCategory, quickAddTime, addTask]);
+
+    const handleLogPreset = useCallback((preset: typeof LOG_QUICK_PRESETS[0]) => {
+        const entry = persistDailyLog({ emoji: preset.emoji, category: preset.category, detail: preset.label, color: preset.color });
+        setDailyLogs(prev => [entry, ...prev]);
     }, []);
 
     // Categorise tasks by Guna
@@ -363,6 +451,8 @@ export default function VedicPlannerPage() {
     const completed = tasks.filter(t => t.done).length;
     const total = tasks.length;
     const progress = total > 0 ? (completed / total) * 100 : 0;
+    const smartScore = useMemo(() => computeSmartScore(completed, total, dailyLogs.length), [completed, total, dailyLogs.length]);
+    const focusMinutes = useMemo(() => tasks.filter(t => t.done && t.allocatedMinutes).reduce((s, t) => s + (t.allocatedMinutes || 0), 0), [tasks]);
 
     // Date display
     const dateStr = isMounted ? new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' }) : '';
@@ -438,7 +528,33 @@ export default function VedicPlannerPage() {
                     />
                 </motion.div>
 
-                {/* Progress */}
+                {/* ── Smart Analytics Strip ── */}
+                {isMounted && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.6rem', marginBottom: '1.2rem' }}
+                    >
+                        {[
+                            { label: 'Smart Score', value: `${smartScore}`, unit: '/100', color: '#fde047', emoji: '⚡', bg: 'rgba(253,224,71,0.08)', border: 'rgba(253,224,71,0.20)' },
+                            { label: 'Tasks Done', value: `${completed}`, unit: `/ ${total}`, color: '#4ade80', emoji: '✅', bg: 'rgba(74,222,128,0.08)', border: 'rgba(74,222,128,0.20)' },
+                            { label: 'Focus Time', value: focusMinutes >= 60 ? `${Math.floor(focusMinutes / 60)}h ${focusMinutes % 60}m` : `${focusMinutes}m`, unit: '', color: '#67e8f9', emoji: '🎯', bg: 'rgba(103,232,249,0.08)', border: 'rgba(103,232,249,0.20)' },
+                            { label: 'Logs Today', value: `${dailyLogs.length}`, unit: 'entries', color: '#a78bfa', emoji: '📝', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.20)' },
+                        ].map(stat => (
+                            <div key={stat.label} style={{ background: stat.bg, border: `1px solid ${stat.border}`, borderRadius: 14, padding: '0.65rem 0.6rem', display: 'flex', flexDirection: 'column', gap: 2, backdropFilter: 'blur(12px)' }}>
+                                <span style={{ fontSize: '0.85rem' }}>{stat.emoji}</span>
+                                <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
+                                    <span style={{ fontSize: '1.15rem', fontWeight: 800, color: stat.color, lineHeight: 1 }}>{stat.value}</span>
+                                    {stat.unit && <span style={{ fontSize: '0.52rem', color: 'rgba(255,255,255,0.40)', fontWeight: 500 }}>{stat.unit}</span>}
+                                </div>
+                                <span style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.38)', letterSpacing: '0.07em', textTransform: 'uppercase', fontWeight: 600 }}>{stat.label}</span>
+                            </div>
+                        ))}
+                    </motion.div>
+                )}
+
+                {/* ── Progress Bar ── */}
                 {isMounted && total > 0 && (
                     <div className={styles.progressBar}>
                         <div className={styles.progressFlex}>
@@ -464,6 +580,83 @@ export default function VedicPlannerPage() {
                         </div>
                     </div>
                 )}
+
+                {/* ── Quick Add Task Bar ── */}
+                <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                    style={{ marginBottom: '1.2rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 18, padding: '0.85rem 1rem', backdropFilter: 'blur(16px)' }}
+                >
+                    <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)', marginBottom: '0.65rem' }}>
+                        ✦ Quick Add
+                    </div>
+                    {/* Category pills */}
+                    <div style={{ display: 'flex', gap: '0.38rem', flexWrap: 'wrap', marginBottom: '0.65rem' }}>
+                        {[
+                            { key: 'Task', emoji: '✅', color: '#fbbf24' },
+                            { key: 'Focus', emoji: '🎯', color: '#4ade80' },
+                            { key: 'Wellness', emoji: '🧘', color: '#a78bfa' },
+                            { key: 'Idea', emoji: '💡', color: '#2dd4bf' },
+                            { key: 'Challenge', emoji: '⚡', color: '#fb923c' },
+                            { key: 'Issue', emoji: '🔥', color: '#f87171' },
+                        ].map(cat => (
+                            <button
+                                key={cat.key}
+                                onClick={() => setQuickAddCategory(cat.key)}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: 4,
+                                    padding: '0.24rem 0.65rem', borderRadius: 999, cursor: 'pointer',
+                                    border: `1px solid ${quickAddCategory === cat.key ? cat.color : 'rgba(255,255,255,0.12)'}`,
+                                    background: quickAddCategory === cat.key ? `${cat.color}22` : 'transparent',
+                                    color: quickAddCategory === cat.key ? cat.color : 'rgba(255,255,255,0.45)',
+                                    fontSize: '0.68rem', fontWeight: 600, fontFamily: 'inherit',
+                                    transition: 'all 0.18s',
+                                }}
+                            >
+                                <span style={{ fontSize: '0.78rem' }}>{cat.emoji}</span> {cat.key}
+                            </button>
+                        ))}
+                    </div>
+                    {/* Input row */}
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <input
+                            type="text"
+                            value={quickAddText}
+                            onChange={e => setQuickAddText(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') handleQuickAdd(); }}
+                            placeholder={`Add a ${quickAddCategory.toLowerCase()}…`}
+                            style={{
+                                flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.16)',
+                                borderRadius: 12, padding: '0.55rem 0.85rem', color: '#fff', fontSize: '0.82rem',
+                                fontFamily: "'Outfit', sans-serif", outline: 'none',
+                            }}
+                        />
+                        <input
+                            type="time"
+                            value={quickAddTime}
+                            onChange={e => setQuickAddTime(e.target.value)}
+                            style={{
+                                width: 90, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.16)',
+                                borderRadius: 12, padding: '0.55rem 0.5rem', color: 'rgba(255,255,255,0.65)',
+                                fontSize: '0.75rem', fontFamily: 'inherit', outline: 'none',
+                            }}
+                        />
+                        <button
+                            onClick={handleQuickAdd}
+                            disabled={!quickAddText.trim() || isQuickAdding}
+                            style={{
+                                padding: '0.55rem 1rem', borderRadius: 12, cursor: 'pointer',
+                                background: quickAddText.trim() ? 'linear-gradient(135deg,#fde047,#fb923c)' : 'rgba(255,255,255,0.08)',
+                                border: 'none', color: quickAddText.trim() ? '#0a0a14' : 'rgba(255,255,255,0.35)',
+                                fontWeight: 700, fontSize: '0.78rem', fontFamily: 'inherit',
+                                transition: 'all 0.2s',
+                            }}
+                        >
+                            {isQuickAdding ? '…' : '+ Add'}
+                        </button>
+                    </div>
+                </motion.div>
 
                 {/* View Toggle */}
                 <div className={styles.viewToggle}>
@@ -794,6 +987,89 @@ export default function VedicPlannerPage() {
                         </div>
                     </motion.div>
                 )}
+
+                {/* ── Daily Activity Logs ── */}
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                    style={{ marginBottom: '1.5rem' }}
+                >
+                    {/* Header row */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
+                        <span style={{ fontSize: '1rem' }}>📋</span>
+                        <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#a78bfa' }}>Activity Logs</span>
+                        <span style={{ fontSize: '0.58rem', background: 'rgba(167,139,250,0.18)', color: '#c4b5fd', border: '1px solid rgba(167,139,250,0.30)', borderRadius: 999, padding: '0.08rem 0.45rem', fontWeight: 700 }}>
+                            {dailyLogs.length} today
+                        </span>
+                        <div style={{ flex: 1 }} />
+                        <button
+                            onClick={() => setShowLogs(v => !v)}
+                            style={{ background: 'rgba(167,139,250,0.12)', border: '1px solid rgba(167,139,250,0.25)', borderRadius: 8, padding: '0.22rem 0.65rem', cursor: 'pointer', color: '#c4b5fd', fontSize: '0.62rem', fontWeight: 700, fontFamily: 'inherit' }}
+                        >
+                            {showLogs ? 'Hide' : 'View all'}
+                        </button>
+                    </div>
+
+                    {/* Quick log preset chips */}
+                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.85rem' }}>
+                        {LOG_QUICK_PRESETS.map(preset => (
+                            <motion.button
+                                key={preset.label}
+                                whileTap={{ scale: 0.90 }}
+                                onClick={() => handleLogPreset(preset)}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: 5,
+                                    padding: '0.32rem 0.72rem', borderRadius: 999, cursor: 'pointer',
+                                    background: `${preset.color}14`,
+                                    border: `1px solid ${preset.color}35`,
+                                    color: preset.color,
+                                    fontSize: '0.70rem', fontWeight: 600, fontFamily: 'inherit',
+                                    transition: 'all 0.15s',
+                                }}
+                            >
+                                <span style={{ fontSize: '0.90rem' }}>{preset.emoji}</span>
+                                {preset.label}
+                            </motion.button>
+                        ))}
+                    </div>
+
+                    {/* Log timeline */}
+                    <AnimatePresence>
+                        {(showLogs ? dailyLogs : dailyLogs.slice(0, 4)).map((entry, i) => (
+                            <motion.div
+                                key={entry.id}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ delay: i * 0.04 }}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: '0.65rem',
+                                    padding: '0.55rem 0.75rem', borderRadius: 12, marginBottom: '0.35rem',
+                                    background: `${entry.color}0d`,
+                                    border: `1px solid ${entry.color}22`,
+                                }}
+                            >
+                                <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>{entry.emoji}</span>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <p style={{ margin: 0, fontSize: '0.76rem', color: 'rgba(255,255,255,0.88)', fontWeight: 600 }}>{entry.detail}</p>
+                                    <p style={{ margin: 0, fontSize: '0.58rem', color: 'rgba(255,255,255,0.35)', marginTop: 1 }}>{entry.category} · {fmtTime(entry.timestamp)}</p>
+                                </div>
+                                <span style={{ fontSize: '0.55rem', color: entry.color, background: `${entry.color}18`, border: `1px solid ${entry.color}28`, borderRadius: 6, padding: '0.1rem 0.38rem', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                                    ✓ Logged
+                                </span>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+
+                    {dailyLogs.length === 0 && isMounted && (
+                        <div style={{ textAlign: 'center', padding: '1.2rem 1rem', background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.10)', borderRadius: 14 }}>
+                            <p style={{ margin: 0, fontSize: '0.72rem', color: 'rgba(255,255,255,0.30)', fontStyle: 'italic' }}>
+                                Tap a preset above to log your first activity today ✦
+                            </p>
+                        </div>
+                    )}
+                </motion.div>
 
                 {/* Wisdom Footer */}
                 <div className={styles.wisdomBanner}>

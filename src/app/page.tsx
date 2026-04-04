@@ -98,7 +98,9 @@ function fmt12h(h: number, m: number) {
 export default function Home() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
-  const { user } = useOneSutraAuth();
+  const [mood, setMood] = useState<string | null>(null);
+  const [showMoodCheck, setShowMoodCheck] = useState(true);
+  const { user, loading: authLoading } = useOneSutraAuth();
   const userName = user?.name || null;
   const [userId, setUserId] = useState<string | null>(null); // Firebase UID for greeting dedup
   const [isCallModalOpen, setIsCallModalOpen] = useState(false);
@@ -181,6 +183,20 @@ export default function Home() {
   const { tasks: sankalpaItems, addTask, updateTask, toggleTaskDone, removeTask } = useDailyTasks();
 
 
+
+  // ── Firebase auth enforcement — runs once Firebase resolves ──────────────────
+  useEffect(() => {
+    if (authLoading) return;
+    if (user) {
+      setHasStarted(true);
+    } else {
+      localStorage.removeItem('pranav_has_started');
+      localStorage.removeItem('vedic_user_name');
+      localStorage.removeItem('vedic_user_email');
+      localStorage.removeItem('onesutra_auth_v1');
+      setHasStarted(false);
+    }
+  }, [authLoading, user]);
 
   useEffect(() => {
     const started = localStorage.getItem('pranav_has_started');
@@ -313,40 +329,82 @@ export default function Home() {
           </motion.div>
         )}
 
-        {/* ══ UNIFIED GLASS DASHBOARD CARD:
-             Mood Detector · Advanced Protocol · Smart Life Planner
-             Compact glass panel directly below the fixed nav ══ */}
-        {!isPortalOpen && (
+        {/* ══ MOOD DETECTOR — Topmost ══ */}
+        {!isPortalOpen && !mood && showMoodCheck && (
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
+            initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             style={{
-              background: 'transparent',
-              backdropFilter: 'none',
-              WebkitBackdropFilter: 'none',
-              border: '1px solid rgba(251,191,36,0.08)',
-              borderRadius: '0 0 24px 24px',
-              boxShadow: 'none',
-              position: 'relative', zIndex: 10,
-              overflow: 'hidden',
-              marginBottom: '-0.5rem'
+              width: '100%',
+              maxWidth: 380,
+              margin: '0.8rem auto 0.4rem',
+              background: 'rgba(8,6,22,0.80)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: 999,
+              padding: '6px 12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              zIndex: 100,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.40)',
             }}
           >
-            <div aria-hidden style={{
-              position: 'absolute', top: 0, left: 0, right: 0, height: 1,
-              background: 'linear-gradient(90deg, transparent, rgba(251,191,36,0.35), transparent)',
-              pointerEvents: 'none',
-            }} />
-            <div style={{ paddingBottom: '0.1rem' }}>
-              <MagicSyncModule
-                items={sankalpaItems}
-                onToggle={toggleTaskDone}
-                onRemove={removeTask}
-                onAdd={addTask}
-                onUpdate={updateTask}
-              />
-            </div>
+            <span style={{ fontSize: '0.50rem', color: 'rgba(255,255,255,0.50)', fontWeight: 600, fontFamily: "'Inter', sans-serif", textTransform: 'uppercase', letterSpacing: '0.1em', marginRight: 4 }}>How are you feeling?</span>
+            {[
+              { emoji: '😔', label: 'low', color: '#f87171' },
+              { emoji: '😌', label: 'calm', color: '#2dd4bf' },
+              { emoji: '🙂', label: 'good', color: '#4ade80' },
+              { emoji: '⚡', label: 'energetic', color: '#fbbf24' },
+              { emoji: '🧘', label: 'mindful', color: '#c4b5fd' },
+            ].map((m) => (
+              <motion.button
+                key={m.label}
+                whileHover={{ scale: 1.15 }}
+                whileTap={{ scale: 0.88 }}
+                onClick={() => { setMood(m.label); setShowMoodCheck(false); }}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid rgba(255,255,255,0.10)',
+                  borderRadius: '50%',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  width: 30,
+                  height: 30,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s',
+                  padding: 0,
+                }}
+                title={m.label}
+              >
+                {m.emoji}
+              </motion.button>
+            ))}
+            <button
+              onClick={() => setShowMoodCheck(false)}
+              style={{
+                background: 'none', border: 'none',
+                color: 'rgba(255,255,255,0.35)', cursor: 'pointer',
+                fontSize: '0.9rem', marginLeft: 4, padding: '0 4px',
+              }}
+            >×</button>
+          </motion.div>
+        )}
+
+        {/* ══ ADVANCED PROTOCOL (Brahmastra) — Top emphasis ══ */}
+        {!isPortalOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            style={{ margin: '0.5rem 0.6rem 0.8rem', position: 'relative', zIndex: 11 }}
+          >
             <BrahmastraFocusCard
               active={brahmastraState.active}
               focusWindowMinutes={brahmastraState.focusWindowMinutes}
@@ -360,31 +418,53 @@ export default function Home() {
           </motion.div>
         )}
 
-        {/* ══ StickyTopNav: fixed header floats on top always;
-             its story bar div renders in page flow right here
-             — BELOW the glass card, scrolls off naturally ══ */}
-        <div style={{ display: isPortalOpen ? 'none' : 'block', marginTop: '-0.8rem' }}>
+        {/* ══ STORIES SECTION ══ */}
+        <div style={{ display: isPortalOpen ? 'none' : 'block', marginTop: '0.2rem', marginBottom: '1.2rem' }}>
           <StickyTopNav />
         </div>
 
-        {/* ══ SMART LOG BUBBLES — time-contextual quick-log with sub-options ══ */}
+        {/* ══ SMART LOG BUBBLES ══ */}
         {!isPortalOpen && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ delay: 0.2, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             style={{
               position: 'relative', zIndex: 10,
-              background: 'rgba(4,2,18,0.55)',
-              backdropFilter: 'blur(18px)',
-              WebkitBackdropFilter: 'blur(18px)',
-              border: '1px solid rgba(255,255,255,0.07)',
-              borderRadius: 18,
-              margin: '0.15rem 0.6rem 0.1rem',
-              boxShadow: '0 4px 30px rgba(0,0,0,0.25)',
+              background: 'rgba(4,2,18,0.45)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.06)',
+              borderRadius: 22,
+              margin: '0 0.6rem 1.4rem',
+              padding: '0.2rem 0',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
             }}
           >
             <SmartLogBubbles />
+          </motion.div>
+        )}
+
+        {/* ══ SMART LIFE PLANNER (MagicSyncModule) ══ */}
+        {!isPortalOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              background: 'transparent',
+              position: 'relative', zIndex: 9,
+              marginTop: '0.5rem',
+              marginBottom: '2rem'
+            }}
+          >
+            <MagicSyncModule
+              items={sankalpaItems}
+              onToggle={toggleTaskDone}
+              onRemove={removeTask}
+              onAdd={addTask}
+              onUpdate={updateTask}
+            />
           </motion.div>
         )}
 

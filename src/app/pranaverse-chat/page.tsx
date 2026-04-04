@@ -41,8 +41,8 @@ type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night';
 function getTimeOfDay(): TimeOfDay {
     const h = new Date().getHours();
     if (h >= 5 && h < 12) return 'morning';
-    if (h >= 12 && h < 17) return 'afternoon';
-    if (h >= 17 && h < 21) return 'evening';
+    if (h >= 12 && h < 16) return 'afternoon';
+    if (h >= 16 && h < 21) return 'evening';
     return 'night';
 }
 function fmtTime(ts: number) { return new Date(ts).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' }); }
