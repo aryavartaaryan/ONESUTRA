@@ -10,6 +10,8 @@ import { useDailyTasks } from '@/hooks/useDailyTasks';
 import { useUsers, SutraUser } from '@/hooks/useUsers';
 import { useMessages, getChatId } from '@/hooks/useMessages';
 import InviteCard from '@/components/PranaVerse/InviteCard';
+import BodhiLogsCarousel from '@/components/BodhiLogsCarousel';
+import { type ParsedLogEntry, saveMultipleBodhiLogs } from '@/lib/bodhiLogs';
 interface FriendDoc { id: string; fromUid: string; toUid: string; fromName: string; fromPhoto: string | null; toName: string; status: 'pending' | 'accepted' | 'declined'; createdAt: number; }
 
 // ─── Energy Circle Types ───────────────────────────────────────────────────────
@@ -339,6 +341,9 @@ export default function PranverseChatHub() {
     // Profile sheet
     const [profileUser, setProfileUser] = useState<SutraUser | null>(null);
     const [showSelfProfile, setShowSelfProfile] = useState(false);
+    // Bodhi LOGS mode
+    const [logsVisible, setLogsVisible] = useState(true);
+    const [isParsingLog, setIsParsingLog] = useState(false);
 
     // ── Real users from Firebase ──────────────────────────────────────────────
     const { users: allUsers } = useUsers(uid);
@@ -555,6 +560,27 @@ export default function PranverseChatHub() {
         }
     }, [isMobile]);
 
+    // ── Async log parsing — fires in background after user sends a message to Bodhi ──
+    const parseAndSaveLog = useCallback(async (rawText: string) => {
+        if (!uid) return;
+        setIsParsingLog(true);
+        try {
+            const res = await fetch('/api/bodhi-parse-logs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: rawText }),
+            });
+            const data = await res.json();
+            if (data.entries && Array.isArray(data.entries) && data.entries.length > 0) {
+                await saveMultipleBodhiLogs(uid, rawText, data.entries as ParsedLogEntry[]);
+            }
+        } catch (e) {
+            console.warn('[BodhiLogs] Parse failed, skipping save:', e);
+        } finally {
+            setIsParsingLog(false);
+        }
+    }, [uid]);
+
     const handleSend = useCallback(() => {
         const txt = input.trim();
         if (!txt) return;
@@ -562,10 +588,18 @@ export default function PranverseChatHub() {
         if (activeId === 'bodhi') {
             setBodhiMsgs(prev => [...prev, { id: `u_${Date.now()}`, role: 'me', text: txt, ts: Date.now() }]);
             bodhiSend(txt);
+            // Async: parse & save log in background — does NOT block UI or Bodhi response
+            parseAndSaveLog(txt);
         } else if (activeId) {
             sendRealMsg(txt, displayName);
         }
-    }, [input, activeId, bodhiSend, sendRealMsg, displayName]);
+    }, [input, activeId, bodhiSend, sendRealMsg, displayName, parseAndSaveLog]);
+
+    // ── Chip tap handler — pre-fills input from log category quick prompt ──
+    const handleLogChipTap = useCallback((prompt: string) => {
+        setInput(prompt);
+        inputRef.current?.focus();
+    }, []);
 
     const startVoice = useCallback(() => {
         if (typeof window === 'undefined') return;
@@ -580,14 +614,14 @@ export default function PranverseChatHub() {
                 setIsListening(false);
                 setTimeout(() => {
                     setInput('');
-                    if (activeId === 'bodhi') { setBodhiMsgs(p => [...p, { id: `u_${Date.now()}`, role: 'me', text: t, ts: Date.now() }]); bodhiSend(t); }
+                    if (activeId === 'bodhi') { setBodhiMsgs(p => [...p, { id: `u_${Date.now()}`, role: 'me', text: t, ts: Date.now() }]); bodhiSend(t); parseAndSaveLog(t); }
                     else if (activeId) { sendRealMsg(t, displayName); }
                 }, 200);
             }
         };
         rec.onerror = () => setIsListening(false); rec.onend = () => setIsListening(false);
         rec.start(); recogRef.current = rec; setIsListening(true);
-    }, [lang, activeId, bodhiSend, sendRealMsg, displayName]);
+    }, [lang, activeId, bodhiSend, sendRealMsg, displayName, parseAndSaveLog]);
 
     const stopVoice = useCallback(() => { recogRef.current?.stop(); setIsListening(false); }, []);
 
@@ -900,6 +934,46 @@ export default function PranverseChatHub() {
                             </p>
                         </div>
                     </div>
+
+                    {/* ── Bodhi LOGS Carousel — shown when chatting with Bodhi ── */}
+                    {activeId === 'bodhi' && (
+                        <div style={{ flexShrink: 0, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.3rem 0.85rem 0' }}>
+                                <motion.button
+                                    whileTap={{ scale: 0.92 }}
+                                    onClick={() => setLogsVisible(v => !v)}
+                                    style={{
+                                        display: 'flex', alignItems: 'center', gap: 5,
+                                        padding: '0.28rem 0.62rem', borderRadius: 999,
+                                        background: logsVisible ? 'rgba(167,139,250,0.12)' : 'rgba(255,255,255,0.04)',
+                                        border: `1px solid ${logsVisible ? 'rgba(167,139,250,0.35)' : 'rgba(255,255,255,0.10)'}`,
+                                        cursor: 'pointer', color: logsVisible ? '#c4b5fd' : 'rgba(255,255,255,0.40)',
+                                        fontSize: '0.50rem', fontWeight: 700, fontFamily: "'Outfit',sans-serif",
+                                        letterSpacing: '0.06em',
+                                    }}
+                                >
+                                    📋 {logsVisible ? 'Hide Logs' : 'Show Logs'}
+                                </motion.button>
+                                {isParsingLog && (
+                                    <motion.span
+                                        animate={{ opacity: [0.4, 1, 0.4] }}
+                                        transition={{ duration: 1.2, repeat: Infinity }}
+                                        style={{ fontSize: '0.42rem', color: '#818cf8', fontFamily: 'monospace', letterSpacing: '0.08em' }}
+                                    >✦ Parsing log…</motion.span>
+                                )}
+                            </div>
+                            <AnimatePresence>
+                                {logsVisible && (
+                                    <BodhiLogsCarousel
+                                        userId={uid}
+                                        onLogSubmit={() => {}}
+                                        onChipTap={handleLogChipTap}
+                                        visible={logsVisible}
+                                    />
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    )}
 
                     {/* Messages */}
                     <div className="msgsroll" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0.75rem 0.85rem 0.5rem', scrollbarWidth: 'none' }}>
