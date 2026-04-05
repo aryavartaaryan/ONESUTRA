@@ -82,6 +82,7 @@ const ORBIT_ITEMS: OrbItem[] = [
         shape: '',
     },
     { id: 'gurukul', title: 'Gurukul', subtitle: 'World-Class Wisdom', description: '🏛️ World\'s Premier Gurukul — AI, Mathematics & Modern Sciences + Bhagavat Gita, Upanishads, Sanskrit Vyakaran, Darshan & Vedic wisdom. We also provide Startup Support: ideas, product development & launch.', href: '/vedic-sangrah', color: '#f59e0b', glow: '#d97706', icon: '🪔✦', shape: '' },
+    { id: 'lifestyle', title: 'Lifestyle', subtitle: 'Sacred Daily Practices', description: 'Your personalised AI-powered lifestyle sanctuary — habits, mantra sadhana, pranayama, journaling, mood tracking, streaks & your wise AI companion guiding every step of your sacred daily practice.', href: '/lifestyle', color: '#c084fc', glow: '#9333ea', icon: '🌱', shape: '' },
 ];
 
 

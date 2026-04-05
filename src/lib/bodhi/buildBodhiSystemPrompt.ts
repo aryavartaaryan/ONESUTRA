@@ -24,6 +24,32 @@ interface BodhiPromptOptions {
     newsContext?: string;
     messagesContext?: string;
     conversationHistory?: string; // In-session rolling buffer
+    // ── Lifestyle Module context ──────────────────────────────────────────────
+    lifestyleContext?: {
+        buddyName?: string;
+        buddyPersonality?: string;
+        habitsCompletedToday?: number;
+        totalHabitsToday?: number;
+        currentStreak?: number;
+        longestStreak?: number;
+        todayMood?: number;
+        todayMoodLabel?: string;
+        lastMoodNote?: string;
+        mantraPracticeToday?: boolean;
+        breathingPracticeToday?: boolean;
+        activeChallengeName?: string;
+        activeChallengeDay?: number;
+        activeChallengeDays?: number;
+        journaledToday?: boolean;
+        xpLevel?: number;
+        totalXP?: number;
+        recentBadges?: string[];
+        lifeAreas?: string[];
+        primaryMotivation?: string;
+        spiritualBackground?: string;
+        onboardingComplete?: boolean;
+        adhdMode?: boolean;
+    };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -127,6 +153,81 @@ Use this to maintain perfect conversational continuity. Never repeat what was al
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// LIFESTYLE CONTEXT BLOCK
+// Gives Bodhi deep awareness of the user's practices, streaks, mood, and goals
+// ─────────────────────────────────────────────────────────────────────────────
+function buildLifestyleBlock(opts: BodhiPromptOptions, firstName: string): string {
+    const lc = opts.lifestyleContext;
+    if (!lc || !lc.onboardingComplete) {
+        return `\n💚 LIFESTYLE: ${firstName} has not yet set up their lifestyle module. If they mention habits, routines, wellness, or spiritual practice, gently suggest exploring the Lifestyle section of Onesutra.\n`;
+    }
+
+    const habitLine = (lc.habitsCompletedToday !== undefined && lc.totalHabitsToday !== undefined)
+        ? `Today's habits: ${lc.habitsCompletedToday}/${lc.totalHabitsToday} completed`
+        : 'Habit data unavailable';
+
+    const streakLine = lc.currentStreak
+        ? `Current daily streak: ${lc.currentStreak} day${lc.currentStreak !== 1 ? 's' : ''}${lc.longestStreak ? ` (best: ${lc.longestStreak})` : ''}`
+        : 'No active streak';
+
+    const moodLine = lc.todayMood
+        ? `Today's logged mood: ${lc.todayMoodLabel ?? lc.todayMood}/5${lc.lastMoodNote ? ` — "${lc.lastMoodNote}"` : ''}`
+        : 'No mood logged today';
+
+    const practicesLine = [
+        lc.mantraPracticeToday && '✅ Mantra japa done',
+        lc.breathingPracticeToday && '✅ Pranayama done',
+        lc.journaledToday && '✅ Journal entry written',
+    ].filter(Boolean).join(' · ') || 'No sacred practices logged today';
+
+    const challengeLine = lc.activeChallengeName
+        ? `Active ${lc.activeChallengeDays}-day challenge: "${lc.activeChallengeName}" — Day ${lc.activeChallengeDay ?? '?'}`
+        : '';
+
+    const xpLine = lc.xpLevel ? `Level ${lc.xpLevel} · ${lc.totalXP ?? 0} XP total` : '';
+    const badgeLine = lc.recentBadges?.length ? `Recent badges: ${lc.recentBadges.join(', ')}` : '';
+    const motivationLine = lc.primaryMotivation ? `Core motivation: ${lc.primaryMotivation}` : '';
+    const spiritualLine = lc.spiritualBackground ? `Spiritual background: ${lc.spiritualBackground}` : '';
+    const lifeAreasLine = lc.lifeAreas?.length ? `Focus life areas: ${lc.lifeAreas.slice(0, 4).join(', ')}` : '';
+    const adhdLine = lc.adhdMode ? '⚡ ADHD Mode active — keep suggestions short, concrete, and non-overwhelming.' : '';
+
+    const personalityGuide: Record<string, string> = {
+        gentle_coach: `Speak with warmth and encouragement. Celebrate every win, no matter how small. Never pressure.`,
+        wise_friend: `Offer depth and insight. Connect their practices to larger meaning and patterns you've observed.`,
+        calm_monk: `Be serene and spacious. Ground every interaction in stillness. Offer silence as much as words.`,
+        hype_person: `Match their energy! Celebrate progress enthusiastically. Make them feel unstoppable.`,
+        tough_love: `Be direct and honest. Don't let them off the hook. Push gently but firmly. No excuses.`,
+        devotional_guide: `Connect every practice to the sacred. Relate habits to sadhana, growth to surrender, life to dharma.`,
+        nerdy_analyst: `Reference data and patterns. Celebrate streaks numerically. Offer evidence-based encouragement.`,
+    };
+    const personalityNote = lc.buddyPersonality && personalityGuide[lc.buddyPersonality]
+        ? `Lifestyle buddy personality mode: "${lc.buddyPersonality}". ${personalityGuide[lc.buddyPersonality]}`
+        : '';
+
+    return `
+════════════════════════════════════════════════════════════════
+💚 LIFESTYLE INTELLIGENCE — ${firstName}'s Sacred Practice State
+════════════════════════════════════════════════════════════════
+${habitLine}
+${streakLine}
+${moodLine}
+${practicesLine}
+${challengeLine ? challengeLine + '\n' : ''}${xpLine ? xpLine + '\n' : ''}${badgeLine ? badgeLine + '\n' : ''}${motivationLine ? motivationLine + '\n' : ''}${spiritualLine ? spiritualLine + '\n' : ''}${lifeAreasLine ? lifeAreasLine + '\n' : ''}${adhdLine ? adhdLine + '\n' : ''}
+${personalityNote}
+
+LIFESTYLE COACHING LAWS:
+1. If they HAVEN'T meditated or done sacred practices — invite gently (once only, never nag).
+2. If they HAVE completed habits — celebrate it briefly and meaningfully before moving on.
+3. If streak > 7 days — acknowledge the momentum. If streak just broke — offer compassion, not judgment.
+4. If mood is low (1–2) — prioritise listening and emotional support over coaching advice.
+5. If active challenge — reference it naturally: "Day ${lc.activeChallengeDay ?? '?'} of your ${lc.activeChallengeName} challenge — how did it feel today?"
+6. Lifestyle context is BACKGROUND INTELLIGENCE — weave it in organically, never robotically list it.
+7. If ${firstName} says they feel overwhelmed — suggest the ONE smallest practice that could help right now.
+8. Connect sacred practices to their stated motivation: "${lc.primaryMotivation ?? 'growth'}". Every practice serves their deeper why.
+`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // MASTER SYSTEM PROMPT BUILDER
 // ─────────────────────────────────────────────────────────────────────────────
 export function buildBodhiSystemPrompt(
@@ -153,6 +254,7 @@ export function buildBodhiSystemPrompt(
     const timeBlock = buildTimeAwarenessBlock(ctx, firstName);
     const longTermBlock = buildLongTermBlock(ctx);
     const shortTermBlock = buildShortTermBlock(ctx);
+    const lifestyleBlock = buildLifestyleBlock(opts, firstName);
 
     const taskNote = pendingTaskCount > 0
         ? `${firstName} has ${pendingTaskCount} pending sankalpa tasks. Gently offer to help with one if the conversation allows.`
@@ -208,6 +310,8 @@ ${meditationNote}
 ${healthNote}
 ${personalityNote}
 ${unreadNote}
+
+${lifestyleBlock}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🌐 LIVE CONTEXT

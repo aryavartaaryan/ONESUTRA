@@ -104,12 +104,39 @@ async function loadConversationHistory(uid: string, userName: string): Promise<{
     }
 }
 
+export interface BodhiLifestyleContext {
+    buddyName?: string;
+    buddyPersonality?: string;
+    habitsCompletedToday?: number;
+    totalHabitsToday?: number;
+    currentStreak?: number;
+    longestStreak?: number;
+    todayMood?: number;
+    todayMoodLabel?: string;
+    lastMoodNote?: string;
+    mantraPracticeToday?: boolean;
+    breathingPracticeToday?: boolean;
+    activeChallengeName?: string;
+    activeChallengeDay?: number;
+    activeChallengeDays?: number;
+    journaledToday?: boolean;
+    xpLevel?: number;
+    totalXP?: number;
+    recentBadges?: string[];
+    lifeAreas?: string[];
+    primaryMotivation?: string;
+    spiritualBackground?: string;
+    onboardingComplete?: boolean;
+    adhdMode?: boolean;
+}
+
 interface UseBodhiChatVoiceOptions {
     userName: string;
     preferredLanguage?: 'hi' | 'en';
     pendingTasks: BodhiChatTask[];
     userId: string | null;
     userMood?: string;
+    lifestyleContext?: BodhiLifestyleContext;
     /** Called with full text reply when Bodhi finishes a turn */
     onMessage: (text: string) => void;
     /** Called to persist a new task */
@@ -296,6 +323,7 @@ export function useBodhiChatVoice({
     pendingTasks,
     userId,
     userMood = '',
+    lifestyleContext,
     onMessage,
     onAddTask,
     onRemoveTask,
@@ -335,6 +363,7 @@ export function useBodhiChatVoice({
     const onRemoveTaskRef = useRef(onRemoveTask);
     const onLogActivityRef = useRef(onLogActivity);
     const userMoodRef = useRef(userMood);
+    const lifestyleContextRef = useRef(lifestyleContext);
 
     const loggedSingularRef = useRef<Set<string>>(loadLoggedSingulars());
 
@@ -347,6 +376,7 @@ export function useBodhiChatVoice({
     useEffect(() => { onRemoveTaskRef.current = onRemoveTask; }, [onRemoveTask]);
     useEffect(() => { onLogActivityRef.current = onLogActivity; }, [onLogActivity]);
     useEffect(() => { userMoodRef.current = userMood; }, [userMood]);
+    useEffect(() => { lifestyleContextRef.current = lifestyleContext; }, [lifestyleContext]);
 
     // Keep memory refs synced for buildSystemPrompt
     useEffect(() => { memoriesRef.current = memories; }, [memories]);
@@ -525,16 +555,40 @@ RULE: Your FIRST line MUST be the elegant Sanskrit greeting from rule 6. Then yo
             : `LANGUAGE: You MUST speak exclusively in Hindi (Devanagari script). Do not use English words, Hinglish, or romanized Hindi.`;
 
         const memoriesBlock = memoriesRef.current.length > 0
-            ? `\n🧠 MEMORIES OF ${firstName} (Implicitly use these to personalize your advice):\n` + memoriesRef.current.map(m => `- ${m}`).join('\n')
+            ? '\n🧠 MEMORIES OF ' + firstName + ' (Implicitly use these to personalize your advice):\n' + memoriesRef.current.map((m: string) => `- ${m}`).join('\n')
             : '';
 
         const moodLine = userMoodRef.current
             ? `\n💫 ${firstName}'s CURRENT MOOD (User-stated): ${userMoodRef.current}\n→ This is the PRIMARY mood signal. Immediately calibrate your tone, energy, and suggestions to match. A sad mood needs gentle warmth. An excited mood needs matched energy. A tired mood needs soft, easy conversation.\n`
             : '';
 
-        const historyBlock = conversationHistoryRef.current
+        const lc = lifestyleContextRef.current;
+        const lifestyleBlock = lc?.onboardingComplete ? (() => {
+            const habitLine = (lc.habitsCompletedToday !== undefined && lc.totalHabitsToday !== undefined)
+                ? `Habits today: ${lc.habitsCompletedToday}/${lc.totalHabitsToday} done` : '';
+            const streakLine = lc.currentStreak ? `Streak: ${lc.currentStreak} day${lc.currentStreak !== 1 ? 's' : ''}` : '';
+            const moodLcLine = lc.todayMood ? `Mood logged: ${lc.todayMoodLabel ?? lc.todayMood}/5${lc.lastMoodNote ? ` ("${lc.lastMoodNote}")` : ''}` : '';
+            const practices = [lc.mantraPracticeToday && 'mantra japa', lc.breathingPracticeToday && 'pranayama', lc.journaledToday && 'journaling'].filter(Boolean).join(', ') || 'none yet today';
+            const challengeLine = lc.activeChallengeName ? `Challenge: Day ${lc.activeChallengeDay ?? '?'} of ${lc.activeChallengeName}` : '';
+            const adhdLine = lc.adhdMode ? 'ADHD mode ON — keep suggestions short, concrete, one at a time.' : '';
+            const personalityMap: Record<string, string> = {
+                gentle_coach: 'Speak with warmth. Celebrate every small win.',
+                wise_friend: 'Connect practices to deeper meaning.',
+                calm_monk: 'Be serene. Ground interactions in stillness.',
+                hype_person: 'Match energy! Make them feel unstoppable.',
+                tough_love: 'Be direct. Push gently but firmly.',
+                devotional_guide: 'Relate habits to sadhana and dharma.',
+                nerdy_analyst: 'Reference data, streaks, and patterns.',
+            };
+            const personalityNote = lc.buddyPersonality && personalityMap[lc.buddyPersonality]
+                ? personalityMap[lc.buddyPersonality] : '';
+            const lines = [habitLine, streakLine, moodLcLine, `Sacred practices: ${practices}`, challengeLine, adhdLine, personalityNote].filter(Boolean).join('\n');
+            return `\n──────────────────────────────────────────\n💚 LIFESTYLE AWARENESS (${firstName}'s sacred practice today)\n${lines}\n→ Weave this in naturally. If habits are incomplete and mood allows, gently invite ONE practice. If streak is strong, acknowledge it warmly.\n──────────────────────────────────────────\n`;
+        })() : '';
+
+        const historyBlock = lifestyleBlock + (conversationHistoryRef.current
             ? `\nPREVIOUS CONVERSATION — READ CAREFULLY:\n(This is what you and ${firstName} just talked about before this new session. Acknowledge continuity!)\n${conversationHistoryRef.current}\n\n${timeGapStrRef.current}\n`
-            : `\n${timeGapStrRef.current}\n`;
+            : `\n${timeGapStrRef.current}\n`);
 
         return `You are Bodhi — ${firstName}'s wise, warm, deeply personal AI life manager and Sakha (spiritual companion). You are like Krishna to Arjuna — always present, always knowing, always caring.
 

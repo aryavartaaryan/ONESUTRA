@@ -24,7 +24,7 @@ const MORNING_BUBBLES: LogBubble[] = [
         logMessage: 'I woke up this morning [UI_EVENT: MORNING_LOGS_CLICKED]',
         subOptions: [
             { icon: '⚡', label: '5 AM warrior', detail: 'woke up at 5 AM sharp' },
-            { icon: '🌄', label: '6–7 AM', detail: 'woke up around 6–7 AM' },
+            { icon: '�', label: '6–7 AM', detail: 'woke up around 6–7 AM' },
             { icon: '☀️', label: 'Around 8 AM', detail: 'woke up around 8 AM' },
             { icon: '😅', label: 'A bit late', detail: 'woke up a bit late today' },
         ],

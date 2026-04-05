@@ -9,6 +9,8 @@ import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { useBodhiChatStore } from '@/stores/bodhiChatStore';
 import { useBodhiChatVoice } from '@/hooks/useBodhiChatVoice';
 import { useLanguage } from '@/context/LanguageContext';
+import { useLifestyleEngine } from '@/hooks/useLifestyleEngine';
+import { getToday } from '@/stores/lifestyleStore';
 
 // ─── Mood data ───────────────────────────────────────────────────────────────
 const MOOD_EMOJIS = [
@@ -884,6 +886,7 @@ export default function BodhiChatPage() {
     const { lang } = useLanguage();
     const { tasks, addTask, removeTask } = useDailyTasks();
     const { pendingMessage, clearPendingMessage } = useBodhiChatStore();
+    const lifestyle = useLifestyleEngine();
 
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [historyLoaded, setHistoryLoaded] = useState(false);
@@ -914,6 +917,42 @@ export default function BodhiChatPage() {
     const displayName = user?.name || 'Mitra';
     const pendingCount = tasks.filter(t => !t.done && t.category !== 'Idea' && t.category !== 'Challenge').length;
 
+    // ── Build lifestyle context for Bodhi ─────────────────────────────────────
+    const today = getToday();
+    const todayHabitLogs = lifestyle.habitLogs.filter(l => l.date === today && l.completed);
+    const todayMantra = lifestyle.mantraSessions.some(s => s.date === today);
+    const todayBreathing = lifestyle.breathingSessions.some(s => s.date === today);
+    const todayJournal = lifestyle.journalEntries.some(e => e.date === today);
+    const bestStreak = Object.values(lifestyle.streaks).reduce((m, s) => Math.max(m, s.currentStreak ?? 0), 0);
+    const longestEver = Object.values(lifestyle.streaks).reduce((m, s) => Math.max(m, s.longestStreak ?? 0), 0);
+    const activeChallenge = lifestyle.profile?.activeMantraPractices?.[0]
+        ? lifestyle.mantraStreaks[lifestyle.profile.activeMantraPractices[0]] : null;
+    const bodhiLifestyleCtx = lifestyle.profile?.onboardingComplete ? {
+        buddyName: lifestyle.profile.buddyName,
+        buddyPersonality: lifestyle.profile.buddyPersonality,
+        habitsCompletedToday: todayHabitLogs.length,
+        totalHabitsToday: lifestyle.activeHabits.length,
+        currentStreak: bestStreak,
+        longestStreak: longestEver,
+        todayMood: lifestyle.todayMood?.mood,
+        todayMoodLabel: lifestyle.todayMood?.mood ? ['', 'Very Low', 'Low', 'Okay', 'Good', 'Great'][lifestyle.todayMood.mood] : undefined,
+        lastMoodNote: lifestyle.todayMood?.note,
+        mantraPracticeToday: todayMantra,
+        breathingPracticeToday: todayBreathing,
+        activeChallengeName: activeChallenge?.mantraId,
+        activeChallengeDay: activeChallenge?.currentStreak,
+        activeChallengeDays: activeChallenge?.challengeDays,
+        journaledToday: todayJournal,
+        xpLevel: lifestyle.xp.level,
+        totalXP: lifestyle.xp.total,
+        recentBadges: lifestyle.badges.slice(-3).map(b => b.name),
+        lifeAreas: lifestyle.profile.lifeAreas,
+        primaryMotivation: lifestyle.profile.motivation,
+        spiritualBackground: lifestyle.profile.spiritualBackground,
+        onboardingComplete: true,
+        adhdMode: lifestyle.adhdMode,
+    } : undefined;
+
     // ── Bodhi Chat Voice (Gemini Live) ────────────────────────────────────────
     const { chatState, isSpeaking, isConnected, connect, disconnect, sendMessage: bodhiSend } = useBodhiChatVoice({
         userName: displayName,
@@ -921,6 +960,7 @@ export default function BodhiChatPage() {
         pendingTasks: tasks.map(t => ({ id: t.id, text: t.text, done: t.done, category: t.category, startTime: t.startTime })),
         userId: uid,
         userMood: selectedMoodEmoji ? `${selectedMoodEmoji} ${selectedMoodLabel}` : '',
+        lifestyleContext: bodhiLifestyleCtx,
         onAddTask: async (task) => { await addTask(task as unknown as Parameters<typeof addTask>[0]); },
         onRemoveTask: async (taskId) => { await removeTask(taskId); },
         onLogActivity: (activity, verdict, _reaction) => {
