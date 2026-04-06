@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Check, RefreshCw, Sparkles, Wind, Flame, Leaf } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, RefreshCw, Sparkles, Wind } from 'lucide-react';
 import { useDoshaEngine } from '@/hooks/useDoshaEngine';
-import { DOSHA_INFO, COMBO_DESCRIPTIONS, generateDoshaStory, type Prakriti, type Vikriti } from '@/lib/doshaService';
+import { useGeminiTTS } from '@/hooks/useGeminiTTS';
+import { DOSHA_INFO, generateDoshaStory, type Prakriti, type Vikriti } from '@/lib/doshaService';
 import type { QuizAnswer } from '@/lib/doshaService';
 
 // ─── Quiz Question Data ────────────────────────────────────────────────────────
@@ -261,52 +262,12 @@ const VIKRITI_QUESTIONS: QuizQuestion[] = [
 
 // ─── Bodhi Voice Texts ─────────────────────────────────────────────────────────
 
-const PHASE_INTROS = {
-  prakriti_start: "Namaste. I am Bodhi, your Ayurvedic companion. I want to learn who you truly are — not your goals, not your struggles, but your nature. Your Prakriti is the blueprint you were born with. These questions reveal it. Answer as you have always been, not as you are right now.",
-  vikriti_start: "Beautiful. Now I want to understand how you feel RIGHT NOW — in the last two weeks. This is your Vikriti — your current state. It may differ from your natural constitution. Together, they tell us exactly what your body is asking for.",
-  result: "Your Prakriti has been revealed. This is not a label — it is a doorway. Everything I will guide you with from this moment forward will be filtered through this understanding. You now have something most people never find: a map of your own nature.",
-};
+const RESULT_SPEAK = "Your Prakriti has been revealed. This is not a label — it is a doorway. Everything I will guide you with from this moment forward will be filtered through this understanding. You now have something most people never find: a map of your own nature.";
 
-// ─── TTS Hook ─────────────────────────────────────────────────────────────────
-
-function useTTS() {
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [muted, setMuted] = useState(false);
-  const mutedRef = useRef(false);
-  useEffect(() => { mutedRef.current = muted; }, [muted]);
-
-  const speak = useCallback((text: string) => {
-    if (typeof window === 'undefined' || !window.speechSynthesis || mutedRef.current) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate = 0.88; u.pitch = 1.05; u.volume = 1;
-    const voices = window.speechSynthesis.getVoices();
-    const preferred = voices.find(v =>
-      v.name.includes('Google UK English Female') || v.name.includes('Samantha') ||
-      v.name.includes('Karen') || v.name.includes('Moira')
-    ) || voices.find(v => v.lang.startsWith('en'));
-    if (preferred) u.voice = preferred;
-    u.onstart = () => setIsSpeaking(true);
-    u.onend = () => setIsSpeaking(false);
-    u.onerror = () => setIsSpeaking(false);
-    window.speechSynthesis.speak(u);
-  }, []);
-
-  const stop = useCallback(() => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
-    setIsSpeaking(false);
-  }, []);
-
-  const toggleMute = useCallback(() => setMuted(m => {
-    if (!m && typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.cancel(); setIsSpeaking(false);
-    }
-    return !m;
-  }), []);
-
-  useEffect(() => () => { if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel(); }, []);
-  return { speak, stop, isSpeaking, muted, toggleMute };
+function getQuestionSpeakText(q: QuizQuestion): string {
+  return q.question;
 }
+
 
 // ─── Sub-components ────────────────────────────────────────────────────────────
 
@@ -333,15 +294,24 @@ function AnswerCard({ answer, selected, onClick }: {
         boxShadow: selected ? '0 0 24px rgba(168,85,247,0.12)' : 'none',
       }}
     >
+      {/* Checkbox indicator — always visible */}
+      <div style={{
+        width: 20, height: 20, borderRadius: 6, flexShrink: 0,
+        border: `2px solid ${selected ? 'rgba(168,85,247,0.8)' : 'rgba(255,255,255,0.2)'}`,
+        background: selected ? 'rgba(168,85,247,0.4)' : 'transparent',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        transition: 'all 0.2s',
+      }}>
+        {selected && (
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 500 }}>
+            <Check size={12} style={{ color: '#c084fc' }} />
+          </motion.div>
+        )}
+      </div>
       <div style={{ flex: 1 }}>
         <p style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700, color: selected ? '#c084fc' : 'rgba(255,255,255,0.88)', fontFamily: "'Outfit', sans-serif" }}>{answer.label}</p>
         {answer.desc && <p style={{ margin: '0.2rem 0 0', fontSize: '0.74rem', color: 'rgba(255,255,255,0.42)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.4 }}>{answer.desc}</p>}
       </div>
-      {selected && (
-        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 400 }}>
-          <Check size={18} style={{ color: '#c084fc', flexShrink: 0 }} />
-        </motion.div>
-      )}
     </motion.button>
   );
 }
@@ -514,7 +484,7 @@ export default function PrakritiQuizPage() {
     completePrakritiQuiz, completeVikritiiQuiz,
     doshaOnboardingComplete, prakritiAssessment, vikritiiAssessment,
   } = useDoshaEngine();
-  const { speak, stop, isSpeaking, muted, toggleMute } = useTTS();
+  const { speak, stop, isSpeaking, muted, toggleMute } = useGeminiTTS();
 
   // If the user has already completed onboarding, jump straight to the result
   const alreadyDone = doshaOnboardingComplete && !!prakritiAssessment && !!vikritiiAssessment;
@@ -522,8 +492,8 @@ export default function PrakritiQuizPage() {
   const [phase, setPhase] = useState<Phase>(() => alreadyDone ? 'result' : 'prakriti');
   const [prakritiStep, setPrakritiStep] = useState(0);
   const [vikritiiStep, setVikritiiStep] = useState(0);
-  const [prakritiAnswers, setPrakritiAnswers] = useState<Record<string, QuizAnswer>>({});
-  const [vikritiiAnswers, setVikritiiAnswers] = useState<Record<string, QuizAnswer>>({});
+  const [prakritiAnswers, setPrakritiAnswers] = useState<Record<string, string[]>>({});
+  const [vikritiiAnswers, setVikritiiAnswers] = useState<Record<string, string[]>>({});
   // Pre-populate from stored assessments on first render if already done
   const [resultPrakriti, setResultPrakriti] = useState<Prakriti | null>(() => prakritiAssessment?.prakriti ?? null);
   const [resultVikriti, setResultVikriti] = useState<Vikriti | null>(() => vikritiiAssessment?.vikriti ?? null);
@@ -550,72 +520,104 @@ export default function PrakritiQuizPage() {
   const vikritiiProgress = (vikritiiStep / totalVikritiiSteps) * 100;
 
   useEffect(() => {
-    if (phase === 'prakriti') {
-      if (prakritiStep === 0) {
-        const t = setTimeout(() => speak(PHASE_INTROS.prakriti_start), 600);
-        return () => clearTimeout(t);
-      }
-    }
-    if (phase === 'vikriti' && vikritiiStep === 0) {
-      const t = setTimeout(() => speak(PHASE_INTROS.vikriti_start), 400);
-      return () => clearTimeout(t);
-    }
-    if (phase === 'result') {
-      const t = setTimeout(() => speak(PHASE_INTROS.result), 800);
+    if (phase === 'prakriti' && currentPrakritiQ) {
+      const t = setTimeout(() => speak(getQuestionSpeakText(currentPrakritiQ)), 500);
       return () => clearTimeout(t);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, prakritiStep === 0, vikritiiStep === 0]);
+  }, [phase, prakritiStep]);
+
+  useEffect(() => {
+    if (phase === 'vikriti' && currentVikritiiQ) {
+      const t = setTimeout(() => speak(getQuestionSpeakText(currentVikritiiQ)), 500);
+      return () => clearTimeout(t);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, vikritiiStep]);
+
+  useEffect(() => {
+    if (phase === 'result') {
+      const t = setTimeout(() => speak(RESULT_SPEAK), 800);
+      return () => clearTimeout(t);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
 
   const selectPrakritiAnswer = useCallback((answer: AnswerOption) => {
-    setPrakritiAnswers(prev => ({
-      ...prev,
-      [currentPrakritiQ.id]: {
-        questionId: currentPrakritiQ.id,
-        answerId: answer.id,
-        doshaEffect: answer.doshaEffect,
-      },
-    }));
+    setPrakritiAnswers(prev => {
+      const cur = prev[currentPrakritiQ.id] ?? [];
+      const exists = cur.includes(answer.id);
+      return {
+        ...prev,
+        [currentPrakritiQ.id]: exists
+          ? cur.filter(id => id !== answer.id)
+          : [...cur, answer.id],
+      };
+    });
   }, [currentPrakritiQ]);
 
   const selectVikritiiAnswer = useCallback((answer: AnswerOption) => {
-    setVikritiiAnswers(prev => ({
-      ...prev,
-      [currentVikritiiQ.id]: {
-        questionId: currentVikritiiQ.id,
-        answerId: answer.id,
-        doshaEffect: answer.doshaEffect,
-      },
-    }));
+    setVikritiiAnswers(prev => {
+      const cur = prev[currentVikritiiQ.id] ?? [];
+      const exists = cur.includes(answer.id);
+      return {
+        ...prev,
+        [currentVikritiiQ.id]: exists
+          ? cur.filter(id => id !== answer.id)
+          : [...cur, answer.id],
+      };
+    });
   }, [currentVikritiiQ]);
+
+  const buildAnswers = useCallback((
+    questions: QuizQuestion[],
+    selections: Record<string, string[]>
+  ): QuizAnswer[] =>
+    questions
+      .filter(q => (selections[q.id] ?? []).length > 0)
+      .map(q => {
+        const ids = selections[q.id];
+        const chosen = q.answers.filter(a => ids.includes(a.id));
+        const count = chosen.length;
+        const avgEffect = chosen.reduce(
+          (acc, a) => ({
+            vata: acc.vata + a.doshaEffect.vata / count,
+            pitta: acc.pitta + a.doshaEffect.pitta / count,
+            kapha: acc.kapha + a.doshaEffect.kapha / count,
+          }),
+          { vata: 0, pitta: 0, kapha: 0 }
+        );
+        return { questionId: q.id, answerId: ids.join(','), doshaEffect: avgEffect };
+      })
+  , []);
 
   const advancePrakriti = useCallback(() => {
     stop();
     if (prakritiStep < totalPrakritiSteps - 1) {
       setPrakritiStep(s => s + 1);
     } else {
-      const answers = Object.values(prakritiAnswers);
+      const answers = buildAnswers(PRAKRITI_QUESTIONS, prakritiAnswers);
       const prakritiResult = completePrakritiQuiz(answers);
       setResultPrakriti(prakritiResult);
       setPhase('vikriti');
       setVikritiiStep(0);
     }
-  }, [prakritiStep, totalPrakritiSteps, prakritiAnswers, completePrakritiQuiz, stop]);
+  }, [prakritiStep, totalPrakritiSteps, prakritiAnswers, completePrakritiQuiz, stop, buildAnswers]);
 
   const advanceVikritii = useCallback(() => {
     stop();
     if (vikritiiStep < totalVikritiiSteps - 1) {
       setVikritiiStep(s => s + 1);
     } else {
-      const answers = Object.values(vikritiiAnswers);
+      const answers = buildAnswers(VIKRITI_QUESTIONS, vikritiiAnswers);
       const vikritiiResult = completeVikritiiQuiz(answers);
       setResultVikriti(vikritiiResult);
       setPhase('result');
     }
-  }, [vikritiiStep, totalVikritiiSteps, vikritiiAnswers, completeVikritiiQuiz, stop]);
+  }, [vikritiiStep, totalVikritiiSteps, vikritiiAnswers, completeVikritiiQuiz, stop, buildAnswers]);
 
-  const currentPrakritiSelected = prakritiAnswers[currentPrakritiQ?.id];
-  const currentVikritiiSelected = vikritiiAnswers[currentVikritiiQ?.id];
+  const currentPrakritiSelected = prakritiAnswers[currentPrakritiQ?.id] ?? [];
+  const currentVikritiiSelected = vikritiiAnswers[currentVikritiiQ?.id] ?? [];
 
   const containerStyle: React.CSSProperties = {
     minHeight: '100dvh',
@@ -683,12 +685,12 @@ export default function PrakritiQuizPage() {
         <AnimatePresence mode="wait">
           {phase === 'result' && resultPrakriti && resultVikriti ? (
             <motion.div key="result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-              <BodhiOrb isSpeaking={isSpeaking} muted={muted} onRespeak={() => speak(PHASE_INTROS.result)} onMuteToggle={toggleMute} />
-              <ResultScreen prakriti={resultPrakriti} vikriti={resultVikriti} onContinue={() => router.replace('/lifestyle')} />
+              <BodhiOrb isSpeaking={isSpeaking} muted={muted} onRespeak={() => speak(RESULT_SPEAK)} onMuteToggle={toggleMute} />
+              <ResultScreen prakriti={resultPrakriti} vikriti={resultVikriti} onContinue={() => router.replace('/')} />
             </motion.div>
           ) : phase === 'vikriti' ? (
             <motion.div key={`vikriti-${vikritiiStep}`} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
-              <BodhiOrb isSpeaking={isSpeaking} muted={muted} onRespeak={() => speak(PHASE_INTROS.vikriti_start)} onMuteToggle={toggleMute} />
+              <BodhiOrb isSpeaking={isSpeaking} muted={muted} onRespeak={() => speak(getQuestionSpeakText(currentVikritiiQ))} onMuteToggle={toggleMute} />
               {vikritiiStep === 0 && (
                 <div style={{ marginBottom: '1.2rem', padding: '0.9rem 1rem', background: 'rgba(251,191,36,0.06)', borderRadius: 14, border: '1px solid rgba(251,191,36,0.2)' }}>
                   <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(251,191,36,0.75)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.5 }}>
@@ -700,18 +702,19 @@ export default function PrakritiQuizPage() {
                 {currentVikritiiQ.emoji} {currentVikritiiQ.question}
               </h2>
               {currentVikritiiQ.subtext && <p style={{ margin: '0 0 1rem', fontSize: '0.78rem', color: 'rgba(255,255,255,0.42)', fontFamily: "'Outfit', sans-serif" }}>{currentVikritiiQ.subtext}</p>}
-              <div style={{ marginBottom: '1.5rem', marginTop: '1rem' }}>
+              <p style={{ margin: '0 0 0.6rem', fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.04em' }}>Select all that apply</p>
+              <div style={{ marginBottom: '1.5rem', marginTop: '0.4rem' }}>
                 {currentVikritiiQ.answers.map(a => (
-                  <AnswerCard key={a.id} answer={a} selected={currentVikritiiSelected?.answerId === a.id} onClick={() => selectVikritiiAnswer(a)} />
+                  <AnswerCard key={a.id} answer={a} selected={currentVikritiiSelected.includes(a.id)} onClick={() => selectVikritiiAnswer(a)} />
                 ))}
               </div>
-              <motion.button whileTap={{ scale: 0.97 }} onClick={advanceVikritii} disabled={!currentVikritiiSelected}
+              <motion.button whileTap={{ scale: 0.97 }} onClick={advanceVikritii} disabled={currentVikritiiSelected.length === 0}
                 style={{
-                  width: '100%', padding: '1rem', borderRadius: 16, cursor: currentVikritiiSelected ? 'pointer' : 'not-allowed',
+                  width: '100%', padding: '1rem', borderRadius: 16, cursor: currentVikritiiSelected.length > 0 ? 'pointer' : 'not-allowed',
                   fontWeight: 700, fontSize: '1rem',
-                  background: currentVikritiiSelected ? 'linear-gradient(135deg, rgba(251,146,60,0.4), rgba(168,85,247,0.4))' : 'rgba(255,255,255,0.05)',
-                  border: `1.5px solid ${currentVikritiiSelected ? 'rgba(251,146,60,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                  color: currentVikritiiSelected ? '#fff' : 'rgba(255,255,255,0.3)',
+                  background: currentVikritiiSelected.length > 0 ? 'linear-gradient(135deg, rgba(251,146,60,0.4), rgba(168,85,247,0.4))' : 'rgba(255,255,255,0.05)',
+                  border: `1.5px solid ${currentVikritiiSelected.length > 0 ? 'rgba(251,146,60,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                  color: currentVikritiiSelected.length > 0 ? '#fff' : 'rgba(255,255,255,0.3)',
                   fontFamily: "'Outfit', sans-serif", transition: 'all 0.2s',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
                 }}>
@@ -720,7 +723,7 @@ export default function PrakritiQuizPage() {
             </motion.div>
           ) : (
             <motion.div key={`prakriti-${prakritiStep}`} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
-              <BodhiOrb isSpeaking={isSpeaking} muted={muted} onRespeak={() => speak(PHASE_INTROS.prakriti_start)} onMuteToggle={toggleMute} />
+              <BodhiOrb isSpeaking={isSpeaking} muted={muted} onRespeak={() => speak(getQuestionSpeakText(currentPrakritiQ))} onMuteToggle={toggleMute} />
               {prakritiStep === 0 && (
                 <div style={{ marginBottom: '1.2rem', padding: '0.9rem 1rem', background: 'rgba(168,85,247,0.07)', borderRadius: 14, border: '1px solid rgba(168,85,247,0.2)' }}>
                   <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(167,139,250,0.8)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.5 }}>
@@ -732,18 +735,19 @@ export default function PrakritiQuizPage() {
                 {currentPrakritiQ.emoji} {currentPrakritiQ.question}
               </h2>
               {currentPrakritiQ.subtext && <p style={{ margin: '0 0 1rem', fontSize: '0.78rem', color: 'rgba(255,255,255,0.42)', fontFamily: "'Outfit', sans-serif" }}>{currentPrakritiQ.subtext}</p>}
-              <div style={{ marginBottom: '1.5rem', marginTop: '1rem' }}>
+              <p style={{ margin: '0 0 0.6rem', fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.04em' }}>Select all that apply</p>
+              <div style={{ marginBottom: '1.5rem', marginTop: '0.4rem' }}>
                 {currentPrakritiQ.answers.map(a => (
-                  <AnswerCard key={a.id} answer={a} selected={currentPrakritiSelected?.answerId === a.id} onClick={() => selectPrakritiAnswer(a)} />
+                  <AnswerCard key={a.id} answer={a} selected={currentPrakritiSelected.includes(a.id)} onClick={() => selectPrakritiAnswer(a)} />
                 ))}
               </div>
-              <motion.button whileTap={{ scale: 0.97 }} onClick={advancePrakriti} disabled={!currentPrakritiSelected}
+              <motion.button whileTap={{ scale: 0.97 }} onClick={advancePrakriti} disabled={currentPrakritiSelected.length === 0}
                 style={{
-                  width: '100%', padding: '1rem', borderRadius: 16, cursor: currentPrakritiSelected ? 'pointer' : 'not-allowed',
+                  width: '100%', padding: '1rem', borderRadius: 16, cursor: currentPrakritiSelected.length > 0 ? 'pointer' : 'not-allowed',
                   fontWeight: 700, fontSize: '1rem',
-                  background: currentPrakritiSelected ? 'linear-gradient(135deg, rgba(124,58,237,0.5), rgba(168,85,247,0.4))' : 'rgba(255,255,255,0.05)',
-                  border: `1.5px solid ${currentPrakritiSelected ? 'rgba(167,139,250,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                  color: currentPrakritiSelected ? '#fff' : 'rgba(255,255,255,0.3)',
+                  background: currentPrakritiSelected.length > 0 ? 'linear-gradient(135deg, rgba(124,58,237,0.5), rgba(168,85,247,0.4))' : 'rgba(255,255,255,0.05)',
+                  border: `1.5px solid ${currentPrakritiSelected.length > 0 ? 'rgba(167,139,250,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                  color: currentPrakritiSelected.length > 0 ? '#fff' : 'rgba(255,255,255,0.3)',
                   fontFamily: "'Outfit', sans-serif", transition: 'all 0.2s',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
                 }}>

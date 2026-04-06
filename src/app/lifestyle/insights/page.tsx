@@ -115,7 +115,7 @@ function RadarChart({ data }: { data: Array<{ label: string; value: number; colo
 
 function MoodTrendLine({ moods }: { moods: Array<{ date: string; score: number }> }) {
     const recent = moods.slice(-30);
-    if (recent.length < 2) return <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.8rem', fontFamily: "'Outfit', sans-serif', textAlign: 'center', padding: '1rem'" }}>Need more mood data.</p>;
+    if (recent.length < 2) return <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.8rem', fontFamily: "'Outfit', sans-serif", textAlign: 'center', padding: '1rem' }}>Need more mood data to display trend.</p>;
 
     const w = 280, h = 70;
     const min = Math.min(...recent.map(m => m.score));
@@ -147,12 +147,13 @@ function MoodTrendLine({ moods }: { moods: Array<{ date: string; score: number }
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 
 function StatCard({ icon, label, value, sub, color }: { icon: string; label: string; value: string | number; sub?: string; color: string }) {
+    const safeValue = (typeof value === 'number' && isNaN(value)) ? '0' : value;
     return (
-        <div style={{ padding: '0.9rem 1rem', borderRadius: 16, background: `${color}0a`, border: `1px solid ${color}22`, flex: 1 }}>
-            <p style={{ margin: '0 0 0.2rem', fontSize: '1rem' }}>{icon}</p>
-            <p style={{ margin: 0, fontSize: '1.4rem', fontWeight: 900, color, fontFamily: "'Outfit', sans-serif", lineHeight: 1.1 }}>{value}</p>
-            <p style={{ margin: '0.15rem 0 0', fontSize: '0.62rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif", fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</p>
-            {sub && <p style={{ margin: '0.1rem 0 0', fontSize: '0.58rem', color: 'rgba(255,255,255,0.2)', fontFamily: "'Outfit', sans-serif" }}>{sub}</p>}
+        <div style={{ padding: '1rem 1rem', borderRadius: 18, background: `${color}0e`, border: `1px solid ${color}28`, flex: 1, minWidth: 0 }}>
+            <p style={{ margin: '0 0 0.3rem', fontSize: '1.3rem' }}>{icon}</p>
+            <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color, fontFamily: "'Outfit', sans-serif", lineHeight: 1.1 }}>{safeValue}</p>
+            <p style={{ margin: '0.2rem 0 0', fontSize: '0.68rem', color: 'rgba(255,255,255,0.42)', fontFamily: "'Outfit', sans-serif", fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</p>
+            {sub && <p style={{ margin: '0.15rem 0 0', fontSize: '0.65rem', color: 'rgba(255,255,255,0.28)', fontFamily: "'Outfit', sans-serif" }}>{sub}</p>}
         </div>
     );
 }
@@ -181,10 +182,10 @@ export default function InsightsPage() {
         ? (moodLogs.reduce((s, m) => s + m.mood, 0) / moodLogs.length).toFixed(1)
         : '–';
 
-    const totalMinutesMeditated = meditationSessions.reduce((a, s) => a + s.durationMinutes, 0);
-    const totalMinutesBreathing = breathingSessions.reduce((a, s) => a + s.durationMinutes, 0);
-    const totalMantraReps = mantraSessions.reduce((a, s) => a + s.repetitionCount, 0);
-    const journalWordCount = journalEntries.reduce((a, e) => a + e.content.split(/\s+/).filter(Boolean).length, 0);
+    const totalMinutesMeditated = meditationSessions.reduce((a, s) => a + (s.durationMinutes ?? 0), 0);
+    const totalMinutesBreathing = breathingSessions.reduce((a, s) => a + (s.durationMinutes ?? 0), 0);
+    const totalMantraReps = mantraSessions.reduce((a, s) => a + (s.repetitionCount ?? 0), 0);
+    const journalWordCount = journalEntries.reduce((a, e) => a + (e.content ?? '').split(/\s+/).filter(Boolean).length, 0);
 
     // ── Life area scores (out of 100) ─────────────────────────────────────────
     const last30Days = new Set(
@@ -255,12 +256,31 @@ export default function InsightsPage() {
                     <ArrowLeft size={18} />
                 </button>
                 <div>
-                    <h1 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#fff', fontFamily: "'Outfit', sans-serif" }}>Insights</h1>
-                    <p style={{ margin: 0, fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif" }}>Your 90-day mirror</p>
+                    <h1 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif" }}>Insights</h1>
+                    <p style={{ margin: 0, fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', fontFamily: "'Outfit', sans-serif" }}>Your 90-day practice mirror</p>
                 </div>
             </div>
 
             <div style={{ padding: '1.25rem' }}>
+
+                {/* ── Real-time today strip ─────────────────────────────── */}
+                {profile?.onboardingComplete && (
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', overflowX: 'auto', scrollbarWidth: 'none' }}>
+                    {[
+                      { label: 'Today XP', value: `+${xp?.history?.filter(h => h.date === today).reduce((s, h) => s + (h.xp ?? 0), 0) ?? 0}`, color: '#fbbf24', icon: '⭐' },
+                      { label: 'Done Today', value: `${habitLogs.filter(l => l.date === today && l.completed).length}/${habits.filter(h => h.isActive).length}`, color: '#4ade80', icon: '✅' },
+                      { label: 'Level', value: xp?.level ?? 1, color: '#c084fc', icon: '🏅' },
+                      { label: 'Total XP', value: (xp?.total ?? 0).toLocaleString(), color: '#a78bfa', icon: '💎' },
+                    ].map(s => (
+                      <div key={s.label} style={{ flexShrink: 0, padding: '0.72rem 1rem', borderRadius: 14, background: `${s.color}10`, border: `1px solid ${s.color}28`, textAlign: 'center', minWidth: 80 }}>
+                        <p style={{ margin: '0 0 2px', fontSize: '1.2rem' }}>{s.icon}</p>
+                        <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: 900, color: s.color, fontFamily: "'Outfit', sans-serif", lineHeight: 1 }}>{s.value}</p>
+                        <p style={{ margin: '3px 0 0', fontSize: '0.65rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Outfit', sans-serif", fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {/* Top stats row */}
                 <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1rem' }}>
                     <StatCard icon="🔥" label="Best Streak" value={longestStreak} sub={bestStreakHabit ? habits.find(h => h.id === bestStreakHabit[0])?.name?.slice(0, 14) : undefined} color="#f97316" />
@@ -269,32 +289,32 @@ export default function InsightsPage() {
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1.5rem' }}>
-                    <StatCard icon="🧘" label="Min Meditated" value={totalMinutesMeditated} color="#a78bfa" />
-                    <StatCard icon="🕉️" label="Mantra Reps" value={totalMantraReps.toLocaleString()} color="#fbbf24" />
-                    <StatCard icon="✍️" label="Words Written" value={journalWordCount.toLocaleString()} color="#4ade80" />
+                    <StatCard icon="🧘" label="Min Meditated" value={isNaN(totalMinutesMeditated) ? 0 : totalMinutesMeditated} color="#a78bfa" />
+                    <StatCard icon="🙏" label="Mantra Reps" value={isNaN(totalMantraReps) ? '0' : totalMantraReps.toLocaleString()} color="#fbbf24" />
+                    <StatCard icon="✍️" label="Words Written" value={isNaN(journalWordCount) ? '0' : journalWordCount.toLocaleString()} color="#4ade80" />
                 </div>
 
                 {/* XP / Level */}
                 {xp && (
-                    <div style={{ padding: '1rem', borderRadius: 16, background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)', marginBottom: '1.25rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                                <span style={{ fontSize: '1.1rem' }}>⭐</span>
+                    <div style={{ padding: '1rem 1.1rem', borderRadius: 16, background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.22)', marginBottom: '1.25rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                                <span style={{ fontSize: '1.4rem' }}>⭐</span>
                                 <div>
-                                    <p style={{ margin: 0, fontSize: '0.78rem', fontWeight: 800, color: '#fff', fontFamily: "'Outfit', sans-serif" }}>Level {xp.level}</p>
-                                    <p style={{ margin: 0, fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif" }}>{xp.total} XP total</p>
+                                    <p style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, color: '#fff', fontFamily: "'Outfit', sans-serif" }}>Level {xp.level}</p>
+                                    <p style={{ margin: 0, fontSize: '0.68rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Outfit', sans-serif" }}>{(xp.total ?? 0).toLocaleString()} XP total</p>
                                 </div>
                             </div>
-                            <div style={{ textAlign: 'right' }}>
-                                <p style={{ margin: 0, fontSize: '0.7rem', color: '#c084fc', fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>{getNextLevel(xp.total) ? getNextLevel(xp.total)!.minXP - xp.total : 0} XP to next level</p>
-                            </div>
+                            <p style={{ margin: 0, fontSize: '0.75rem', color: '#c084fc', fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>
+                                {getNextLevel(xp.total) ? `${(getNextLevel(xp.total)!.minXP - xp.total)} XP to next` : 'Max Level 🏆'}
+                            </p>
                         </div>
-                        <div style={{ height: 6, borderRadius: 3, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+                        <div style={{ height: 7, borderRadius: 4, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
                             <motion.div
                                 initial={{ width: 0 }}
                                 animate={{ width: `${Math.min(100, (() => { const nl = getNextLevel(xp.total); const pl = nl ? LEVELS.find((_, i) => LEVELS[i + 1]?.minXP === nl.minXP) : null; const base = pl?.minXP ?? 0; const range = (nl?.minXP ?? xp.total + 1) - base; return range > 0 ? ((xp.total - base) / range) * 100 : 100; })())}%` }}
                                 transition={{ duration: 1.2, ease: 'easeOut' }}
-                                style={{ height: '100%', background: 'linear-gradient(90deg, #a855f7, #7c3aed)', borderRadius: 3 }}
+                                style={{ height: '100%', background: 'linear-gradient(90deg, #a855f7, #7c3aed)', borderRadius: 4 }}
                             />
                         </div>
                     </div>
@@ -302,7 +322,7 @@ export default function InsightsPage() {
 
                 {/* 7-day bar chart */}
                 <div style={{ padding: '1rem', borderRadius: 16, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', marginBottom: '1.25rem' }}>
-                    <p style={{ margin: '0 0 0.85rem', fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.12em', textTransform: 'uppercase' }}>7-Day Completion</p>
+                    <p style={{ margin: '0 0 0.85rem', fontSize: '0.78rem', fontWeight: 800, color: 'rgba(255,255,255,0.48)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.12em', textTransform: 'uppercase' }}>7-Day Completion</p>
                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end', height: 60 }}>
                         {last7DayStats.map(day => (
                             <div key={day.date} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
@@ -323,14 +343,14 @@ export default function InsightsPage() {
 
                 {/* 90-day heatmap */}
                 <div style={{ padding: '1rem', borderRadius: 16, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', marginBottom: '1.25rem' }}>
-                    <p style={{ margin: '0 0 0.85rem', fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.12em', textTransform: 'uppercase' }}>90-Day Activity Map</p>
+                    <p style={{ margin: '0 0 0.85rem', fontSize: '0.78rem', fontWeight: 800, color: 'rgba(255,255,255,0.48)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.12em', textTransform: 'uppercase' }}>90-Day Activity Map</p>
                     <StreakHeatmap logs={allCompletionDates} color="#a855f7" />
                 </div>
 
                 {/* Life area radar */}
                 {lifeAreaScores.length >= 3 && (
                     <div style={{ padding: '1rem', borderRadius: 16, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', marginBottom: '1.25rem' }}>
-                        <p style={{ margin: '0 0 0.85rem', fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.12em', textTransform: 'uppercase' }}>Life Balance Radar — Last 30 Days</p>
+                        <p style={{ margin: '0 0 0.85rem', fontSize: '0.78rem', fontWeight: 800, color: 'rgba(255,255,255,0.48)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.12em', textTransform: 'uppercase' }}>Life Balance Radar — Last 30 Days</p>
                         <div style={{ display: 'flex', justifyContent: 'center' }}>
                             <RadarChart data={lifeAreaScores} />
                         </div>
@@ -344,7 +364,7 @@ export default function InsightsPage() {
                             <p style={{ margin: 0, fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.12em', textTransform: 'uppercase' }}>Mood Trend — 30 Days</p>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                                 <Activity size={12} style={{ color: '#c084fc' }} />
-                                <span style={{ fontSize: '0.62rem', color: '#c084fc', fontFamily: "'Outfit', sans-serif', fontWeight: 700" }}>avg {avgMood}/5</span>
+                                <span style={{ fontSize: '0.62rem', color: '#c084fc', fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>avg {avgMood}/5</span>
                             </div>
                         </div>
                         <MoodTrendLine moods={moodTimeline} />
@@ -358,7 +378,7 @@ export default function InsightsPage() {
                 {/* Streak breakdown */}
                 {Object.keys(streaks).length > 0 && (
                     <div style={{ padding: '1rem', borderRadius: 16, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                        <p style={{ margin: '0 0 0.85rem', fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.12em', textTransform: 'uppercase' }}>Active Streaks</p>
+                        <p style={{ margin: '0 0 0.85rem', fontSize: '0.78rem', fontWeight: 800, color: 'rgba(255,255,255,0.48)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.12em', textTransform: 'uppercase' }}>Active Streaks</p>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                             {Object.entries(streaks)
                                 .filter(([, s]) => s.currentStreak > 0)

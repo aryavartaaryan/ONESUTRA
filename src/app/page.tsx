@@ -19,8 +19,10 @@ import SmartLogBubbles from '@/components/Dashboard/SmartLogBubbles';
 
 import EphemeralGreeting from '@/components/HomePage/EphemeralGreeting';
 import StickyTopNav from '@/components/HomePage/StickyTopNav';
+import LifestylePanel from '@/components/HomePage/LifestylePanel';
 import StickyFeedbackButton from '@/components/StickyFeedbackButton';
 import MagicSyncModule from '@/components/Dashboard/MagicSyncModule';
+import { useLifestyleEngine } from '@/hooks/useLifestyleEngine';
 
 import BrahmastraFocusCard from '@/components/Dashboard/BrahmastraFocusCard';
 import UpgradeDonateCard from '@/components/Dashboard/UpgradeDonateCard';
@@ -32,6 +34,8 @@ import { useDailyTasks } from '@/hooks/useDailyTasks';
 import { useEnergyProtector } from '@/hooks/useEnergyProtector';
 import { useBrahmastraState } from '@/hooks/useBrahmastraState';
 
+import { useRouter } from 'next/navigation';
+import { useDoshaEngine } from '@/hooks/useDoshaEngine';
 import { useLanguage } from '@/context/LanguageContext';
 import homeStyles from './vedic-home.module.css';
 import dashStyles from './dashboard.module.css';
@@ -95,11 +99,74 @@ function fmt12h(h: number, m: number) {
 
 
 
+// ─── Home Mood Options ────────────────────────────────────────────────────────
+const HOME_MOOD_OPTIONS = [
+  { value: 5, emoji: '🥥', label: 'Radiant', color: '#fbbf24' },
+  { value: 4, emoji: '🍓', label: 'Good', color: '#4ade80' },
+  { value: 3, emoji: '🥑', label: 'Okay', color: '#60a5fa' },
+  { value: 2, emoji: '🫐', label: 'Low', color: '#a78bfa' },
+  { value: 1, emoji: '🍋', label: 'Hard', color: '#f87171' },
+];
+
+// ─── Ayurveda Home Card ───────────────────────────────────────────────────────
+function AyurvedaHomeCard() {
+  const router = useRouter();
+  const { doshaOnboardingComplete, prakriti, currentPhase } = useDoshaEngine();
+  const DOSHA_COLORS: Record<string, string> = { vata: '#a78bfa', pitta: '#fb923c', kapha: '#4ade80' };
+  const primaryColor = prakriti ? (DOSHA_COLORS[prakriti.primary] ?? '#fb923c') : '#fb923c';
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.35, duration: 0.5 }}
+      onClick={() => router.push('/lifestyle/prakriti')}
+      style={{
+        margin: '0 0.6rem 1.2rem',
+        padding: '1rem 1.1rem',
+        borderRadius: 20,
+        background: 'linear-gradient(135deg, rgba(251,146,60,0.12), rgba(124,58,237,0.08))',
+        border: `1.5px solid ${primaryColor}35`,
+        cursor: 'pointer',
+        display: 'flex', alignItems: 'center', gap: '0.9rem',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        boxShadow: `0 4px 24px ${primaryColor}18`,
+      }}
+    >
+      <motion.div
+        animate={{ scale: [1, 1.12, 1] }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ fontSize: '2rem', flexShrink: 0, filter: `drop-shadow(0 0 10px ${primaryColor}80)` }}
+      >🪷</motion.div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {doshaOnboardingComplete && prakriti ? (
+          <>
+            <p style={{ margin: '0 0 0.15rem', fontSize: '0.82rem', fontWeight: 800, color: primaryColor, fontFamily: "'Outfit', sans-serif" }}>
+              {prakriti.combo.toUpperCase()} · {currentPhase.label}
+            </p>
+            <p style={{ margin: 0, fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.4 }}>
+              {currentPhase.quality} · Tap to open Ayurvedic dashboard
+            </p>
+          </>
+        ) : (
+          <>
+            <p style={{ margin: '0 0 0.15rem', fontSize: '0.82rem', fontWeight: 800, color: '#fb923c', fontFamily: "'Outfit', sans-serif" }}>Discover Your Prakriti</p>
+            <p style={{ margin: 0, fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.4 }}>Know your Ayurvedic constitution — personalise your entire lifestyle</p>
+          </>
+        )}
+      </div>
+      <div style={{ color: `${primaryColor}80`, flexShrink: 0, fontSize: '1.1rem' }}>›</div>
+    </motion.div>
+  );
+}
+
 export default function Home() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
-  const [mood, setMood] = useState<string | null>(null);
   const [showMoodCheck, setShowMoodCheck] = useState(true);
+  const [editingMood, setEditingMood] = useState(false);
+  const lifestyleEngine = useLifestyleEngine();
   const { user, loading: authLoading } = useOneSutraAuth();
   const userName = user?.name || null;
   const [userId, setUserId] = useState<string | null>(null); // Firebase UID for greeting dedup
@@ -329,71 +396,64 @@ export default function Home() {
           </motion.div>
         )}
 
-        {/* ══ MOOD DETECTOR — Topmost ══ */}
-        {!isPortalOpen && !mood && showMoodCheck && (
+        {/* ══ ELEGANT MOOD PICKER — Topmost ══ */}
+        {!isPortalOpen && showMoodCheck && (
           <motion.div
-            initial={{ opacity: 0, y: -12 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
             style={{
-              width: '100%',
-              maxWidth: 380,
-              margin: '0.8rem auto 0.4rem',
-              background: 'rgba(8,6,22,0.80)',
-              backdropFilter: 'blur(24px)',
-              WebkitBackdropFilter: 'blur(24px)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: 999,
-              padding: '6px 12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
+              margin: '0.5rem 0.75rem 0',
+              padding: '0.55rem 0.9rem',
+              borderRadius: 14,
+              background: lifestyleEngine.todayMood
+                ? `linear-gradient(135deg, ${HOME_MOOD_OPTIONS.find(m => m.value === lifestyleEngine.todayMood!.mood)?.color ?? '#a78bfa'}12, rgba(255,255,255,0.02))`
+                : 'rgba(8,6,22,0.72)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: `1px solid ${lifestyleEngine.todayMood ? ((HOME_MOOD_OPTIONS.find(m => m.value === lifestyleEngine.todayMood!.mood)?.color ?? '#a78bfa') + '30') : 'rgba(255,255,255,0.1)'}`,
+              boxShadow: '0 4px 24px rgba(0,0,0,0.35)',
               zIndex: 100,
-              boxShadow: '0 4px 20px rgba(0,0,0,0.40)',
             }}
           >
-            <span style={{ fontSize: '0.50rem', color: 'rgba(255,255,255,0.50)', fontWeight: 600, fontFamily: "'Inter', sans-serif", textTransform: 'uppercase', letterSpacing: '0.1em', marginRight: 4 }}>How are you feeling?</span>
-            {[
-              { emoji: '😔', label: 'low', color: '#f87171' },
-              { emoji: '😌', label: 'calm', color: '#2dd4bf' },
-              { emoji: '🙂', label: 'good', color: '#4ade80' },
-              { emoji: '⚡', label: 'energetic', color: '#fbbf24' },
-              { emoji: '🧘', label: 'mindful', color: '#c4b5fd' },
-            ].map((m) => (
-              <motion.button
-                key={m.label}
-                whileHover={{ scale: 1.15 }}
-                whileTap={{ scale: 0.88 }}
-                onClick={() => { setMood(m.label); setShowMoodCheck(false); }}
-                style={{
-                  background: 'transparent',
-                  border: '1px solid rgba(255,255,255,0.10)',
-                  borderRadius: '50%',
-                  cursor: 'pointer',
-                  fontSize: '1rem',
-                  width: 30,
-                  height: 30,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.2s',
-                  padding: 0,
-                }}
-                title={m.label}
-              >
-                {m.emoji}
-              </motion.button>
-            ))}
-            <button
-              onClick={() => setShowMoodCheck(false)}
-              style={{
-                background: 'none', border: 'none',
-                color: 'rgba(255,255,255,0.35)', cursor: 'pointer',
-                fontSize: '0.9rem', marginLeft: 4, padding: '0 4px',
-              }}
-            >×</button>
+            {lifestyleEngine.todayMood && !editingMood ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <span style={{ fontSize: '1.3rem' }}>{HOME_MOOD_OPTIONS.find(m => m.value === lifestyleEngine.todayMood!.mood)?.emoji}</span>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 800, color: '#fff', fontFamily: "'Outfit', sans-serif" }}>
+                    Feeling {HOME_MOOD_OPTIONS.find(m => m.value === lifestyleEngine.todayMood!.mood)?.label} &middot; <span style={{ color: 'rgba(255,255,255,0.38)', fontWeight: 500, fontSize: '0.72rem' }}>logged ✔</span>
+                  </p>
+                </div>
+                <motion.button whileTap={{ scale: 0.9 }} onClick={() => setEditingMood(true)}
+                  style={{ padding: '0.22rem 0.65rem', borderRadius: 99, background: 'rgba(168,85,247,0.16)', border: '1px solid rgba(168,85,247,0.35)', color: '#c084fc', fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer', fontFamily: "'Outfit', sans-serif", flexShrink: 0, whiteSpace: 'nowrap' }}>
+                  Update
+                </motion.button>
+                <button onClick={() => setShowMoodCheck(false)}
+                  style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.28)', cursor: 'pointer', fontSize: '1rem', padding: '0 2px' }}>×</button>
+              </div>
+            ) : (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                  <p style={{ margin: 0, fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)', fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>{editingMood ? '↻ Update your mood' : '✦ How are you feeling right now?'}</p>
+                  <button onClick={() => { setShowMoodCheck(false); setEditingMood(false); }}
+                    style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.28)', cursor: 'pointer', fontSize: '1rem', padding: '0 2px' }}>×</button>
+                </div>
+                <div style={{ display: 'flex', gap: '0.38rem' }}>
+                  {HOME_MOOD_OPTIONS.map(m => (
+                    <motion.button key={m.value} whileTap={{ scale: 0.85 }}
+                      onClick={() => { lifestyleEngine.logMood(m.value, 3, [], undefined); setEditingMood(false); }}
+                      style={{
+                        flex: 1, padding: '0.3rem 0.1rem', borderRadius: 10, cursor: 'pointer',
+                        background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                      }}>
+                      <span style={{ fontSize: '1.1rem' }}>{m.emoji}</span>
+                      <span style={{ fontSize: '0.55rem', color: m.color, fontWeight: 700, fontFamily: "'Outfit', sans-serif" }}>{m.label}</span>
+                    </motion.button>
+                  ))}
+                </div>
+              </>
+            )}
           </motion.div>
         )}
 
@@ -450,12 +510,12 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ delay: 0.25, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             style={{
               background: 'transparent',
               position: 'relative', zIndex: 9,
               marginTop: '0.5rem',
-              marginBottom: '2rem'
+              marginBottom: '1rem'
             }}
           >
             <MagicSyncModule
@@ -465,6 +525,18 @@ export default function Home() {
               onAdd={addTask}
               onUpdate={updateTask}
             />
+          </motion.div>
+        )}
+
+        {/* ══ LIFESTYLE HUB — integrated from /lifestyle ══ */}
+        {!isPortalOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            style={{ position: 'relative', zIndex: 10 }}
+          >
+            <LifestylePanel />
           </motion.div>
         )}
 
@@ -478,7 +550,7 @@ export default function Home() {
           {/* CENTER FEED */}
           <div className={dashStyles.feedCenter}>
 
-            {/* Sacred Portal Grid */}
+            {/* Sacred Portal Grid — shifted below lifestyle hub */}
             <SacredPortalGrid />
 
             {/* Invite Card — viral growth */}

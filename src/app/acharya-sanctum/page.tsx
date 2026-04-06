@@ -7,7 +7,7 @@ import { useAcharyaOnboarding, type AyurvedicProfile } from '@/hooks/useAcharyaO
 import OnboardingBodhiOrb, { type OnboardingOrbState } from '@/components/Dashboard/OnboardingBodhiOrb';
 import { Mic, MicOff } from 'lucide-react';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
-
+import { useLanguage } from '@/context/LanguageContext';
 import { useCircadianUnsplash } from '@/hooks/useCircadianUnsplash';
 
 // ── Save profile to Firestore + mark onboarding complete ────────────────────
@@ -88,6 +88,7 @@ export default function AcharyaSanctumPage() {
     const router = useRouter();
     const [phase, setPhase] = useState<Phase>('language-select');
     const [lang, setLang] = useState<'en' | 'hi'>('en');
+    const { setLang: setGlobalLang } = useLanguage();
     const { imageUrl: bgUrl } = useCircadianUnsplash();
     const [chatInput, setChatInput] = useState('');
     const { user } = useOneSutraAuth();
@@ -169,10 +170,11 @@ export default function AcharyaSanctumPage() {
     // ── Handle language selection ─────────────────────────────────────────────
     const handleLangSelect = useCallback((selectedLang: 'en' | 'hi') => {
         setLang(selectedLang);
+        setGlobalLang(selectedLang); // persist globally for Bodhi chat & entire app
         setPhase('sanctum');
         // Start the voice session after framer motion fade (300ms)
         setTimeout(() => startOnboarding(selectedLang), 500);
-    }, [startOnboarding]);
+    }, [startOnboarding, setGlobalLang]);
 
     // ── Chat fallback send ────────────────────────────────────────────────────
     const handleTextSend = useCallback(() => {

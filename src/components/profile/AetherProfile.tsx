@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
+import { useDoshaEngine } from '@/hooks/useDoshaEngine';
+import { useLanguage } from '@/context/LanguageContext';
 import { getFirebaseFirestore } from '@/lib/firebase';
 import { doc, onSnapshot, collection, query, where, getDocs, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import styles from './AetherProfile.module.css';
@@ -1154,7 +1156,10 @@ interface ProfileDoc {
   joinedDate?: string;
   bio?: string;
   sex?: string;
-  gender?: 'male' | 'female';
+  gender?: string;
+  dob?: string;
+  age?: number | string;
+  occupation?: string;
   interests?: string[];
   hobbies?: string[];
   profession?: string;
@@ -1176,10 +1181,12 @@ const SANGHA_ACCENTS = ['#A78BFA', '#34D399', '#F59E0B', '#22D3EE', '#F472B6', '
 export default function AetherProfile({ viewedUid, autoEnquire }: { viewedUid?: string; autoEnquire?: boolean } = {}) {
   const { user, loading: authLoading } = useOneSutraAuth();
   const router = useRouter();
+  const { lang, setLang } = useLanguage();
 
   const targetUid = viewedUid || user?.uid;
   const isOwnProfile = !viewedUid || viewedUid === user?.uid;
 
+  const doshaEngine = useDoshaEngine();
   const [activeView, setActiveView] = useState<'main' | 'metrics'>('main');
   const [profileDoc, setProfileDoc] = useState<ProfileDoc | null>(null);
   const [wellnessScore] = useState(78);
@@ -1269,12 +1276,25 @@ export default function AetherProfile({ viewedUid, autoEnquire }: { viewedUid?: 
   const displayName = profileDoc?.name || user?.name || 'Sadhaka';
   const handle = profileDoc?.handle || (displayName.toLowerCase().replace(/\s+/g, '') + '_onesutra');
   const photoURL = isOwnProfile ? (profileDoc?.photoURL || user?.photoURL) : profileDoc?.photoURL;
-  const prakriti = profileDoc?.prakriti || 'Vata-Pitta';
+  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+  const enginePrakritiStr = isOwnProfile && doshaEngine.prakriti
+    ? (doshaEngine.prakriti.secondary
+        ? `${capitalize(doshaEngine.prakriti.primary)}-${capitalize(doshaEngine.prakriti.secondary)}`
+        : capitalize(doshaEngine.prakriti.primary))
+    : null;
+  const prakriti = enginePrakritiStr || profileDoc?.prakriti || 'Vata-Pitta';
+  const doshaScores = isOwnProfile && doshaEngine.prakriti?.scores ? doshaEngine.prakriti.scores : null;
+  const doshaMetrics = isOwnProfile ? doshaEngine.metrics : null;
   const connections = profileDoc?.vibeConnections ?? 0;
   const joinedLabel = profileDoc?.joinedDate || 'Feb 2025';
   const bio = (profileDoc as any)?.bio || '';
 
-  const doshaInfo = prakriti?.includes('Pitta')
+  const doshaInfo = enginePrakritiStr ? (doshaEngine.prakriti?.primary === 'pitta'
+    ? { insight: 'Your Fire constitution thrives with cooling foods, non-competitiveness, and structured rest.' }
+    : doshaEngine.prakriti?.primary === 'kapha'
+      ? { insight: 'Your Earth-Water nature shines with morning movement, warm spices, and consistent sunlight.' }
+      : { insight: 'Your Air-Ether nature needs grounding foods, warm oils, and consistent daily rhythm.' })
+    : prakriti?.includes('Pitta')
     ? { insight: 'Your Air-Fire constitution thrives with cooling foods, breathwork, and structured mornings.' }
     : prakriti?.includes('Kapha')
       ? { insight: 'Your Earth-Water nature shines with morning movement, warm spices, and sunlight.' }
@@ -1488,6 +1508,100 @@ export default function AetherProfile({ viewedUid, autoEnquire }: { viewedUid?: 
 
         <div className={styles.tilesGrid}>
 
+          {/* ── TILE 0: Personal Details ── */}
+          <motion.div
+            className={`${styles.glassTile} ${styles.glassTileWide}`}
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.20 }}
+          >
+            <div className={styles.tileHeader}>
+              <div className={styles.tileTitle}>
+                <div className={styles.tileIconWrap} style={{ background: 'rgba(34,211,238,0.14)' }}>🪪</div>
+                <div>
+                  <div>Personal Details</div>
+                  <div className={styles.tileSub}>Your identity at a glance</div>
+                </div>
+              </div>
+              {isOwnProfile && (
+                <button className={styles.tileEditBtn} onClick={() => router.push('/profile/edit')}>
+                  <Edit2 size={11} />
+                </button>
+              )}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px' }}>
+              {[
+                {
+                  icon: '🎂',
+                  label: 'Date of Birth',
+                  value: (() => {
+                    const raw = profileDoc?.dob;
+                    if (!raw) return isOwnProfile ? 'Not set' : '—';
+                    try {
+                      return new Date(raw).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                    } catch { return raw; }
+                  })(),
+                  color: '#F472B6',
+                },
+                {
+                  icon: '👤',
+                  label: 'Gender',
+                  value: (() => {
+                    const g = profileDoc?.gender || profileDoc?.sex;
+                    if (!g) return isOwnProfile ? 'Not set' : '—';
+                    const map: Record<string, string> = { male: '♂️ Male', female: '♀️ Female', non_binary: '⚧️ Non-Binary', prefer_not: 'Prefer not to say', Male: '♂️ Male', Female: '♀️ Female', Other: '⚧️ Other' };
+                    return map[g] || g;
+                  })(),
+                  color: '#A78BFA',
+                },
+                {
+                  icon: '🎯',
+                  label: 'Age',
+                  value: profileDoc?.age ? `${profileDoc.age} yrs` : (isOwnProfile ? 'Not set' : '—'),
+                  color: '#34D399',
+                },
+                {
+                  icon: '💼',
+                  label: 'Occupation',
+                  value: (() => {
+                    const occ = profileDoc?.occupation || profileDoc?.profession;
+                    if (!occ) return isOwnProfile ? 'Not set' : '—';
+                    const map: Record<string, string> = { student: 'Student', professional: 'Professional', creative: 'Creative / Artist', entrepreneur: 'Entrepreneur', home_maker: 'Home Maker' };
+                    return map[occ] || occ;
+                  })(),
+                  color: '#FBBF24',
+                },
+                {
+                  icon: '📅',
+                  label: 'Member Since',
+                  value: joinedLabel,
+                  color: '#60A5FA',
+                },
+                {
+                  icon: '🌿',
+                  label: 'Prakriti',
+                  value: prakriti,
+                  color: '#4ADE80',
+                },
+              ].map(item => (
+                <div key={item.label} style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 8,
+                  padding: '8px 10px',
+                  background: `rgba(${item.color === '#F472B6' ? '244,114,182' : item.color === '#A78BFA' ? '167,139,250' : item.color === '#34D399' ? '52,211,153' : item.color === '#FBBF24' ? '251,191,36' : item.color === '#60A5FA' ? '96,165,250' : '74,222,128'},0.07)`,
+                  border: `1px solid ${item.color}22`,
+                  borderRadius: 12,
+                }}>
+                  <span style={{ fontSize: '1rem', lineHeight: 1, marginTop: 1, flexShrink: 0 }}>{item.icon}</span>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: '0.50rem', color: 'rgba(255,255,255,0.35)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: "'Outfit',sans-serif", marginBottom: 2 }}>{item.label}</div>
+                    <div style={{ fontSize: '0.68rem', color: item.value.includes('Not set') ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.82)', fontWeight: 600, fontFamily: "'Outfit',sans-serif", lineHeight: 1.3, wordBreak: 'break-word' }}>{item.value}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
           {/* ── TILE A: Professional & Social Identity ── */}
           <motion.div
             className={styles.glassTile}
@@ -1609,10 +1723,10 @@ export default function AetherProfile({ viewedUid, autoEnquire }: { viewedUid?: 
             {/* Pranic vitals: Agni, Ojas, Tejas, Sattva */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 12px', marginBottom: 10 }}>
               {[
-                { label: 'Agni', icon: '🔥', desc: 'Digestive Fire', val: 76, color: '#F59E0B' },
-                { label: 'Ojas', icon: '💎', desc: 'Vital Essence', val: 72, color: '#14B8A6' },
-                { label: 'Tejas', icon: '✨', desc: 'Radiant Intelligence', val: 80, color: '#FCD34D' },
-                { label: 'Sattva', icon: '🕊️', desc: 'Mental Clarity', val: 83, color: '#A78BFA' },
+                { label: 'Agni', icon: '🔥', desc: 'Digestive Fire', val: doshaMetrics?.agni ?? 76, color: '#F59E0B' },
+                { label: 'Ojas', icon: '💎', desc: 'Vital Essence', val: doshaMetrics?.ojas ?? 72, color: '#14B8A6' },
+                { label: 'Tejas', icon: '✨', desc: 'Radiant Intelligence', val: doshaMetrics ? Math.round((doshaMetrics.agni + doshaMetrics.ojas) / 2 + 5) : 80, color: '#FCD34D' },
+                { label: 'Sattva', icon: '🕊️', desc: 'Mental Clarity', val: doshaMetrics ? Math.round(doshaMetrics.ojas * 1.1) : 83, color: '#A78BFA' },
               ].map(item => (
                 <div key={item.label} style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1765,8 +1879,9 @@ export default function AetherProfile({ viewedUid, autoEnquire }: { viewedUid?: 
               <div className={styles.metricsInsight}>{doshaInfo.insight}</div>
               {/* Dosha percentage breakdown */}
               {(() => {
-                const vata = prakriti.includes('Vata') ? (prakriti === 'Vata' ? 60 : prakriti === 'Tri-Dosha' ? 33 : 42) : (prakriti.includes('Pitta') ? 18 : 20);
-                const pitta = prakriti.includes('Pitta') ? (prakriti === 'Pitta' ? 60 : prakriti === 'Tri-Dosha' ? 33 : 42) : 20;
+                const scoreTotal = doshaScores ? doshaScores.vata + doshaScores.pitta + doshaScores.kapha : 0;
+                const vata = doshaScores && scoreTotal > 0 ? Math.round(doshaScores.vata / scoreTotal * 100) : prakriti.includes('Vata') ? (prakriti === 'Vata' ? 60 : prakriti === 'Tri-Dosha' ? 33 : 42) : (prakriti.includes('Pitta') ? 18 : 20);
+                const pitta = doshaScores && scoreTotal > 0 ? Math.round(doshaScores.pitta / scoreTotal * 100) : prakriti.includes('Pitta') ? (prakriti === 'Pitta' ? 60 : prakriti === 'Tri-Dosha' ? 33 : 42) : 20;
                 const kapha = 100 - vata - pitta;
                 return (
                   <>
@@ -1784,9 +1899,9 @@ export default function AetherProfile({ viewedUid, autoEnquire }: { viewedUid?: 
                 );
               })()}
               {[
-                { label: 'Agni 🔥', value: 78, color: '#F59E0B' },
-                { label: 'Ojas 💎', value: 75, color: '#14B8A6' },
-                { label: 'Sattva ✨', value: 82, color: '#A78BFA' },
+                { label: 'Agni 🔥', value: doshaMetrics?.agni ?? 78, color: '#F59E0B' },
+                { label: 'Ojas 💎', value: doshaMetrics?.ojas ?? 75, color: '#14B8A6' },
+                { label: 'Sattva ✨', value: doshaMetrics ? Math.round(doshaMetrics.ojas * 1.1) : 82, color: '#A78BFA' },
               ].map((item) => (
                 <div key={item.label} className={styles.scoreBarRow}>
                   <span className={styles.scoreBarLabel}>{item.label}</span>
@@ -1837,9 +1952,9 @@ export default function AetherProfile({ viewedUid, autoEnquire }: { viewedUid?: 
               </div>
               <div className={styles.metricsInsight}>{doshaInfo.insight}</div>
               {[
-                { label: 'Agni 🔥', value: 78, color: '#F59E0B' },
-                { label: 'Sattva ✨', value: 82, color: '#A78BFA' },
-                { label: 'Ojas 💎', value: 75, color: '#14B8A6' },
+                { label: 'Agni 🔥', value: doshaMetrics?.agni ?? 78, color: '#F59E0B' },
+                { label: 'Sattva ✨', value: doshaMetrics ? Math.round(doshaMetrics.ojas * 1.1) : 82, color: '#A78BFA' },
+                { label: 'Ojas 💎', value: doshaMetrics?.ojas ?? 75, color: '#14B8A6' },
                 { label: 'Nidra 🌙', value: 65, color: '#60A5FA' },
               ].map((item) => (
                 <div key={item.label} className={styles.scoreBarRow}>
@@ -2073,6 +2188,61 @@ export default function AetherProfile({ viewedUid, autoEnquire }: { viewedUid?: 
           })()}
         </div>
       </motion.div>
+
+      {/* ════════════════════════════════════════
+          BODHI LANGUAGE — own profile only
+      ════════════════════════════════════════ */}
+      {isOwnProfile && (
+        <motion.div
+          className={styles.sectionBlock}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.76 }}
+        >
+          <div className={styles.sectionHeader}>
+            <span className={styles.sectionTitle}>🗣️ Bodhi Language</span>
+          </div>
+          <div style={{ padding: '0.85rem 1rem', background: 'rgba(167,139,250,0.07)', border: '1px solid rgba(167,139,250,0.18)', borderRadius: 16 }}>
+            <p style={{ margin: '0 0 0.6rem', fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', fontFamily: "'Outfit',sans-serif", lineHeight: 1.5 }}>
+              Choose the language Bodhi speaks to you in throughout the app.
+            </p>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <motion.button
+                whileTap={{ scale: 0.93 }}
+                onClick={() => setLang('en')}
+                style={{
+                  flex: 1, padding: '0.65rem 0.5rem', borderRadius: 12, cursor: 'pointer',
+                  background: lang === 'en' ? 'rgba(167,139,250,0.22)' : 'rgba(255,255,255,0.04)',
+                  border: `1.5px solid ${lang === 'en' ? 'rgba(167,139,250,0.60)' : 'rgba(255,255,255,0.10)'}`,
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                  boxShadow: lang === 'en' ? '0 0 14px rgba(167,139,250,0.28)' : 'none',
+                  transition: 'all 0.22s',
+                }}
+              >
+                <span style={{ fontSize: '1.3rem' }}>🇬🇧</span>
+                <span style={{ fontSize: '0.68rem', fontWeight: 800, color: lang === 'en' ? '#a78bfa' : 'rgba(255,255,255,0.45)', fontFamily: "'Outfit',sans-serif" }}>English</span>
+                {lang === 'en' && <span style={{ fontSize: '0.50rem', color: '#a78bfa', fontWeight: 700, letterSpacing: '0.1em' }}>ACTIVE</span>}
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.93 }}
+                onClick={() => setLang('hi')}
+                style={{
+                  flex: 1, padding: '0.65rem 0.5rem', borderRadius: 12, cursor: 'pointer',
+                  background: lang === 'hi' ? 'rgba(251,191,36,0.18)' : 'rgba(255,255,255,0.04)',
+                  border: `1.5px solid ${lang === 'hi' ? 'rgba(251,191,36,0.55)' : 'rgba(255,255,255,0.10)'}`,
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                  boxShadow: lang === 'hi' ? '0 0 14px rgba(251,191,36,0.22)' : 'none',
+                  transition: 'all 0.22s',
+                }}
+              >
+                <span style={{ fontSize: '1.3rem' }}>🇮🇳</span>
+                <span style={{ fontSize: '0.68rem', fontWeight: 800, color: lang === 'hi' ? '#fbbf24' : 'rgba(255,255,255,0.45)', fontFamily: "'Outfit',sans-serif" }}>हिन्दी</span>
+                {lang === 'hi' && <span style={{ fontSize: '0.50rem', color: '#fbbf24', fontWeight: 700, letterSpacing: '0.1em' }}>ACTIVE</span>}
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* ════════════════════════════════════════
           INTEGRATIONS — own profile only (private)

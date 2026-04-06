@@ -1804,8 +1804,8 @@ function FullscreenReelModal({
                                     </div>
                                     <div style={{ padding: '0.65rem 1rem 1rem', borderTop: '1px solid rgba(255,255,255,0.07)', display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
                                         <input value={commentText} onChange={e => setCommentText(e.target.value)} onKeyDown={e => e.key === 'Enter' && postComment()}
-                                            placeholder="Write your vibes and today's experience"
-                                            style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 99, padding: '0.55rem 1rem', color: '#fff', fontSize: '0.78rem', fontFamily: "'Cormorant Garamond','Playfair Display',Georgia,serif", fontStyle: 'italic', outline: 'none' }} />
+                                            placeholder="Write your today's vibes and experience…"
+                                            style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 99, padding: '0.55rem 1rem', color: '#fff', fontSize: '0.95rem', fontFamily: "'Cormorant Garamond','Playfair Display',Georgia,serif", fontStyle: 'italic', outline: 'none' }} />
                                         <motion.button whileTap={{ scale: 0.92 }} onClick={postComment} disabled={!commentText.trim() || posting}
                                             style={{ background: commentText.trim() ? 'linear-gradient(135deg,#8b5cf6,#ec4899)' : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 99, padding: '0.55rem 1.1rem', color: '#fff', fontSize: '0.75rem', fontWeight: 700, fontFamily: "'Inter',sans-serif", cursor: commentText.trim() ? 'pointer' : 'default', whiteSpace: 'nowrap' as const }}>
                                             Post
@@ -1825,8 +1825,8 @@ function FullscreenReelModal({
                                 value={commentText}
                                 onChange={e => setCommentText(e.target.value)}
                                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); postComment(); } }}
-                                placeholder="Write your today vibes and experience…"
-                                style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 99, padding: '0.44rem 0.85rem', color: '#fff', fontSize: '0.72rem', fontFamily: "'Cormorant Garamond','Playfair Display',Georgia,serif", fontStyle: 'italic', outline: 'none', letterSpacing: '0.01em' }}
+                                placeholder="Write your today's vibes and experience…"
+                                style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 99, padding: '0.5rem 1rem', color: '#fff', fontSize: '0.95rem', fontFamily: "'Cormorant Garamond','Playfair Display',Georgia,serif", fontStyle: 'italic', outline: 'none', letterSpacing: '0.01em' }}
                             />
                             {commentText.trim() && (
                                 <motion.button
@@ -2238,8 +2238,6 @@ function AuraSpaceInner() {
                                 <span style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.3)' }}>{feedItems.length} items</span>
                             </div>
 
-                            {/* ── INVITE CARD ── */}
-                            <InviteCard userName={currentUser?.name} style={{ margin: '0.4rem 1rem 0.8rem' }} />
 
                             {/* ── SHORTS-STYLE GRID ── */}
                             <div style={{

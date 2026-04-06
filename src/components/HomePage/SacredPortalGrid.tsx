@@ -82,7 +82,8 @@ const ORBIT_ITEMS: OrbItem[] = [
         shape: '',
     },
     { id: 'gurukul', title: 'Gurukul', subtitle: 'World-Class Wisdom', description: '🏛️ World\'s Premier Gurukul — AI, Mathematics & Modern Sciences + Bhagavat Gita, Upanishads, Sanskrit Vyakaran, Darshan & Vedic wisdom. We also provide Startup Support: ideas, product development & launch.', href: '/vedic-sangrah', color: '#f59e0b', glow: '#d97706', icon: '🪔✦', shape: '' },
-    { id: 'lifestyle', title: 'Lifestyle', subtitle: 'Sacred Daily Practices', description: 'Your personalised AI-powered lifestyle sanctuary — habits, mantra sadhana, pranayama, journaling, mood tracking, streaks & your wise AI companion guiding every step of your sacred daily practice.', href: '/lifestyle', color: '#c084fc', glow: '#9333ea', icon: '🌱', shape: '' },
+    { id: 'lifestyle', title: 'Lifestyle', subtitle: 'Sacred Daily Practices', description: 'Your personalised AI-powered lifestyle sanctuary — habits, mantra sadhana, pranayama, journaling, mood tracking, streaks & your wise AI companion guiding every step of your sacred daily practice.', href: '/', color: '#c084fc', glow: '#9333ea', icon: '🌱', shape: '' },
+    { id: 'ayurveda', title: 'Ayurveda', subtitle: 'Prakriti & Dosha OS', description: 'Discover your Ayurvedic body constitution (Prakriti), track daily rituals with the Dinacharya board, get dosha-aware habits, and chat with Bodhi Vaidya — your personal Ayurvedic wisdom guide.', href: '/lifestyle/prakriti', color: '#fb923c', glow: '#ea580c', icon: '🪷✦', shape: '' },
 ];
 
 
@@ -267,7 +268,37 @@ function GeodeOrb({ item, sz, idx }: { item: OrbItem; sz: number; idx: number })
                                 r="1.4" fill={item.color} fillOpacity="0.88" />;
                         })}
                     </svg>
-                ) : item.icon === '🪔✦' ? (
+                ) : item.icon === '�✦' ? (
+                    /* ── Ayurveda: lotus flower with tridosha mandala ── */
+                    <svg width={sz * 0.50} height={sz * 0.50} viewBox="0 0 48 48" fill="none"
+                        style={{ position: 'relative', zIndex: 2, filter: `drop-shadow(0 0 ${sz * 0.14}px ${item.color}) drop-shadow(0 0 ${sz * 0.08}px rgba(255,180,100,0.7))` }}>
+                        <circle cx="24" cy="24" r="21" stroke={item.color} strokeWidth="0.7" strokeOpacity="0.4" strokeDasharray="2 3" />
+                        {/* 8 lotus petals */}
+                        {[0, 45, 90, 135, 180, 225, 270, 315].map((deg, k) => {
+                            const rad = deg * Math.PI / 180;
+                            const cx2 = 24 + Math.cos(rad) * 9;
+                            const cy2 = 24 + Math.sin(rad) * 9;
+                            return (
+                                <ellipse key={k} cx={cx2} cy={cy2} rx="3.2" ry="6"
+                                    fill={`${item.color}${k % 2 === 0 ? '55' : '30'}`}
+                                    stroke={item.color} strokeWidth="0.8" strokeOpacity="0.9"
+                                    transform={`rotate(${deg + 90}, ${cx2}, ${cy2})`}
+                                />
+                            );
+                        })}
+                        {/* Tridosha triangle (Vata/Pitta/Kapha) */}
+                        <polygon points="24,13 32,30 16,30" fill="none" stroke={item.color} strokeWidth="1" strokeOpacity="0.7" />
+                        <circle cx="24" cy="24" r="5.5" fill={`${item.color}44`} />
+                        <circle cx="24" cy="24" r="3.5" fill={`${item.color}cc`} />
+                        <circle cx="24" cy="24" r="1.5" fill="#fff" fillOpacity="0.95" />
+                        {/* Outer dots */}
+                        {[0, 60, 120, 180, 240, 300].map((deg, k) => {
+                            const rad = deg * Math.PI / 180;
+                            return <circle key={k} cx={24 + Math.cos(rad) * 18.5} cy={24 + Math.sin(rad) * 18.5}
+                                r="1.2" fill={item.color} fillOpacity="0.75" />;
+                        })}
+                    </svg>
+                ) : item.icon === '��✦' ? (
                     /* ── GuruKul: sacred lamp (diya) of knowledge ── */
                     <svg width={sz * 0.48} height={sz * 0.48} viewBox="0 0 48 48" fill="none"
                         style={{ position: 'relative', zIndex: 2, filter: `drop-shadow(0 0 ${sz * 0.14}px ${item.color}) drop-shadow(0 0 ${sz * 0.08}px rgba(255,210,80,0.7))` }}>

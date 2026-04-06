@@ -8,6 +8,8 @@ import { X } from 'lucide-react';
 import { useDailyTasks, type TaskItem } from '@/hooks/useDailyTasks';
 import { BODHI_DEFAULT_STORIES } from '@/components/HomePage/StickyTopNav';
 import { MANTRA_REELS } from '@/components/PranaVerse/MantraReelFeed';
+import { useDoshaEngine } from '@/hooks/useDoshaEngine';
+import { useLifestyleEngine } from '@/hooks/useLifestyleEngine';
 
 // ── User story types (mirroring StickyTopNav) ─────────────────────────
 type UserStoryCategory = 'task' | 'challenge' | 'idea' | 'issue' | 'wellness' | 'log';
@@ -80,7 +82,7 @@ function UserTaskBubble({ story, isViewed, onClick, idx }: { story: UserTaskStor
         >
             {/* Conic gradient ring */}
             <div style={{
-                width: 68, height: 68, borderRadius: '50%', padding: 3,
+                width: 96, height: 96, borderRadius: '50%', padding: 3,
                 background: isViewed
                     ? 'rgba(255,255,255,0.08)'
                     : `conic-gradient(${story.ringColors[0]} 0deg, ${story.ringColors[1]} 90deg, ${story.ringColors[0]} 180deg, ${story.ringColors[1]} 270deg, ${story.ringColors[0]} 360deg)`,
@@ -101,7 +103,7 @@ function UserTaskBubble({ story, isViewed, onClick, idx }: { story: UserTaskStor
                     }} />
                     {/* Emoji */}
                     <span style={{
-                        fontSize: '1.4rem',
+                        fontSize: '1.85rem',
                         filter: `drop-shadow(0 0 10px ${story.color}) drop-shadow(0 0 5px ${story.color}cc)`,
                         opacity: isViewed ? 0.5 : 1,
                         position: 'relative', zIndex: 1,
@@ -112,21 +114,21 @@ function UserTaskBubble({ story, isViewed, onClick, idx }: { story: UserTaskStor
                     <div style={{
                         position: 'absolute', bottom: -1, right: -1,
                         background: `linear-gradient(135deg,${story.color},${story.accentColor})`,
-                        borderRadius: '50%', width: 16, height: 16,
+                        borderRadius: '50%', width: 20, height: 20,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         border: '2px solid #000',
                         boxShadow: `0 0 8px ${story.color}80`,
-                        fontSize: '0.5rem',
+                        fontSize: '0.55rem',
                     }}>
                         <span style={{ fontSize: '0.45rem' }}>{story.category === 'task' ? '✓' : story.category === 'idea' ? '★' : story.category === 'challenge' ? '⚡' : '⚠'}</span>
                     </div>
                 )}
             </div>
             <span style={{
-                fontSize: '0.48rem', fontFamily: "'Inter',sans-serif", fontWeight: 700,
+                fontSize: '0.58rem', fontFamily: "'Inter',sans-serif", fontWeight: 700,
                 color: isViewed ? 'rgba(255,255,255,0.28)' : story.color,
                 letterSpacing: '0.04em', textAlign: 'center',
-                maxWidth: 66, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                maxWidth: 96, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 textShadow: isViewed ? 'none' : `0 0 8px ${story.color}80`,
             }}>{story.label}</span>
         </motion.div>
@@ -174,6 +176,14 @@ const BG_TASK_IMAGES: Record<string, string[]> = {
         'https://images.unsplash.com/photo-1501630834273-4b5604d2ee31?w=400&h=600&fit=crop&q=80',
         'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=600&fit=crop&q=80',
         'https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=400&h=600&fit=crop&q=80',
+    ],
+    log: [
+        'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1518623489648-a173ef7824f3?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=400&h=600&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=400&h=600&fit=crop&q=80',
     ],
 };
 
@@ -298,7 +308,7 @@ function UserTaskViewer({ stories, currentIdx, onClose, onNext, onPrev, onRemove
                     {/* Action */}
                     {story.category !== 'idea' && (
                         <motion.button
-                            onClick={e => { e.stopPropagation(); onRemove(story.taskId); onNext(); }}
+                            onClick={e => { e.stopPropagation(); if (story.category !== 'log') onRemove(story.taskId); onNext(); }}
                             whileHover={{ scale: 1.06, boxShadow: `0 8px 40px ${story.accentColor}60` }}
                             whileTap={{ scale: 0.96 }}
                             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
@@ -313,7 +323,7 @@ function UserTaskViewer({ stories, currentIdx, onClose, onNext, onPrev, onRemove
                                 fontFamily: "'Inter',sans-serif",
                             }}
                         >
-                            {story.category === 'challenge' ? '⚡ Overcame It' : story.category === 'issue' ? '✓ Resolved' : '✓ Done'}
+                            {story.category === 'log' ? '✨ Beautiful Practice!' : story.category === 'challenge' ? '⚡ Overcame It' : story.category === 'issue' ? '✓ Resolved' : '✓ Done'}
                         </motion.button>
                     )}
                 </div>
@@ -969,6 +979,171 @@ function PanchangSlideContent({ panchang }: { panchang: ReturnType<typeof comput
     );
 }
 
+// ── Prakriti Story Slide ──────────────────────────────────────────────────────
+const PRAKRITI_INFO: Record<string, {
+    emoji: string; color: string; secondColor: string; gradient: string;
+    essence: string; tagline: string; qualities: string[];
+}> = {
+    Vata: {
+        emoji: '🌬️', color: '#a78bfa', secondColor: '#c084fc',
+        gradient: 'linear-gradient(135deg,#4c1d95,#7c3aed)',
+        essence: 'Swift · Creative · Luminous',
+        tagline: 'Woven from the forces of Air & Space',
+        qualities: ['Extraordinary intuition', 'Artistic vision', 'Effortless grace', 'Rapid thought', 'Sensitive spirit'],
+    },
+    Pitta: {
+        emoji: '🔥', color: '#fb923c', secondColor: '#fbbf24',
+        gradient: 'linear-gradient(135deg,#7c2d12,#c2410c)',
+        essence: 'Sharp · Focused · Radiant',
+        tagline: 'Forged from the forces of Fire & Water',
+        qualities: ['Natural leader', 'Precise intellect', 'Fierce determination', 'Transformative power', 'Magnetic presence'],
+    },
+    Kapha: {
+        emoji: '🌿', color: '#34d399', secondColor: '#6ee7b7',
+        gradient: 'linear-gradient(135deg,#064e3b,#065f46)',
+        essence: 'Steady · Nurturing · Eternal',
+        tagline: 'Rooted in the forces of Earth & Water',
+        qualities: ['Deep compassion', 'Unshakeable stability', 'Boundless endurance', 'Loyal heart', 'Sacred patience'],
+    },
+};
+
+function PrakritiSlideContent({ prakriti, userName }: { prakriti: string; userName: string }) {
+    const info = PRAKRITI_INFO[prakriti] ?? PRAKRITI_INFO.Vata;
+    return (
+        <div style={{ padding: '0 1.5rem', textAlign: 'center', width: '100%' }}>
+            <motion.div initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.1, type: 'spring', stiffness: 220 }}
+                style={{ fontSize: '3.5rem', marginBottom: '0.5rem', filter: `drop-shadow(0 0 28px ${info.color}99)` }}>
+                {info.emoji}
+            </motion.div>
+            <motion.p initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}
+                style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '0.58rem', fontWeight: 700, color: info.color, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '0.2rem', textShadow: `0 0 16px ${info.color}88` }}>
+                Your Prakriti
+            </motion.p>
+            <motion.h2 initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.28 }}
+                style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 'clamp(1.6rem,6vw,2.1rem)', fontWeight: 700, color: '#fff', textShadow: `0 0 32px ${info.color}66, 0 2px 12px rgba(0,0,0,0.8)`, marginBottom: '0.15rem', lineHeight: 1.15 }}>
+                {prakriti} Prakriti
+            </motion.h2>
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.38 }}
+                style={{ fontSize: '0.72rem', color: info.color, fontStyle: 'italic', letterSpacing: '0.04em', marginBottom: '0.18rem', textShadow: `0 0 12px ${info.color}66` }}>
+                {info.essence}
+            </motion.p>
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.44 }}
+                style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.42)', letterSpacing: '0.06em', marginBottom: '0.85rem', fontStyle: 'italic' }}>
+                {info.tagline}
+            </motion.p>
+            <motion.div initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.52 }}
+                style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                {info.qualities.map((q, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: `${info.color}0d`, border: `1px solid ${info.color}28`, borderRadius: 10, padding: '0.35rem 0.75rem', backdropFilter: 'blur(8px)' }}>
+                        <span style={{ fontSize: '0.55rem', color: info.color, fontWeight: 800, letterSpacing: '0.04em', fontFamily: "'Inter',sans-serif" }}>✦</span>
+                        <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.82)', fontFamily: "'Cormorant Garamond',serif", fontStyle: 'italic' }}>{q}</span>
+                    </div>
+                ))}
+            </motion.div>
+            {userName && (
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}
+                    style={{ marginTop: '0.75rem', fontSize: '0.56rem', color: 'rgba(255,255,255,0.28)', fontFamily: "'Cormorant Garamond',serif", fontStyle: 'italic', letterSpacing: '0.06em' }}>
+                    — For {userName}, with love ✦
+                </motion.p>
+            )}
+        </div>
+    );
+}
+
+// ── Discover Prakriti Fallback Slide ─────────────────────────────────────────
+function DiscoverPrakritiContent({ userName }: { userName: string }) {
+    return (
+        <div style={{ padding: '0 1.5rem', textAlign: 'center', width: '100%' }}>
+            <motion.div animate={{ scale: [1, 1.15, 1], rotate: [0, 8, -8, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                style={{ fontSize: '3.8rem', marginBottom: '0.5rem', filter: 'drop-shadow(0 0 32px #a78bfa99)' }}>
+                🌿
+            </motion.div>
+            <motion.p initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.15 }}
+                style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '0.56rem', fontWeight: 700, color: '#a78bfa', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: '0.25rem', textShadow: '0 0 16px #a78bfa88' }}>
+                Ayurvedic Identity
+            </motion.p>
+            <motion.h2 initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.25 }}
+                style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 'clamp(1.5rem,5.5vw,2rem)', fontWeight: 700, color: '#fff', textShadow: '0 0 32px #a78bfa66, 0 2px 12px rgba(0,0,0,0.8)', marginBottom: '0.35rem', lineHeight: 1.2 }}>
+                Discover Your Prakriti
+            </motion.h2>
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.38 }}
+                style={{ fontSize: '0.72rem', color: '#a78bfa', fontStyle: 'italic', letterSpacing: '0.04em', marginBottom: '0.9rem' }}>
+                Vata · Pitta · Kapha — your cosmic blueprint
+            </motion.p>
+            <motion.div initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.48 }}
+                style={{ background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.25)', borderRadius: 14, padding: '0.8rem 1rem', backdropFilter: 'blur(8px)', marginBottom: '1rem' }}>
+                <p style={{ margin: 0, fontFamily: "'Cormorant Garamond',serif", fontSize: '0.85rem', fontStyle: 'italic', color: 'rgba(255,255,255,0.78)', lineHeight: 1.65, textShadow: '0 1px 6px rgba(0,0,0,0.5)' }}>
+                    &ldquo;The knowledge of Prakriti is the mirror through which you see your truest self — your elemental nature, your gifts, your sacred path.&rdquo;
+                </p>
+            </motion.div>
+            <motion.a href="/lifestyle/prakriti" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
+                style={{ display: 'inline-block', padding: '0.75rem 2rem', borderRadius: 50, background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', border: 'none', color: '#fff', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'none', fontFamily: "'Inter',sans-serif", boxShadow: '0 6px 28px rgba(124,58,237,0.45)' }}>
+                Begin Your Quiz ✦
+            </motion.a>
+            {userName && (
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.75 }}
+                    style={{ marginTop: '0.65rem', fontSize: '0.54rem', color: 'rgba(255,255,255,0.25)', fontFamily: "'Cormorant Garamond',serif", fontStyle: 'italic' }}>
+                    — A sacred gift for {userName}
+                </motion.p>
+            )}
+        </div>
+    );
+}
+
+// ── Mood Story Slide ──────────────────────────────────────────────────────────
+const MOOD_STORY_INFO: Record<string, { emoji: string; color: string; gradient: string; message: string; affirmation: string }> = {
+    great: { emoji: '😄', color: '#fbbf24', gradient: 'linear-gradient(135deg,#78350f,#d97706)', message: 'You are vibrating high today!', affirmation: 'Your radiance is contagious. Channel this golden energy into creation and watch the universe mirror it back.' },
+    good: { emoji: '🙂', color: '#4ade80', gradient: 'linear-gradient(135deg,#064e3b,#059669)', message: 'A steady, grounded day', affirmation: 'Balance is your superpower. You are exactly where you need to be — rooted, present, and whole.' },
+    okay: { emoji: '😐', color: '#60a5fa', gradient: 'linear-gradient(135deg,#1e3a5f,#2563eb)', message: 'Neutral is wisdom', affirmation: 'The still lake reflects the stars most clearly. Your quiet calm is itself a profound form of strength.' },
+    low: { emoji: '😔', color: '#a78bfa', gradient: 'linear-gradient(135deg,#2e1065,#7c3aed)', message: 'Be gentle with yourself', affirmation: 'Even the moon wanes before it shines again. Honor your shadows — they carry seeds of your next blossoming.' },
+    stressed: { emoji: '😤', color: '#f87171', gradient: 'linear-gradient(135deg,#450a0a,#b91c1c)', message: 'Your nervous system needs care', affirmation: 'Breathe deep into your belly. Every exhale releases what no longer serves you. You are safe. You are held.' },
+};
+
+function MoodStoryContent({ mood, energy, userName }: { mood: number; energy: number; userName: string }) {
+    const moodKeyMap: Record<number, string> = { 5: 'great', 4: 'good', 3: 'okay', 2: 'low', 1: 'stressed' };
+    const moodKey = moodKeyMap[mood] ?? 'okay';
+    const info = MOOD_STORY_INFO[moodKey] ?? MOOD_STORY_INFO.okay;
+    const energyBars = Math.min(5, Math.max(1, energy));
+    return (
+        <div style={{ padding: '0 1.5rem', textAlign: 'center', width: '100%' }}>
+            <motion.div animate={{ scale: [1, 1.1, 1], rotate: [0, 4, -4, 0] }}
+                transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+                style={{ fontSize: '3.8rem', marginBottom: '0.6rem', filter: `drop-shadow(0 0 28px ${info.color}99)` }}>
+                {info.emoji}
+            </motion.div>
+            <motion.p initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.18 }}
+                style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '0.58rem', fontWeight: 700, color: info.color, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '0.2rem', textShadow: `0 0 14px ${info.color}88` }}>
+                Today&rsquo;s Mood
+            </motion.p>
+            <motion.h2 initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.26 }}
+                style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 'clamp(1.4rem,5.5vw,1.9rem)', fontWeight: 700, color: '#fff', textShadow: `0 0 28px ${info.color}55, 0 2px 12px rgba(0,0,0,0.8)`, marginBottom: '0.4rem', lineHeight: 1.2 }}>
+                {info.message}
+            </motion.h2>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.34 }}
+                style={{ display: 'flex', justifyContent: 'center', gap: 5, marginBottom: '0.9rem' }}>
+                {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} style={{ width: 22, height: 6, borderRadius: 3, background: i < energyBars ? info.color : 'rgba(255,255,255,0.12)', boxShadow: i < energyBars ? `0 0 8px ${info.color}88` : 'none', transition: 'all 0.3s' }} />
+                ))}
+                <span style={{ fontSize: '0.52rem', color: 'rgba(255,255,255,0.4)', fontFamily: "'Inter',sans-serif", marginLeft: 4, alignSelf: 'center' }}>Energy</span>
+            </motion.div>
+            <motion.div initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.42 }}
+                style={{ background: `${info.color}0d`, border: `1px solid ${info.color}28`, borderRadius: 14, padding: '0.8rem 1rem', backdropFilter: 'blur(8px)' }}>
+                <p style={{ margin: 0, fontFamily: "'Cormorant Garamond',serif", fontSize: '0.88rem', fontStyle: 'italic', color: 'rgba(255,255,255,0.82)', lineHeight: 1.65, textShadow: '0 1px 6px rgba(0,0,0,0.5)' }}>
+                    &ldquo;{info.affirmation}&rdquo;
+                </p>
+            </motion.div>
+            {userName && (
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.62 }}
+                    style={{ marginTop: '0.65rem', fontSize: '0.54rem', color: 'rgba(255,255,255,0.28)', fontFamily: "'Cormorant Garamond',serif", fontStyle: 'italic', letterSpacing: '0.06em' }}>
+                    — For {userName} ✦ PranaVerse
+                </motion.p>
+            )}
+        </div>
+    );
+}
+
 // ── Video Bubble — shows live video preview through circular window ───────────
 function VideoBubble({ story, isViewed, idx }: { story: VideoStory; isViewed: boolean; idx: number }) {
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -1491,7 +1666,7 @@ function MantraStoryViewer({
             video?.pause();
             setPlaying(false);
         } else {
-            audio.play().then(() => { setPlaying(true); video?.play().catch(() => {}); }).catch(() => { });
+            audio.play().then(() => { setPlaying(true); video?.play().catch(() => { }); }).catch(() => { });
         }
     };
 
@@ -1684,11 +1859,51 @@ export default function HomeStoryBar() {
     const [activeUserTaskIdx, setActiveUserTaskIdx] = useState<number | null>(null);
     const [activeMantraIdx, setActiveMantraIdx] = useState<number | null>(null);
     const { tasks, removeTask } = useDailyTasks();
+    const { prakriti } = useDoshaEngine();
+    const { todayMood, activeHabits, getTodayStatus, seedStarterHabits } = useLifestyleEngine();
+    const [activeLogIdx, setActiveLogIdx] = useState<number | null>(null);
+
+    useEffect(() => { if (activeHabits.length === 0) seedStarterHabits(); }, []);  // seed once on mount
+
+    const userName = React.useMemo(() => {
+        if (typeof window === 'undefined') return '';
+        try {
+            const cached = localStorage.getItem('onesutra_auth_v1');
+            if (cached) { const p = JSON.parse(cached); if (p?.name && p.name !== 'Traveller') return p.name; }
+        } catch { }
+        return localStorage.getItem('vedic_user_name') || '';
+    }, []);
 
     const userTaskStories = React.useMemo(() => buildUserTaskStories(tasks), [tasks]);
 
+    // Build log stories from ALL active habits (completed = green, pending = blue)
+    const logStories: UserTaskStory[] = React.useMemo(() => {
+        const { completedIds } = getTodayStatus();
+        return activeHabits.map((h) => {
+            const done = completedIds.has(h.id);
+            return {
+                id: `log-${h.id}`,
+                taskId: h.id,
+                category: 'log' as UserStoryCategory,
+                label: h.name.length > 12 ? h.name.slice(0, 11) + '…' : h.name,
+                text: h.name,
+                emoji: h.icon,
+                color: done ? '#4ade80' : '#60a5fa',
+                accentColor: done ? '#22c55e' : '#3b82f6',
+                bgGradient: done ? 'linear-gradient(135deg,#001a0e,#002a18)' : 'linear-gradient(135deg,#001428,#002855)',
+                ringColors: done ? ['#4ade80', '#86efac'] as [string, string] : ['#60a5fa', '#93c5fd'] as [string, string],
+                sublabel: done ? 'Done ✔' : 'Pending',
+                aiAdvice: h.description,
+            };
+        });
+    }, [activeHabits, getTodayStatus]);
+
     // Build image story groups
     const todayPanchang = computeDailyPanchang(new Date());
+    const prakritiKey = prakriti ? (prakriti.primary.charAt(0).toUpperCase() + prakriti.primary.slice(1)) : null;
+    const prakritiInfo = prakritiKey ? (PRAKRITI_INFO[prakritiKey] ?? PRAKRITI_INFO.Vata) : null;
+    const moodInfo = todayMood ? (MOOD_STORY_INFO[todayMood.mood] ?? MOOD_STORY_INFO.okay) : null;
+
     const imageGroups: StoryGroup[] = [
         {
             id: 'panchang', label: 'Cosmic Date', icon: '☀️', color: '#fbbf24',
@@ -1699,6 +1914,30 @@ export default function HomeStoryBar() {
                 { id: 'p2', bg: getImg(1), accent: '#fde68a', content: <WisdomSlideContent q={WISDOM_QUOTES[0]} /> },
             ],
         },
+        {
+            id: 'prakriti',
+            label: prakritiKey ? `${prakritiKey} Prakriti` : 'Prakriti',
+            icon: prakritiInfo?.emoji ?? '🌿',
+            color: prakritiInfo?.color ?? '#a78bfa',
+            gradient: prakritiInfo?.gradient ?? 'linear-gradient(135deg,#3b0764,#7c3aed)',
+            ringColors: [prakritiInfo?.color ?? '#a78bfa', prakritiInfo?.secondColor ?? '#c084fc'] as [string, string],
+            slides: [
+                {
+                    id: 'pk1', bg: getImg(2), accent: prakritiInfo?.color ?? '#a78bfa',
+                    content: prakritiKey
+                        ? <PrakritiSlideContent prakriti={prakritiKey} userName={userName} />
+                        : <DiscoverPrakritiContent userName={userName} />,
+                },
+            ],
+        },
+        ...(todayMood && moodInfo ? [{
+            id: 'mood-today', label: 'My Mood', icon: moodInfo.emoji, color: moodInfo.color,
+            gradient: moodInfo.gradient,
+            ringColors: [moodInfo.color, '#fbbf24'] as [string, string],
+            slides: [
+                { id: 'md1', bg: getImg(3), accent: moodInfo.color, content: <MoodStoryContent mood={todayMood.mood} energy={todayMood.energy} userName={userName} /> },
+            ],
+        }] : []),
         {
             id: 'mantras', label: 'Mantras', icon: '🪔', color: '#c084fc',
             gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)',
@@ -1764,7 +2003,7 @@ export default function HomeStoryBar() {
         return () => window.removeEventListener('popstate', handler);
     }, [activeGroupIdx, activeVideoIdx, activeUserTaskIdx]);
 
-    const isAnyViewerOpen = activeGroupIdx !== null || activeVideoIdx !== null || activeUserTaskIdx !== null || activeMantraIdx !== null;
+    const isAnyViewerOpen = activeGroupIdx !== null || activeVideoIdx !== null || activeUserTaskIdx !== null || activeMantraIdx !== null || activeLogIdx !== null;
     const [isMounted, setIsMounted] = useState(false);
     useEffect(() => { setIsMounted(true); }, []);
 
@@ -1815,7 +2054,7 @@ export default function HomeStoryBar() {
             }}>
                 {/* "Add Story" */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', flexShrink: 0, scrollSnapAlign: 'start', scrollSnapStop: 'always' }}>
-                    <div style={{ width: 58, height: 58, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', border: '1.5px dashed rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', cursor: 'pointer' }}>+</div>
+                    <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', border: '1.5px dashed rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem', cursor: 'pointer' }}>+</div>
                     <span style={{ fontSize: '0.48rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.04em' }}>Your Story</span>
                 </div>
 
@@ -1836,8 +2075,26 @@ export default function HomeStoryBar() {
                     );
                 })}
 
-                {/* Divider between user stories and cosmic/mantra stories */}
-                {userTaskStories.length > 0 && (
+                {/* ── LOG STORIES: completed habits today ── */}
+                {logStories.length > 0 && (
+                    <>
+                        {userTaskStories.length > 0 && (
+                            <div style={{ width: 1, height: 48, background: 'rgba(96,165,250,0.2)', flexShrink: 0, alignSelf: 'center' }} />
+                        )}
+                        <div style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always', flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
+                            <UserCategoryGroupBubble
+                                category="log"
+                                stories={logStories}
+                                onOpen={() => { setActiveLogIdx(0); setViewedIds(v => new Set([...v, logStories[0]?.id ?? ''])); }}
+                                isViewed={logStories.every(s => viewedIds.has(s.id))}
+                                idx={99}
+                            />
+                        </div>
+                    </>
+                )}
+
+                {/* Divider between user/log stories and cosmic/mantra stories */}
+                {(userTaskStories.length > 0 || logStories.length > 0) && (
                     <div style={{ width: 1, height: 58, background: 'rgba(251,191,36,0.18)', flexShrink: 0, alignSelf: 'center' }} />
                 )}
 
@@ -1860,7 +2117,7 @@ export default function HomeStoryBar() {
                             }}
                         >
                             <div style={{
-                                width: 68, height: 68, borderRadius: '50%', padding: 3,
+                                width: 86, height: 86, borderRadius: '50%', padding: 3,
                                 background: isViewed
                                     ? 'rgba(255,255,255,0.08)'
                                     : `conic-gradient(${group.ringColors[0]} 0deg, #fde68a 90deg, ${group.ringColors[1]} 180deg, #fde68a 270deg, ${group.ringColors[0]} 360deg)`,
@@ -1880,7 +2137,7 @@ export default function HomeStoryBar() {
                                     </div>
                                 </div>
                             </div>
-                            <span style={{ fontSize: '0.48rem', fontFamily: "'Inter',sans-serif", fontWeight: 700, color: isViewed ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.88)', letterSpacing: '0.04em', textAlign: 'center', maxWidth: 66, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{group.label}</span>
+                            <span style={{ fontSize: '0.52rem', fontFamily: "'Inter',sans-serif", fontWeight: 700, color: isViewed ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.88)', letterSpacing: '0.04em', textAlign: 'center', maxWidth: 86, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{group.label}</span>
                         </motion.div>
                     );
                 })}
@@ -1906,7 +2163,7 @@ export default function HomeStoryBar() {
                             }}
                         >
                             <div style={{
-                                width: 68, height: 68, borderRadius: '50%', padding: 3,
+                                width: 86, height: 86, borderRadius: '50%', padding: 3,
                                 background: isViewed
                                     ? 'rgba(255,255,255,0.08)'
                                     : `conic-gradient(${reel.color} 0deg, ${reel.secondColor} 90deg, ${reel.color} 180deg, ${reel.secondColor} 270deg, ${reel.color} 360deg)`,
@@ -1942,10 +2199,10 @@ export default function HomeStoryBar() {
                                 )}
                             </div>
                             <span style={{
-                                fontSize: '0.45rem', fontFamily: "'Inter',sans-serif", fontWeight: 700,
+                                fontSize: '0.52rem', fontFamily: "'Inter',sans-serif", fontWeight: 700,
                                 color: isViewed ? 'rgba(255,255,255,0.28)' : reel.color,
                                 letterSpacing: '0.04em', textAlign: 'center',
-                                maxWidth: 66, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                maxWidth: 86, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                                 textShadow: isViewed ? 'none' : `0 0 8px ${reel.color}80`,
                             }}>{reel.name.split(' ').slice(0, 2).join(' ')}</span>
                         </motion.div>
@@ -1969,7 +2226,7 @@ export default function HomeStoryBar() {
                             style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', flexShrink: 0, cursor: 'pointer', scrollSnapAlign: 'start', scrollSnapStop: 'always', animation: isViewed ? 'none' : `storyBubbleFloat ${3.8 + idx * 0.35}s ease-in-out ${idx * 0.12}s infinite` }}
                         >
                             <div style={{
-                                width: 68, height: 68, borderRadius: '50%',
+                                width: 86, height: 86, borderRadius: '50%',
                                 padding: 3,
                                 background: isViewed ? 'rgba(255,255,255,0.08)' : `conic-gradient(#fbbf24 0deg, #fde68a 90deg, ${story.color} 180deg, #fde68a 270deg, #fbbf24 360deg)`,
                                 animation: isViewed ? 'none' : `videoRingPulse 2.4s ease-in-out ${idx * 0.22}s infinite, videoShimmer 3s ease-in-out ${idx * 0.18}s infinite`,
@@ -1984,7 +2241,7 @@ export default function HomeStoryBar() {
                                     </div>
                                 )}
                             </div>
-                            <span style={{ fontSize: '0.48rem', fontFamily: "'Inter',sans-serif", fontWeight: 700, color: isViewed ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.88)', letterSpacing: '0.04em', textAlign: 'center', maxWidth: 66, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{story.label}</span>
+                            <span style={{ fontSize: '0.52rem', fontFamily: "'Inter',sans-serif", fontWeight: 700, color: isViewed ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.88)', letterSpacing: '0.04em', textAlign: 'center', maxWidth: 86, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{story.label}</span>
                         </motion.div>
                     );
                 })}
@@ -2004,6 +2261,23 @@ export default function HomeStoryBar() {
                                 onNext={nextUserTask}
                                 onPrev={prevUserTask}
                                 onRemove={removeTask}
+                            />
+                        )}
+                    </AnimatePresence>
+
+                    {/* Completed log story viewer */}
+                    <AnimatePresence>
+                        {activeLogIdx !== null && logStories.length > 0 && (
+                            <UserTaskViewer
+                                stories={logStories}
+                                currentIdx={activeLogIdx}
+                                onClose={() => setActiveLogIdx(null)}
+                                onNext={() => {
+                                    if (activeLogIdx < logStories.length - 1) setActiveLogIdx(i => i! + 1);
+                                    else { setActiveLogIdx(null); openImageGroup(0); }
+                                }}
+                                onPrev={() => { if (activeLogIdx > 0) setActiveLogIdx(i => i! - 1); }}
+                                onRemove={() => { }}
                             />
                         )}
                     </AnimatePresence>

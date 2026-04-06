@@ -10,7 +10,7 @@ export default function ConditionalVahanaBar() {
     const pathname = usePathname();
 
     // Hide navigation in the Dhyan Kshetra experience, acharya sanctum, and pranaverse (needs full screen)
-    const hideNav = pathname.startsWith('/dhyan-kshetra') || pathname.startsWith('/acharya-sanctum') || pathname.startsWith('/pranaverse') || pathname.startsWith('/profile');
+    const hideNav = pathname.startsWith('/dhyan-kshetra') || pathname.startsWith('/acharya-sanctum') || pathname.startsWith('/pranaverse') || pathname.startsWith('/profile') || pathname.startsWith('/lifestyle/onboarding') || pathname.startsWith('/lifestyle/prakriti') || pathname.startsWith('/lifestyle/bodhi-ayurveda');
 
     if (hideNav) return null;
 

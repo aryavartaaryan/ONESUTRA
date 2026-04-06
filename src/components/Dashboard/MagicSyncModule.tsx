@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Clock, Check, X, ChevronRight, Brain, Calendar, ChevronLeft, LayoutGrid, Mic, MicOff, Send } from 'lucide-react';
 import { getFirebaseAuth } from '@/lib/firebase';
 import { getFirebaseFirestore } from '@/lib/firebase';
+import { getTimedBubbles, getTimeLabel } from '@/components/Dashboard/SmartLogBubbles';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 export interface Sankalp { id: string; text: string; done: boolean; }
@@ -724,6 +725,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
     const [isGeneratingAdvice, setIsGeneratingAdvice] = useState<string | null>(null);
     const [dropHighlight, setDropHighlight] = useState(false);
     const [activeLogBubble, setActiveLogBubble] = useState<any | null>(null);
+    const [activeUnifiedLog, setActiveUnifiedLog] = useState<string | null>(null);
     const [filterDate, setFilterDate] = useState<string | null>(null);
     // ── Mini Task Summary ───────────────────────────────────────────────────
     const TaskSummary = () => {
@@ -1093,7 +1095,82 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                                 ];
                             }
 
-                            const activeLogs = timeLogs;
+                            // ── Unified logs layer: horizontal scrolling row ──────────────
+                            if (activeLayer === 'logs') {
+                                const unifiedBubbles = getTimedBubbles();
+                                const unifiedTimeLabel = getTimeLabel();
+                                return (
+                                    <div style={{ width: '100%', paddingBottom: '0.1rem' }}>
+                                        {/* Header */}
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.38rem', paddingLeft: '0.1rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                <motion.button whileTap={{ scale: 0.88 }}
+                                                    onClick={() => { setActiveLayer('root'); setActiveUnifiedLog(null); }}
+                                                    style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 99, padding: '0.22rem 0.62rem', cursor: 'pointer', color: 'rgba(255,255,255,0.55)', fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 4, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+                                                    ← BACK
+                                                </motion.button>
+                                                <span style={{ fontSize: '0.62rem', fontWeight: 800, color: unifiedTimeLabel.color, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: "'Outfit', sans-serif", filter: `drop-shadow(0 0 5px ${unifiedTimeLabel.color}60)` }}>
+                                                    {unifiedTimeLabel.prefix}
+                                                </span>
+                                            </div>
+                                            <span style={{ fontSize: '0.48rem', color: 'rgba(255,255,255,0.28)', letterSpacing: '0.08em', fontFamily: "'Outfit', sans-serif" }}>tap to log ✦</span>
+                                        </div>
+                                        {/* Horizontally scrolling quail-sized bubbles */}
+                                        <div className="ms-unified-logs" style={{ display: 'flex', gap: '0.6rem', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '0.22rem', paddingLeft: '0.05rem', paddingRight: '0.3rem' }}>
+                                            <style>{`.ms-unified-logs::-webkit-scrollbar{display:none}`}</style>
+                                            {unifiedBubbles.map((bubble, i) => {
+                                                const isAct = activeUnifiedLog === bubble.id;
+                                                return (
+                                                    <motion.div key={bubble.id}
+                                                        initial={{ opacity: 0, y: 10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        transition={{ delay: i * 0.055, type: 'spring', stiffness: 320, damping: 26 }}
+                                                        style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer' }}
+                                                        onClick={() => setActiveUnifiedLog(isAct ? null : bubble.id)}>
+                                                        <motion.div
+                                                            animate={{ scale: isAct ? 1.1 : 1, boxShadow: isAct ? `0 0 0 2px ${bubble.color}80, 0 0 20px ${bubble.color}50` : `0 0 0 1px ${bubble.color}28, 0 4px 14px rgba(0,0,0,0.35)` }}
+                                                            transition={{ type: 'spring', stiffness: 360, damping: 26 }}
+                                                            style={{ width: 62, height: 62, borderRadius: '50%', background: `radial-gradient(circle at 36% 28%, ${bubble.color}20 0%, rgba(4,2,18,0.18) 75%)`, border: `1.5px solid ${bubble.color}${isAct ? '88' : '35'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.45rem', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', position: 'relative', transition: 'border-color 0.2s' }}>
+                                                            {isAct && (
+                                                                <motion.div initial={{ scale: 1, opacity: 0.6 }} animate={{ scale: 1.55, opacity: 0 }} transition={{ duration: 0.9, repeat: Infinity, ease: 'easeOut' }}
+                                                                    style={{ position: 'absolute', inset: -3, borderRadius: '50%', border: `1.5px solid ${bubble.color}55`, pointerEvents: 'none' }} />
+                                                            )}
+                                                            {bubble.icon}
+                                                        </motion.div>
+                                                        <span style={{ fontSize: '0.47rem', fontWeight: 700, color: isAct ? bubble.color : 'rgba(255,255,255,0.60)', textAlign: 'center', maxWidth: 66, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.04em', filter: isAct ? `drop-shadow(0 0 4px ${bubble.color}80)` : 'none' }}>{bubble.label}</span>
+                                                    </motion.div>
+                                                );
+                                            })}
+                                        </div>
+                                        {/* Sub-options panel */}
+                                        <AnimatePresence>
+                                            {activeUnifiedLog && (() => {
+                                                const bub = unifiedBubbles.find(x => x.id === activeUnifiedLog);
+                                                if (!bub) return null;
+                                                return (
+                                                    <motion.div key={bub.id + '_sub'} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.18 }} style={{ overflow: 'hidden', marginTop: '0.3rem' }}>
+                                                        <div style={{ display: 'flex', gap: '0.22rem', flexWrap: 'wrap' }}>
+                                                            {bub.subOptions.map((sub, si) => (
+                                                                <motion.button key={sub.label} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: si * 0.04, type: 'spring', stiffness: 400, damping: 28 }} whileTap={{ scale: 0.88 }}
+                                                                    onClick={() => { setPendingMessage(`${bub.logMessage} — ${sub.detail}`); setActiveUnifiedLog(null); setActiveLayer('root'); router.push('/bodhi-chat'); }}
+                                                                    style={{ display: 'flex', alignItems: 'center', gap: 5, background: `${bub.color}14`, border: `1px solid ${bub.color}38`, borderRadius: 999, padding: '0.28rem 0.62rem', cursor: 'pointer', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+                                                                    <span style={{ fontSize: '0.82rem', lineHeight: 1 }}>{sub.icon}</span>
+                                                                    <span style={{ fontSize: '0.48rem', fontWeight: 600, color: 'rgba(255,255,255,0.80)', whiteSpace: 'nowrap', fontFamily: "'Outfit', sans-serif" }}>{sub.label}</span>
+                                                                </motion.button>
+                                                            ))}
+                                                            <motion.button whileTap={{ scale: 0.88 }} onClick={() => { setPendingMessage(bub.logMessage); setActiveUnifiedLog(null); setActiveLayer('root'); router.push('/bodhi-chat'); }}
+                                                                style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.18)', borderRadius: 999, padding: '0.28rem 0.62rem', cursor: 'pointer' }}>
+                                                                <span style={{ fontSize: '0.82rem', lineHeight: 1 }}>✏️</span>
+                                                                <span style={{ fontSize: '0.48rem', fontWeight: 600, color: 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap', fontFamily: "'Outfit', sans-serif" }}>Tell Bodhi...</span>
+                                                            </motion.button>
+                                                        </div>
+                                                    </motion.div>
+                                                );
+                                            })()}
+                                        </AnimatePresence>
+                                    </div>
+                                );
+                            }
 
                             let currentBubbles: any[] = [];
                             if (activeLayer === 'root') {
@@ -1109,11 +1186,6 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                                     { key: 'Challenge', label: 'CHALLENGE', emoji: '⚡', count: categoryStats.find(c => c.key === 'Challenge')?.count ?? 0, color: '#fb923c', bg: 'rgba(251,146,60,0.32)', glare: 'rgba(251,146,60,0.65)', anim: 'msFloat2', dur: 4.3, size: 64, arcY: 10 },
                                     { key: 'Idea', label: 'IDEA', emoji: '💡', count: categoryStats.find(c => c.key === 'Idea')?.count ?? 0, color: '#fbbf24', bg: 'rgba(251,191,36,0.32)', glare: 'rgba(251,191,36,0.70)', anim: 'msFloat3', dur: 3.5, size: 78, arcY: -14 },
                                     { key: 'Issue', label: 'ISSUE', emoji: '🔥', count: categoryStats.find(c => c.key === 'Issue')?.count ?? 0, color: '#f87171', bg: 'rgba(248,113,113,0.32)', glare: 'rgba(248,113,113,0.65)', anim: 'msFloat4', dur: 4.7, size: 62, arcY: 8 },
-                                ];
-                            } else if (activeLayer === 'logs') {
-                                currentBubbles = [
-                                    { key: 'BackRoot', label: 'BACK', emoji: '⬅️', count: 0, color: '#9ca3af', bg: 'rgba(156,163,175,0.4)', glare: 'rgba(156,163,175,0.7)', anim: 'msFloat0', dur: 3.5, size: 58, arcY: -4, isFolder: 'root' },
-                                    ...activeLogs,
                                 ];
                             }
 

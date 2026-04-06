@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, VolumeX, X, Play, Pause, User } from 'lucide-react';
 import { useDailyTasks, type TaskItem } from '@/hooks/useDailyTasks';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
+import { useDoshaEngine } from '@/hooks/useDoshaEngine';
 
 // ── Default Bodhi stories (shown when user has no tasks/ideas/etc.) ──────────
 export const BODHI_DEFAULT_STORIES: TaskItem[] = [
@@ -370,11 +371,11 @@ function UserStoryBubble({ story, onClick, index = 0 }: { story: UserStory; onCl
             transition={{ type: 'spring', stiffness: 280, damping: 22, delay: index * 0.07 }}
             style={{
                 flexShrink: 0,
-                width: 88, height: 112,
+                width: 74, height: 92,
                 background: 'none', border: 'none',
                 padding: 0, cursor: 'pointer',
                 position: 'relative',
-                borderRadius: 20,
+                borderRadius: 16,
                 overflow: 'hidden',
                 display: 'flex', flexDirection: 'column',
                 alignItems: 'center',
@@ -496,6 +497,42 @@ function UserStoryBubble({ story, onClick, index = 0 }: { story: UserStory; onCl
     );
 }
 
+// ── Prakriti Story Bubble ─────────────────────────────────────────────────────
+const PRAKRITI_BG = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=700&fit=crop&q=80';
+function getPrakritiColor(label: string): string {
+    if (label.includes('Pitta')) return '#fb923c';
+    if (label.includes('Kapha')) return '#4ade80';
+    return '#a78bfa';
+}
+function PrakritiStoryBubble({ prakritiLabel, onClick }: { prakritiLabel: string; onClick: () => void }) {
+    const col = getPrakritiColor(prakritiLabel);
+    return (
+        <motion.button
+            onClick={onClick}
+            whileTap={{ scale: 0.93 }}
+            whileHover={{ scale: 1.07, y: -5, transition: { duration: 0.22 } }}
+            initial={{ opacity: 0, scale: 0.7, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 280, damping: 22, delay: 0.05 }}
+            style={{ flexShrink: 0, width: 124, height: 156, background: 'none', border: 'none', padding: 0, cursor: 'pointer', position: 'relative', borderRadius: 18, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center', scrollSnapAlign: 'start', transform: 'translateZ(0)' }}
+        >
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${PRAKRITI_BG})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: 22 }} />
+            <div style={{ position: 'absolute', inset: 0, borderRadius: 22, background: `linear-gradient(180deg,${col}30 0%,rgba(0,0,0,0.12) 35%,rgba(0,0,0,0.22) 55%,rgba(0,0,0,0.78) 80%,rgba(0,0,0,0.93) 100%)` }} />
+            <motion.div animate={{ opacity: [0.5, 0.95, 0.5] }} transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+                style={{ position: 'absolute', inset: -2, borderRadius: 24, boxShadow: `0 0 0 2px ${col}88, 0 0 28px ${col}55, 0 10px 36px ${col}35`, pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '30%', borderRadius: '20px 20px 50% 50%', background: 'linear-gradient(180deg,rgba(255,255,255,0.26) 0%,rgba(255,255,255,0.06) 60%,transparent 100%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', width: 34, height: 34, borderRadius: '50%', background: `radial-gradient(circle at 35% 30%,rgba(255,255,255,0.55) 0%,${col}50 60%,rgba(0,0,0,0.1) 100%)`, backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 3px 12px rgba(0,0,0,0.4),inset 0 1px 2px rgba(255,255,255,0.55),0 0 14px ${col}70`, border: '1.5px solid rgba(255,255,255,0.45)', fontSize: 16, zIndex: 2 }}>
+                🪬
+            </div>
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '5px 6px 8px', background: 'rgba(10,0,30,0.50)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', borderTop: `1px solid ${col}44`, zIndex: 2 }}>
+                <div style={{ fontSize: '0.43rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: col, fontFamily: "'Inter',system-ui,sans-serif", textShadow: `0 0 8px ${col}80`, lineHeight: 1.2, marginBottom: 2 }}>Prakriti</div>
+                <div style={{ fontSize: '0.56rem', fontWeight: 800, color: '#fff', fontFamily: "'Inter',system-ui,sans-serif", lineHeight: 1.2 }}>{prakritiLabel}</div>
+                <div style={{ fontSize: '0.44rem', color: `${col}cc`, fontFamily: "'Inter',system-ui,sans-serif" }}>Dosha Blueprint ✦</div>
+            </div>
+        </motion.button>
+    );
+}
+
 // ── Category Group Bubble — ONE packed card per category ──────────────────
 function CategoryGroupBubble({ category, stories, onOpen, index = 0 }: {
     category: UserStoryCategory;
@@ -524,10 +561,10 @@ function CategoryGroupBubble({ category, stories, onOpen, index = 0 }: {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 280, damping: 22, delay: index * 0.09 }}
             style={{
-                flexShrink: 0, width: 122, height: 154,
+                flexShrink: 0, width: 124, height: 156,
                 background: 'none', border: 'none',
                 padding: 0, cursor: 'pointer',
-                position: 'relative', borderRadius: 22,
+                position: 'relative', borderRadius: 18,
                 overflow: 'hidden',
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
                 scrollSnapAlign: 'start', transform: 'translateZ(0)', willChange: 'transform',
@@ -979,11 +1016,11 @@ function StoryBubble({ story, onClick, index = 0 }: { story: typeof STORIES[numb
             transition={{ type: 'spring', stiffness: 260, damping: 20, delay: index * 0.055 }}
             style={{
                 flexShrink: 0,
-                width: 122, height: 154,
+                width: 124, height: 156,
                 background: 'none', border: 'none',
                 padding: 0, cursor: 'pointer',
                 position: 'relative',
-                borderRadius: 22,
+                borderRadius: 18,
                 overflow: 'hidden',
                 display: 'flex', flexDirection: 'column',
                 alignItems: 'center',
@@ -1116,7 +1153,7 @@ function CosmicDateBubble({ onClick }: { onClick: () => void }) {
             initial={{ opacity: 0, scale: 0.7, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 280, damping: 22, delay: 0 }}
-            style={{ flexShrink: 0, width: 122, height: 154, background: 'none', border: 'none', padding: 0, cursor: 'pointer', position: 'relative', borderRadius: 22, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+            style={{ flexShrink: 0, width: 124, height: 156, background: 'none', border: 'none', padding: 0, cursor: 'pointer', position: 'relative', borderRadius: 18, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
         >
             <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${COSMIC_BG})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: 22 }} />
             <div style={{ position: 'absolute', inset: 0, borderRadius: 22, background: 'linear-gradient(180deg,rgba(10,0,40,0.35) 0%,rgba(30,0,80,0.22) 35%,rgba(0,0,0,0.25) 55%,rgba(0,0,0,0.70) 80%,rgba(0,0,0,0.88) 100%)' }} />
@@ -1206,6 +1243,100 @@ function calculatePanchang(): PanchangData {
     return { vaar: VAARS[now.getDay()], tithi, paksha, nakshatra, yoga, sunrise, sunset, festival, masa, samvat };
 }
 
+function PrakritiStoryViewer({ prakritiLabel, totalStoryCount, globalIndex, onClose, onNext, onPrev, direction = 1 }: {
+    prakritiLabel: string; totalStoryCount: number; globalIndex: number;
+    onClose: () => void; onNext: () => void; onPrev: () => void; direction?: number;
+}) {
+    const router = useRouter();
+    const col = getPrakritiColor(prakritiLabel);
+    const isVata = prakritiLabel.toLowerCase().includes('vata');
+    const isPitta = prakritiLabel.toLowerCase().includes('pitta');
+    const fields = isVata ? [
+        { icon: '🌬️', label: 'Elements', value: 'Air + Ether' },
+        { icon: '💡', label: 'Strength', value: 'Creative & Intuitive' },
+        { icon: '🌱', label: 'Balance', value: 'Warmth & Routine' },
+        { icon: '🧘', label: 'Practice', value: 'Grounding Yoga & Abhyanga' },
+    ] : isPitta ? [
+        { icon: '🔥', label: 'Elements', value: 'Fire + Water' },
+        { icon: '🎯', label: 'Strength', value: 'Sharp & Focused Leader' },
+        { icon: '❄️', label: 'Balance', value: 'Cooling & Release' },
+        { icon: '🌊', label: 'Practice', value: 'Moon Salutations & Sheetali' },
+    ] : [
+        { icon: '🌿', label: 'Elements', value: 'Earth + Water' },
+        { icon: '💚', label: 'Strength', value: 'Steady, Loyal & Loving' },
+        { icon: '⚡', label: 'Balance', value: 'Movement & Lightness' },
+        { icon: '🌅', label: 'Practice', value: 'Dynamic Yoga & Kapalabhati' },
+    ];
+    return (
+        <motion.div
+            initial={{ x: direction > 0 ? '100%' : '-100%', opacity: 0.7 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: direction > 0 ? '-100%' : '100%', opacity: 0 }}
+            transition={{ x: { type: 'spring', stiffness: 420, damping: 38 }, opacity: { duration: 0.14 } }}
+            onClick={e => e.stopPropagation()}
+            style={{ position: 'relative', width: '100%', height: '100dvh', maxWidth: '100vw', overflow: 'hidden', background: 'transparent' }}
+        >
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${PRAKRITI_BG})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.35) saturate(1.6)' }} />
+            <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(180deg,${col}35 0%,rgba(5,0,25,0.60) 40%,rgba(0,0,0,0.70) 100%)` }} />
+            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', width: 420, height: 420, background: `radial-gradient(circle,${col}22,transparent 70%)`, top: '-8%', left: '50%', transform: 'translateX(-50%)', filter: 'blur(60px)' }} />
+                <div style={{ position: 'absolute', width: 260, height: 260, background: `radial-gradient(circle,${col}18,transparent 70%)`, bottom: '10%', right: '5%', filter: 'blur(45px)' }} />
+            </div>
+            {/* Progress bars */}
+            <div style={{ position: 'absolute', top: 14, left: 12, right: 12, display: 'flex', gap: 4, zIndex: 20 }}>
+                {Array.from({ length: totalStoryCount }).map((_, i) => (
+                    <div key={i} style={{ flex: 1, height: 2.5, borderRadius: 2, background: 'rgba(255,255,255,0.20)', overflow: 'hidden' }}>
+                        <div
+                            onAnimationEnd={i === globalIndex ? onNext : undefined}
+                            style={{
+                                height: '100%', background: col,
+                                transformOrigin: 'left center',
+                                transform: i < globalIndex ? 'scaleX(1)' : i > globalIndex ? 'scaleX(0)' : undefined,
+                                animation: i === globalIndex ? 'storyFill 14s linear forwards' : 'none',
+                            }}
+                        />
+                    </div>
+                ))}
+            </div>
+            {/* Close */}
+            <motion.button whileTap={{ scale: 0.88 }} onClick={e => { e.stopPropagation(); onClose(); }}
+                style={{ position: 'absolute', top: 'calc(env(safe-area-inset-top) + 20px)', right: 16, width: 40, height: 40, borderRadius: '50%', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff', zIndex: 9999 }}>
+                <X size={18} />
+            </motion.button>
+            {/* Content */}
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4.5rem 1.5rem 2rem', overflowY: 'auto', zIndex: 1 }}>
+                <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
+                    style={{ textAlign: 'center', marginBottom: '1.4rem', width: '100%' }}>
+                    <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: col, fontFamily: "'Inter',system-ui,sans-serif", marginBottom: 6, textShadow: `0 0 12px ${col}80` }}>✦ Your Prakriti ✦</div>
+                    <div style={{ fontSize: 'clamp(1.6rem,6vw,2.4rem)', fontWeight: 800, color: '#fff', fontFamily: "'Playfair Display',Georgia,serif", lineHeight: 1.15, textShadow: `0 0 40px ${col}50` }}>{prakritiLabel}</div>
+                    <div style={{ fontSize: '0.78rem', color: `${col}cc`, fontFamily: "'Inter',system-ui,sans-serif", marginTop: 4 }}>Ayurvedic Blueprint · Dosha Constitution</div>
+                </motion.div>
+                <div style={{ width: 48, height: 1.5, background: `linear-gradient(90deg,transparent,${col},transparent)`, marginBottom: '1.4rem', boxShadow: `0 0 10px ${col}80` }} />
+                <FloatingReactionBar />
+                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+                    style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem', width: '100%', marginBottom: '1.2rem' }}>
+                    {fields.map((f, i) => (
+                        <motion.div key={f.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 + i * 0.06 }}
+                            style={{ padding: '0.7rem 0.8rem', background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(12px)', border: `1px solid ${col}28`, borderRadius: 14 }}>
+                            <div style={{ fontSize: '0.52rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: `${col}99`, fontFamily: "'Inter',system-ui,sans-serif", marginBottom: 4 }}>{f.icon} {f.label}</div>
+                            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#fff', fontFamily: "'Playfair Display',Georgia,serif", lineHeight: 1.25 }}>{f.value}</div>
+                        </motion.div>
+                    ))}
+                </motion.div>
+                <motion.button
+                    onClick={e => { e.stopPropagation(); router.push('/lifestyle/prakriti'); onClose(); }}
+                    whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.96 }}
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+                    style={{ padding: '0.95rem 2.4rem', background: `linear-gradient(135deg,${col}ee 0%,${col}99 100%)`, border: `1.5px solid ${col}`, borderRadius: 50, color: '#fff', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', backdropFilter: 'blur(14px)', boxShadow: `0 6px 32px ${col}44`, letterSpacing: '0.04em', fontFamily: "'Inter',system-ui,sans-serif" }}>
+                    View Full Blueprint →
+                </motion.button>
+            </div>
+            <div onClick={e => { e.stopPropagation(); onPrev(); }} style={{ position: 'absolute', left: 0, top: 90, bottom: 90, width: '30%', zIndex: 15, cursor: 'pointer' }} />
+            <div onClick={e => { e.stopPropagation(); onNext(); }} style={{ position: 'absolute', right: 0, top: 90, bottom: 90, width: '30%', zIndex: 15, cursor: 'pointer' }} />
+        </motion.div>
+    );
+}
+
 function CosmicDateViewer({ totalStoryCount, globalIndex, onClose, onNext, onPrev, direction = 1 }: {
     totalStoryCount: number; globalIndex: number; onClose: () => void; onNext: () => void; onPrev: () => void;
     direction?: number;
@@ -1221,8 +1352,6 @@ function CosmicDateViewer({ totalStoryCount, globalIndex, onClose, onNext, onPre
         { icon: '☯️', label: 'Paksha', value: panchang.paksha },
         { icon: '⭐', label: 'Nakshatra', value: panchang.nakshatra },
         { icon: '🔱', label: 'Yoga', value: panchang.yoga },
-        { icon: '🌅', label: 'Sunrise', value: panchang.sunrise },
-        { icon: '🌇', label: 'Sunset', value: panchang.sunset },
         { icon: '🏺', label: 'Masa', value: panchang.masa },
     ];
     const festival = panchang.festival !== 'None' ? panchang.festival : null;
@@ -1613,14 +1742,23 @@ function StoryViewer({ story, totalStoryCount, globalIndex, onClose, onPrev, onN
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function StickyTopNav() {
     const { user } = useOneSutraAuth();
+    const doshaEngine = useDoshaEngine();
     const [dailyLogs, setDailyLogs] = useState<any[]>([]);
     const [activeIdx, setActiveIdx] = useState<number | null>(null);
     const [activeUserIdx, setActiveUserIdx] = useState<number | null>(null);
     const [cosmicOpen, setCosmicOpen] = useState(false);
+    const [prakritiOpen, setPrakritiOpen] = useState(false);
     const [headerVisible, setHeaderVisible] = useState(true);
     const lastScrollY = useRef(0);
     const swipeDir = useRef<1 | -1>(1);
     const { tasks, removeTask } = useDailyTasks();
+
+    const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+    const prakritiLabel = doshaEngine.prakriti
+        ? (doshaEngine.prakriti.secondary
+            ? `${capitalize(doshaEngine.prakriti.primary)}-${capitalize(doshaEngine.prakriti.secondary)}`
+            : capitalize(doshaEngine.prakriti.primary))
+        : null;
 
     useEffect(() => {
         if (!user?.uid) return;
@@ -1694,7 +1832,7 @@ export default function StickyTopNav() {
     }, []);
 
     // Emit event so parent page can hide Bodhi while stories are open
-    const isStoryViewerOpen = cosmicOpen || activeUserIdx !== null || activeIdx !== null;
+    const isStoryViewerOpen = cosmicOpen || prakritiOpen || activeUserIdx !== null || activeIdx !== null;
     useEffect(() => {
         if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('story-viewer-change', { detail: { open: isStoryViewerOpen } }));
@@ -1702,19 +1840,44 @@ export default function StickyTopNav() {
         if (isStoryViewerOpen) setHeaderVisible(true);
     }, [isStoryViewerOpen]);
 
-    // Navigation: cosmic → userStories (flat) → STORIES
-    const closeAll = () => { setCosmicOpen(false); setActiveIdx(null); setActiveUserIdx(null); };
+    // ── Intercept browser back button — close story, stay on homepage ────────
+    useEffect(() => {
+        if (!isStoryViewerOpen) return;
+        window.history.pushState(null, '');
+        const onBack = () => {
+            setCosmicOpen(false);
+            setPrakritiOpen(false);
+            setActiveIdx(null);
+            setActiveUserIdx(null);
+        };
+        window.addEventListener('popstate', onBack);
+        return () => window.removeEventListener('popstate', onBack);
+    }, [isStoryViewerOpen]);
 
-    const openCosmicStory = () => { setCosmicOpen(true); setActiveIdx(null); setActiveUserIdx(null); };
+    // Navigation: cosmic → prakriti (if available) → userStories (flat) → STORIES
+    const closeAll = () => { setCosmicOpen(false); setPrakritiOpen(false); setActiveIdx(null); setActiveUserIdx(null); };
+
+    const openCosmicStory = () => { setCosmicOpen(true); setPrakritiOpen(false); setActiveIdx(null); setActiveUserIdx(null); };
     const nextCosmicStory = () => {
         swipeDir.current = 1;
         setCosmicOpen(false);
-        if (userStories.length > 0) setActiveUserIdx(0);
+        if (prakritiLabel) { setPrakritiOpen(true); }
+        else if (userStories.length > 0) setActiveUserIdx(0);
         else if (STORIES.length > 0) setActiveIdx(0);
     };
     const prevCosmicStory = () => { }; // first story, nowhere to go back
 
-    const openStory = (i: number) => { swipeDir.current = 1; setActiveIdx(i); setActiveUserIdx(null); setCosmicOpen(false); };
+    const openPrakritiStory = () => { setPrakritiOpen(true); setCosmicOpen(false); setActiveIdx(null); setActiveUserIdx(null); };
+    const nextPrakritiStory = () => {
+        swipeDir.current = 1;
+        setPrakritiOpen(false);
+        if (userStories.length > 0) setActiveUserIdx(0);
+        else if (STORIES.length > 0) setActiveIdx(0);
+        else closeAll();
+    };
+    const prevPrakritiStory = () => { swipeDir.current = -1; setPrakritiOpen(false); openCosmicStory(); };
+
+    const openStory = (i: number) => { swipeDir.current = 1; setActiveIdx(i); setActiveUserIdx(null); setCosmicOpen(false); setPrakritiOpen(false); };
     const closeStory = () => closeAll();
     const nextStory = () => {
         swipeDir.current = 1;
@@ -1726,10 +1889,11 @@ export default function StickyTopNav() {
         if (activeIdx === null) return;
         if (activeIdx > 0) setActiveIdx(activeIdx - 1);
         else if (userStories.length > 0) { setActiveIdx(null); setActiveUserIdx(userStories.length - 1); }
+        else if (prakritiLabel) openPrakritiStory();
         else openCosmicStory();
     };
 
-    const openUserStory = (i: number) => { swipeDir.current = 1; setActiveUserIdx(i); setActiveIdx(null); setCosmicOpen(false); };
+    const openUserStory = (i: number) => { swipeDir.current = 1; setActiveUserIdx(i); setActiveIdx(null); setCosmicOpen(false); setPrakritiOpen(false); };
     const nextUserStory = () => {
         swipeDir.current = 1;
         if (activeUserIdx === null) return;
@@ -1741,12 +1905,15 @@ export default function StickyTopNav() {
         swipeDir.current = -1;
         if (activeUserIdx === null) return;
         if (activeUserIdx > 0) setActiveUserIdx(activeUserIdx - 1);
+        else if (prakritiLabel) openPrakritiStory();
         else openCosmicStory();
     };
 
-    // total story count for progress bar: 1 (cosmic) + userStories + STORIES
-    const totalCount = 1 + userStories.length + STORIES.length;
+    // total story count: 1 (cosmic) + 1 (prakriti if available) + userStories + STORIES
+    const prakritiOffset = prakritiLabel ? 1 : 0;
+    const totalCount = 1 + prakritiOffset + userStories.length + STORIES.length;
     const cosmicGlobalIdx = 0;
+    const prakritiGlobalIdx = 1;
 
     return (
         <>
@@ -1950,7 +2117,10 @@ export default function StickyTopNav() {
                 }}
             >
                 <CosmicDateBubble onClick={openCosmicStory} />
-                <div style={{ width: 1, height: 80, background: 'rgba(251,191,36,0.22)', alignSelf: 'center', flexShrink: 0, borderRadius: 1 }} />
+                {prakritiLabel && (
+                    <PrakritiStoryBubble prakritiLabel={prakritiLabel} onClick={openPrakritiStory} />
+                )}
+                <div style={{ width: 1, height: 64, background: 'rgba(251,191,36,0.22)', alignSelf: 'center', flexShrink: 0, borderRadius: 1 }} />
                 {groupedCategories.map((cat, i) => (
                     <CategoryGroupBubble
                         key={cat}
@@ -1961,7 +2131,7 @@ export default function StickyTopNav() {
                     />
                 ))}
                 {groupedCategories.length > 0 && (
-                    <div style={{ width: 1, height: 80, background: 'rgba(255,255,255,0.10)', alignSelf: 'center', flexShrink: 0, borderRadius: 1 }} />
+                    <div style={{ width: 1, height: 64, background: 'rgba(255,255,255,0.10)', alignSelf: 'center', flexShrink: 0, borderRadius: 1 }} />
                 )}
                 {STORIES.map((story, i) => (
                     <StoryBubble key={story.id} story={story} index={i} onClick={() => openStory(i)} />
@@ -2001,12 +2171,24 @@ export default function StickyTopNav() {
                                         direction={swipeDir.current}
                                     />
                                 )}
-                                {!cosmicOpen && activeUserIdx !== null && userStories[activeUserIdx] && (
+                                {!cosmicOpen && prakritiOpen && prakritiLabel && (
+                                    <PrakritiStoryViewer
+                                        key="prakriti"
+                                        prakritiLabel={prakritiLabel}
+                                        totalStoryCount={totalCount}
+                                        globalIndex={prakritiGlobalIdx}
+                                        onClose={closeAll}
+                                        onNext={nextPrakritiStory}
+                                        onPrev={prevPrakritiStory}
+                                        direction={swipeDir.current}
+                                    />
+                                )}
+                                {!cosmicOpen && !prakritiOpen && activeUserIdx !== null && userStories[activeUserIdx] && (
                                     <UserStoryViewer
                                         key={`user-${activeUserIdx}`}
                                         story={userStories[activeUserIdx]}
                                         totalStoryCount={totalCount}
-                                        globalIndex={1 + activeUserIdx}
+                                        globalIndex={1 + prakritiOffset + activeUserIdx}
                                         onClose={closeAll}
                                         onNext={nextUserStory}
                                         onPrev={prevUserStory}
@@ -2014,12 +2196,12 @@ export default function StickyTopNav() {
                                         direction={swipeDir.current}
                                     />
                                 )}
-                                {!cosmicOpen && activeUserIdx === null && activeIdx !== null && (
+                                {!cosmicOpen && !prakritiOpen && activeUserIdx === null && activeIdx !== null && (
                                     <StoryViewer
                                         key={`story-${activeIdx}`}
                                         story={STORIES[activeIdx]}
                                         totalStoryCount={totalCount}
-                                        globalIndex={1 + userStories.length + activeIdx}
+                                        globalIndex={1 + prakritiOffset + userStories.length + activeIdx}
                                         onClose={closeStory}
                                         onNext={nextStory}
                                         onPrev={prevStory}

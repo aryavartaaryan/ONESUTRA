@@ -107,6 +107,11 @@ function parseLogMessage(text: string): ParsedLog | null {
     if (/brain dump|journa|reflect/.test(lc)) return { activityKey: 'brain_dump', icon: '\uD83D\uDCD3', color: '#2dd4bf', label: 'BRAIN DUMP', detail };
     if (/read.*bed|book.*night/.test(lc)) return { activityKey: 'read', icon: '\uD83D\uDCDA', color: '#34d399', label: 'READING', detail };
     if (/\bwalk\b/.test(lc)) return { activityKey: 'walk', icon: '\uD83D\uDEB6', color: '#22d3ee', label: 'WALK', detail };
+    if (/daily habit|HABIT_LOGGED/.test(text)) {
+        const habitMatch = text.match(/daily habit:\s*\S*\s+([^!(\n]+)/);
+        const habitName = habitMatch ? habitMatch[1].trim() : 'Practice';
+        return { activityKey: 'habit_logged', icon: '\u2705', color: '#4ade80', label: habitName.slice(0, 20).toUpperCase(), detail };
+    }
     return { activityKey: 'general', icon: '\u2726', color: '#4ade80', label: activityText.replace(/^I (had|did|went|took|got|am|woke|going|setting|heading|starting)\s+/i, '').slice(0, 18).toUpperCase(), detail };
 }
 
@@ -1144,6 +1149,12 @@ export default function BodhiChatPage() {
         clearPendingMessage();
         const logInfo = parseLogMessage(msg);
         if (logInfo) setLastLoggedActivity(logInfo.activityKey);
+        // Auto-log habit immediately when coming from Today's Practices section
+        if (/\[UI_EVENT:\s*HABIT_LOGGED\]/i.test(msg) && logInfo) {
+            const ts = Date.now();
+            setLogToast({ id: `habit_log_${ts}`, activity: logInfo.label, verdict: 'on_time' });
+            setLoggedActivities(prev => [...prev, { name: logInfo.label, verdict: 'on_time', timestamp: ts }]);
+        }
         // Add LogCard to chat immediately — visible the moment user lands on this page
         const immediateMsg: ChatMessage = {
             id: `pending_${Date.now()}`,

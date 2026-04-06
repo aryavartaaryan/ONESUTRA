@@ -129,7 +129,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                     localStorage.removeItem('acharya_onboarding_done');
                     onSuccess?.(displayName);
                     onClose();
-                    router.push('/acharya-sanctum');
+                    router.push('/lifestyle/onboarding');
                 }
             } catch {
                 // Firestore unavailable (offline) — allow through, onboarding will catch up

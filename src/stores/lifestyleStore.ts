@@ -63,7 +63,7 @@ export interface LifestyleProfile {
     };
     motivation: string;
     availableMinutes: number;
-    spiritualBackground: string;
+    spiritualBackground?: string;
     existingTools: string[];
     buddyName: string;
     buddyPersonality: BuddyPersonality;
@@ -184,6 +184,7 @@ interface LifestyleState {
     getTodayHabitLogs: () => HabitLog[];
     getTodayCompletionRate: () => number;
     getConsistencyScore: () => number;
+    resetHabitData: () => void;
 }
 
 // ─── Storage ────────────────────────────────────────────────────────────────────
@@ -194,7 +195,40 @@ function loadFromStorage(): Partial<LifestyleState> {
     if (typeof window === 'undefined') return {};
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? JSON.parse(raw) : {};
+        if (!raw) return {};
+        const data = JSON.parse(raw);
+        // ── One-time habit reset (version gate) ─────────────────────────────
+        // Any saved data without _resetVersion >= 1 is test data — wipe it.
+        // Profile/Prakriti onboarding is preserved (it lives in doshaStore).
+        if (!data._resetVersion || data._resetVersion < 1) {
+            data.habits = [];
+            data.habitLogs = [];
+            data.streaks = {};
+            data.badges = [];
+            data.xp = { total: 0, level: 0, history: [] };
+            data.moodLogs = [];
+            data._resetVersion = 1;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+        // ── Morning habit merge (v2) ─────────────────────────────────────────
+        // Consolidate all breathing / mantra / meditation morning habits into
+        // the single 'Morning Meditation' entry. v2 expands keyword list.
+        if (!data._habitMergeV2 && Array.isArray(data.habits)) {
+            const MERGE_IDS = new Set(['h_breathing', 'h_meditation', 'h_morning_breathing', 'h_morning_mantra', 'h_mantra']);
+            const MERGE_KEYWORDS = ['breathing', 'breath', 'pranayam', 'mantra', 'meditation', 'dhyan', 'japa', 'chanting'];
+            const isMorningDuplicate = (h: HabitItem) =>
+                (MERGE_IDS.has(h.id) || MERGE_KEYWORDS.some(kw => h.name.toLowerCase().includes(kw))) &&
+                h.id !== 'h_morning_meditation';
+            const hasMerged = data.habits.some((h: HabitItem) => h.id === 'h_morning_meditation');
+            data.habits = data.habits.filter((h: HabitItem) => !isMorningDuplicate(h));
+            if (!hasMerged) {
+                data.habits = [{ ...MORNING_MEDITATION_HABIT, createdAt: Date.now() }, ...data.habits];
+            }
+            data._habitMergeV1 = true;
+            data._habitMergeV2 = true;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+        return data;
     } catch { return {}; }
 }
 
@@ -288,12 +322,13 @@ export function getToday(): string {
 
 // ─── Default onboarding habits by life area ────────────────────────────────────
 
+export const MORNING_MEDITATION_HABIT: HabitItem = { id: 'h_morning_meditation', name: 'Morning Meditation', icon: '🧘', category: 'morning', lifeArea: 'spiritual', trackingType: 'duration', targetValue: 20, color: '#a78bfa', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Breathing · Mantra · Dhyan — your sacred morning trinity' };
+
 export const DEFAULT_STARTER_HABITS: HabitItem[] = [
-    { id: 'h_breathing', name: 'Breathing Practice', icon: '🌬️', category: 'morning', lifeArea: 'mental', trackingType: 'duration', targetValue: 5, color: '#22d3ee', frequency: 'daily', isActive: true, createdAt: Date.now(), description: '5 min mindful breathing to start your day' },
+    MORNING_MEDITATION_HABIT,
     { id: 'h_gratitude', name: 'Gratitude Log', icon: '🙏', category: 'morning', lifeArea: 'mental', trackingType: 'counter', targetValue: 3, color: '#fbbf24', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Write 3 things you are grateful for' },
     { id: 'h_water', name: 'Hydration', icon: '💧', category: 'anytime', lifeArea: 'physical', trackingType: 'counter', targetValue: 8, color: '#60a5fa', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Drink 8 glasses of water' },
     { id: 'h_walk', name: 'Evening Walk', icon: '🚶', category: 'evening', lifeArea: 'physical', trackingType: 'duration', targetValue: 20, color: '#4ade80', frequency: 'daily', isActive: true, createdAt: Date.now(), description: '20 min mindful evening walk' },
-    { id: 'h_meditation', name: 'Meditation', icon: '🧘', category: 'morning', lifeArea: 'spiritual', trackingType: 'duration', targetValue: 10, color: '#a78bfa', frequency: 'daily', isActive: true, createdAt: Date.now(), description: '10 min meditation session' },
 ];
 
 // ─── Store ─────────────────────────────────────────────────────────────────────
@@ -457,6 +492,29 @@ export const useLifestyleStore = create<LifestyleState>((set, get) => ({
         const today = getToday();
         return get().habitLogs.filter(l => l.date === today);
     },
+
+    resetHabitData: () => set((s) => {
+        const n = {
+            ...s,
+            habits: [],
+            habitLogs: [],
+            streaks: {},
+            badges: [],
+            xp: { total: 0, level: 0, history: [] },
+            moodLogs: [],
+        };
+        if (typeof window !== 'undefined') {
+            const toSave = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}');
+            toSave.habits = [];
+            toSave.habitLogs = [];
+            toSave.streaks = {};
+            toSave.badges = [];
+            toSave.xp = { total: 0, level: 0, history: [] };
+            toSave.moodLogs = [];
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+        }
+        return n;
+    }),
 
     getTodayCompletionRate: () => {
         const today = getToday();

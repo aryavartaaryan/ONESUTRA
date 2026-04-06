@@ -118,7 +118,7 @@ const EVENING_BUBBLES: LogBubble[] = [
         ],
     },
     {
-        id: 'dinner', icon: '🌙', label: 'Dinner served! 🍽️', sublabel: 'What did you eat?', color: '#a78bfa',
+        id: 'dinner', icon: '🥗', label: 'Dinner served! 🍽️', sublabel: 'What did you eat?', color: '#a78bfa',
         logMessage: 'I had dinner tonight [UI_EVENT: EVENING_LOGS_CLICKED]',
         subOptions: [
             { icon: '🥗', label: 'Light & clean', detail: 'had a light, clean dinner' },
@@ -192,7 +192,7 @@ const NIGHT_BUBBLES: LogBubble[] = [
     },
 ];
 
-function getTimedBubbles(): LogBubble[] {
+export function getTimedBubbles(): LogBubble[] {
     const h = new Date().getHours();
     if (h >= 3 && h < 11) return MORNING_BUBBLES;
     if (h >= 11 && h < 15) return NOON_BUBBLES;
@@ -200,7 +200,7 @@ function getTimedBubbles(): LogBubble[] {
     return NIGHT_BUBBLES;
 }
 
-function getTimeLabel(): { prefix: string; color: string } {
+export function getTimeLabel(): { prefix: string; color: string } {
     const h = new Date().getHours();
     if (h >= 3 && h < 11) return { prefix: '🌅 Morning Logs', color: '#fbbf24' };
     if (h >= 11 && h < 15) return { prefix: '☀️ Midday Logs', color: '#f59e0b' };

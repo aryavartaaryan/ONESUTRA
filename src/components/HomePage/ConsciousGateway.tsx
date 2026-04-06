@@ -276,8 +276,8 @@ function UIPanel({ onSuccess, onGuest, compact = false }: Props & { compact?: bo
                 const localDone = localStorage.getItem('acharya_onboarding_done') === 'true';
 
                 if (!hasCompleted && !localDone) {
-                    // First-time user → Acharya Sanctum onboarding
-                    window.location.href = '/acharya-sanctum';
+                    // First-time user → Unified onboarding (Bodhi voice)
+                    window.location.href = '/lifestyle/onboarding';
                     return;
                 }
                 // Cache for instant subsequent logins

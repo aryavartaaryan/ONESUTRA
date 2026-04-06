@@ -43,7 +43,7 @@ function buildAyurvedicSystemPrompt(context: {
 
   const prakritiBlock = prakriti
     ? `USER'S PRAKRITI (Birth Constitution): ${prakritiCombo?.toUpperCase() ?? prakriti.toUpperCase()} — ${prakriti} dominant. This never changes. Every recommendation must honour this constitutional baseline.`
-    : `PRAKRITI: Not yet assessed. Gently encourage completing the Prakriti quiz at /lifestyle/prakriti if relevant.`;
+    : `PRAKRITI: Not yet assessed. Gently encourage the user to ask you about their Prakriti constitution if relevant.`;
 
   const vikritiBlock = vikriti
     ? `CURRENT VIKRITI (Active Imbalance): ${vikriti.toUpperCase()} — ${vikritiLevel} level. This is what needs correcting TODAY. Prioritise recommendations that pacify ${vikriti}.`
@@ -169,7 +169,7 @@ export async function POST(req: NextRequest) {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.5-flash',
       generationConfig: {
         temperature: 0.85,
         maxOutputTokens: 512,

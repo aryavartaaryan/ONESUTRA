@@ -309,6 +309,7 @@ export function useLifestyleEngine() {
         removeHabit: store.removeHabit,
         updateMantraStreak: store.updateMantraStreak,
         toggleAdhdMode: store.toggleAdhdMode,
+        resetHabitData: store.resetHabitData,
         getTodayStatus,
         getHabitStreak,
         seedStarterHabits,
