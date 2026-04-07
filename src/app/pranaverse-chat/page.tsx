@@ -262,7 +262,7 @@ function MsgBubble({ msg, isNature }: { msg: ChatMsg; isNature: boolean }) {
     const isMe = msg.role === 'me';
     const isBodhi = msg.role === 'bodhi';
     return (
-        <motion.div initial={{ opacity: 0, y: 12, scale: 0.94 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: 'spring', stiffness: 350, damping: 26 }}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18, ease: 'easeOut' }}
             style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', marginBottom: '0.55rem', padding: '0 0.2rem' }}>
             {!isMe && (
                 <div style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, marginRight: 6, marginTop: 2, background: isBodhi ? 'radial-gradient(circle at 35% 30%,rgba(251,191,36,0.45) 0%,rgba(129,140,248,0.30) 60%,transparent 100%)' : 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem' }}>
@@ -317,6 +317,7 @@ export default function PranverseChatHub() {
     const [input, setInput] = useState('');
     const [isFocus, setIsFocus] = useState(false);
     const [isListening, setIsListening] = useState(false);
+    const [showThinkingDelayed, setShowThinkingDelayed] = useState(false);
     const [uid, setUid] = useState<string | null>(null);
     const [mobileView, setMobileView] = useState<'list' | 'chat'>('list');
     const [isMobile, setIsMobile] = useState(false);
@@ -484,6 +485,14 @@ export default function PranverseChatHub() {
 
     const isBodhiThinking = chatState === 'thinking' || chatState === 'connecting';
 
+    // Debounce TypingDots — only show after 300 ms of sustained thinking.
+    // This hides rapid flicker caused by quick tool-call state transitions.
+    useEffect(() => {
+        if (!isBodhiThinking) { setShowThinkingDelayed(false); return; }
+        const t = setTimeout(() => setShowThinkingDelayed(true), 300);
+        return () => clearTimeout(t);
+    }, [isBodhiThinking]);
+
     // Bodhi proactive greeting (static text shown while connecting)
     useEffect(() => {
         setBodhiMsgs(buildBodhiGreeting());
@@ -610,7 +619,7 @@ export default function PranverseChatHub() {
     const currentMsgs: ChatMsg[] = activeId === 'bodhi'
         ? bodhiMsgs
         : realMsgs.map(m => ({ id: m.id, role: m.senderId === uid ? 'me' as const : 'them' as const, text: m.text, ts: m.createdAt }));
-    const showThinking = activeId === 'bodhi' && isBodhiThinking;
+    const showThinking = activeId === 'bodhi' && showThinkingDelayed;
 
     const [showEmoji, setShowEmoji] = useState(false);
     const [seekerSearch, setSeekerSearch] = React.useState('');
@@ -909,7 +918,7 @@ export default function PranverseChatHub() {
                             <p style={{ margin: 0, fontSize: '0.88rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", background: activeId === 'bodhi' ? 'linear-gradient(120deg,#ffffff 0%,#fde68a 50%,#c4b5fd 100%)' : 'none', WebkitBackgroundClip: activeId === 'bodhi' ? 'text' : 'unset', backgroundClip: activeId === 'bodhi' ? 'text' : 'unset', color: activeId === 'bodhi' ? 'transparent' : 'rgba(255,255,255,0.90)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {activeId === 'bodhi' ? 'Sakha Bodhi' : activeFriend?.name}
                             </p>
-                            <p style={{ margin: 0, fontSize: '0.50rem', color: activeId === 'bodhi' ? (chatState === 'thinking' ? '#818cf8' : isSpeaking ? '#fbbf24' : isConnected ? '#4ade80' : 'rgba(255,255,255,0.35)') : 'rgba(74,222,128,0.90)', fontWeight: 700, letterSpacing: '0.06em' }}>
+                            <p style={{ margin: 0, fontSize: '0.50rem', color: activeId === 'bodhi' ? (chatState === 'thinking' ? '#818cf8' : isSpeaking ? '#fbbf24' : isConnected ? '#4ade80' : 'rgba(255,255,255,0.35)') : 'rgba(74,222,128,0.90)', fontWeight: 700, letterSpacing: '0.06em', transition: 'color 0.3s ease' }}>
                                 {activeId === 'bodhi' ? (chatState === 'connecting' ? '◎ Connecting…' : isBodhiThinking ? '◎ Thinking…' : isSpeaking ? '♪ Speaking' : isConnected ? '● Ready' : '○ Offline') : '● Active now'}
                             </p>
                         </div>

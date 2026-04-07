@@ -21,7 +21,7 @@ import EphemeralGreeting from '@/components/HomePage/EphemeralGreeting';
 import StickyTopNav from '@/components/HomePage/StickyTopNav';
 import LifestylePanel from '@/components/HomePage/LifestylePanel';
 import StickyFeedbackButton from '@/components/StickyFeedbackButton';
-import MagicSyncModule from '@/components/Dashboard/MagicSyncModule';
+import MagicSyncModule from '@/components/Dashboard/MagicSyncModule'; // kept for potential other usage
 import { useLifestyleEngine } from '@/hooks/useLifestyleEngine';
 
 import BrahmastraFocusCard from '@/components/Dashboard/BrahmastraFocusCard';
@@ -101,11 +101,11 @@ function fmt12h(h: number, m: number) {
 
 // ─── Home Mood Options ────────────────────────────────────────────────────────
 const HOME_MOOD_OPTIONS = [
-  { value: 5, emoji: '🥥', label: 'Radiant', color: '#fbbf24' },
-  { value: 4, emoji: '🍓', label: 'Good', color: '#4ade80' },
-  { value: 3, emoji: '🥑', label: 'Okay', color: '#60a5fa' },
-  { value: 2, emoji: '🫐', label: 'Low', color: '#a78bfa' },
-  { value: 1, emoji: '🍋', label: 'Hard', color: '#f87171' },
+  { value: 5, emoji: '🤩', label: 'Radiant', color: '#fbbf24' },
+  { value: 4, emoji: '😊', label: 'Good', color: '#4ade80' },
+  { value: 3, emoji: '😐', label: 'Okay', color: '#60a5fa' },
+  { value: 2, emoji: '😔', label: 'Low', color: '#a78bfa' },
+  { value: 1, emoji: '😢', label: 'Hard', color: '#f87171' },
 ];
 
 // ─── Ayurveda Home Card ───────────────────────────────────────────────────────
@@ -246,9 +246,8 @@ export default function Home() {
   const globalBg = pool[slot % pool.length];
 
 
-  // ── Sankalpa/Mission state — unified via Firebase ───────────────
+  // ── Sankalpa/Mission state — now managed inside LifestylePanel's InlineSmartPlanner ─
   const { tasks: sankalpaItems, addTask, updateTask, toggleTaskDone, removeTask } = useDailyTasks();
-
 
 
   // ── Firebase auth enforcement — runs once Firebase resolves ──────────────────
@@ -479,7 +478,7 @@ export default function Home() {
         )}
 
         {/* ══ STORIES SECTION ══ */}
-        <div style={{ display: isPortalOpen ? 'none' : 'block', marginTop: '0.2rem', marginBottom: '1.2rem' }}>
+        <div style={{ display: isPortalOpen ? 'none' : 'block', marginTop: '0.5rem', marginBottom: '1.5rem' }}>
           <StickyTopNav />
         </div>
 
@@ -491,42 +490,24 @@ export default function Home() {
             transition={{ delay: 0.2, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             style={{
               position: 'relative', zIndex: 10,
-              background: 'rgba(4,2,18,0.45)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255,255,255,0.06)',
-              borderRadius: 22,
-              margin: '0 0.6rem 1.4rem',
-              padding: '0.2rem 0',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
+              overflow: 'hidden',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: 24,
+              margin: '0 0.75rem 1.6rem',
+              padding: '0.3rem 0',
+              boxShadow: '0 12px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08)',
             }}
           >
-            <SmartLogBubbles />
+            {/* Nature bg */}
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: `url('${globalBg}')`, backgroundSize: 'cover', backgroundPosition: 'center', transform: 'scale(1.07)', filter: 'blur(2px) brightness(0.68) saturate(1.15)', zIndex: 0 }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(4,2,16,0.06) 0%, rgba(4,2,16,0.28) 60%, rgba(4,2,16,0.42) 100%)', zIndex: 1 }} />
+            <div style={{ position: 'relative', zIndex: 2 }}>
+              <SmartLogBubbles />
+            </div>
           </motion.div>
         )}
 
-        {/* ══ SMART LIFE PLANNER (MagicSyncModule) ══ */}
-        {!isPortalOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            style={{
-              background: 'transparent',
-              position: 'relative', zIndex: 9,
-              marginTop: '0.5rem',
-              marginBottom: '1rem'
-            }}
-          >
-            <MagicSyncModule
-              items={sankalpaItems}
-              onToggle={toggleTaskDone}
-              onRemove={removeTask}
-              onAdd={addTask}
-              onUpdate={updateTask}
-            />
-          </motion.div>
-        )}
+        {/* MagicSyncModule is now embedded inside LifestylePanel as InlineSmartPlanner */}
 
         {/* ══ LIFESTYLE HUB — integrated from /lifestyle ══ */}
         {!isPortalOpen && (

@@ -875,7 +875,7 @@ function PortalGridCard({ item, onClick }: { item: PortalItem; onClick?: () => v
                         }}
                     >
                         {p.icon === '✦' ? (
-                            <span style={{ color: p.color, fontSize: '1.3rem', fontWeight: 900, filter: `drop-shadow(0 0 8px ${p.color})` }}>✦</span>
+                            <span style={{ color: p.color, fontSize: '1.1rem', fontWeight: 900, filter: `drop-shadow(0 0 8px ${p.color})` }}>✦</span>
                         ) : p.icon}
                     </motion.div>
                 </div>
@@ -1603,12 +1603,12 @@ function FullscreenReelModal({
                                 </>
                             ) : item.type === 'portal' ? (
                                 <>
-                                    <div style={{ fontSize: '0.58rem', color: item.portal.color, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', fontFamily: "'Inter',sans-serif", textShadow: `0 0 16px ${item.portal.color}99`, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.9))' }}>✦ OneSUTRA Portal</div>
+                                    <div style={{ fontSize: '0.58rem', color: item.portal.color, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', fontFamily: "'Inter',sans-serif", textShadow: `0 0 16px ${item.portal.color}99`, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.9))' }}><span style={{ fontSize: '0.9rem' }}>✦</span> OneSUTRA Portal</div>
                                     <p style={{ fontFamily: "'Outfit',sans-serif", fontSize: 'clamp(1.45rem,6vw,2.1rem)', fontWeight: 800, color: item.portal.color, textShadow: `0 0 40px ${item.portal.color}66, 0 2px 20px rgba(0,0,0,0.95)`, margin: 0, lineHeight: 1.15, filter: 'drop-shadow(0 2px 10px rgba(0,0,0,0.7))' }}>{item.portal.title}</p>
                                     <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 'clamp(0.58rem,2vw,0.75rem)', color: 'rgba(255,255,255,0.72)', margin: 0, lineHeight: 1.5, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.95))' }}>{item.portal.importance}</p>
                                     <Link href={item.portal.href} onClick={onClose} style={{ textDecoration: 'none', marginTop: '0.5rem' }}>
                                         <motion.div whileTap={{ scale: 0.96 }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0.5rem 1.1rem', borderRadius: 99, background: `linear-gradient(135deg,${item.portal.color}cc,${item.portal.color})`, color: '#fff', fontSize: '0.72rem', fontWeight: 700, fontFamily: "'Inter',sans-serif", boxShadow: `0 4px 20px ${item.portal.color}55`, letterSpacing: '0.04em' }}>
-                                            ✦ Enter Portal →
+                                            <span style={{ fontSize: '0.9rem' }}>✦</span> Enter Portal →
                                         </motion.div>
                                     </Link>
                                 </>
@@ -2593,7 +2593,7 @@ function AuraSpaceInner() {
                                     </div>
                                 </div>
                                 <span style={{ fontSize: '1.15rem', fontWeight: 800, color: 'rgba(255,255,255,0.95)', fontFamily: "'Outfit',sans-serif", marginBottom: '0.18rem' }}>{currentUser.name}</span>
-                                <span style={{ fontSize: '0.52rem', color: 'rgba(167,139,250,0.70)', fontFamily: 'monospace', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600, marginBottom: '0.3rem' }}>✦ YOU · SEEKER</span>
+                                <span style={{ fontSize: '0.52rem', color: 'rgba(167,139,250,0.70)', fontFamily: 'monospace', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600, marginBottom: '0.3rem' }}><span style={{ fontSize: '0.7rem' }}>✦</span> YOU · SEEKER</span>
                                 {currentUser.email && <span style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.30)', fontFamily: "'Outfit',sans-serif", marginBottom: '1.4rem', fontStyle: 'italic' }}>{currentUser.email}</span>}
                                 <div style={{ display: 'flex', gap: '0.55rem', padding: '0 1.4rem', width: '100%', boxSizing: 'border-box' }}>
                                     <motion.button whileTap={{ scale: 0.94 }}

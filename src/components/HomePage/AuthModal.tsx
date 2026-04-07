@@ -119,17 +119,20 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                     userData?.hasCompletedOnboarding === true ||
                     userData?.profile?.prakriti);
 
-                if (hasOnboarded) {
-                    // User has Prakriti/Dosha data — go straight to home
-                    localStorage.setItem('acharya_onboarding_done', 'true');
-                    onSuccess?.(displayName);
-                    onClose();
-                } else {
-                    // New user — route to Acharya Sanctum for onboarding
+                const uid = result.user.uid;
+                const isTestEmail = result.user.email === 'aryavartaaryan9@gmail.com';
+
+                if (isTestEmail || !hasOnboarded) {
+                    // Test email always onboards; new user routes to onboarding
                     localStorage.removeItem('acharya_onboarding_done');
                     onSuccess?.(displayName);
                     onClose();
                     router.push('/lifestyle/onboarding');
+                } else {
+                    // Returning user — cache UID so multi-user on same device works
+                    localStorage.setItem('acharya_onboarding_done', uid);
+                    onSuccess?.(displayName);
+                    onClose();
                 }
             } catch {
                 // Firestore unavailable (offline) — allow through, onboarding will catch up

@@ -2105,7 +2105,7 @@ export default function StickyTopNav() {
                     WebkitOverflowScrolling: 'touch',
                     scrollSnapType: 'x proximity',
                     overscrollBehaviorX: 'contain',
-                    touchAction: 'pan-x',
+                    touchAction: 'pan-y',
                     WebkitTapHighlightColor: 'transparent',
                     transform: 'translateZ(0)',
                     willChange: 'scroll-position',

@@ -228,6 +228,32 @@ function loadFromStorage(): Partial<LifestyleState> {
             data._habitMergeV2 = true;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
+        // ── Starter habits v3: auto-populate full morning & evening suite ────
+        // Adds any missing default habits by ID — non-destructive, runs once.
+        if (!data._starterHabitsV3 && Array.isArray(data.habits)) {
+            const existingIds = new Set(data.habits.map((h: HabitItem) => h.id));
+            const toAdd = DEFAULT_STARTER_HABITS.filter(h => !existingIds.has(h.id));
+            if (toAdd.length > 0) {
+                data.habits = [...data.habits, ...toAdd.map(h => ({ ...h, createdAt: Date.now() }))];
+            }
+            data._starterHabitsV3 = true;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+        // ── Starter habits v4: bathing, breakfast, noon, evening, night slots ──
+        if (!data._starterHabitsV4 && Array.isArray(data.habits)) {
+            const V4_NEW_IDS = ['h_bathing', 'h_breakfast', 'h_noon_checkin', 'h_evening_meditation', 'h_digital_detox'];
+            const existingIds = new Set(data.habits.map((h: HabitItem) => h.id));
+            const toAdd = DEFAULT_STARTER_HABITS.filter(h => V4_NEW_IDS.includes(h.id) && !existingIds.has(h.id));
+            if (toAdd.length > 0) {
+                data.habits = [...data.habits, ...toAdd.map(h => ({ ...h, createdAt: Date.now() }))];
+            }
+            // Fix h_sleep_early to night category for existing users
+            data.habits = data.habits.map((h: HabitItem) =>
+                h.id === 'h_sleep_early' ? { ...h, category: 'night' } : h
+            );
+            data._starterHabitsV4 = true;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
         return data;
     } catch { return {}; }
 }
@@ -326,9 +352,19 @@ export const MORNING_MEDITATION_HABIT: HabitItem = { id: 'h_morning_meditation',
 
 export const DEFAULT_STARTER_HABITS: HabitItem[] = [
     MORNING_MEDITATION_HABIT,
-    { id: 'h_gratitude', name: 'Gratitude Log', icon: '🙏', category: 'morning', lifeArea: 'mental', trackingType: 'counter', targetValue: 3, color: '#fbbf24', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Write 3 things you are grateful for' },
-    { id: 'h_water', name: 'Hydration', icon: '💧', category: 'anytime', lifeArea: 'physical', trackingType: 'counter', targetValue: 8, color: '#60a5fa', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Drink 8 glasses of water' },
-    { id: 'h_walk', name: 'Evening Walk', icon: '🚶', category: 'evening', lifeArea: 'physical', trackingType: 'duration', targetValue: 20, color: '#4ade80', frequency: 'daily', isActive: true, createdAt: Date.now(), description: '20 min mindful evening walk' },
+    { id: 'h_pranayama', name: 'Pranayama', icon: '🌬️', category: 'morning', lifeArea: 'spiritual', trackingType: 'duration', targetValue: 10, color: '#22d3ee', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Alternate nostril breathing — calms Vata, balances prana, clears nadis' },
+    { id: 'h_tongue_scraping', name: 'Tongue Scraping', icon: '✨', category: 'morning', lifeArea: 'physical', trackingType: 'checkbox', color: '#4ade80', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Ayurvedic oral detox — 7–14 copper scraper strokes removes overnight Ama' },
+    { id: 'h_bathing', name: 'Morning Bath', icon: '🚿', category: 'morning', lifeArea: 'physical', trackingType: 'checkbox', color: '#38bdf8', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Ayurvedic snana — purifies body, activates prana and awakens all senses' },
+    { id: 'h_warm_water', name: 'Warm Water Ritual', icon: '🫗', category: 'morning', lifeArea: 'physical', trackingType: 'checkbox', color: '#fde68a', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Warm water upon waking kindles Agni and begins morning cleansing' },
+    { id: 'h_morning_sunlight', name: 'Morning Sunlight', icon: '🌅', category: 'morning', lifeArea: 'physical', trackingType: 'duration', targetValue: 5, color: '#fb923c', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'First light — 5 min to sync your circadian rhythm with the natural cycle' },
+    { id: 'h_gratitude', name: 'Gratitude Log', icon: '🙏', category: 'morning', lifeArea: 'mental', trackingType: 'counter', targetValue: 3, color: '#fbbf24', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Write 3 things you are genuinely grateful for' },
+    { id: 'h_breakfast', name: 'Mindful Breakfast', icon: '🥣', category: 'morning', lifeArea: 'physical', trackingType: 'checkbox', color: '#86efac', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'First meal — eat with awareness, no screens, honour your Agni' },
+    { id: 'h_water', name: 'Hydration', icon: '💧', category: 'anytime', lifeArea: 'physical', trackingType: 'counter', targetValue: 8, color: '#60a5fa', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Drink 8 glasses of water throughout the day' },
+    { id: 'h_noon_checkin', name: 'Noon Mindfulness', icon: '☀️', category: 'midday', lifeArea: 'mental', trackingType: 'checkbox', color: '#fb923c', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Midday pause — 5 min breath awareness, observe your pitta energy' },
+    { id: 'h_walk', name: 'Evening Walk', icon: '🚶', category: 'evening', lifeArea: 'physical', trackingType: 'duration', targetValue: 20, color: '#4ade80', frequency: 'daily', isActive: true, createdAt: Date.now(), description: '20 min mindful evening walk — aids digestion and grounds Vata' },
+    { id: 'h_evening_meditation', name: 'Evening Meditation', icon: '🕯️', category: 'evening', lifeArea: 'spiritual', trackingType: 'duration', targetValue: 10, color: '#a78bfa', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Sandhya — evening transition ritual, release the day with stillness' },
+    { id: 'h_sleep_early', name: 'Sleep by 10 PM', icon: '🌙', category: 'night', lifeArea: 'physical', trackingType: 'checkbox', color: '#818cf8', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Honour the Pitta night cycle — restore Ojas before midnight' },
+    { id: 'h_digital_detox', name: 'Screen Detox', icon: '📵', category: 'night', lifeArea: 'mental', trackingType: 'checkbox', color: '#c084fc', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'No screens 1 hour before sleep — protect melatonin and Ojas' },
 ];
 
 // ─── Store ─────────────────────────────────────────────────────────────────────

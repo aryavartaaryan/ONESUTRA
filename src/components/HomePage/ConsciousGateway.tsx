@@ -272,17 +272,20 @@ function UIPanel({ onSuccess, onGuest, compact = false }: Props & { compact?: bo
                 const userSnap = await getDoc(doc(db, 'users', result.user.uid));
                 const d = userSnap.exists() ? userSnap.data() : null;
                 // Check ALL possible flags (matches acharya-sanctum/page.tsx logic)
+                const uid = result.user.uid;
+                const isTestEmail = result.user.email === 'aryavartaaryan9@gmail.com';
                 const hasCompleted = !!(d?.hasCompletedOnboarding || d?.onboardingCompleted || d?.profile?.prakriti);
-                const localDone = localStorage.getItem('acharya_onboarding_done') === 'true';
+                const localDone = !isTestEmail && localStorage.getItem('acharya_onboarding_done') === uid;
 
-                if (!hasCompleted && !localDone) {
-                    // First-time user → Unified onboarding (Bodhi voice)
+                if (isTestEmail || (!hasCompleted && !localDone)) {
+                    // Test email → always show onboarding; new user → first-time onboarding
+                    localStorage.removeItem('acharya_onboarding_done');
                     window.location.href = '/lifestyle/onboarding';
                     return;
                 }
-                // Cache for instant subsequent logins
+                // Cache for instant subsequent logins (UID-keyed to survive multi-user on same device)
                 if (hasCompleted && !localDone) {
-                    localStorage.setItem('acharya_onboarding_done', 'true');
+                    localStorage.setItem('acharya_onboarding_done', uid);
                 }
             } catch { /* offline — proceed to home */ }
             onSuccess(name);

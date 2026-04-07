@@ -82,7 +82,7 @@ function UserTaskBubble({ story, isViewed, onClick, idx }: { story: UserTaskStor
         >
             {/* Conic gradient ring */}
             <div style={{
-                width: 96, height: 96, borderRadius: '50%', padding: 3,
+                width: 86, height: 86, borderRadius: '50%', padding: 3,
                 background: isViewed
                     ? 'rgba(255,255,255,0.08)'
                     : `conic-gradient(${story.ringColors[0]} 0deg, ${story.ringColors[1]} 90deg, ${story.ringColors[0]} 180deg, ${story.ringColors[1]} 270deg, ${story.ringColors[0]} 360deg)`,
@@ -103,7 +103,7 @@ function UserTaskBubble({ story, isViewed, onClick, idx }: { story: UserTaskStor
                     }} />
                     {/* Emoji */}
                     <span style={{
-                        fontSize: '1.85rem',
+                        fontSize: '1.55rem',
                         filter: `drop-shadow(0 0 10px ${story.color}) drop-shadow(0 0 5px ${story.color}cc)`,
                         opacity: isViewed ? 0.5 : 1,
                         position: 'relative', zIndex: 1,
@@ -128,7 +128,7 @@ function UserTaskBubble({ story, isViewed, onClick, idx }: { story: UserTaskStor
                 fontSize: '0.58rem', fontFamily: "'Inter',sans-serif", fontWeight: 700,
                 color: isViewed ? 'rgba(255,255,255,0.28)' : story.color,
                 letterSpacing: '0.04em', textAlign: 'center',
-                maxWidth: 96, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                maxWidth: 86, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 textShadow: isViewed ? 'none' : `0 0 8px ${story.color}80`,
             }}>{story.label}</span>
         </motion.div>
@@ -363,7 +363,7 @@ function UserCategoryGroupBubble({ category, stories, onOpen, isViewed, idx }: {
         >
             {/* Conic ring */}
             <div style={{
-                width: 68, height: 68, borderRadius: '50%', padding: 3,
+                width: 86, height: 86, borderRadius: '50%', padding: 3,
                 background: isViewed ? 'rgba(255,255,255,0.08)' : `conic-gradient(${meta.ringColors[0]} 0deg,${meta.ringColors[1]} 90deg,${meta.ringColors[0]} 180deg,${meta.ringColors[1]} 270deg,${meta.ringColors[0]} 360deg)`,
                 animation: isViewed ? 'none' : `videoRingPulse ${2.6 + idx * 0.28}s ease-in-out ${idx * 0.22}s infinite`,
                 flexShrink: 0, position: 'relative',
@@ -373,7 +373,7 @@ function UserCategoryGroupBubble({ category, stories, onOpen, isViewed, idx }: {
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,transparent 20%,rgba(0,0,0,0.55) 100%)' }} />
                     <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at 50% 40%,${meta.color}44 0%,transparent 72%)` }} />
                     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <span style={{ fontSize: '1.35rem', filter: `drop-shadow(0 0 10px ${meta.color}) drop-shadow(0 0 5px ${meta.color}cc)`, opacity: isViewed ? 0.5 : 1 }}>{meta.emoji}</span>
+                        <span style={{ fontSize: '1.55rem', filter: `drop-shadow(0 0 10px ${meta.color}) drop-shadow(0 0 5px ${meta.color}cc)`, opacity: isViewed ? 0.5 : 1 }}>{meta.emoji}</span>
                     </div>
                 </div>
                 {/* Count badge */}
@@ -383,7 +383,7 @@ function UserCategoryGroupBubble({ category, stories, onOpen, isViewed, idx }: {
                     </div>
                 )}
             </div>
-            <span style={{ fontSize: '0.46rem', fontFamily: "'Inter',sans-serif", fontWeight: 700, color: isViewed ? 'rgba(255,255,255,0.28)' : meta.color, letterSpacing: '0.05em', textAlign: 'center', maxWidth: 66, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: isViewed ? 'none' : `0 0 8px ${meta.color}80` }}>{meta.label}</span>
+            <span style={{ fontSize: '0.52rem', fontFamily: "'Inter',sans-serif", fontWeight: 700, color: isViewed ? 'rgba(255,255,255,0.28)' : meta.color, letterSpacing: '0.04em', textAlign: 'center', maxWidth: 86, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: isViewed ? 'none' : `0 0 8px ${meta.color}80` }}>{meta.label}</span>
         </motion.div>
     );
 }
@@ -1101,10 +1101,8 @@ const MOOD_STORY_INFO: Record<string, { emoji: string; color: string; gradient: 
     stressed: { emoji: '😤', color: '#f87171', gradient: 'linear-gradient(135deg,#450a0a,#b91c1c)', message: 'Your nervous system needs care', affirmation: 'Breathe deep into your belly. Every exhale releases what no longer serves you. You are safe. You are held.' },
 };
 
-function MoodStoryContent({ mood, energy, userName }: { mood: number; energy: number; userName: string }) {
-    const moodKeyMap: Record<number, string> = { 5: 'great', 4: 'good', 3: 'okay', 2: 'low', 1: 'stressed' };
-    const moodKey = moodKeyMap[mood] ?? 'okay';
-    const info = MOOD_STORY_INFO[moodKey] ?? MOOD_STORY_INFO.okay;
+function MoodStoryContent({ mood, energy, userName }: { mood: string; energy: number; userName: string }) {
+    const info = MOOD_STORY_INFO[mood] ?? MOOD_STORY_INFO.okay;
     const energyBars = Math.min(5, Math.max(1, energy));
     return (
         <div style={{ padding: '0 1.5rem', textAlign: 'center', width: '100%' }}>
@@ -2054,7 +2052,7 @@ export default function HomeStoryBar() {
             }}>
                 {/* "Add Story" */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', flexShrink: 0, scrollSnapAlign: 'start', scrollSnapStop: 'always' }}>
-                    <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', border: '1.5px dashed rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem', cursor: 'pointer' }}>+</div>
+                    <div style={{ width: 86, height: 86, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', border: '1.5px dashed rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', cursor: 'pointer' }}>+</div>
                     <span style={{ fontSize: '0.48rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.04em' }}>Your Story</span>
                 </div>
 

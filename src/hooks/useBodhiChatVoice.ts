@@ -128,6 +128,7 @@ export interface BodhiLifestyleContext {
     spiritualBackground?: string;
     onboardingComplete?: boolean;
     adhdMode?: boolean;
+    nextPendingHabit?: string;
 }
 
 interface UseBodhiChatVoiceOptions {
@@ -347,6 +348,8 @@ export function useBodhiChatVoice({
     const audioGenRef = useRef(0);
     const isConnectedRef = useRef(false);
     const textBufferRef = useRef('');
+    const pendingEmitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const pendingEmitDataRef = useRef<{ text: string; uid: string | null } | null>(null);
 
     // Memory Refs (for syncing with connect closure)
     const memoriesRef = useRef<string[]>([]);
@@ -582,7 +585,8 @@ RULE: Your FIRST line MUST be the elegant Sanskrit greeting from rule 6. Then yo
             };
             const personalityNote = lc.buddyPersonality && personalityMap[lc.buddyPersonality]
                 ? personalityMap[lc.buddyPersonality] : '';
-            const lines = [habitLine, streakLine, moodLcLine, `Sacred practices: ${practices}`, challengeLine, adhdLine, personalityNote].filter(Boolean).join('\n');
+            const nextHabitLine = lc.nextPendingHabit ? `Next pending practice: ${lc.nextPendingHabit}` : '';
+            const lines = [habitLine, streakLine, moodLcLine, `Sacred practices: ${practices}`, nextHabitLine, challengeLine, adhdLine, personalityNote].filter(Boolean).join('\n');
             return `\n──────────────────────────────────────────\n💚 LIFESTYLE AWARENESS (${firstName}'s sacred practice today)\n${lines}\n→ Weave this in naturally. If habits are incomplete and mood allows, gently invite ONE practice. If streak is strong, acknowledge it warmly.\n──────────────────────────────────────────\n`;
         })() : '';
 
@@ -758,11 +762,19 @@ RULES:
 17. UI_EVENT ROUTING — SMART LOG FLOW:
    SILENT LOG RULE (CRITICAL): When you detect an activity to log, call log_activity IMMEDIATELY without speaking any text first. Do NOT produce any spoken words before the tool call completes. Only speak AFTER you receive the tool response. This prevents you from speaking twice.
 
+   HABIT_LOGGED ULTRA-CONCISE RULE: When message contains [UI_EVENT: HABIT_LOGGED]:
+   1. Immediately call log_activity with the habit name and correct category — ZERO pre-tool speech.
+   2. After tool response: EXACTLY 2 sentences. No Sanskrit greeting. No elaboration.
+   3. Sentence 1: Brief warm acknowledgment using hinglish_reaction_guide style cue from tool response.
+   4. Sentence 2: Mention the "Next pending practice" from LIFESTYLE AWARENESS (if available) — invite them to do it now.
+   5. HARD STOP after sentence 2. No questions unless the practice invitation naturally implies one.
+   Example: "Cold bath logged — Ayurvedic reset complete! Next up is 🧘 Pranayama — 5 minutes of deep breathing aur din powerful ho jaayega."
+
    CASE A — UI_EVENT message WITH a " — " detail (user already chose what to log):
    The user has already picked their activity. Do:
    1. Call log_activity immediately (no pre-tool speech at all)
-   2. After tool response: give ONE combined response — brief warm greeting + log confirmation + timing micro-tip. Max 2-3 sentences total. Stop completely after that.
-   Example: "Shubh Madhyahna! Roti-sabzi logged — solid midday fuel. Digestion ka peak time hai abhi, thodi walk baad mein kaafi hai."
+   2. After tool response: give ONE combined response — brief warm acknowledgment + timing micro-tip + next practice (if available). Max 2 sentences total. Stop completely after that.
+   Example: "Roti-sabzi logged — solid midday fuel. Digestion ka peak time hai abhi, thodi walk baad mein kaafi hai."
    NEVER give a full two-part greeting (rule 6) when a log detail is already in the message.
 
    CASE B — UI_EVENT message WITHOUT a " — " detail (no specific activity chosen yet):
@@ -777,7 +789,7 @@ RULES:
    Then immediately call log_activity with category "unwell" and their description as context.
    ONE question only. Never stack multiple questions.
 
-19. NO REPETITION RULE: NEVER repeat the same sentence or phrase twice in a single response. Generate your reply once, concisely, and stop. Conversational replies: 2–3 sentences MAX unless the user asks for a deep-dive.
+19. ZERO REPETITION RULE: NEVER say the same sentence, phrase, or idea twice — in ANY response, ever. Generate your reply EXACTLY ONCE and stop immediately. Hard limits: HABIT_LOGGED events → 2 sentences only. General replies → 3 sentences MAX. Deep-dive (user explicitly asks) → 5 sentences MAX. If you feel the urge to repeat for emphasis, that urge is wrong — stop after the first mention.
 
 20. UNDERCOVER SPIRITUALITY RULE: Frame all ancient concepts in modern performance language. NEVER use religious jargon directly:
    Pranayama → "breathwork" / "breathing reset"
@@ -802,6 +814,11 @@ RULES:
         audioQueueRef.current = [];
         isPlayingRef.current = false;
         textBufferRef.current = '';
+        if (pendingEmitTimerRef.current !== null) {
+            clearTimeout(pendingEmitTimerRef.current);
+            pendingEmitTimerRef.current = null;
+        }
+        pendingEmitDataRef.current = null;
         setIsConnected(false);
         setIsSpeaking(false);
     }, []);
@@ -942,8 +959,15 @@ RULES:
                     onmessage: async (message: any) => {
                         // ── Tool calls ────────────────────────────────────────────
                         if (message.toolCall?.functionCalls?.length > 0) {
+                            // Cancel any pending pre-tool text emit — prevents double-speak.
+                            // turnComplete fires BEFORE toolCall over Gemini Live WebSocket,
+                            // so we must cancel the queued emit before it fires.
+                            if (pendingEmitTimerRef.current !== null) {
+                                clearTimeout(pendingEmitTimerRef.current);
+                                pendingEmitTimerRef.current = null;
+                                pendingEmitDataRef.current = null;
+                            }
                             // Flush pre-tool text AND audio — only post-tool response should play.
-                            // This prevents Bodhi from speaking twice (once before, once after tool).
                             textBufferRef.current = '';
                             audioQueueRef.current = [];
                             audioGenRef.current++;
@@ -1263,19 +1287,29 @@ RULES:
                             }
                         }
 
-                        // ── Turn complete — fire text callback ────────────────────
+                        // ── Turn complete — queue text emit with 100 ms delay ─────────
+                        // Gemini Live sends turnComplete BEFORE the toolCall message.
+                        // The 100 ms window lets an incoming toolCall cancel the emit,
+                        // which prevents Bodhi from speaking the same content twice.
                         if (message.serverContent?.turnComplete) {
                             const fullText = textBufferRef.current.trim();
+                            textBufferRef.current = '';
                             if (fullText) {
                                 const sanitizedText = sanitizeBodhiReply(fullText, preferredLanguageRef.current);
-                                onMessageRef.current(sanitizedText);
-
-                                const currentUid = userIdRef.current;
-                                if (currentUid) {
-                                    saveConversationHistory(currentUid, [{ role: 'bodhi', text: sanitizedText, timestamp: Date.now() }]).catch(() => { });
-                                }
+                                const snapUid = userIdRef.current;
+                                if (pendingEmitTimerRef.current !== null) clearTimeout(pendingEmitTimerRef.current);
+                                pendingEmitDataRef.current = { text: sanitizedText, uid: snapUid };
+                                pendingEmitTimerRef.current = setTimeout(() => {
+                                    pendingEmitTimerRef.current = null;
+                                    const data = pendingEmitDataRef.current;
+                                    pendingEmitDataRef.current = null;
+                                    if (!data) return;
+                                    onMessageRef.current(data.text);
+                                    if (data.uid) {
+                                        saveConversationHistory(data.uid, [{ role: 'bodhi', text: data.text, timestamp: Date.now() }]).catch(() => { });
+                                    }
+                                }, 500);
                             }
-                            textBufferRef.current = '';
                             // If no audio came through, reset to ready
                             if (!isPlayingRef.current && audioQueueRef.current.length === 0) {
                                 setChatState('ready');

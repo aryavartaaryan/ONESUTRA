@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Send, CheckCircle2, Mic, MicOff, Clock, Sparkles } from 'lucide-react';
+import { ArrowLeft, Send, CheckCircle2, Mic, MicOff, Clock, Sparkles, MoreHorizontal } from 'lucide-react';
 import { useDailyTasks } from '@/hooks/useDailyTasks';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { useBodhiChatStore } from '@/stores/bodhiChatStore';
@@ -11,6 +11,43 @@ import { useBodhiChatVoice } from '@/hooks/useBodhiChatVoice';
 import { useLanguage } from '@/context/LanguageContext';
 import { useLifestyleEngine } from '@/hooks/useLifestyleEngine';
 import { getToday } from '@/stores/lifestyleStore';
+
+// ─── Unified Log Bridge (shared between Practice section and Bodhi chat) ────
+const UNIFIED_LOG_KEY = 'onesutra_unified_log_v1';
+
+function saveUnifiedLog(activity: string, verdict: string): void {
+    if (typeof window === 'undefined') return;
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        const raw = JSON.parse(localStorage.getItem(UNIFIED_LOG_KEY) ?? '{}');
+        const todayLogs: Array<{ activity: string; verdict: string; timestamp: number }> = raw[today] ?? [];
+        if (!todayLogs.some(l => l.activity.toLowerCase() === activity.toLowerCase())) {
+            todayLogs.push({ activity, verdict, timestamp: Date.now() });
+        }
+        raw[today] = todayLogs;
+        localStorage.setItem(UNIFIED_LOG_KEY, JSON.stringify(raw));
+    } catch { }
+}
+
+const ACTIVITY_TO_HABIT_MAP: Record<string, string[]> = {
+    'h_bathing':             ['bath', 'shower', 'cold shower', 'snaan'],
+    'h_tongue_scraping':     ['tongue', 'tongue scraping', 'tongue scrape', 'jihva'],
+    'h_morning_water':       ['morning water', 'warm water', 'ushna jal'],
+    'h_morning_meditation':  ['meditat', 'dhyan', 'mindful', 'meditation'],
+    'h_morning_sunlight':    ['sunlight', 'sun gazing', 'morning light', 'solar', 'morning sun'],
+    'h_pranayama':           ['pranayam', 'breathwork', 'breathing'],
+    'h_exercise':            ['workout', 'exercise', 'gym', 'yoga', 'walk', 'run'],
+    'h_gratitude':           ['gratitud', 'grateful'],
+    'h_breakfast':           ['breakfast', 'nashta'],
+};
+
+function matchActivityToHabitId(activity: string): string | null {
+    const actLower = activity.toLowerCase();
+    for (const [habitId, keywords] of Object.entries(ACTIVITY_TO_HABIT_MAP)) {
+        if (keywords.some(k => actLower.includes(k))) return habitId;
+    }
+    return null;
+}
 
 // ─── Mood data ───────────────────────────────────────────────────────────────
 const MOOD_EMOJIS = [
@@ -96,6 +133,7 @@ function parseLogMessage(text: string): ParsedLog | null {
     if (/\bdinner\b|raat ka/.test(lc)) return { activityKey: 'dinner', icon: '\uD83C\uDF19', color: '#a78bfa', label: 'DINNER', detail };
     if (/workout|gym|\brun\b|yoga|exercise|fitness|cardio/.test(lc)) return { activityKey: 'workout', icon: '\uD83D\uDCAA', color: '#f87171', label: 'WORKOUT', detail };
     if (/\bwake\b|\bwoke\b|rise/.test(lc)) return { activityKey: 'wake_up', icon: '\uD83C\uDF05', color: '#fbbf24', label: 'RISE & SHINE', detail };
+    if (/bath|shower|cleanse|snaan/.test(lc)) return { activityKey: 'bath', icon: '\uD83D\uDEBF', color: '#38bdf8', label: 'BATH & RECHARGE', detail };
     if (/sleep|goodnight/.test(lc)) return { activityKey: 'sleep', icon: '\uD83D\uDCA4', color: '#818cf8', label: 'SLEEP', detail };
     if (/meditat|breathwork|pranayam/.test(lc)) return { activityKey: 'mindfulness', icon: '\uD83E\uDDD8', color: '#818cf8', label: 'MINDFULNESS', detail };
     if (/hydrat|\bwater\b|paani/.test(lc)) return { activityKey: 'hydration', icon: '\uD83D\uDCA7', color: '#60a5fa', label: 'HYDRATED', detail };
@@ -143,10 +181,16 @@ function getActivitySpecificChips(key: string): Array<{ icon: string; label: str
             { icon: '\uD83E\uDDD8', label: 'Cool down', message: 'Doing a cool down stretch after workout' },
         ];
         case 'wake_up': return [
+            { icon: '\uD83D\uDEBF', label: 'Bath', message: 'I took a bath and recharged this morning' },
             { icon: '\uD83E\uDD63', label: 'Breakfast', message: 'I had breakfast' },
-            { icon: '\uD83E\uDDD8', label: 'Meditate', message: 'I meditated this morning' },
-            { icon: '\u2600\uFE0F', label: 'Morning sun', message: 'I got morning sunlight exposure' },
             { icon: '\uD83D\uDCA7', label: 'Hydrate', message: 'I drank water' },
+            { icon: '\uD83E\uDDD8', label: 'Meditate', message: 'I meditated this morning' },
+        ];
+        case 'bath': return [
+            { icon: '\uD83E\uDD63', label: 'Breakfast', message: 'I had breakfast' },
+            { icon: '\uD83E\uDDD8', label: 'Breathwork', message: 'I did morning breathwork today' },
+            { icon: '\u2600\uFE0F', label: 'Morning sun', message: 'I got morning sunlight exposure' },
+            { icon: '\uD83C\uDFAF', label: 'Plan today', message: "Help me plan today's priorities" },
         ];
         case 'sleep': return [
             { icon: '\uD83D\uDE4F', label: 'Gratitude', message: 'I am feeling grateful today' },
@@ -909,6 +953,7 @@ export default function BodhiChatPage() {
     const [followUpChips, setFollowUpChips] = useState<FollowUpChip[] | null>(null);
     const [lastLoggedActivity, setLastLoggedActivity] = useState<string | null>(null);
     const [activeQuickChip, setActiveQuickChip] = useState<string | null>(null);
+    const [showQuickActions, setShowQuickActions] = useState(true);
 
     const inputRef = useRef<HTMLInputElement>(null);
     const chatEndRef = useRef<HTMLDivElement>(null);
@@ -932,6 +977,21 @@ export default function BodhiChatPage() {
     const longestEver = Object.values(lifestyle.streaks).reduce((m, s) => Math.max(m, s.longestStreak ?? 0), 0);
     const activeChallenge = lifestyle.profile?.activeMantraPractices?.[0]
         ? lifestyle.mantraStreaks[lifestyle.profile.activeMantraPractices[0]] : null;
+
+    // Compute the next pending habit in Ayurvedic morning order
+    const MORNING_HABIT_ORDER: Record<string, number> = {
+        h_morning_water: 1, h_tongue_scraping: 2, h_bathing: 3,
+        h_morning_sunlight: 4, h_pranayama: 5, h_morning_meditation: 6,
+        h_gratitude: 7, h_breakfast: 8,
+    };
+    const pendingHabitsToday = lifestyle.activeHabits.filter(h =>
+        !todayHabitLogs.some(l => l.habitId === h.id)
+    );
+    const nextPendingHabit = pendingHabitsToday
+        .filter(h => h.category === 'morning' || h.category === 'sacred')
+        .sort((a, b) => (MORNING_HABIT_ORDER[a.id] ?? 99) - (MORNING_HABIT_ORDER[b.id] ?? 99))[0]
+        ?? pendingHabitsToday[0];
+
     const bodhiLifestyleCtx = lifestyle.profile?.onboardingComplete ? {
         buddyName: lifestyle.profile.buddyName,
         buddyPersonality: lifestyle.profile.buddyPersonality,
@@ -956,6 +1016,7 @@ export default function BodhiChatPage() {
         spiritualBackground: lifestyle.profile.spiritualBackground,
         onboardingComplete: true,
         adhdMode: lifestyle.adhdMode,
+        nextPendingHabit: nextPendingHabit ? `${nextPendingHabit.icon} ${nextPendingHabit.name}` : undefined,
     } : undefined;
 
     // ── Bodhi Chat Voice (Gemini Live) ────────────────────────────────────────
@@ -970,16 +1031,35 @@ export default function BodhiChatPage() {
         onRemoveTask: async (taskId) => { await removeTask(taskId); },
         onLogActivity: (activity, verdict, _reaction) => {
             setLogToast({ id: `${Date.now()}`, activity, verdict });
-            setLoggedActivities(prev => [...prev, { name: activity, verdict, timestamp: Date.now() }]);
+            setLoggedActivities(prev => {
+                const exists = prev.some(a => a.name.toLowerCase() === activity.toLowerCase());
+                if (exists) return prev;
+                return [...prev, { name: activity, verdict, timestamp: Date.now() }];
+            });
+            // Save to unified log bridge so Practice section stays in sync
+            saveUnifiedLog(activity, verdict);
+            // Sync to lifestyle store — mark matching habit as complete
+            const habitId = matchActivityToHabitId(activity);
+            if (habitId) {
+                const matched = lifestyle.activeHabits.find(h => h.id === habitId);
+                const alreadyDone = todayHabitLogs.some(l => l.habitId === habitId);
+                if (matched && !alreadyDone) {
+                    lifestyle.completeHabit(habitId);
+                }
+            }
         },
         onMessage: (text) => {
-            const bodhiMsg: ChatMessage = {
-                id: `b_${Date.now()}`,
-                role: 'bodhi',
-                text,
-                timestamp: Date.now(),
-            };
-            setMessages(prev => [...prev, bodhiMsg]);
+            setMessages(prev => {
+                // Dedup: skip if identical or fully contained in the last Bodhi message
+                const lastBodhi = [...prev].reverse().find(m => m.role === 'bodhi');
+                if (lastBodhi) {
+                    const norm = (s: string) => s.replace(/\s+/g, ' ').trim().toLowerCase();
+                    const n = norm(text), ln = norm(lastBodhi.text);
+                    if (n === ln || (n.length > 20 && (ln.includes(n) || n.includes(ln)))) return prev;
+                }
+                const bodhiMsg: ChatMessage = { id: `b_${Date.now()}`, role: 'bodhi', text, timestamp: Date.now() };
+                return [...prev, bodhiMsg];
+            });
         },
     });
 
@@ -1140,6 +1220,33 @@ export default function BodhiChatPage() {
         setMessages(prev => [...prev, proactiveMsg]);
         if (typeof window !== 'undefined') localStorage.setItem(msgKey, '1');
     }, []);
+
+    // Populate loggedActivities strip from lifestyle habits completed today (one-shot sync on mount)
+    useEffect(() => {
+        // If there's a pending habit message coming, skip here — the message handler will add it
+        if (pendingMessage && /\[UI_EVENT:\s*HABIT_LOGGED\]/i.test(pendingMessage)) return;
+        const completedToday = lifestyle.activeHabits.filter(h =>
+            lifestyle.habitLogs.some(l => l.habitId === h.id && l.date === today && l.completed)
+        );
+        if (completedToday.length === 0) return;
+        setLoggedActivities(prev => {
+            const existingNames = new Set(prev.map(a => a.name.toLowerCase()));
+            const newActs = completedToday
+                .filter(h => !existingNames.has(h.name.toLowerCase()))
+                .map(h => {
+                    const logEntry = lifestyle.habitLogs.find(l => l.habitId === h.id && l.date === today);
+                    return { name: `${h.icon} ${h.name}`, verdict: 'on_time' as const, timestamp: logEntry?.loggedAt ?? Date.now() };
+                })
+                .sort((a, b) => a.timestamp - b.timestamp);
+            return newActs.length > 0 ? [...newActs, ...prev] : prev;
+        });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Run once on mount only
+
+    // Auto-collapse quick-action chips when user is in logging mode
+    useEffect(() => {
+        if (lastLoggedActivity) setShowQuickActions(false);
+    }, [lastLoggedActivity]);
 
     // Send pending message from homepage once connected
     useEffect(() => {
@@ -1585,58 +1692,101 @@ export default function BodhiChatPage() {
                         )}
                     </AnimatePresence>
 
-                    {/* ── Premium Smart Quick-Action Chips + Mood ── */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.28rem', marginTop: '0.12rem', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 2 }}>
-                        <style>{`.qrow::-webkit-scrollbar{display:none}`}</style>
-                        {([
-                            { icon: '✅', prompt: 'I need to ', title: 'Task', color: '#4ade80', bg: 'rgba(74,222,128,0.12)', border: 'rgba(74,222,128,0.38)', glow: 'rgba(74,222,128,0.22)' },
-                            { icon: '💡', prompt: 'I have an idea: ', title: 'Idea', color: '#22d3ee', bg: 'rgba(34,211,238,0.12)', border: 'rgba(34,211,238,0.38)', glow: 'rgba(34,211,238,0.22)' },
-                            { icon: '⚡', prompt: "I'm facing: ", title: 'Challenge', color: '#fb923c', bg: 'rgba(251,146,60,0.12)', border: 'rgba(251,146,60,0.38)', glow: 'rgba(251,146,60,0.22)' },
-                            { icon: '🔥', prompt: "There's an issue: ", title: 'Issue', color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.38)', glow: 'rgba(248,113,113,0.22)' },
-                            { icon: '📋', prompt: 'What are my pending tasks?', title: 'Tasks', color: '#a78bfa', bg: 'rgba(167,139,250,0.12)', border: 'rgba(167,139,250,0.38)', glow: 'rgba(167,139,250,0.22)' },
-                        ] as const).map((chip, idx) => {
-                            const isActive = activeQuickChip === chip.title;
-                            return (
+                    {/* ── Quick Actions Row — collapses to icon in logging mode ── */}
+                    <AnimatePresence mode="wait">
+                        {showQuickActions ? (
+                            <motion.div
+                                key="quick-expanded"
+                                initial={{ opacity: 0, y: 4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 4 }}
+                                transition={{ duration: 0.18 }}
+                                style={{ display: 'flex', alignItems: 'center', gap: '0.28rem', marginTop: '0.12rem', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 2 }}
+                            >
+                                <style>{`.qrow::-webkit-scrollbar{display:none}`}</style>
+                                {([
+                                    { icon: '✅', prompt: 'I need to ', title: 'Task', color: '#4ade80', bg: 'rgba(74,222,128,0.12)', border: 'rgba(74,222,128,0.38)', glow: 'rgba(74,222,128,0.22)' },
+                                    { icon: '💡', prompt: 'I have an idea: ', title: 'Idea', color: '#22d3ee', bg: 'rgba(34,211,238,0.12)', border: 'rgba(34,211,238,0.38)', glow: 'rgba(34,211,238,0.22)' },
+                                    { icon: '⚡', prompt: "I'm facing: ", title: 'Challenge', color: '#fb923c', bg: 'rgba(251,146,60,0.12)', border: 'rgba(251,146,60,0.38)', glow: 'rgba(251,146,60,0.22)' },
+                                    { icon: '🔥', prompt: "There's an issue: ", title: 'Issue', color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.38)', glow: 'rgba(248,113,113,0.22)' },
+                                    { icon: '📋', prompt: 'What are my pending tasks?', title: 'Tasks', color: '#a78bfa', bg: 'rgba(167,139,250,0.12)', border: 'rgba(167,139,250,0.38)', glow: 'rgba(167,139,250,0.22)' },
+                                ] as const).map((chip, idx) => {
+                                    const isActive = activeQuickChip === chip.title;
+                                    return (
+                                        <motion.button
+                                            key={chip.title}
+                                            initial={{ opacity: 0, x: -6 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: idx * 0.04, type: 'spring', stiffness: 340, damping: 24 }}
+                                            whileTap={{ scale: 0.84 }}
+                                            onClick={() => {
+                                                if (isActive) { setActiveQuickChip(null); setInputValue(''); }
+                                                else { setActiveQuickChip(chip.title); setInputValue(chip.prompt); inputRef.current?.focus(); }
+                                            }}
+                                            title={chip.title}
+                                            style={{
+                                                flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4,
+                                                background: isActive ? chip.bg : 'rgba(255,255,255,0.05)',
+                                                border: `1px solid ${isActive ? chip.border : 'rgba(255,255,255,0.10)'}`,
+                                                borderRadius: 999,
+                                                padding: '0.24rem 0.52rem 0.24rem 0.36rem',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.22s ease',
+                                                boxShadow: isActive ? `0 0 16px ${chip.glow}, inset 0 1px 0 rgba(255,255,255,0.10)` : 'none',
+                                            }}
+                                        >
+                                            <span style={{ fontSize: '0.84rem', filter: isActive ? `drop-shadow(0 0 5px ${chip.color}99)` : 'none', transition: 'filter 0.2s', lineHeight: 1 }}>{chip.icon}</span>
+                                            <span style={{ fontSize: '0.43rem', color: isActive ? chip.color : 'rgba(255,255,255,0.52)', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', whiteSpace: 'nowrap', fontFamily: "'Outfit', sans-serif", transition: 'color 0.22s' }}>{chip.title}</span>
+                                            <AnimatePresence>
+                                                {isActive && (
+                                                    <motion.span initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }} style={{ fontSize: '0.52rem', color: chip.color, lineHeight: 1, marginLeft: 1 }}>✕</motion.span>
+                                                )}
+                                            </AnimatePresence>
+                                        </motion.button>
+                                    );
+                                })}
+                                <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.10)', flexShrink: 0, margin: '0 0.08rem' }} />
+                                <motion.button whileTap={{ scale: 0.88 }} onClick={() => setShowMoodPicker(p => !p)}
+                                    style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5, background: showMoodPicker || selectedMoodEmoji ? 'rgba(167,139,250,0.10)' : 'rgba(255,255,255,0.05)', border: `1px solid ${showMoodPicker || selectedMoodEmoji ? 'rgba(167,139,250,0.35)' : 'rgba(255,255,255,0.09)'}`, borderRadius: 999, padding: '0.24rem 0.55rem', cursor: 'pointer', transition: 'all 0.22s', boxShadow: showMoodPicker ? '0 0 14px rgba(167,139,250,0.28)' : 'none' }}>
+                                    <span style={{ fontSize: '0.84rem', lineHeight: 1 }}>{selectedMoodEmoji || '😊'}</span>
+                                    <span style={{ fontSize: '0.43rem', color: showMoodPicker || selectedMoodEmoji ? 'rgba(167,139,250,0.92)' : 'rgba(255,255,255,0.50)', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', whiteSpace: 'nowrap', fontFamily: "'Outfit', sans-serif", transition: 'color 0.22s' }}>{selectedMoodLabel || 'Mood'}</span>
+                                    <motion.span animate={{ rotate: showMoodPicker ? 180 : 0 }} transition={{ duration: 0.2 }} style={{ fontSize: '0.44rem', color: showMoodPicker ? 'rgba(167,139,250,0.72)' : 'rgba(255,255,255,0.32)', display: 'inline-block' }}>▾</motion.span>
+                                </motion.button>
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="quick-collapsed"
+                                initial={{ opacity: 0, y: 4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 4 }}
+                                transition={{ duration: 0.18 }}
+                                style={{ display: 'flex', alignItems: 'center', gap: '0.28rem', marginTop: '0.12rem', paddingBottom: 2 }}
+                            >
                                 <motion.button
-                                    key={chip.title}
-                                    initial={{ opacity: 0, x: -6 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: idx * 0.04, type: 'spring', stiffness: 340, damping: 24 }}
-                                    whileTap={{ scale: 0.84 }}
-                                    onClick={() => {
-                                        if (isActive) { setActiveQuickChip(null); setInputValue(''); }
-                                        else { setActiveQuickChip(chip.title); setInputValue(chip.prompt); inputRef.current?.focus(); }
-                                    }}
-                                    title={chip.title}
+                                    whileTap={{ scale: 0.88 }}
+                                    onClick={() => setShowQuickActions(true)}
+                                    title="Show task actions"
                                     style={{
-                                        flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4,
-                                        background: isActive ? chip.bg : 'rgba(255,255,255,0.05)',
-                                        border: `1px solid ${isActive ? chip.border : 'rgba(255,255,255,0.10)'}`,
+                                        flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5,
+                                        background: 'rgba(255,255,255,0.05)',
+                                        border: '1px solid rgba(255,255,255,0.12)',
                                         borderRadius: 999,
-                                        padding: '0.24rem 0.52rem 0.24rem 0.36rem',
+                                        padding: '0.24rem 0.55rem',
                                         cursor: 'pointer',
-                                        transition: 'all 0.22s ease',
-                                        boxShadow: isActive ? `0 0 16px ${chip.glow}, inset 0 1px 0 rgba(255,255,255,0.10)` : 'none',
                                     }}
                                 >
-                                    <span style={{ fontSize: '0.84rem', filter: isActive ? `drop-shadow(0 0 5px ${chip.color}99)` : 'none', transition: 'filter 0.2s', lineHeight: 1 }}>{chip.icon}</span>
-                                    <span style={{ fontSize: '0.43rem', color: isActive ? chip.color : 'rgba(255,255,255,0.52)', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', whiteSpace: 'nowrap', fontFamily: "'Outfit', sans-serif", transition: 'color 0.22s' }}>{chip.title}</span>
-                                    <AnimatePresence>
-                                        {isActive && (
-                                            <motion.span initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }} style={{ fontSize: '0.52rem', color: chip.color, lineHeight: 1, marginLeft: 1 }}>✕</motion.span>
-                                        )}
-                                    </AnimatePresence>
+                                    <MoreHorizontal size={13} style={{ color: 'rgba(255,255,255,0.40)' }} />
+                                    <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.40)', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', whiteSpace: 'nowrap', fontFamily: "'Outfit', sans-serif" }}>Tasks & Actions</span>
                                 </motion.button>
-                            );
-                        })}
-                        <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.10)', flexShrink: 0, margin: '0 0.08rem' }} />
-                        <motion.button whileTap={{ scale: 0.88 }} onClick={() => setShowMoodPicker(p => !p)}
-                            style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5, background: showMoodPicker || selectedMoodEmoji ? 'rgba(167,139,250,0.10)' : 'rgba(255,255,255,0.05)', border: `1px solid ${showMoodPicker || selectedMoodEmoji ? 'rgba(167,139,250,0.35)' : 'rgba(255,255,255,0.09)'}`, borderRadius: 999, padding: '0.24rem 0.55rem', cursor: 'pointer', transition: 'all 0.22s', boxShadow: showMoodPicker ? '0 0 14px rgba(167,139,250,0.28)' : 'none' }}>
-                            <span style={{ fontSize: '0.84rem', lineHeight: 1 }}>{selectedMoodEmoji || '😊'}</span>
-                            <span style={{ fontSize: '0.43rem', color: showMoodPicker || selectedMoodEmoji ? 'rgba(167,139,250,0.92)' : 'rgba(255,255,255,0.50)', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', whiteSpace: 'nowrap', fontFamily: "'Outfit', sans-serif", transition: 'color 0.22s' }}>{selectedMoodLabel || 'Mood'}</span>
-                            <motion.span animate={{ rotate: showMoodPicker ? 180 : 0 }} transition={{ duration: 0.2 }} style={{ fontSize: '0.44rem', color: showMoodPicker ? 'rgba(167,139,250,0.72)' : 'rgba(255,255,255,0.32)', display: 'inline-block' }}>▾</motion.span>
-                        </motion.button>
-                    </div>
+                                <motion.button whileTap={{ scale: 0.88 }} onClick={() => setShowMoodPicker(p => !p)}
+                                    style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5, background: showMoodPicker || selectedMoodEmoji ? 'rgba(167,139,250,0.10)' : 'rgba(255,255,255,0.05)', border: `1px solid ${showMoodPicker || selectedMoodEmoji ? 'rgba(167,139,250,0.35)' : 'rgba(255,255,255,0.09)'}`, borderRadius: 999, padding: '0.24rem 0.55rem', cursor: 'pointer', transition: 'all 0.22s', boxShadow: showMoodPicker ? '0 0 14px rgba(167,139,250,0.28)' : 'none' }}>
+                                    <span style={{ fontSize: '0.84rem', lineHeight: 1 }}>{selectedMoodEmoji || '😊'}</span>
+                                    <span style={{ fontSize: '0.43rem', color: showMoodPicker || selectedMoodEmoji ? 'rgba(167,139,250,0.92)' : 'rgba(255,255,255,0.50)', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', whiteSpace: 'nowrap', fontFamily: "'Outfit', sans-serif", transition: 'color 0.22s' }}>{selectedMoodLabel || 'Mood'}</span>
+                                    <motion.span animate={{ rotate: showMoodPicker ? 180 : 0 }} transition={{ duration: 0.2 }} style={{ fontSize: '0.44rem', color: showMoodPicker ? 'rgba(167,139,250,0.72)' : 'rgba(255,255,255,0.32)', display: 'inline-block' }}>▾</motion.span>
+                                </motion.button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                     {/* Expandable mood picker */}
                     <AnimatePresence>

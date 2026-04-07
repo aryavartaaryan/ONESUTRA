@@ -103,7 +103,7 @@ interface CustomHabitForm {
     frequency: 'daily' | 'weekdays' | 'weekends';
 }
 
-const ICON_OPTIONS = ['🌅','🧘','💪','📚','🙏','💧','🌿','🔥','⚡','🎯','🎨','🌸','✍️','🌬️','🕉️','🏃','🍎','💡','🌙','⭐','🦁','🌊','🎵','🔱','📿','🕯️','🌺','🦋','💫','🌟'];
+const ICON_OPTIONS = ['🌅', '🧘', '💪', '📚', '🙏', '💧', '🌿', '🔥', '⚡', '🎯', '🎨', '🌸', '✍️', '🌬️', '🕉️', '🏃', '🍎', '💡', '🌙', '⭐', '🦁', '🌊', '🎵', '🔱', '📿', '🕯️', '🌺', '🦋', '💫', '🌟'];
 
 function CustomHabitSheet({ onClose, onSave }: { onClose: () => void; onSave: (habit: HabitItem) => void }) {
     const [form, setForm] = useState<CustomHabitForm>({
@@ -301,6 +301,7 @@ function ManageHabitRow({ habit, streak, onToggle, onDelete }: {
 export default function HabitsPage() {
     const router = useRouter();
     const { habits, streaks, addHabit, updateHabit, removeHabit } = useLifestyleEngine();
+    const [isMounted, setIsMounted] = useState(false);
     const [activeTab, setActiveTab] = useState<'library' | 'my_habits'>('library');
     const [showCustomForm, setShowCustomForm] = useState(false);
     const [search, setSearch] = useState('');
@@ -308,6 +309,10 @@ export default function HabitsPage() {
     const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
 
     const myHabitIds = new Set(habits.map(h => h.id));
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     const handleAddFromLibrary = useCallback((template: HabitTemplate) => {
         const habit: HabitItem = {
@@ -342,6 +347,8 @@ export default function HabitsPage() {
         { id: 'financial', label: '💰 Financial' },
         { id: 'creative', label: '🎨 Creative' },
     ];
+
+    if (!isMounted) return null;
 
     return (
         <div style={{

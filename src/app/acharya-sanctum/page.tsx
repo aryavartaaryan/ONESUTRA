@@ -97,9 +97,8 @@ export default function AcharyaSanctumPage() {
 
     // ── Firebase: if user already completed onboarding, redirect instantly ────
     useEffect(() => {
-        // Fast path: localStorage flag
-        const done = localStorage.getItem('acharya_onboarding_done');
-        if (done === 'true') { router.replace('/'); return; }
+        // Fast path: localStorage flag (UID-keyed to survive multi-user on same device)
+        // We don't have the UID here yet, so just skip the fast path and always check Firestore
 
         // Slow path: check Firestore for any existing profile/flag
         (async () => {
@@ -125,7 +124,7 @@ export default function AcharyaSanctumPage() {
                             onesutraData?.hasCompletedOnboarding ||
                             onesutraData?.ayurvedicProfile?.prakriti;
                         if (alreadyDone) {
-                            localStorage.setItem('acharya_onboarding_done', 'true');
+                            localStorage.setItem('acharya_onboarding_done', firebaseUser.uid);
                             router.replace('/');
                         }
                     }

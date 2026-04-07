@@ -8,6 +8,8 @@ import { useDoshaEngine } from '@/hooks/useDoshaEngine';
 import { useGeminiTTS } from '@/hooks/useGeminiTTS';
 import { DOSHA_INFO, generateDoshaStory, type Prakriti, type Vikriti } from '@/lib/doshaService';
 import type { QuizAnswer } from '@/lib/doshaService';
+import { useLanguage } from '@/context/LanguageContext';
+import { useSpeechInput } from '@/hooks/useSpeechInput';
 
 // ─── Quiz Question Data ────────────────────────────────────────────────────────
 
@@ -197,6 +199,137 @@ const PRAKRITI_QUESTIONS: QuizQuestion[] = [
   },
 ];
 
+const PRAKRITI_QUESTIONS_HI: QuizQuestion[] = [
+  { id: 'body_frame', section: 'prakriti', question: 'आपका प्राकृतिक शारीरिक ढांचा — जैसा बचपन से है?', subtext: 'अपना स्वाभाविक ढांचा सोचें, वर्तमान वज़न नहीं।', emoji: '🪶',
+    answers: [
+      { id: 'thin',   label: 'पतला और हल्का',    desc: 'दुबला, वज़न बढ़ाना कठिन, हड्डियाँ उभरी हुई', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'medium', label: 'मध्यम और एथलेटिक', desc: 'संतुलित, अच्छी बनावट, मांसपेशीय',         doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'large',  label: 'बड़ा और मज़बूत',     desc: 'चौड़ा, आसानी से वज़न बढ़ता है, ठोस',        doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ] },
+  { id: 'skin', section: 'prakriti', question: 'आपकी प्राकृतिक त्वचा की बनावट (बिना उत्पादों के)?', emoji: '🌸',
+    answers: [
+      { id: 'dry',       label: 'शुष्क और खुरदरी',    desc: 'फटने, छिलने या तंग महसूस होने की प्रवृत्ति', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'sensitive', label: 'संवेदनशील और गर्म', desc: 'लालिमा-प्रवण, झाईं, जल्दी जलना',         doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'oily',      label: 'तैलीय और चिकनी',    desc: 'मोटी, चमकदार, उम्र धीमे आती है',          doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ] },
+  { id: 'hair', section: 'prakriti', question: 'आपके बालों का प्राकृतिक प्रकार?', emoji: '💇',
+    answers: [
+      { id: 'dry_frizzy',  label: 'शुष्क और घुंघराले', desc: 'पतले, उलझने की प्रवृत्ति, टूटने का खतरा', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'fine_oily',   label: 'पतले और तैलीय',    desc: 'सीधे, जल्दी सफ़ेद/पतले होते हैं',         doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'thick_wavy',  label: 'घने और लहरदार',    desc: 'भरपूर, चमकदार, मज़बूत',                  doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ] },
+  { id: 'digestion', section: 'prakriti', question: 'आपका सामान्य पाचन पैटर्न?', emoji: '🔥',
+    answers: [
+      { id: 'irregular',   label: 'अनियमित और परिवर्तनशील', desc: 'कभी तेज़, कभी धीमा — अप्रत्याशित',    doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'sharp_fast',  label: 'तेज़ और शीघ्र',         desc: 'तीव्र भूख, जल्दी पचता, भूख में चिड़चिड़ापन', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'slow_steady', label: 'धीमा और स्थिर',          desc: 'कम भूख, धीमे लेकिन भरोसेमंद पाचन',     doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ] },
+  { id: 'sleep', section: 'prakriti', question: 'आपका प्राकृतिक नींद पैटर्न?', emoji: '🌙',
+    answers: [
+      { id: 'light',     label: 'हल्की और बाधित', desc: 'बार-बार जागना, हल्की नींद, जीवंत सपने', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'moderate',  label: 'मध्यम',           desc: 'नींद अच्छी आती है, कभी-कभी जागना',      doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'deep_long', label: 'गहरी और लंबी',   desc: 'गहरी नींद, जागना मुश्किल, नींद पसंद',  doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ] },
+  { id: 'energy', section: 'prakriti', question: 'दिन में आपकी ऊर्जा कैसे प्रवाहित होती है?', emoji: '⚡',
+    answers: [
+      { id: 'bursts',          label: 'उछाल और गिरावट',       desc: 'तीव्र ऊर्जा के झटके, फिर अचानक थकान',   doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'intense_focused', label: 'तीव्र और केंद्रित',    desc: 'निरंतर प्रेरणा, अति कर सकते हैं',        doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'steady_slow',     label: 'स्थिर और धीमी',        desc: 'शुरू होने में समय, पर दिनभर चलते हैं', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ] },
+  { id: 'emotions', section: 'prakriti', question: 'आपकी प्राकृतिक भावनात्मक प्रवृत्तियाँ?', emoji: '💭',
+    answers: [
+      { id: 'anxious_creative',   label: 'चिंतित और रचनात्मक', desc: 'कल्पनाशील लेकिन चिंता-प्रवण, संवेदनशील',    doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'ambitious_irritable',label: 'महत्वाकांक्षी और तीव्र', desc: 'लक्ष्य-उन्मुख, दबाव में चिड़चिड़े हो सकते हैं', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'calm_attached',      label: 'शांत और आसक्त',     desc: 'सहज, प्रेमपूर्ण, लेकिन ज़्यादा देर पकड़ते हैं', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ] },
+  { id: 'appetite', section: 'prakriti', question: 'आपका प्राकृतिक भूख पैटर्न?', emoji: '🍽️',
+    answers: [
+      { id: 'variable',       label: 'परिवर्तनशील',      desc: 'कभी बहुत भूखे, कभी खाने में रुचि नहीं', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'strong_intense', label: 'तीव्र और प्रबल',  desc: 'समय पर खाना ज़रूरी — भोजन छोड़ना असहज',  doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'low_consistent', label: 'कम और नियमित',   desc: 'भोजन आसानी से छोड़ सकते हैं, हल्की भूख',  doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ] },
+  { id: 'bowel', section: 'prakriti', question: 'आपका सामान्य मलत्याग पैटर्न?', subtext: 'यह एक महत्वपूर्ण आयुर्वेदिक संकेतक है — ईमानदारी से उत्तर दें।', emoji: '🌿',
+    answers: [
+      { id: 'irregular',    label: 'अनियमित',                desc: 'कभी-कभी कब्ज़, कठोर या शुष्क मल',          doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'loose_frequent',label: 'ढीला और बार-बार',      desc: 'मुलायम, नियमित, कभी-कभी बहुत बार',        doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'slow_once',    label: 'धीमा, दिन में एक बार', desc: 'नियमित, भारी, पूर्ण — हालांकि देर से',    doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ] },
+  { id: 'temperature', section: 'prakriti', question: 'आपकी तापमान प्राथमिकता?', emoji: '🌡️',
+    answers: [
+      { id: 'loves_warmth', label: 'गर्मी पसंद',    desc: 'ठंडे हाथ/पैर, ठंड से नफ़रत',    doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'loves_cool',   label: 'ठंड पसंद',    desc: 'गर्मी लगती है, ठंडा वातावरण पसंद', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'loves_both',   label: 'अनुकूलनीय',   desc: 'ज़्यादातर तापमान में सहज',          doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ] },
+  { id: 'memory', section: 'prakriti', question: 'आपकी याददाश्त और सीखने की शैली?', emoji: '🧠',
+    answers: [
+      { id: 'quick_forget',      label: 'जल्दी सीखना, जल्दी भूलना',  desc: 'चीज़ें जल्दी समझते हैं लेकिन याददाश्त कम', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'sharp_focused',     label: 'तीव्र और केंद्रित',         desc: 'उत्कृष्ट केंद्रित स्मृति, विश्लेषणात्मक',  doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'slow_never_forget', label: 'धीमे सीखना, कभी नहीं भूलना', desc: 'समय लेते हैं लेकिन सब हमेशा याद रहता है', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ] },
+  { id: 'speech', section: 'prakriti', question: 'आपका प्राकृतिक बोलने का तरीका?', emoji: '🗣️',
+    answers: [
+      { id: 'fast_lots',      label: 'तेज़ और बातूनी',  desc: 'तेज़ बोलते हैं, विषय बदलते हैं, ज़्यादा शब्द', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'precise_sharp',  label: 'सटीक और प्रत्यक्ष', desc: 'तीखा, सीधा, प्रेरक',                          doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'slow_melodious', label: 'धीमा और मधुर',     desc: 'नरम, विचारशील, सुचिंतित',                    doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ] },
+  { id: 'weather', section: 'prakriti', question: 'कौन सा मौसम आपको सबसे ज़्यादा परेशान करता है?', emoji: '🌦️',
+    answers: [
+      { id: 'cold_wind', label: 'ठंडा और तूफ़ानी', desc: 'हवा और ठंड से असहजता',           doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'heat_sun',  label: 'गर्मी और तेज़ धूप', desc: 'जल्दी गर्म होना, आसानी से जलना', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'cold_damp', label: 'ठंडा और नम',     desc: 'नम मौसम भारी और सुस्त लगता है',   doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ] },
+  { id: 'stress_response', section: 'prakriti', question: 'तनाव में आपकी प्राकृतिक प्रतिक्रिया?', emoji: '🌊',
+    answers: [
+      { id: 'anxious_overwhelmed', label: 'चिंतित और अभिभूत', desc: 'चिंता, ठहराव, या सभी दिशाओं में बिखरना', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'irritable_intense',   label: 'चिड़चिड़ा और तीव्र', desc: 'क्रोध, अधिक प्रयास, नियंत्रण लेना',    doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'withdraw_avoid',      label: 'पीछे हटना और टालना', desc: 'चुप हो जाना, ज़्यादा सोना, खाकर सुकून', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ] },
+  { id: 'joints', section: 'prakriti', question: 'आपके जोड़ और शरीर की बनावट?', emoji: '🦴',
+    answers: [
+      { id: 'prominent_crack',  label: 'उभरे हुए और चटकने वाले', desc: 'जोड़ चटकते हैं, हड्डियाँ उभरी, दुबला ढांचा', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'moderate_flexible',label: 'मध्यम और लचीले',         desc: 'अच्छी बनावट, मध्यम लचीलापन',              doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'large_padded',     label: 'बड़े और गद्देदार',         desc: 'चौड़े, गद्दीदार जोड़, स्थिर ढांचा',      doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ] },
+];
+
+const VIKRITI_QUESTIONS_HI: QuizQuestion[] = [
+  { id: 'v_energy', section: 'vikriti', question: 'पिछले 2 हफ़्तों में आपकी ऊर्जा कैसी रही है?', emoji: '⚡',
+    answers: [
+      { id: 'v_scattered', label: 'बिखरी और चिंतित',   desc: 'बेचैन, अनियमित, ध्यान केंद्रित करना कठिन',   doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'v_intense',   label: 'तीव्र और अतिसक्रिय', desc: 'प्रेरित लेकिन चिड़चिड़े या सूजन महसूस',      doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'v_heavy',     label: 'भारी और कम',         desc: 'सुस्त, अप्रेरित, शुरू करना मुश्किल',         doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'v_balanced',  label: 'संतुलित और स्थिर',   desc: 'सामान्यतः स्थिर और अच्छा',                   doshaEffect: { vata: 1, pitta: 1, kapha: 1 } },
+    ] },
+  { id: 'v_digestion', section: 'vikriti', question: 'अभी आपका पाचन कैसा है?', emoji: '🔥',
+    answers: [
+      { id: 'v_bloated',    label: 'फूला और अनियमित',  desc: 'गैस, कब्ज़, अप्रत्याशित',                   doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'v_acidic',     label: 'अम्लीय और तेज़',    desc: 'अम्लता, सीने में जलन, ढीले मल',              doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'v_slow_heavy', label: 'धीमा और भारी',      desc: 'खाने के बाद भारीपन, मतली, धीमा पाचन',        doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'v_good',       label: 'अच्छा और नियमित',   desc: 'पाचन सामान्य लग रहा है',                     doshaEffect: { vata: 1, pitta: 1, kapha: 1 } },
+    ] },
+  { id: 'v_sleep', section: 'vikriti', question: 'हाल ही में आपकी नींद कैसी रही है?', emoji: '🌙',
+    answers: [
+      { id: 'v_insomnia',       label: 'हल्की और बाधित',      desc: 'नींद आने में कठिनाई, रात में जागना',        doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'v_waking_midnight',label: 'रात 10-2 बजे जागना',  desc: 'आधी रात को सक्रिय मन, अधिक गर्मी',         doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'v_excessive',      label: 'अत्यधिक और भारी',     desc: 'बहुत ज़्यादा सोना, जागना मुश्किल, सुस्ती',  doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'v_normal_sleep',   label: 'सामान्य और तरोताज़ा', desc: 'नींद अच्छी लग रही है',                      doshaEffect: { vata: 1, pitta: 1, kapha: 1 } },
+    ] },
+  { id: 'v_mood', section: 'vikriti', question: 'हाल ही में कौन सी भावनात्मक स्थिति सबसे अधिक है?', emoji: '💭',
+    answers: [
+      { id: 'v_anxiety',   label: 'चिंता और घबराहट',     desc: 'अधिक सोचना, डर, बेचैनी, बिखराव',          doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'v_anger',     label: 'चिड़चिड़ापन और निराशा', desc: 'जल्दी क्रोध, अधीरता, आलोचना',              doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'v_lethargy',  label: 'भारीपन और उदासी',     desc: 'कम प्रेरणा, पीछे हटना, आसक्ति',            doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'v_content',   label: 'अधिकतर संतुष्ट',      desc: 'भावनात्मक रूप से स्थिर और ठीक',            doshaEffect: { vata: 1, pitta: 1, kapha: 1 } },
+    ] },
+  { id: 'v_physical', section: 'vikriti', question: 'हाल ही में कोई शारीरिक लक्षण?', emoji: '🌿',
+    answers: [
+      { id: 'v_dry_cramps',    label: 'शुष्कता, जोड़ दर्द, ऐंठन', desc: 'शुष्क त्वचा, कब्ज़, मांसपेशियों में तनाव', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'v_inflammation',  label: 'सूजन और त्वचा समस्याएँ',   desc: 'चकत्ते, अम्लता, जलन',                       doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'v_congestion',    label: 'कफ और वज़न बढ़ना',           desc: 'बलगम, भारीपन, सूजन',                        doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'v_none',          label: 'कोई विशेष नहीं',             desc: 'शारीरिक रूप से ठीक महसूस हो रहा है',       doshaEffect: { vata: 1, pitta: 1, kapha: 1 } },
+    ] },
+];
+
 const VIKRITI_QUESTIONS: QuizQuestion[] = [
   {
     id: 'v_energy',
@@ -263,6 +396,7 @@ const VIKRITI_QUESTIONS: QuizQuestion[] = [
 // ─── Bodhi Voice Texts ─────────────────────────────────────────────────────────
 
 const RESULT_SPEAK = "Your Prakriti has been revealed. This is not a label — it is a doorway. Everything I will guide you with from this moment forward will be filtered through this understanding. You now have something most people never find: a map of your own nature.";
+const RESULT_SPEAK_HI = "आपकी प्रकृति प्रकट हो गई है। यह एक लेबल नहीं है — यह एक द्वार है। अब से मैं आपको जो भी मार्गदर्शन दूंगा, वह इसी समझ से होकर गुज़रेगा। आपके पास अब वह है जो अधिकांश लोगों को कभी नहीं मिलता: अपनी प्रकृति का एक नक्शा।";
 
 function getQuestionSpeakText(q: QuizQuestion): string {
   return q.question;
@@ -480,6 +614,7 @@ type Phase = 'prakriti' | 'vikriti' | 'result';
 
 export default function PrakritiQuizPage() {
   const router = useRouter();
+  const { lang } = useLanguage();
   const {
     completePrakritiQuiz, completeVikritiiQuiz,
     doshaOnboardingComplete, prakritiAssessment, vikritiiAssessment,
@@ -490,6 +625,29 @@ export default function PrakritiQuizPage() {
   const alreadyDone = doshaOnboardingComplete && !!prakritiAssessment && !!vikritiiAssessment;
 
   const [phase, setPhase] = useState<Phase>(() => alreadyDone ? 'result' : 'prakriti');
+  // ── Mic / voice answer ──────────────────────────────────────────────────────
+  const matchVoiceToOption = useCallback((transcript: string, options: AnswerOption[]) => {
+    const t = transcript.toLowerCase();
+    return options.find(o =>
+      t.includes(o.label.toLowerCase()) ||
+      t.includes(o.id.toLowerCase()) ||
+      (o.desc && t.includes(o.desc.toLowerCase().slice(0, 10)))
+    ) ?? null;
+  }, []);
+
+  const { isListening: micListening, startListening: micStart, stopListening: micStop, isSupported: micOk } = useSpeechInput({
+    lang,
+    onResult: (text) => {
+      if (phase === 'prakriti') {
+        const match = matchVoiceToOption(text, currentPrakritiQ.answers);
+        if (match) selectPrakritiAnswer(match);
+      } else if (phase === 'vikriti') {
+        const match = matchVoiceToOption(text, currentVikritiiQ.answers);
+        if (match) selectVikritiiAnswer(match);
+      }
+    },
+  });
+
   const [prakritiStep, setPrakritiStep] = useState(0);
   const [vikritiiStep, setVikritiiStep] = useState(0);
   const [prakritiAnswers, setPrakritiAnswers] = useState<Record<string, string[]>>({});
@@ -510,11 +668,14 @@ export default function PrakritiQuizPage() {
     setResultVikriti(null);
   }, []);
 
-  const currentPrakritiQ = PRAKRITI_QUESTIONS[prakritiStep];
-  const currentVikritiiQ = VIKRITI_QUESTIONS[vikritiiStep];
+  const prakritiQuestions = lang === 'hi' ? PRAKRITI_QUESTIONS_HI : PRAKRITI_QUESTIONS;
+  const vikritiiQuestions  = lang === 'hi' ? VIKRITI_QUESTIONS_HI  : VIKRITI_QUESTIONS;
 
-  const totalPrakritiSteps = PRAKRITI_QUESTIONS.length;
-  const totalVikritiiSteps = VIKRITI_QUESTIONS.length;
+  const currentPrakritiQ = prakritiQuestions[prakritiStep];
+  const currentVikritiiQ = vikritiiQuestions[vikritiiStep];
+
+  const totalPrakritiSteps = prakritiQuestions.length;
+  const totalVikritiiSteps = vikritiiQuestions.length;
 
   const prakritiProgress = (prakritiStep / totalPrakritiSteps) * 100;
   const vikritiiProgress = (vikritiiStep / totalVikritiiSteps) * 100;
@@ -537,7 +698,7 @@ export default function PrakritiQuizPage() {
 
   useEffect(() => {
     if (phase === 'result') {
-      const t = setTimeout(() => speak(RESULT_SPEAK), 800);
+      const t = setTimeout(() => speak(lang === 'hi' ? RESULT_SPEAK_HI : RESULT_SPEAK), 800);
       return () => clearTimeout(t);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -596,25 +757,57 @@ export default function PrakritiQuizPage() {
     if (prakritiStep < totalPrakritiSteps - 1) {
       setPrakritiStep(s => s + 1);
     } else {
-      const answers = buildAnswers(PRAKRITI_QUESTIONS, prakritiAnswers);
+      const answers = buildAnswers(prakritiQuestions, prakritiAnswers);
       const prakritiResult = completePrakritiQuiz(answers);
       setResultPrakriti(prakritiResult);
       setPhase('vikriti');
       setVikritiiStep(0);
     }
-  }, [prakritiStep, totalPrakritiSteps, prakritiAnswers, completePrakritiQuiz, stop, buildAnswers]);
+  }, [prakritiStep, totalPrakritiSteps, prakritiAnswers, completePrakritiQuiz, stop, buildAnswers, prakritiQuestions]);
+
+  const savePrakritiToFirestore = useCallback(async (prakritiPrimary: string, prakritiCombo: string) => {
+    try {
+      const { getFirebaseAuth, getFirebaseFirestore } = await import('@/lib/firebase');
+      const { onAuthStateChanged } = await import('firebase/auth');
+      const { doc, setDoc } = await import('firebase/firestore');
+      const auth = await getFirebaseAuth();
+      const db = await getFirebaseFirestore();
+      await new Promise<void>(resolve => {
+        const unsub = onAuthStateChanged(auth, async (u) => {
+          unsub();
+          if (!u) { resolve(); return; }
+          await Promise.all([
+            setDoc(doc(db, 'users', u.uid), {
+              'profile.prakriti': prakritiCombo,
+              prakritiCompletedAt: Date.now(),
+              doshaOnboardingComplete: true,
+            }, { merge: true }),
+            setDoc(doc(db, 'onesutra_users', u.uid), {
+              prakriti: prakritiCombo,
+              'ayurvedicProfile.prakriti': prakritiPrimary,
+              doshaOnboardingComplete: true,
+            }, { merge: true }),
+          ]);
+          resolve();
+        });
+      });
+    } catch { /* offline — ok, localStorage has it */ }
+  }, []);
 
   const advanceVikritii = useCallback(() => {
     stop();
     if (vikritiiStep < totalVikritiiSteps - 1) {
       setVikritiiStep(s => s + 1);
     } else {
-      const answers = buildAnswers(VIKRITI_QUESTIONS, vikritiiAnswers);
+      const answers = buildAnswers(vikritiiQuestions, vikritiiAnswers);
       const vikritiiResult = completeVikritiiQuiz(answers);
       setResultVikriti(vikritiiResult);
       setPhase('result');
+      if (resultPrakriti) {
+        savePrakritiToFirestore(resultPrakriti.primary, resultPrakriti.combo);
+      }
     }
-  }, [vikritiiStep, totalVikritiiSteps, vikritiiAnswers, completeVikritiiQuiz, stop, buildAnswers]);
+  }, [vikritiiStep, totalVikritiiSteps, vikritiiAnswers, completeVikritiiQuiz, stop, buildAnswers, resultPrakriti, savePrakritiToFirestore, vikritiiQuestions]);
 
   const currentPrakritiSelected = prakritiAnswers[currentPrakritiQ?.id] ?? [];
   const currentVikritiiSelected = vikritiiAnswers[currentVikritiiQ?.id] ?? [];
@@ -646,18 +839,22 @@ export default function PrakritiQuizPage() {
             else if (phase === 'vikriti' && vikritiiStep === 0) { setPhase('prakriti'); setPrakritiStep(totalPrakritiSteps - 1); }
             else router.back();
           }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', fontFamily: "'Outfit', sans-serif", padding: '0.25rem' }}>
-            <ArrowLeft size={16} /> Back
+            <ArrowLeft size={16} /> {lang === 'hi' ? 'वापस' : 'Back'}
           </button>
           <div style={{ textAlign: 'center' }}>
             <p style={{ margin: 0, fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif" }}>
-              {phase === 'prakriti' ? 'Prakriti Discovery' : phase === 'vikriti' ? 'Vikriti Check-in' : 'Your Dosha Story'}
+              {phase === 'prakriti'
+                ? (lang === 'hi' ? 'प्रकृति खोज' : 'Prakriti Discovery')
+                : phase === 'vikriti'
+                  ? (lang === 'hi' ? 'विकृति जाँच' : 'Vikriti Check-in')
+                  : (lang === 'hi' ? 'आपकी दोष कथा' : 'Your Dosha Story')}
             </p>
           </div>
           {/* Retake button — only shown on result screen for returning users */}
           {phase === 'result' && alreadyDone && !isRetaking ? (
             <button onClick={startRetake}
               style={{ background: 'none', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, cursor: 'pointer', color: 'rgba(255,255,255,0.35)', fontSize: '0.65rem', fontFamily: "'Outfit', sans-serif", padding: '0.3rem 0.6rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <RefreshCw size={11} /> Retake
+              <RefreshCw size={11} /> {lang === 'hi' ? 'पुनः लें' : 'Retake'}
             </button>
           ) : (
             <div style={{ width: 48 }} />
@@ -675,7 +872,9 @@ export default function PrakritiQuizPage() {
         )}
         {phase !== 'result' && (
           <p style={{ margin: '0.4rem 0 0', fontSize: '0.68rem', color: 'rgba(255,255,255,0.25)', fontFamily: "'Outfit', sans-serif", textAlign: 'center' }}>
-            {phase === 'prakriti' ? `Question ${prakritiStep + 1} of ${totalPrakritiSteps}` : `Question ${vikritiiStep + 1} of ${totalVikritiiSteps}`}
+            {phase === 'prakriti'
+              ? (lang === 'hi' ? `प्रश्न ${prakritiStep + 1} / ${totalPrakritiSteps}` : `Question ${prakritiStep + 1} of ${totalPrakritiSteps}`)
+              : (lang === 'hi' ? `प्रश्न ${vikritiiStep + 1} / ${totalVikritiiSteps}` : `Question ${vikritiiStep + 1} of ${totalVikritiiSteps}`)}
           </p>
         )}
       </div>
@@ -685,7 +884,7 @@ export default function PrakritiQuizPage() {
         <AnimatePresence mode="wait">
           {phase === 'result' && resultPrakriti && resultVikriti ? (
             <motion.div key="result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-              <BodhiOrb isSpeaking={isSpeaking} muted={muted} onRespeak={() => speak(RESULT_SPEAK)} onMuteToggle={toggleMute} />
+              <BodhiOrb isSpeaking={isSpeaking} muted={muted} onRespeak={() => speak(lang === 'hi' ? RESULT_SPEAK_HI : RESULT_SPEAK)} onMuteToggle={toggleMute} />
               <ResultScreen prakriti={resultPrakriti} vikriti={resultVikriti} onContinue={() => router.replace('/')} />
             </motion.div>
           ) : phase === 'vikriti' ? (
@@ -694,7 +893,9 @@ export default function PrakritiQuizPage() {
               {vikritiiStep === 0 && (
                 <div style={{ marginBottom: '1.2rem', padding: '0.9rem 1rem', background: 'rgba(251,191,36,0.06)', borderRadius: 14, border: '1px solid rgba(251,191,36,0.2)' }}>
                   <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(251,191,36,0.75)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.5 }}>
-                    ✦ Now we check your <strong>Vikriti</strong> — how you feel <em>right now</em>, not how you always are. Answer based on the last 2 weeks.
+                    {lang === 'hi'
+                      ? <>✦ अब हम आपकी <strong>विकृति</strong> जाँचेंगे — आप <em>अभी</em> कैसा महसूस करते हैं, न कि हमेशा से। पिछले 2 हफ़्तों के आधार पर उत्तर दें।</>
+                      : <>✦ Now we check your <strong>Vikriti</strong> — how you feel <em>right now</em>, not how you always are. Answer based on the last 2 weeks.</> }
                   </p>
                 </div>
               )}
@@ -702,7 +903,17 @@ export default function PrakritiQuizPage() {
                 {currentVikritiiQ.emoji} {currentVikritiiQ.question}
               </h2>
               {currentVikritiiQ.subtext && <p style={{ margin: '0 0 1rem', fontSize: '0.78rem', color: 'rgba(255,255,255,0.42)', fontFamily: "'Outfit', sans-serif" }}>{currentVikritiiQ.subtext}</p>}
-              <p style={{ margin: '0 0 0.6rem', fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.04em' }}>Select all that apply</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.6rem' }}>
+                <p style={{ margin: 0, fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.04em' }}>{lang === 'hi' ? 'लागू सभी विकल्प चुनें' : 'Select all that apply'}</p>
+                {micOk && (
+                  <motion.button onClick={micListening ? micStop : micStart} whileTap={{ scale: 0.88 }}
+                    animate={micListening ? { scale: [1, 1.15, 1] } : { scale: 1 }}
+                    transition={micListening ? { duration: 1, repeat: Infinity } : {}}
+                    style={{ marginLeft: 'auto', background: micListening ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.07)', border: micListening ? '1.5px solid rgba(239,68,68,0.6)' : '1.5px solid rgba(255,255,255,0.14)', borderRadius: 20, padding: '0.22rem 0.7rem', cursor: 'pointer', fontSize: '0.68rem', color: micListening ? '#f87171' : 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', gap: '0.3rem', fontFamily: "'Outfit', sans-serif", whiteSpace: 'nowrap' }}>
+                    {micListening ? '⏹ ' : '🎤 '}{micListening ? (lang === 'hi' ? 'सुन रहा है...' : 'Listening…') : (lang === 'hi' ? 'माइक से बोलें' : 'Speak answer')}
+                  </motion.button>
+                )}
+              </div>
               <div style={{ marginBottom: '1.5rem', marginTop: '0.4rem' }}>
                 {currentVikritiiQ.answers.map(a => (
                   <AnswerCard key={a.id} answer={a} selected={currentVikritiiSelected.includes(a.id)} onClick={() => selectVikritiiAnswer(a)} />
@@ -718,7 +929,9 @@ export default function PrakritiQuizPage() {
                   fontFamily: "'Outfit', sans-serif", transition: 'all 0.2s',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
                 }}>
-                {vikritiiStep < totalVikritiiSteps - 1 ? <><span>Continue</span> <ArrowRight size={16} /></> : <><Sparkles size={16} /><span>Reveal My Dosha Story</span></>}
+                {vikritiiStep < totalVikritiiSteps - 1
+                  ? <><span>{lang === 'hi' ? 'आगे बढ़ें' : 'Continue'}</span> <ArrowRight size={16} /></>
+                  : <><Sparkles size={16} /><span>{lang === 'hi' ? 'मेरी दोष कथा प्रकट करें' : 'Reveal My Dosha Story'}</span></>}
               </motion.button>
             </motion.div>
           ) : (
@@ -727,7 +940,9 @@ export default function PrakritiQuizPage() {
               {prakritiStep === 0 && (
                 <div style={{ marginBottom: '1.2rem', padding: '0.9rem 1rem', background: 'rgba(168,85,247,0.07)', borderRadius: 14, border: '1px solid rgba(168,85,247,0.2)' }}>
                   <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(167,139,250,0.8)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.5 }}>
-                    ✦ Answer as you have <strong>always been</strong> since birth — not how you are right now. Think of your natural, unchanging constitution.
+                    {lang === 'hi'
+                      ? <>✦ उत्तर वैसे दें जैसे आप <strong>जन्म से हमेशा रहे हैं</strong> — अभी नहीं। अपनी प्राकृतिक, अपरिवर्तनीय प्रकृति के बारे में सोचें।</>
+                      : <>✦ Answer as you have <strong>always been</strong> since birth — not how you are right now. Think of your natural, unchanging constitution.</> }
                   </p>
                 </div>
               )}
@@ -735,7 +950,17 @@ export default function PrakritiQuizPage() {
                 {currentPrakritiQ.emoji} {currentPrakritiQ.question}
               </h2>
               {currentPrakritiQ.subtext && <p style={{ margin: '0 0 1rem', fontSize: '0.78rem', color: 'rgba(255,255,255,0.42)', fontFamily: "'Outfit', sans-serif" }}>{currentPrakritiQ.subtext}</p>}
-              <p style={{ margin: '0 0 0.6rem', fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.04em' }}>Select all that apply</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.6rem' }}>
+                <p style={{ margin: 0, fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.04em' }}>{lang === 'hi' ? 'लागू सभी विकल्प चुनें' : 'Select all that apply'}</p>
+                {micOk && (
+                  <motion.button onClick={micListening ? micStop : micStart} whileTap={{ scale: 0.88 }}
+                    animate={micListening ? { scale: [1, 1.15, 1] } : { scale: 1 }}
+                    transition={micListening ? { duration: 1, repeat: Infinity } : {}}
+                    style={{ marginLeft: 'auto', background: micListening ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.07)', border: micListening ? '1.5px solid rgba(239,68,68,0.6)' : '1.5px solid rgba(255,255,255,0.14)', borderRadius: 20, padding: '0.22rem 0.7rem', cursor: 'pointer', fontSize: '0.68rem', color: micListening ? '#f87171' : 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', gap: '0.3rem', fontFamily: "'Outfit', sans-serif", whiteSpace: 'nowrap' }}>
+                    {micListening ? '⏹ ' : '🎤 '}{micListening ? (lang === 'hi' ? 'सुन रहा है...' : 'Listening…') : (lang === 'hi' ? 'माइक से बोलें' : 'Speak answer')}
+                  </motion.button>
+                )}
+              </div>
               <div style={{ marginBottom: '1.5rem', marginTop: '0.4rem' }}>
                 {currentPrakritiQ.answers.map(a => (
                   <AnswerCard key={a.id} answer={a} selected={currentPrakritiSelected.includes(a.id)} onClick={() => selectPrakritiAnswer(a)} />
@@ -751,7 +976,9 @@ export default function PrakritiQuizPage() {
                   fontFamily: "'Outfit', sans-serif", transition: 'all 0.2s',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
                 }}>
-                {prakritiStep < totalPrakritiSteps - 1 ? <><span>Continue</span> <ArrowRight size={16} /></> : <><Wind size={16} /><span>Begin Vikriti Check-in</span></>}
+                {prakritiStep < totalPrakritiSteps - 1
+                  ? <><span>{lang === 'hi' ? 'आगे बढ़ें' : 'Continue'}</span> <ArrowRight size={16} /></>
+                  : <><Wind size={16} /><span>{lang === 'hi' ? 'विकृति जाँच शुरू करें' : 'Begin Vikriti Check-in'}</span></>}
               </motion.button>
             </motion.div>
           )}
