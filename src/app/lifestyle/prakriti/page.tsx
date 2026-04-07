@@ -37,109 +37,143 @@ const PRAKRITI_QUESTIONS: QuizQuestion[] = [
     subtext: 'Think of your natural build, not current weight.',
     emoji: '🪶',
     answers: [
-      { id: 'thin', label: 'Thin & Light', desc: 'Lean, hard to gain weight, prominent joints', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'medium', label: 'Medium & Athletic', desc: 'Moderate, well-proportioned, muscular', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'large', label: 'Large & Sturdy', desc: 'Broad, tends to gain weight easily, solid', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'thin', label: 'Thin, Light & Bony', desc: 'Lean frame, hard to gain weight, prominent veins & joints; may be unusually tall or very short', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'medium', label: 'Medium, Athletic & Proportioned', desc: 'Moderate, symmetrical build, good muscle tone; gains and loses weight moderately', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'large', label: 'Large, Broad & Sturdy', desc: 'Solid, wide-set frame; tends to gain weight easily; impressive physical endurance', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
     ],
   },
   {
     id: 'skin',
     section: 'prakriti',
-    question: 'Your natural skin texture (without products)?',
+    question: 'Your natural skin texture and tendency (without products)?',
     emoji: '🌸',
     answers: [
-      { id: 'dry', label: 'Dry & Rough', desc: 'Tends to crack, flake, or feel tight', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'sensitive', label: 'Sensitive & Warm', desc: 'Redness-prone, freckled, burns easily', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'oily', label: 'Oily & Smooth', desc: 'Thick, lustrous, ages slowly', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'dry', label: 'Dry, Rough & Cool', desc: 'Prone to cracking, flaking or tight feeling; cold to touch; darkens quickly in sun', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'sensitive', label: 'Warm, Sensitive & Freckled', desc: 'Redness-prone, burns easily, may have moles/freckles; prone to rashes or inflammation', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'oily', label: 'Oily, Thick & Cool-Moist', desc: 'Lustrous, smooth, soft; ages slowly; prone to congestion but rarely dry', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ],
+  },
+  {
+    id: 'eyes',
+    section: 'prakriti',
+    question: 'Your natural eye characteristics?',
+    subtext: 'Consider the size, luster and feel of your eyes — not screen-related dryness.',
+    emoji: '👁️',
+    answers: [
+      { id: 'small_active', label: 'Small, Dry & Restless', desc: 'Smaller eyes that dart quickly; often feel dry or twitchy; dark lashes', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'sharp_light', label: 'Sharp, Penetrating & Light-Sensitive', desc: 'Intense gaze; light or grey/green colour; prone to light sensitivity or redness', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'large_calm', label: 'Large, Calm & Lustrous', desc: 'Beautiful expressive eyes; moist pleasant whites; slow to blink; dark and deep', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
     ],
   },
   {
     id: 'hair',
     section: 'prakriti',
-    question: 'Your natural hair type?',
+    question: 'Your natural hair type — as it grows without treatments?',
     emoji: '💇',
     answers: [
-      { id: 'dry_frizzy', label: 'Dry & Frizzy', desc: 'Fine, tangles easily, prone to breakage', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'fine_oily', label: 'Fine & Oily', desc: 'Straight, tends to go grey/thin early', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'thick_wavy', label: 'Thick & Wavy', desc: 'Abundant, lustrous, strong', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'dry_frizzy', label: 'Dry, Fine & Frizzy', desc: 'Tangles easily, prone to split ends and breakage; lacks natural shine without oil', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'fine_oily', label: 'Straight, Fine & Silky', desc: 'Goes limp quickly; gets oily at roots; tends to grey or thin early in life', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'thick_wavy', label: 'Thick, Wavy & Lustrous', desc: 'Abundant, strong, naturally shiny and slow to grey; may be coarse', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
     ],
   },
   {
     id: 'digestion',
     section: 'prakriti',
-    question: 'Your typical digestion pattern?',
+    question: 'Your typical digestion — as you have always experienced it?',
     emoji: '🔥',
     answers: [
-      { id: 'irregular', label: 'Irregular & Variable', desc: 'Sometimes fast, sometimes slow — hard to predict', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'sharp_fast', label: 'Sharp & Fast', desc: 'Strong appetite, digests quickly, gets hangry', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'slow_steady', label: 'Slow & Steady', desc: 'Low appetite, digests slowly but reliably', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'irregular', label: 'Irregular & Unpredictable', desc: 'Bloating, gas after meals; sometimes fast, sometimes slow — hard to predict', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'sharp_fast', label: 'Sharp, Fast & Intense', desc: 'Strong appetite; digests quickly; gets irritable or headachy if meals are skipped', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'slow_steady', label: 'Slow, Steady & Reliable', desc: 'Low appetite in mornings; digests slowly but steadily; rarely has acidity', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ],
+  },
+  {
+    id: 'thirst',
+    section: 'prakriti',
+    question: 'Your natural thirst pattern?',
+    emoji: '🫗',
+    answers: [
+      { id: 'variable_forget', label: 'Variable — Often Forgets to Drink', desc: 'Thirst is intermittent; often realizes too late they are dehydrated; dry mouth common', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'strong_regular', label: 'Strong & Regular — Craves Cool Water', desc: 'Frequently thirsty especially in heat; craves cool drinks; gets headaches without water', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'low_rarely', label: 'Low — Rarely Thirsty', desc: 'Can go long hours without water; prefers warm drinks; very rarely feels true thirst', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
     ],
   },
   {
     id: 'sleep',
     section: 'prakriti',
-    question: 'Your natural sleep pattern?',
+    question: 'Your natural sleep pattern — without alarm or stress?',
     emoji: '🌙',
     answers: [
-      { id: 'light', label: 'Light & Disrupted', desc: 'Wake often, light sleeper, vivid dreams', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'moderate', label: 'Moderate & Medium', desc: 'Fall asleep well, wake occasionally', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'deep_long', label: 'Deep & Long', desc: 'Heavy sleeper, hard to wake, love to sleep', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'light', label: 'Light, Interrupted & Vivid Dreams', desc: 'Fall asleep easily but wake often; vivid or anxious dreams; feel unrested at times', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'moderate', label: 'Moderate — Fall Asleep Well', desc: 'Usually fall asleep well; may wake once around midnight; rarely oversleeps', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'deep_long', label: 'Deep, Long & Hard to Wake', desc: 'Love sleeping; sleep very heavily; wake up slowly and feel groggy without enough sleep', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
     ],
   },
   {
     id: 'energy',
     section: 'prakriti',
-    question: 'How does your energy naturally move through the day?',
+    question: 'How does your energy naturally flow through the day?',
     emoji: '⚡',
     answers: [
-      { id: 'bursts', label: 'Bursts & Crashes', desc: 'Intense energy spurts, then sudden fatigue', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'intense_focused', label: 'Intense & Focused', desc: 'Sustained drive, can overdo it', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'steady_slow', label: 'Steady & Slow', desc: 'Takes time to start, but goes all day', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'bursts', label: 'Bursts & Crashes', desc: 'Intense energy spurts followed by sudden fatigue; enthusiasm fades quickly', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'intense_focused', label: 'Sustained, Intense & Focused', desc: 'Driven, purposeful energy throughout the day; can overdo it and burn out', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'steady_slow', label: 'Slow to Start, Then Steady All Day', desc: 'Needs time to warm up each morning but once going, maintains endurance all day', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
     ],
   },
   {
     id: 'emotions',
     section: 'prakriti',
-    question: 'Your natural emotional tendencies?',
+    question: 'Your natural emotional tendencies — when at your baseline?',
     emoji: '💭',
     answers: [
-      { id: 'anxious_creative', label: 'Anxious & Creative', desc: 'Imaginative but worry-prone, sensitive', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'ambitious_irritable', label: 'Ambitious & Intense', desc: 'Goal-driven, can become irritable under pressure', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'calm_attached', label: 'Calm & Attached', desc: 'Easy-going, loving, but holds on too long', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'anxious_creative', label: 'Enthusiastic, Imaginative & Worry-Prone', desc: 'Creative spark, friendly, generous — but anxiety, indecision, and overthinking come naturally', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'ambitious_irritable', label: 'Ambitious, Disciplined & Intense', desc: 'Strong drive and leadership; but can become irritable, jealous or judgmental under pressure', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'calm_attached', label: 'Patient, Loving & Slow to Change', desc: 'Naturally calm, forgiving, devoted — but prone to attachment, possessiveness, and resistance to change', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ],
+  },
+  {
+    id: 'sweat',
+    section: 'prakriti',
+    question: 'Your natural perspiration pattern?',
+    emoji: '💧',
+    answers: [
+      { id: 'minimal_dry', label: 'Minimal — Dry Skin Even in Heat', desc: 'Rarely sweats; skin stays dry; body feels cool; may get dehydrated easily', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'profuse_sharp', label: 'Profuse — Strong or Pungent Odor', desc: 'Sweats easily and heavily; strong or sharp odor; body runs warm at all times', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'moderate_mild', label: 'Moderate — Mild or Sweet Scent', desc: 'Sweats moderately with mild, pleasant scent; skin stays pleasantly moist', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
     ],
   },
   {
     id: 'appetite',
     section: 'prakriti',
-    question: 'Your natural appetite pattern?',
+    question: 'Your natural appetite — how you experience hunger most of the time?',
     emoji: '🍽️',
     answers: [
-      { id: 'variable', label: 'Variable', desc: 'Sometimes starving, sometimes no interest in food', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'strong_intense', label: 'Strong & Intense', desc: 'Must eat on time — gets very uncomfortable if skipped', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'low_consistent', label: 'Low & Consistent', desc: 'Can skip meals easily, appetite is mild', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'variable', label: 'Variable — Changes Day to Day', desc: 'Sometimes ravenous, sometimes no interest in food; appetite is unpredictable', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'strong_intense', label: 'Strong & Punctual — Must Eat on Time', desc: 'Intense appetite at regular times; becomes irritable, shaky or headachy if meals are missed', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'low_consistent', label: 'Low & Consistent — Can Skip Easily', desc: 'Mild, consistent appetite; can easily skip meals without discomfort; prefers small amounts', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
     ],
   },
   {
     id: 'bowel',
     section: 'prakriti',
     question: 'Your typical bowel movement pattern?',
-    subtext: 'This is a key Ayurvedic indicator — be honest.',
+    subtext: 'One of the most important Ayurvedic diagnostic indicators — be honest.',
     emoji: '🌿',
     answers: [
-      { id: 'irregular', label: 'Irregular', desc: 'Sometimes constipated, hard or dry stools', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'loose_frequent', label: 'Loose & Frequent', desc: 'Soft, regular, sometimes too frequent', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'slow_once', label: 'Slow, Once Daily', desc: 'Regular, heavy, complete — though slow to happen', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'irregular', label: 'Irregular, Hard or Dry', desc: 'Often constipated; hard, dry or scanty stools; passes gas frequently', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'loose_frequent', label: 'Loose, Soft & Frequent', desc: 'Soft or loose stools, sometimes too frequent; may experience acidity or urgency', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'slow_once', label: 'Slow, Heavy & Once Daily', desc: 'Regular, well-formed, heavy stools; takes time but once a day, reliably complete', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
     ],
   },
   {
     id: 'temperature',
     section: 'prakriti',
-    question: 'Your temperature preference?',
+    question: 'Your natural body temperature preference?',
     emoji: '🌡️',
     answers: [
-      { id: 'loves_warmth', label: 'Loves Warmth', desc: 'Cold hands/feet, hate cold weather', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'loves_cool', label: 'Loves Cool', desc: 'Run hot, prefer cool environments', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'loves_both', label: 'Adaptable', desc: 'Generally comfortable in most temperatures', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'loves_warmth', label: 'Always Cold — Loves Warmth', desc: 'Cold hands and feet even in summer; hates cold weather and wind; loves warm baths, warm climates', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'loves_cool', label: 'Always Hot — Loves Cool', desc: 'Runs warm internally; prefers cool environments; dislikes heat, direct sun and stuffy rooms', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'loves_both', label: 'Adaptable — Dislikes Damp/Cold', desc: 'Neither extreme; copes well with most temperatures but dislikes excessive damp or cold', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
     ],
   },
   {
@@ -148,31 +182,31 @@ const PRAKRITI_QUESTIONS: QuizQuestion[] = [
     question: 'How is your memory and learning style?',
     emoji: '🧠',
     answers: [
-      { id: 'quick_forget', label: 'Quick to Learn, Quick to Forget', desc: 'Pick things up fast but retention is short', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'sharp_focused', label: 'Sharp & Focused', desc: 'Excellent focused memory, analytical', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'slow_never_forget', label: 'Slow to Learn, Never Forgets', desc: 'Takes time but remembers everything permanently', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'quick_forget', label: 'Grasps Quickly, Forgets Quickly', desc: 'Excellent at absorbing new ideas fast but retention is short; needs repetition to hold information', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'sharp_focused', label: 'Sharp, Analytical & Retentive', desc: 'Focused, excellent long-term memory for facts and systems; learns through analysis and debate', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'slow_never_forget', label: 'Slow to Learn, Never Forgets', desc: 'Takes time to absorb new things, but once learned, never forgets; deeply reliable memory', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
     ],
   },
   {
-    id: 'speech',
+    id: 'voice',
     section: 'prakriti',
-    question: 'Your natural speech pattern?',
+    question: 'Your natural voice quality and speech pace?',
     emoji: '🗣️',
     answers: [
-      { id: 'fast_lots', label: 'Fast & Talkative', desc: 'Speak quickly, jump between topics, lots of words', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'precise_sharp', label: 'Precise & Direct', desc: 'Sharp, to the point, persuasive', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'slow_melodious', label: 'Slow & Melodious', desc: 'Soft, thoughtful, deliberate pace', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'fast_lots', label: 'Fast, Talkative & Sometimes Hoarse', desc: 'Speak quickly, jump between topics; voice may crack or go hoarse easily', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'precise_sharp', label: 'Clear, Sharp & Commanding', desc: 'Speak with authority and precision; persuasive, articulate, moderate pace', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'slow_melodious', label: 'Deep, Slow & Melodious', desc: 'Rich, pleasant voice; speak thoughtfully and unhurriedly; naturally calming to others', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
     ],
   },
   {
     id: 'weather',
     section: 'prakriti',
-    question: 'Which weather bothers you most?',
+    question: 'Which weather bothers you most physically?',
     emoji: '🌦️',
     answers: [
-      { id: 'cold_wind', label: 'Cold & Windy', desc: 'Wind and cold make you uncomfortable', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'heat_sun', label: 'Heat & Direct Sun', desc: 'Get overheated, sunburn easily', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'cold_damp', label: 'Cold & Damp', desc: 'Damp, cloudy weather makes you heavy', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'cold_wind', label: 'Cold & Windy', desc: 'Wind makes you anxious; cold makes you stiff and achy; dry weather cracks your skin and lips', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'heat_sun', label: 'Heat, Humidity & Direct Sun', desc: 'Overheat quickly; sunburns easily; feel irritable and inflamed in hot or humid weather', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'cold_damp', label: 'Cold, Damp & Cloudy', desc: 'Damp, grey weather makes you sluggish and heavy; prone to congestion and lethargy in winter', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
     ],
   },
   {
@@ -181,153 +215,237 @@ const PRAKRITI_QUESTIONS: QuizQuestion[] = [
     question: 'How do you naturally respond to stress?',
     emoji: '🌊',
     answers: [
-      { id: 'anxious_overwhelmed', label: 'Anxious & Overwhelmed', desc: 'Worry, freeze, or scatter in all directions', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'irritable_intense', label: 'Irritable & Intense', desc: 'Get angry, push harder, take control', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'withdraw_avoid', label: 'Withdraw & Avoid', desc: 'Go quiet, sleep more, eat for comfort', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'anxious_overwhelmed', label: 'Anxious, Scattered & Freeze', desc: 'Worry, overthink, freeze or scatter in all directions; insomnia and fear under prolonged stress', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'irritable_intense', label: 'Irritable, Controlling & Push Harder', desc: 'Get angry or frustrated; take control; work harder; judgmental of self and others under stress', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'withdraw_avoid', label: 'Withdraw, Go Quiet & Comfort Eat', desc: 'Go quiet, sleep more, eat comforting foods; avoid the issue; may become depressed over time', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
     ],
   },
   {
     id: 'joints',
     section: 'prakriti',
-    question: 'Your joints and body build?',
+    question: 'Your joints, bones and physical build?',
     emoji: '🦴',
     answers: [
-      { id: 'prominent_crack', label: 'Prominent & Cracking', desc: 'Joints crack, prominent bones, lean frame', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'moderate_flexible', label: 'Moderate & Flexible', desc: 'Well-proportioned, moderate flexibility', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'large_padded', label: 'Large & Well-Padded', desc: 'Broad, cushioned joints, stable frame', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'prominent_crack', label: 'Prominent, Cracking & Lean', desc: 'Joints crack audibly; large, knobby or bony joints on a lean frame; hypermobility possible', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'moderate_flexible', label: 'Moderate, Defined & Flexible', desc: 'Proportional joints with good muscle tone; moderately flexible; rarely stiff or creaky', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'large_padded', label: 'Large, Cushioned & Very Stable', desc: 'Broad joints with thick connective tissue; feel very stable; rarely crack; strong foundation', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ],
+  },
+  {
+    id: 'gait',
+    section: 'prakriti',
+    question: 'Your natural walking style and physical movement?',
+    emoji: '🚶',
+    answers: [
+      { id: 'fast_irregular', label: 'Fast, Light & Irregular', desc: 'Walk quickly with light, irregular steps; change direction easily; fidget and gesture a lot', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'purposeful_brisk', label: 'Purposeful, Brisk & Direct', desc: 'Walk with intention and confidence; moderate-to-fast pace; movement is efficient and goal-oriented', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'slow_steady_graceful', label: 'Slow, Steady & Graceful', desc: 'Walk leisurely and deliberately; grounded and smooth movement; take wide, stable steps', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
     ],
   },
 ];
 
 const PRAKRITI_QUESTIONS_HI: QuizQuestion[] = [
-  { id: 'body_frame', section: 'prakriti', question: 'आपका प्राकृतिक शारीरिक ढांचा — जैसा बचपन से है?', subtext: 'अपना स्वाभाविक ढांचा सोचें, वर्तमान वज़न नहीं।', emoji: '🪶',
+  {
+    id: 'body_frame', section: 'prakriti', question: 'आपका प्राकृतिक शारीरिक ढांचा — जैसा बचपन से है?', subtext: 'अपना स्वाभाविक ढांचा सोचें, वर्तमान वज़न नहीं।', emoji: '🪶',
     answers: [
-      { id: 'thin',   label: 'पतला और हल्का',    desc: 'दुबला, वज़न बढ़ाना कठिन, हड्डियाँ उभरी हुई', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'medium', label: 'मध्यम और एथलेटिक', desc: 'संतुलित, अच्छी बनावट, मांसपेशीय',         doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'large',  label: 'बड़ा और मज़बूत',     desc: 'चौड़ा, आसानी से वज़न बढ़ता है, ठोस',        doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
-    ] },
-  { id: 'skin', section: 'prakriti', question: 'आपकी प्राकृतिक त्वचा की बनावट (बिना उत्पादों के)?', emoji: '🌸',
+      { id: 'thin', label: 'पतला, हल्का और हड्डीला', desc: 'दुबला, वज़न बढ़ाना कठिन; नसें और जोड़ उभरे हुए; असामान्य रूप से लंबे या बहुत छोटे हो सकते हैं', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'medium', label: 'मध्यम, एथलेटिक और संतुलित', desc: 'मध्यम, सममित बनावट; अच्छी मांसपेशियाँ; वज़न मध्यम गति से घटता-बढ़ता है', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'large', label: 'बड़ा, चौड़ा और मज़बूत', desc: 'ठोस, चौड़ा ढांचा; आसानी से वज़न बढ़ता है; शारीरिक सहनशक्ति उत्तम', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ]
+  },
+  {
+    id: 'skin', section: 'prakriti', question: 'आपकी प्राकृतिक त्वचा की बनावट (बिना उत्पादों के)?', emoji: '🌸',
     answers: [
-      { id: 'dry',       label: 'शुष्क और खुरदरी',    desc: 'फटने, छिलने या तंग महसूस होने की प्रवृत्ति', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'sensitive', label: 'संवेदनशील और गर्म', desc: 'लालिमा-प्रवण, झाईं, जल्दी जलना',         doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'oily',      label: 'तैलीय और चिकनी',    desc: 'मोटी, चमकदार, उम्र धीमे आती है',          doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
-    ] },
-  { id: 'hair', section: 'prakriti', question: 'आपके बालों का प्राकृतिक प्रकार?', emoji: '💇',
+      { id: 'dry', label: 'शुष्क, खुरदरी और ठंडी', desc: 'फटने, छिलने या तंग महसूस होना; छूने पर ठंडी; धूप में जल्दी काली पड़ती है', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'sensitive', label: 'गर्म, संवेदनशील और झाईंदार', desc: 'लालिमा-प्रवण, जल्दी जलती है; झाईं और चकत्ते; सूजन और दाने की प्रवृत्ति', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'oily', label: 'तैलीय, मोटी और नम-ठंडी', desc: 'चमकदार, मुलायम, धीमे उम्र आती है; बंद रोमछिद्रों की प्रवृत्ति; शायद ही कभी शुष्क', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ]
+  },
+  {
+    id: 'eyes', section: 'prakriti', question: 'आपकी आँखों की प्राकृतिक विशेषताएं?', subtext: 'आँखों का आकार, चमक और अनुभव सोचें — स्क्रीन की थकान नहीं।', emoji: '👁️',
     answers: [
-      { id: 'dry_frizzy',  label: 'शुष्क और घुंघराले', desc: 'पतले, उलझने की प्रवृत्ति, टूटने का खतरा', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'fine_oily',   label: 'पतले और तैलीय',    desc: 'सीधे, जल्दी सफ़ेद/पतले होते हैं',         doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'thick_wavy',  label: 'घने और लहरदार',    desc: 'भरपूर, चमकदार, मज़बूत',                  doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
-    ] },
-  { id: 'digestion', section: 'prakriti', question: 'आपका सामान्य पाचन पैटर्न?', emoji: '🔥',
+      { id: 'small_active', label: 'छोटी, शुष्क और चंचल', desc: 'छोटी आँखें जो जल्दी घूमती हैं; अक्सर सूखी या फड़कती हैं; गहरी पलकें', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'sharp_light', label: 'तीखी, भेदी और प्रकाश-संवेदनशील', desc: 'तीव्र दृष्टि; हल्के, हरे या भूरे रंग की आँखें; प्रकाश-संवेदनशीलता या लालिमा', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'large_calm', label: 'बड़ी, शांत और चमकदार', desc: 'सुंदर भावपूर्ण आँखें; नम और प्रसन्न सफ़ेद भाग; धीमे पलकें झपकती हैं', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ]
+  },
+  {
+    id: 'hair', section: 'prakriti', question: 'आपके बालों का प्राकृतिक प्रकार — बिना उपचार के?', emoji: '💇',
     answers: [
-      { id: 'irregular',   label: 'अनियमित और परिवर्तनशील', desc: 'कभी तेज़, कभी धीमा — अप्रत्याशित',    doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'sharp_fast',  label: 'तेज़ और शीघ्र',         desc: 'तीव्र भूख, जल्दी पचता, भूख में चिड़चिड़ापन', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'slow_steady', label: 'धीमा और स्थिर',          desc: 'कम भूख, धीमे लेकिन भरोसेमंद पाचन',     doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
-    ] },
-  { id: 'sleep', section: 'prakriti', question: 'आपका प्राकृतिक नींद पैटर्न?', emoji: '🌙',
+      { id: 'dry_frizzy', label: 'शुष्क, पतले और घुंघराले', desc: 'उलझने की प्रवृत्ति, दोमुंहे और टूटने का खतरा; बिना तेल के चमक नहीं आती', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'fine_oily', label: 'सीधे, पतले और रेशमी', desc: 'जल्दी झड़ते हैं; जड़ों में तेल; जल्दी सफ़ेद या पतले होने की प्रवृत्ति', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'thick_wavy', label: 'घने, लहरदार और चमकदार', desc: 'भरपूर, मज़बूत, स्वाभाविक चमक; देर से सफ़ेद होते हैं; मोटे हो सकते हैं', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ]
+  },
+  {
+    id: 'digestion', section: 'prakriti', question: 'आपका सामान्य पाचन — जैसा हमेशा रहा है?', emoji: '🔥',
     answers: [
-      { id: 'light',     label: 'हल्की और बाधित', desc: 'बार-बार जागना, हल्की नींद, जीवंत सपने', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'moderate',  label: 'मध्यम',           desc: 'नींद अच्छी आती है, कभी-कभी जागना',      doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'deep_long', label: 'गहरी और लंबी',   desc: 'गहरी नींद, जागना मुश्किल, नींद पसंद',  doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
-    ] },
-  { id: 'energy', section: 'prakriti', question: 'दिन में आपकी ऊर्जा कैसे प्रवाहित होती है?', emoji: '⚡',
+      { id: 'irregular', label: 'अनियमित और अप्रत्याशित', desc: 'भोजन के बाद गैस या फूलना; कभी तेज़, कभी धीमा — अनुमान लगाना कठिन', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'sharp_fast', label: 'तेज़, शीघ्र और तीव्र', desc: 'तीव्र भूख; जल्दी पचता; भोजन छूटने पर चिड़चिड़ापन या सिरदर्द', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'slow_steady', label: 'धीमा, स्थिर और भरोसेमंद', desc: 'सुबह कम भूख; धीमे लेकिन नियमित पाचन; अम्लपित्त शायद ही कभी', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ]
+  },
+  {
+    id: 'thirst', section: 'prakriti', question: 'आपकी प्राकृतिक प्यास का पैटर्न?', emoji: '🫗',
     answers: [
-      { id: 'bursts',          label: 'उछाल और गिरावट',       desc: 'तीव्र ऊर्जा के झटके, फिर अचानक थकान',   doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'intense_focused', label: 'तीव्र और केंद्रित',    desc: 'निरंतर प्रेरणा, अति कर सकते हैं',        doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'steady_slow',     label: 'स्थिर और धीमी',        desc: 'शुरू होने में समय, पर दिनभर चलते हैं', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
-    ] },
-  { id: 'emotions', section: 'prakriti', question: 'आपकी प्राकृतिक भावनात्मक प्रवृत्तियाँ?', emoji: '💭',
+      { id: 'variable_forget', label: 'परिवर्तनशील — अक्सर पीना भूल जाते हैं', desc: 'प्यास आती-जाती है; अक्सर देर से एहसास होता है; मुँह सूखना आम', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'strong_regular', label: 'तीव्र और नियमित — ठंडा पानी चाहिए', desc: 'बार-बार प्यास, खासकर गर्मी में; बिना पानी के सिरदर्द होता है', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'low_rarely', label: 'कम — बहुत कम प्यास लगती है', desc: 'घंटों बिना पानी रह सकते हैं; गर्म पेय पसंद; सच्ची प्यास बहुत कम लगती है', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ]
+  },
+  {
+    id: 'sleep', section: 'prakriti', question: 'आपका प्राकृतिक नींद पैटर्न — बिना अलार्म या तनाव के?', emoji: '🌙',
     answers: [
-      { id: 'anxious_creative',   label: 'चिंतित और रचनात्मक', desc: 'कल्पनाशील लेकिन चिंता-प्रवण, संवेदनशील',    doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'ambitious_irritable',label: 'महत्वाकांक्षी और तीव्र', desc: 'लक्ष्य-उन्मुख, दबाव में चिड़चिड़े हो सकते हैं', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'calm_attached',      label: 'शांत और आसक्त',     desc: 'सहज, प्रेमपूर्ण, लेकिन ज़्यादा देर पकड़ते हैं', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
-    ] },
-  { id: 'appetite', section: 'prakriti', question: 'आपका प्राकृतिक भूख पैटर्न?', emoji: '🍽️',
+      { id: 'light', label: 'हल्की, बाधित और सजीव सपने', desc: 'नींद आसानी से आती है पर बार-बार टूटती है; चिंताजनक या भावनात्मक सपने', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'moderate', label: 'मध्यम — नींद अच्छी आती है', desc: 'सामान्यतः अच्छी नींद; मध्यरात्रि में एक बार जाग सकते हैं', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'deep_long', label: 'गहरी, लंबी और उठना कठिन', desc: 'नींद बहुत पसंद; बहुत गहरी नींद; जागने में समय लगता है; कम नींद पर सुस्ती', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ]
+  },
+  {
+    id: 'energy', section: 'prakriti', question: 'दिन में आपकी ऊर्जा कैसे प्रवाहित होती है?', emoji: '⚡',
     answers: [
-      { id: 'variable',       label: 'परिवर्तनशील',      desc: 'कभी बहुत भूखे, कभी खाने में रुचि नहीं', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'strong_intense', label: 'तीव्र और प्रबल',  desc: 'समय पर खाना ज़रूरी — भोजन छोड़ना असहज',  doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'low_consistent', label: 'कम और नियमित',   desc: 'भोजन आसानी से छोड़ सकते हैं, हल्की भूख',  doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
-    ] },
-  { id: 'bowel', section: 'prakriti', question: 'आपका सामान्य मलत्याग पैटर्न?', subtext: 'यह एक महत्वपूर्ण आयुर्वेदिक संकेतक है — ईमानदारी से उत्तर दें।', emoji: '🌿',
+      { id: 'bursts', label: 'उछाल और अचानक गिरावट', desc: 'तीव्र ऊर्जा के झटके फिर अचानक थकान; उत्साह जल्दी ठंडा पड़ जाता है', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'intense_focused', label: 'निरंतर, तीव्र और केंद्रित', desc: 'पूरे दिन प्रेरित रहते हैं; अति कर सकते हैं और जल सकते हैं', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'steady_slow', label: 'धीमी शुरुआत, फिर दिनभर स्थिर', desc: 'सुबह वार्म-अप समय लगता है; एक बार शुरू हो जाने पर दिनभर टिकाऊ', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ]
+  },
+  {
+    id: 'emotions', section: 'prakriti', question: 'आपकी प्राकृतिक भावनात्मक प्रवृत्तियाँ — सामान्य स्थिति में?', emoji: '💭',
     answers: [
-      { id: 'irregular',    label: 'अनियमित',                desc: 'कभी-कभी कब्ज़, कठोर या शुष्क मल',          doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'loose_frequent',label: 'ढीला और बार-बार',      desc: 'मुलायम, नियमित, कभी-कभी बहुत बार',        doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'slow_once',    label: 'धीमा, दिन में एक बार', desc: 'नियमित, भारी, पूर्ण — हालांकि देर से',    doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
-    ] },
-  { id: 'temperature', section: 'prakriti', question: 'आपकी तापमान प्राथमिकता?', emoji: '🌡️',
+      { id: 'anxious_creative', label: 'उत्साही, कल्पनाशील और चिंता-प्रवण', desc: 'रचनात्मक, उदार, मिलनसार — पर चिंता, अनिर्णय और अत्यधिक सोचना स्वाभाविक है', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'ambitious_irritable', label: 'महत्वाकांक्षी, अनुशासित और तीव्र', desc: 'नेतृत्व और लक्ष्य की शक्ति — लेकिन दबाव में चिड़चिड़े और आलोचनात्मक हो सकते हैं', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'calm_attached', label: 'धैर्यशील, प्रेमपूर्ण और बदलाव से धीमे', desc: 'स्वाभाविक रूप से शांत, क्षमाशील, समर्पित — पर आसक्ति और बदलाव का विरोध', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ]
+  },
+  {
+    id: 'sweat', section: 'prakriti', question: 'आपकी प्राकृतिक पसीने की प्रवृत्ति?', emoji: '💧',
     answers: [
-      { id: 'loves_warmth', label: 'गर्मी पसंद',    desc: 'ठंडे हाथ/पैर, ठंड से नफ़रत',    doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'loves_cool',   label: 'ठंड पसंद',    desc: 'गर्मी लगती है, ठंडा वातावरण पसंद', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'loves_both',   label: 'अनुकूलनीय',   desc: 'ज़्यादातर तापमान में सहज',          doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
-    ] },
-  { id: 'memory', section: 'prakriti', question: 'आपकी याददाश्त और सीखने की शैली?', emoji: '🧠',
+      { id: 'minimal_dry', label: 'कम — गर्मी में भी शुष्क त्वचा', desc: 'शायद ही पसीना आता है; त्वचा सूखी रहती है; शरीर ठंडा; जल्दी निर्जलीकरण', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'profuse_sharp', label: 'अधिक — तेज़ या तीखी गंध', desc: 'आसानी से और भारी पसीना; तेज़ या तीखी गंध; शरीर हमेशा अंदर से गर्म', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'moderate_mild', label: 'मध्यम — हल्की या मीठी सुगंध', desc: 'मध्यम पसीना; हल्की, सुखद खुशबू; त्वचा सुखद नमी बनाए रखती है', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ]
+  },
+  {
+    id: 'appetite', section: 'prakriti', question: 'आपकी प्राकृतिक भूख — जैसा अधिकतर होता है?', emoji: '🍽️',
     answers: [
-      { id: 'quick_forget',      label: 'जल्दी सीखना, जल्दी भूलना',  desc: 'चीज़ें जल्दी समझते हैं लेकिन याददाश्त कम', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'sharp_focused',     label: 'तीव्र और केंद्रित',         desc: 'उत्कृष्ट केंद्रित स्मृति, विश्लेषणात्मक',  doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'slow_never_forget', label: 'धीमे सीखना, कभी नहीं भूलना', desc: 'समय लेते हैं लेकिन सब हमेशा याद रहता है', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
-    ] },
-  { id: 'speech', section: 'prakriti', question: 'आपका प्राकृतिक बोलने का तरीका?', emoji: '🗣️',
+      { id: 'variable', label: 'परिवर्तनशील — दिन पर निर्भर', desc: 'कभी बहुत भूखे, कभी खाने में बिल्कुल रुचि नहीं; भूख का अनुमान लगाना कठिन', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'strong_intense', label: 'तीव्र और समय पर — देर हुई तो कष्ट', desc: 'नियमित समय पर तीव्र भूख; भोजन छूटने पर कंपकंपी, चिड़चिड़ापन या सिरदर्द', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'low_consistent', label: 'कम और नियमित — आसानी से छोड़ सकते हैं', desc: 'हल्की, नियमित भूख; भोजन छोड़ना आसान; थोड़ा खाना पर्याप्त लगता है', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ]
+  },
+  {
+    id: 'bowel', section: 'prakriti', question: 'आपका सामान्य मलत्याग पैटर्न?', subtext: 'यह आयुर्वेद में सबसे महत्वपूर्ण संकेतकों में से एक है — ईमानदार रहें।', emoji: '🌿',
     answers: [
-      { id: 'fast_lots',      label: 'तेज़ और बातूनी',  desc: 'तेज़ बोलते हैं, विषय बदलते हैं, ज़्यादा शब्द', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'precise_sharp',  label: 'सटीक और प्रत्यक्ष', desc: 'तीखा, सीधा, प्रेरक',                          doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'slow_melodious', label: 'धीमा और मधुर',     desc: 'नरम, विचारशील, सुचिंतित',                    doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
-    ] },
-  { id: 'weather', section: 'prakriti', question: 'कौन सा मौसम आपको सबसे ज़्यादा परेशान करता है?', emoji: '🌦️',
+      { id: 'irregular', label: 'अनियमित, कठोर या शुष्क', desc: 'अक्सर कब्ज़; कठोर, शुष्क या कम मात्रा में मल; बार-बार वायु पास होना', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'loose_frequent', label: 'ढीला, मुलायम और बार-बार', desc: 'मुलायम या ढीले मल, कभी बहुत बार; अम्लपित्त या तात्कालिकता संभव', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'slow_once', label: 'धीमा, भारी और दिन में एक बार', desc: 'नियमित, अच्छी तरह से बने, भारी मल; देर से होते हैं पर पूरे और भरोसेमंद', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ]
+  },
+  {
+    id: 'temperature', section: 'prakriti', question: 'आपकी शरीर के तापमान की प्राथमिकता?', emoji: '🌡️',
     answers: [
-      { id: 'cold_wind', label: 'ठंडा और तूफ़ानी', desc: 'हवा और ठंड से असहजता',           doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'heat_sun',  label: 'गर्मी और तेज़ धूप', desc: 'जल्दी गर्म होना, आसानी से जलना', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'cold_damp', label: 'ठंडा और नम',     desc: 'नम मौसम भारी और सुस्त लगता है',   doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
-    ] },
-  { id: 'stress_response', section: 'prakriti', question: 'तनाव में आपकी प्राकृतिक प्रतिक्रिया?', emoji: '🌊',
+      { id: 'loves_warmth', label: 'हमेशा ठंडे — गर्मी पसंद', desc: 'गर्मियों में भी ठंडे हाथ-पैर; ठंड और हवा नापसंद; गर्म स्नान और गर्म माहौल पसंद', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'loves_cool', label: 'हमेशा गर्म — ठंडक पसंद', desc: 'शरीर अंदर से गर्म रहता है; ठंडा वातावरण पसंद; धूप, उमस और बंद कमरों से परेशानी', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'loves_both', label: 'अनुकूलनीय — अत्यधिक नमी/ठंड नापसंद', desc: 'ज़्यादातर तापमान में सहज; अत्यधिक नमी या ठंड से परेशानी होती है', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ]
+  },
+  {
+    id: 'memory', section: 'prakriti', question: 'आपकी याददाश्त और सीखने की शैली?', emoji: '🧠',
     answers: [
-      { id: 'anxious_overwhelmed', label: 'चिंतित और अभिभूत', desc: 'चिंता, ठहराव, या सभी दिशाओं में बिखरना', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'irritable_intense',   label: 'चिड़चिड़ा और तीव्र', desc: 'क्रोध, अधिक प्रयास, नियंत्रण लेना',    doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'withdraw_avoid',      label: 'पीछे हटना और टालना', desc: 'चुप हो जाना, ज़्यादा सोना, खाकर सुकून', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
-    ] },
-  { id: 'joints', section: 'prakriti', question: 'आपके जोड़ और शरीर की बनावट?', emoji: '🦴',
+      { id: 'quick_forget', label: 'जल्दी सीखना, जल्दी भूलना', desc: 'नई बातें तेज़ी से समझते हैं पर याददाश्त कम; दोहराने से ही याद रहता है', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'sharp_focused', label: 'तीव्र, विश्लेषणात्मक और दीर्घकालिक', desc: 'केंद्रित; तथ्यों की उत्कृष्ट दीर्घकालिक स्मृति; विश्लेषण और बहस से सीखते हैं', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'slow_never_forget', label: 'धीमे सीखना, कभी नहीं भूलना', desc: 'समय लगता है पर एक बार सीखा तो हमेशा याद रहता है; अत्यंत विश्वसनीय स्मृति', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ]
+  },
+  {
+    id: 'voice', section: 'prakriti', question: 'आपकी आवाज़ की गुणवत्ता और बोलने की गति?', emoji: '🗣️',
     answers: [
-      { id: 'prominent_crack',  label: 'उभरे हुए और चटकने वाले', desc: 'जोड़ चटकते हैं, हड्डियाँ उभरी, दुबला ढांचा', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'moderate_flexible',label: 'मध्यम और लचीले',         desc: 'अच्छी बनावट, मध्यम लचीलापन',              doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'large_padded',     label: 'बड़े और गद्देदार',         desc: 'चौड़े, गद्दीदार जोड़, स्थिर ढांचा',      doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
-    ] },
+      { id: 'fast_lots', label: 'तेज़, बातूनी और कभी-कभी भर्राई', desc: 'जल्दी बोलते हैं, विषय बदलते हैं; आवाज़ जल्दी भर्रा या कर्कश हो सकती है', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'precise_sharp', label: 'स्पष्ट, तीखी और प्रभावशाली', desc: 'आत्मविश्वास के साथ बोलते हैं; प्रेरक, स्पष्ट और सटीक शब्द चुनते हैं', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'slow_melodious', label: 'गहरी, धीमी और मधुर', desc: 'समृद्ध, सुखद आवाज़; सोच-समझकर बोलते हैं; सुनने वाले को सुकून मिलता है', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ]
+  },
+  {
+    id: 'weather', section: 'prakriti', question: 'कौन सा मौसम आपको सबसे ज़्यादा शारीरिक रूप से परेशान करता है?', emoji: '🌦️',
+    answers: [
+      { id: 'cold_wind', label: 'ठंडा और तूफ़ानी', desc: 'हवा से बेचैनी और चिंता; ठंड से जकड़न; शुष्क मौसम त्वचा और होंठ फटाता है', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'heat_sun', label: 'गर्मी, उमस और तेज़ धूप', desc: 'जल्दी गर्म होना; धूप से जलना; गर्म/उमस भरे मौसम में चिड़चिड़ापन और सूजन', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'cold_damp', label: 'ठंडा, नम और बादलों वाला', desc: 'ऐसे मौसम में सुस्त और भारी महसूस; सर्दियों में जमाव और आलस्य की प्रवृत्ति', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ]
+  },
+  {
+    id: 'stress_response', section: 'prakriti', question: 'तनाव में आपकी प्राकृतिक प्रतिक्रिया?', emoji: '🌊',
+    answers: [
+      { id: 'anxious_overwhelmed', label: 'चिंतित, बिखरे और जम जाते हैं', desc: 'चिंता, अत्यधिक सोचना, ठहर जाना; लंबे तनाव में अनिद्रा और भय', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'irritable_intense', label: 'चिड़चिड़े, नियंत्रण लेते और और मेहनत करते', desc: 'क्रोध या निराशा; नियंत्रण लेते हैं; खुद और दूसरों पर आलोचनात्मक हो जाते हैं', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'withdraw_avoid', label: 'पीछे हटते, चुप रहते और खाकर सुकून', desc: 'चुप हो जाते हैं, ज़्यादा सोते हैं, आरामदायक खाना खाते हैं; मुद्दे से बचते हैं', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ]
+  },
+  {
+    id: 'joints', section: 'prakriti', question: 'आपके जोड़, हड्डियाँ और शारीरिक ढांचा?', emoji: '🦴',
+    answers: [
+      { id: 'prominent_crack', label: 'उभरे, चटकने वाले और दुबले', desc: 'जोड़ आवाज़ करते हैं; बड़ी, उभरी हड्डियाँ दुबले ढांचे पर; अत्यधिक लचीलापन संभव', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'moderate_flexible', label: 'मध्यम, सुगठित और लचीले', desc: 'अच्छी मांसपेशियों के साथ संतुलित जोड़; मध्यम लचीलापन; कम चटकन', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'large_padded', label: 'बड़े, गद्देदार और बहुत स्थिर', desc: 'मोटे संयोजी ऊतक के साथ चौड़े जोड़; बहुत स्थिर; मज़बूत नींव; शायद ही चटकते', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ]
+  },
+  {
+    id: 'gait', section: 'prakriti', question: 'आपकी प्राकृतिक चाल और शारीरिक गति?', emoji: '🚶',
+    answers: [
+      { id: 'fast_irregular', label: 'तेज़, हल्की और अनियमित', desc: 'हल्के, अनियमित कदमों से तेज़ चलते हैं; दिशा आसानी से बदलते हैं; हाथ-पैर हिलाते हैं', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'purposeful_brisk', label: 'उद्देश्यपूर्ण, तेज़ और सीधी', desc: 'आत्मविश्वास और लक्ष्य के साथ चलते हैं; मध्यम-तेज़ गति; कुशल और सीधे', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'slow_steady_graceful', label: 'धीमी, स्थिर और सुंदर', desc: 'इत्मीनान से और सोच-समझकर चलते हैं; स्थिर, सहज और सुंदर गति; चौड़े मज़बूत कदम', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+    ]
+  },
 ];
 
+
 const VIKRITI_QUESTIONS_HI: QuizQuestion[] = [
-  { id: 'v_energy', section: 'vikriti', question: 'पिछले 2 हफ़्तों में आपकी ऊर्जा कैसी रही है?', emoji: '⚡',
+  {
+    id: 'v_energy', section: 'vikriti', question: 'पिछले 2 हफ़्तों में आपकी ऊर्जा कैसी रही है?', emoji: '⚡',
     answers: [
-      { id: 'v_scattered', label: 'बिखरी और चिंतित',   desc: 'बेचैन, अनियमित, ध्यान केंद्रित करना कठिन',   doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'v_intense',   label: 'तीव्र और अतिसक्रिय', desc: 'प्रेरित लेकिन चिड़चिड़े या सूजन महसूस',      doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'v_heavy',     label: 'भारी और कम',         desc: 'सुस्त, अप्रेरित, शुरू करना मुश्किल',         doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
-      { id: 'v_balanced',  label: 'संतुलित और स्थिर',   desc: 'सामान्यतः स्थिर और अच्छा',                   doshaEffect: { vata: 1, pitta: 1, kapha: 1 } },
-    ] },
-  { id: 'v_digestion', section: 'vikriti', question: 'अभी आपका पाचन कैसा है?', emoji: '🔥',
+      { id: 'v_scattered', label: 'बिखरी और चिंतित', desc: 'बेचैन, अनियमित, ध्यान केंद्रित करना कठिन', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'v_intense', label: 'तीव्र और अतिसक्रिय', desc: 'प्रेरित लेकिन चिड़चिड़े या सूजन महसूस', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'v_heavy', label: 'भारी और कम', desc: 'सुस्त, अप्रेरित, शुरू करना मुश्किल', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'v_balanced', label: 'संतुलित और स्थिर', desc: 'सामान्यतः स्थिर और अच्छा', doshaEffect: { vata: 1, pitta: 1, kapha: 1 } },
+    ]
+  },
+  {
+    id: 'v_digestion', section: 'vikriti', question: 'अभी आपका पाचन कैसा है?', emoji: '🔥',
     answers: [
-      { id: 'v_bloated',    label: 'फूला और अनियमित',  desc: 'गैस, कब्ज़, अप्रत्याशित',                   doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'v_acidic',     label: 'अम्लीय और तेज़',    desc: 'अम्लता, सीने में जलन, ढीले मल',              doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'v_slow_heavy', label: 'धीमा और भारी',      desc: 'खाने के बाद भारीपन, मतली, धीमा पाचन',        doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
-      { id: 'v_good',       label: 'अच्छा और नियमित',   desc: 'पाचन सामान्य लग रहा है',                     doshaEffect: { vata: 1, pitta: 1, kapha: 1 } },
-    ] },
-  { id: 'v_sleep', section: 'vikriti', question: 'हाल ही में आपकी नींद कैसी रही है?', emoji: '🌙',
+      { id: 'v_bloated', label: 'फूला और अनियमित', desc: 'गैस, कब्ज़, अप्रत्याशित', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'v_acidic', label: 'अम्लीय और तेज़', desc: 'अम्लता, सीने में जलन, ढीले मल', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'v_slow_heavy', label: 'धीमा और भारी', desc: 'खाने के बाद भारीपन, मतली, धीमा पाचन', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'v_good', label: 'अच्छा और नियमित', desc: 'पाचन सामान्य लग रहा है', doshaEffect: { vata: 1, pitta: 1, kapha: 1 } },
+    ]
+  },
+  {
+    id: 'v_sleep', section: 'vikriti', question: 'हाल ही में आपकी नींद कैसी रही है?', emoji: '🌙',
     answers: [
-      { id: 'v_insomnia',       label: 'हल्की और बाधित',      desc: 'नींद आने में कठिनाई, रात में जागना',        doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'v_waking_midnight',label: 'रात 10-2 बजे जागना',  desc: 'आधी रात को सक्रिय मन, अधिक गर्मी',         doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'v_excessive',      label: 'अत्यधिक और भारी',     desc: 'बहुत ज़्यादा सोना, जागना मुश्किल, सुस्ती',  doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
-      { id: 'v_normal_sleep',   label: 'सामान्य और तरोताज़ा', desc: 'नींद अच्छी लग रही है',                      doshaEffect: { vata: 1, pitta: 1, kapha: 1 } },
-    ] },
-  { id: 'v_mood', section: 'vikriti', question: 'हाल ही में कौन सी भावनात्मक स्थिति सबसे अधिक है?', emoji: '💭',
+      { id: 'v_insomnia', label: 'हल्की और बाधित', desc: 'नींद आने में कठिनाई, रात में जागना', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'v_waking_midnight', label: 'रात 10-2 बजे जागना', desc: 'आधी रात को सक्रिय मन, अधिक गर्मी', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'v_excessive', label: 'अत्यधिक और भारी', desc: 'बहुत ज़्यादा सोना, जागना मुश्किल, सुस्ती', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'v_normal_sleep', label: 'सामान्य और तरोताज़ा', desc: 'नींद अच्छी लग रही है', doshaEffect: { vata: 1, pitta: 1, kapha: 1 } },
+    ]
+  },
+  {
+    id: 'v_mood', section: 'vikriti', question: 'हाल ही में कौन सी भावनात्मक स्थिति सबसे अधिक है?', emoji: '💭',
     answers: [
-      { id: 'v_anxiety',   label: 'चिंता और घबराहट',     desc: 'अधिक सोचना, डर, बेचैनी, बिखराव',          doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'v_anger',     label: 'चिड़चिड़ापन और निराशा', desc: 'जल्दी क्रोध, अधीरता, आलोचना',              doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'v_lethargy',  label: 'भारीपन और उदासी',     desc: 'कम प्रेरणा, पीछे हटना, आसक्ति',            doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
-      { id: 'v_content',   label: 'अधिकतर संतुष्ट',      desc: 'भावनात्मक रूप से स्थिर और ठीक',            doshaEffect: { vata: 1, pitta: 1, kapha: 1 } },
-    ] },
-  { id: 'v_physical', section: 'vikriti', question: 'हाल ही में कोई शारीरिक लक्षण?', emoji: '🌿',
+      { id: 'v_anxiety', label: 'चिंता और घबराहट', desc: 'अधिक सोचना, डर, बेचैनी, बिखराव', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'v_anger', label: 'चिड़चिड़ापन और निराशा', desc: 'जल्दी क्रोध, अधीरता, आलोचना', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'v_lethargy', label: 'भारीपन और उदासी', desc: 'कम प्रेरणा, पीछे हटना, आसक्ति', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'v_content', label: 'अधिकतर संतुष्ट', desc: 'भावनात्मक रूप से स्थिर और ठीक', doshaEffect: { vata: 1, pitta: 1, kapha: 1 } },
+    ]
+  },
+  {
+    id: 'v_physical', section: 'vikriti', question: 'हाल ही में कोई शारीरिक लक्षण?', emoji: '🌿',
     answers: [
-      { id: 'v_dry_cramps',    label: 'शुष्कता, जोड़ दर्द, ऐंठन', desc: 'शुष्क त्वचा, कब्ज़, मांसपेशियों में तनाव', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
-      { id: 'v_inflammation',  label: 'सूजन और त्वचा समस्याएँ',   desc: 'चकत्ते, अम्लता, जलन',                       doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
-      { id: 'v_congestion',    label: 'कफ और वज़न बढ़ना',           desc: 'बलगम, भारीपन, सूजन',                        doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
-      { id: 'v_none',          label: 'कोई विशेष नहीं',             desc: 'शारीरिक रूप से ठीक महसूस हो रहा है',       doshaEffect: { vata: 1, pitta: 1, kapha: 1 } },
-    ] },
+      { id: 'v_dry_cramps', label: 'शुष्कता, जोड़ दर्द, ऐंठन', desc: 'शुष्क त्वचा, कब्ज़, मांसपेशियों में तनाव', doshaEffect: { vata: 2, pitta: 0, kapha: 0 } },
+      { id: 'v_inflammation', label: 'सूजन और त्वचा समस्याएँ', desc: 'चकत्ते, अम्लता, जलन', doshaEffect: { vata: 0, pitta: 2, kapha: 0 } },
+      { id: 'v_congestion', label: 'कफ और वज़न बढ़ना', desc: 'बलगम, भारीपन, सूजन', doshaEffect: { vata: 0, pitta: 0, kapha: 2 } },
+      { id: 'v_none', label: 'कोई विशेष नहीं', desc: 'शारीरिक रूप से ठीक महसूस हो रहा है', doshaEffect: { vata: 1, pitta: 1, kapha: 1 } },
+    ]
+  },
 ];
 
 const VIKRITI_QUESTIONS: QuizQuestion[] = [
@@ -669,7 +787,7 @@ export default function PrakritiQuizPage() {
   }, []);
 
   const prakritiQuestions = lang === 'hi' ? PRAKRITI_QUESTIONS_HI : PRAKRITI_QUESTIONS;
-  const vikritiiQuestions  = lang === 'hi' ? VIKRITI_QUESTIONS_HI  : VIKRITI_QUESTIONS;
+  const vikritiiQuestions = lang === 'hi' ? VIKRITI_QUESTIONS_HI : VIKRITI_QUESTIONS;
 
   const currentPrakritiQ = prakritiQuestions[prakritiStep];
   const currentVikritiiQ = vikritiiQuestions[vikritiiStep];
@@ -685,7 +803,7 @@ export default function PrakritiQuizPage() {
       const t = setTimeout(() => speak(getQuestionSpeakText(currentPrakritiQ)), 500);
       return () => clearTimeout(t);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, prakritiStep]);
 
   useEffect(() => {
@@ -693,7 +811,7 @@ export default function PrakritiQuizPage() {
       const t = setTimeout(() => speak(getQuestionSpeakText(currentVikritiiQ)), 500);
       return () => clearTimeout(t);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, vikritiiStep]);
 
   useEffect(() => {
@@ -701,7 +819,7 @@ export default function PrakritiQuizPage() {
       const t = setTimeout(() => speak(lang === 'hi' ? RESULT_SPEAK_HI : RESULT_SPEAK), 800);
       return () => clearTimeout(t);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
   const selectPrakritiAnswer = useCallback((answer: AnswerOption) => {
@@ -750,7 +868,7 @@ export default function PrakritiQuizPage() {
         );
         return { questionId: q.id, answerId: ids.join(','), doshaEffect: avgEffect };
       })
-  , []);
+    , []);
 
   const advancePrakriti = useCallback(() => {
     stop();
@@ -895,7 +1013,7 @@ export default function PrakritiQuizPage() {
                   <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(251,191,36,0.75)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.5 }}>
                     {lang === 'hi'
                       ? <>✦ अब हम आपकी <strong>विकृति</strong> जाँचेंगे — आप <em>अभी</em> कैसा महसूस करते हैं, न कि हमेशा से। पिछले 2 हफ़्तों के आधार पर उत्तर दें।</>
-                      : <>✦ Now we check your <strong>Vikriti</strong> — how you feel <em>right now</em>, not how you always are. Answer based on the last 2 weeks.</> }
+                      : <>✦ Now we check your <strong>Vikriti</strong> — how you feel <em>right now</em>, not how you always are. Answer based on the last 2 weeks.</>}
                   </p>
                 </div>
               )}
@@ -942,7 +1060,7 @@ export default function PrakritiQuizPage() {
                   <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(167,139,250,0.8)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.5 }}>
                     {lang === 'hi'
                       ? <>✦ उत्तर वैसे दें जैसे आप <strong>जन्म से हमेशा रहे हैं</strong> — अभी नहीं। अपनी प्राकृतिक, अपरिवर्तनीय प्रकृति के बारे में सोचें।</>
-                      : <>✦ Answer as you have <strong>always been</strong> since birth — not how you are right now. Think of your natural, unchanging constitution.</> }
+                      : <>✦ Answer as you have <strong>always been</strong> since birth — not how you are right now. Think of your natural, unchanging constitution.</>}
                   </p>
                 </div>
               )}

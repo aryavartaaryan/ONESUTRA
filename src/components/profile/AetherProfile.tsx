@@ -1279,8 +1279,8 @@ export default function AetherProfile({ viewedUid, autoEnquire }: { viewedUid?: 
   const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
   const enginePrakritiStr = isOwnProfile && doshaEngine.prakriti
     ? (doshaEngine.prakriti.secondary
-        ? `${capitalize(doshaEngine.prakriti.primary)}-${capitalize(doshaEngine.prakriti.secondary)}`
-        : capitalize(doshaEngine.prakriti.primary))
+      ? `${capitalize(doshaEngine.prakriti.primary)}-${capitalize(doshaEngine.prakriti.secondary)}`
+      : capitalize(doshaEngine.prakriti.primary))
     : null;
   const prakriti = enginePrakritiStr || profileDoc?.prakriti || 'Vata-Pitta';
   const doshaScores = isOwnProfile && doshaEngine.prakriti?.scores ? doshaEngine.prakriti.scores : null;
@@ -1295,10 +1295,10 @@ export default function AetherProfile({ viewedUid, autoEnquire }: { viewedUid?: 
       ? { insight: 'Your Earth-Water nature shines with morning movement, warm spices, and consistent sunlight.' }
       : { insight: 'Your Air-Ether nature needs grounding foods, warm oils, and consistent daily rhythm.' })
     : prakriti?.includes('Pitta')
-    ? { insight: 'Your Air-Fire constitution thrives with cooling foods, breathwork, and structured mornings.' }
-    : prakriti?.includes('Kapha')
-      ? { insight: 'Your Earth-Water nature shines with morning movement, warm spices, and sunlight.' }
-      : { insight: 'Your Air-Ether nature needs grounding foods, warm oils, and consistent sleep.' };
+      ? { insight: 'Your Air-Fire constitution thrives with cooling foods, breathwork, and structured mornings.' }
+      : prakriti?.includes('Kapha')
+        ? { insight: 'Your Earth-Water nature shines with morning movement, warm spices, and sunlight.' }
+        : { insight: 'Your Air-Ether nature needs grounding foods, warm oils, and consistent sleep.' };
 
   const sanghaToShow = realSangha.length > 0 ? realSangha.slice(0, 5) : [];
 
@@ -1720,68 +1720,101 @@ export default function AetherProfile({ viewedUid, autoEnquire }: { viewedUid?: 
               ))}
             </div>
 
-            {/* Pranic vitals: Agni, Ojas, Tejas, Sattva */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 12px', marginBottom: 10 }}>
-              {[
-                { label: 'Agni', icon: '🔥', desc: 'Digestive Fire', val: doshaMetrics?.agni ?? 76, color: '#F59E0B' },
-                { label: 'Ojas', icon: '💎', desc: 'Vital Essence', val: doshaMetrics?.ojas ?? 72, color: '#14B8A6' },
-                { label: 'Tejas', icon: '✨', desc: 'Radiant Intelligence', val: doshaMetrics ? Math.round((doshaMetrics.agni + doshaMetrics.ojas) / 2 + 5) : 80, color: '#FCD34D' },
-                { label: 'Sattva', icon: '🕊️', desc: 'Mental Clarity', val: doshaMetrics ? Math.round(doshaMetrics.ojas * 1.1) : 83, color: '#A78BFA' },
-              ].map(item => (
-                <div key={item.label} style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.60rem', color: item.color, fontWeight: 700, fontFamily: "'Outfit',sans-serif" }}>{item.icon} {item.label} <span style={{ color: 'rgba(255,255,255,0.35)', fontWeight: 400 }}>· {item.desc}</span></span>
-                    <span style={{ fontSize: '0.58rem', color: item.color, fontWeight: 700 }}>{item.val}</span>
+            {/* Pranic vitals: Agni, Ojas, Tejas, Sattva — derived from real Prakriti scores */}
+            {(() => {
+              const total = doshaScores ? doshaScores.vata + doshaScores.pitta + doshaScores.kapha : 0;
+              const vPct = total > 0 ? doshaScores!.vata / total : 0.33;
+              const piPct = total > 0 ? doshaScores!.pitta / total : 0.33;
+              const kaPct = total > 0 ? doshaScores!.kapha / total : 0.34;
+              // Ayurvedic derivation:
+              // Agni (digestive fire) ∝ Pitta
+              const agni = doshaMetrics?.agni ?? Math.round(40 + piPct * 60);
+              // Ojas (vital essence) ∝ Kapha balance
+              const ojas = doshaMetrics?.ojas ?? Math.round(45 + kaPct * 50);
+              // Tejas (radiant intelligence) = avg of Pitta + Vata tendencies
+              const tejas = Math.round(40 + (piPct + vPct) / 2 * 55);
+              // Sattva = overall balance; high when all three are near 33%
+              const imbalance = Math.abs(vPct - 0.33) + Math.abs(piPct - 0.33) + Math.abs(kaPct - 0.34);
+              const sattva = Math.round(90 - imbalance * 100);
+              return (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 12px', marginBottom: 10 }}>
+                  {[
+                    { label: 'Agni', icon: '🔥', desc: 'Digestive Fire', val: Math.min(97, Math.max(35, agni)), color: '#F59E0B' },
+                    { label: 'Ojas', icon: '💎', desc: 'Vital Essence', val: Math.min(97, Math.max(35, ojas)), color: '#14B8A6' },
+                    { label: 'Tejas', icon: '✨', desc: 'Radiant Intelligence', val: Math.min(97, Math.max(35, tejas)), color: '#FCD34D' },
+                    { label: 'Sattva', icon: '🕊️', desc: 'Mental Clarity', val: Math.min(97, Math.max(35, sattva)), color: '#A78BFA' },
+                  ].map(item => (
+                    <div key={item.label} style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.60rem', color: item.color, fontWeight: 700, fontFamily: "'Outfit',sans-serif" }}>{item.icon} {item.label} <span style={{ color: 'rgba(255,255,255,0.35)', fontWeight: 400 }}>· {item.desc}</span></span>
+                        <span style={{ fontSize: '0.58rem', color: item.color, fontWeight: 700 }}>{item.val}</span>
+                      </div>
+                      <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+                        <motion.div style={{ height: '100%', borderRadius: 99, background: `linear-gradient(90deg,${item.color}60,${item.color})`, boxShadow: `0 0 6px ${item.color}55` }}
+                          initial={{ width: '0%' }} animate={{ width: `${item.val}%` }} transition={{ duration: 1.1, ease: 'easeOut', delay: 0.5 }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+
+            {/* Guna balance + Chakra alignment — personalized by Prakriti */}
+            {(() => {
+              const primary = doshaEngine.prakriti?.primary ?? (prakriti.toLowerCase().includes('pitta') ? 'pitta' : prakriti.toLowerCase().includes('kapha') ? 'kapha' : 'vata');
+              // Guna map: Vata→creative/Rajas, Pitta→Rajas, Kapha→Tamas+Sattva
+              const gunas = primary === 'pitta'
+                ? [{ label: 'Sattva ✨', val: 55, color: '#A78BFA' }, { label: 'Rajas ⚡', val: 36, color: '#F59E0B' }, { label: 'Tamas 🌑', val: 9, color: '#60A5FA' }]
+                : primary === 'kapha'
+                  ? [{ label: 'Sattva ✨', val: 70, color: '#A78BFA' }, { label: 'Rajas ⚡', val: 14, color: '#F59E0B' }, { label: 'Tamas 🌑', val: 16, color: '#60A5FA' }]
+                  : [{ label: 'Sattva ✨', val: 60, color: '#A78BFA' }, { label: 'Rajas ⚡', val: 28, color: '#F59E0B' }, { label: 'Tamas 🌑', val: 12, color: '#60A5FA' }];
+              // Chakra map by primary dosha
+              const chakras = primary === 'pitta'
+                ? [{ label: 'Manipura ☀️', color: '#FBBF24', active: true }, { label: 'Anahata 💚', color: '#34D399', active: true }, { label: 'Vishuddha 🗣️', color: '#22D3EE', active: false }, { label: 'Ajna 👁️', color: '#818CF8', active: false }, { label: 'Sahasrara 👑', color: '#A78BFA', active: false }]
+                : primary === 'kapha'
+                  ? [{ label: 'Muladhara 🌍', color: '#EF4444', active: true }, { label: 'Svadhisthana 🌊', color: '#F97316', active: true }, { label: 'Anahata 💚', color: '#34D399', active: false }, { label: 'Vishuddha 🗣️', color: '#22D3EE', active: false }, { label: 'Sahasrara 👑', color: '#A78BFA', active: false }]
+                  : [{ label: 'Ajna 👁️', color: '#818CF8', active: true }, { label: 'Vishuddha 🗣️', color: '#22D3EE', active: true }, { label: 'Anahata 💚', color: '#34D399', active: false }, { label: 'Manipura ☀️', color: '#FBBF24', active: false }, { label: 'Sahasrara 👑', color: '#A78BFA', active: false }];
+              return (
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <div style={{ flex: 1, minWidth: 120, padding: '7px 10px', background: 'rgba(167,139,250,0.07)', border: '1px solid rgba(167,139,250,0.14)', borderRadius: 12 }}>
+                    <div style={{ fontSize: '0.55rem', color: '#A78BFA', fontWeight: 700, letterSpacing: '0.08em', marginBottom: 5, fontFamily: "'Outfit',sans-serif" }}>GUNA BALANCE</div>
+                    {gunas.map(g => (
+                      <div key={g.label} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
+                        <span style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.45)', width: 60, fontFamily: "'Outfit',sans-serif" }}>{g.label}</span>
+                        <div style={{ flex: 1, height: 3, borderRadius: 99, background: 'rgba(255,255,255,0.07)' }}>
+                          <motion.div style={{ height: '100%', borderRadius: 99, background: g.color }}
+                            initial={{ width: '0%' }} animate={{ width: `${g.val}%` }} transition={{ duration: 1, delay: 0.6 }} />
+                        </div>
+                        <span style={{ fontSize: '0.50rem', color: g.color, fontWeight: 700 }}>{g.val}%</span>
+                      </div>
+                    ))}
                   </div>
-                  <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
-                    <motion.div style={{ height: '100%', borderRadius: 99, background: `linear-gradient(90deg,${item.color}60,${item.color})`, boxShadow: `0 0 6px ${item.color}55` }}
-                      initial={{ width: '0%' }} animate={{ width: `${item.val}%` }} transition={{ duration: 1.1, ease: 'easeOut', delay: 0.5 }} />
+                  <div style={{ flex: 1, minWidth: 120, padding: '7px 10px', background: 'rgba(96,165,250,0.07)', border: '1px solid rgba(96,165,250,0.14)', borderRadius: 12 }}>
+                    <div style={{ fontSize: '0.55rem', color: '#60A5FA', fontWeight: 700, letterSpacing: '0.08em', marginBottom: 5, fontFamily: "'Outfit',sans-serif" }}>CHAKRA ALIGNMENT</div>
+                    {chakras.map((c, i) => (
+                      <div key={c.label} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 2 }}>
+                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: c.color, boxShadow: `0 0 5px ${c.color}88`, flexShrink: 0 }} />
+                        <span style={{ fontSize: '0.52rem', color: 'rgba(255,255,255,0.45)', fontFamily: "'Outfit',sans-serif" }}>{c.label}</span>
+                        {c.active && <span style={{ fontSize: '0.46rem', color: c.color, marginLeft: 'auto', fontWeight: 700 }}>Active</span>}
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
+              );
+            })()}
 
-            {/* Guna balance + Chakra alignment */}
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <div style={{ flex: 1, minWidth: 120, padding: '7px 10px', background: 'rgba(167,139,250,0.07)', border: '1px solid rgba(167,139,250,0.14)', borderRadius: 12 }}>
-                <div style={{ fontSize: '0.55rem', color: '#A78BFA', fontWeight: 700, letterSpacing: '0.08em', marginBottom: 5, fontFamily: "'Outfit',sans-serif" }}>GUNA BALANCE</div>
-                {[
-                  { label: 'Sattva ✨', val: 65, color: '#A78BFA' },
-                  { label: 'Rajas ⚡', val: 22, color: '#F59E0B' },
-                  { label: 'Tamas 🌑', val: 13, color: '#60A5FA' },
-                ].map(g => (
-                  <div key={g.label} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
-                    <span style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.45)', width: 60, fontFamily: "'Outfit',sans-serif" }}>{g.label}</span>
-                    <div style={{ flex: 1, height: 3, borderRadius: 99, background: 'rgba(255,255,255,0.07)' }}>
-                      <motion.div style={{ height: '100%', borderRadius: 99, background: g.color }}
-                        initial={{ width: '0%' }} animate={{ width: `${g.val}%` }} transition={{ duration: 1, delay: 0.6 }} />
-                    </div>
-                    <span style={{ fontSize: '0.50rem', color: g.color, fontWeight: 700 }}>{g.val}%</span>
-                  </div>
-                ))}
-              </div>
-              <div style={{ flex: 1, minWidth: 120, padding: '7px 10px', background: 'rgba(96,165,250,0.07)', border: '1px solid rgba(96,165,250,0.14)', borderRadius: 12 }}>
-                <div style={{ fontSize: '0.55rem', color: '#60A5FA', fontWeight: 700, letterSpacing: '0.08em', marginBottom: 5, fontFamily: "'Outfit',sans-serif" }}>CHAKRA ALIGNMENT</div>
-                {[
-                  { label: 'Sahasrara 👑', color: '#A78BFA' },
-                  { label: 'Ajna 👁️', color: '#818CF8' },
-                  { label: 'Vishuddha 🗣️', color: '#22D3EE' },
-                  { label: 'Anahata 💚', color: '#34D399' },
-                  { label: 'Manipura ☀️', color: '#FBBF24' },
-                ].map((c, i) => (
-                  <div key={c.label} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 2 }}>
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: c.color, boxShadow: `0 0 5px ${c.color}88`, flexShrink: 0 }} />
-                    <span style={{ fontSize: '0.52rem', color: 'rgba(255,255,255,0.45)', fontFamily: "'Outfit',sans-serif" }}>{c.label}</span>
-                    {i < 2 && <span style={{ fontSize: '0.46rem', color: c.color, marginLeft: 'auto', fontWeight: 700 }}>Active</span>}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Prakriti insight */}
+            {/* Prakriti insight + retake button */}
             <div style={{ marginTop: 8, padding: '6px 10px', background: 'rgba(255,255,255,0.04)', borderRadius: 10, fontSize: '0.60rem', color: 'rgba(255,255,255,0.50)', fontStyle: 'italic', fontFamily: "'Outfit',sans-serif", lineHeight: 1.55 }}>
               ✦ {doshaInfo.insight}
             </div>
+            {isOwnProfile && (
+              <button
+                onClick={() => router.push('/lifestyle/prakriti')}
+                style={{ marginTop: 8, width: '100%', padding: '6px 0', borderRadius: 8, background: 'rgba(167,139,250,0.10)', border: '1px solid rgba(167,139,250,0.22)', color: '#A78BFA', fontSize: '0.58rem', fontFamily: "'Outfit',sans-serif", fontWeight: 600, cursor: 'pointer', letterSpacing: '0.06em' }}
+              >
+                🔄 Retake Prakriti Analysis
+              </button>
+            )}
           </motion.div>
 
           {/* ── TILE C: Recent Community Activities (full-width) ── */}

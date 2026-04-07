@@ -46,10 +46,17 @@ export interface RitucharayaSeason {
   nameHi: string;
   months: number[];
   dominantDosha: Dosha;
+  color: string;
+  gradient: string;
+  emoji: string;
   qualities: string[];
   focus: string;
   foodGuidance: string;
+  foods: string[];
   movementGuidance: string;
+  lifestyle: string[];
+  doshaEffect: string;
+  detox: string;
 }
 
 export interface DoshaRecommendation {
@@ -214,10 +221,17 @@ export const RITU_SEASONS: RitucharayaSeason[] = [
     nameHi: 'वसन्त',
     months: [3, 4],
     dominantDosha: 'kapha',
-    qualities: ['Renewal', 'Lightening', 'Warmth building'],
+    color: '#4ade80',
+    gradient: 'linear-gradient(135deg, rgba(74,222,128,0.15), rgba(34,197,94,0.05))',
+    emoji: '🌸',
+    qualities: ['Warm & wet', 'Kapha melts', 'Prana surges', 'Renewal'],
     focus: 'Kapha detox — release winter heaviness',
     foodGuidance: 'Light, warm, bitter foods. Reduce sweets and dairy. Honey is ideal now.',
+    foods: ['Bitter greens', 'Light grains', 'Honey', 'Ginger', 'Barley'],
     movementGuidance: 'Vigorous movement, brisk walking, energising yoga.',
+    lifestyle: ['Sunrise yoga', 'Dry brushing', 'Reduce heavy foods', 'Daily oil massage'],
+    doshaEffect: 'Kapha liquefies — detox, lighten diet, increase activity',
+    detox: 'Gentle Kapha cleanse — dry fasting, light meals, nasya oil',
   },
   {
     id: 'grishma',
@@ -225,10 +239,17 @@ export const RITU_SEASONS: RitucharayaSeason[] = [
     nameHi: 'ग्रीष्म',
     months: [5, 6],
     dominantDosha: 'pitta',
-    qualities: ['Heat', 'Intensity', 'Dryness'],
+    color: '#fb923c',
+    gradient: 'linear-gradient(135deg, rgba(251,146,60,0.15), rgba(249,115,22,0.05))',
+    emoji: '☀️',
+    qualities: ['Hot & dry', 'Pitta rises', 'Agni high', 'Abundant energy'],
     focus: 'Pitta cooling — protect from heat and inflammation',
     foodGuidance: 'Cooling, sweet, hydrating foods. Coconut water, fresh fruits, buttermilk at noon.',
+    foods: ['Sweet fruits', 'Coconut water', 'Cucumber', 'Milk', 'Cooling herbs'],
     movementGuidance: 'Gentle movement in cool morning hours. Avoid midday exertion.',
+    lifestyle: ['Early morning exercise only', 'Cooling coconut oil massage', 'Moon bathing', 'Less exertion'],
+    doshaEffect: 'Pitta aggravated — cool foods, reduce spice, avoid midday sun',
+    detox: 'Pitta pacifying — rose water, coconut, sandalwood, cooling baths',
   },
   {
     id: 'varsha',
@@ -236,10 +257,17 @@ export const RITU_SEASONS: RitucharayaSeason[] = [
     nameHi: 'वर्षा',
     months: [7, 8],
     dominantDosha: 'vata',
-    qualities: ['Irregular', 'Damp', 'Digestive fire weakened'],
+    color: '#60a5fa',
+    gradient: 'linear-gradient(135deg, rgba(96,165,250,0.15), rgba(59,130,246,0.05))',
+    emoji: '🌧️',
+    qualities: ['Wet & cloudy', 'Vata + Pitta', 'Weak Agni', 'Sluggish'],
     focus: 'Agni repair — strengthen digestive fire',
     foodGuidance: 'Warm cooked food only. No raw or cold food. Ginger, cumin, and rock salt strengthen Agni.',
+    foods: ['Light grains', 'Warm soups', 'Old honey', 'Ginger lemon water'],
     movementGuidance: 'Gentle indoor movement. Avoid cold and damp exposure.',
+    lifestyle: ['Avoid rain exposure', 'Digestive spices in every meal', 'Light exercise only', 'Rainy season naps ok'],
+    doshaEffect: 'Vata rises, Agni decreases — eat warm, easily digestible foods',
+    detox: 'Basti (oil enema) season — restore Ojas, strengthen Agni gradually',
   },
   {
     id: 'sharad',
@@ -247,10 +275,17 @@ export const RITU_SEASONS: RitucharayaSeason[] = [
     nameHi: 'शरद्',
     months: [9, 10],
     dominantDosha: 'pitta',
-    qualities: ['Pitta aggravation', 'Sharp', 'Transitional'],
+    color: '#fbbf24',
+    gradient: 'linear-gradient(135deg, rgba(251,191,36,0.15), rgba(245,158,11,0.05))',
+    emoji: '🍂',
+    qualities: ['Warm days cool nights', 'Pitta pacifying', 'Clear skies', 'Festive'],
     focus: 'Pitta pacification — cooling practices before winter',
     foodGuidance: 'Cooling, sweet, bitter foods. Avoid excess pungent and sour.',
+    foods: ['Sweet, light, bitter', 'Pomegranate', 'Grapes', 'Rice', 'Amla'],
     movementGuidance: 'Moderate movement. Cooling yoga. Avoid competition and heat.',
+    lifestyle: ['Moonlight walks', 'Avoid sleeping in daytime', 'Cooling practices', 'Panchkarma ideal'],
+    doshaEffect: 'Pitta pacified naturally — nourish with sweet fruits, maintain lightness',
+    detox: 'Virechana (purgation) season — best time for Panchakarma home protocols',
   },
   {
     id: 'hemanta',
@@ -258,10 +293,17 @@ export const RITU_SEASONS: RitucharayaSeason[] = [
     nameHi: 'हेमन्त',
     months: [11, 12],
     dominantDosha: 'kapha',
-    qualities: ['Cold', 'Nourishing', 'Stable Agni'],
+    color: '#818cf8',
+    gradient: 'linear-gradient(135deg, rgba(129,140,248,0.15), rgba(99,102,241,0.05))',
+    emoji: '🌾',
+    qualities: ['Cold & slightly dry', 'Strong Agni', 'High energy', 'Grounding'],
     focus: 'Ojas building — nourish deep reserves',
     foodGuidance: 'Warm, oily, nourishing foods. Root vegetables, ghee, warm milk with spices.',
+    foods: ['Nourishing oils', 'Sesame', 'Ghee', 'Root vegetables', 'Warm milk', 'Dates'],
     movementGuidance: 'Vigorous morning exercise. Abhyanga daily. Stay warm.',
+    lifestyle: ['Vigorous exercise welcome', 'Sesame oil massage', 'Warm baths', 'Build strength'],
+    doshaEffect: 'Agni strongest — eat more, build Ojas, strengthen the body',
+    detox: 'Ojas building — nourishing foods, abhyanga, warm baths, rasayana herbs',
   },
   {
     id: 'shishira',
@@ -269,10 +311,17 @@ export const RITU_SEASONS: RitucharayaSeason[] = [
     nameHi: 'शिशिर',
     months: [1, 2],
     dominantDosha: 'vata',
-    qualities: ['Coldest', 'Dry', 'Vata provocation'],
+    color: '#a78bfa',
+    gradient: 'linear-gradient(135deg, rgba(167,139,250,0.15), rgba(139,92,246,0.05))',
+    emoji: '❄️',
+    qualities: ['Cold & windy', 'Vata rises', 'Dry', 'Inward energy'],
     focus: 'Vata warmth — ground and nourish against dryness',
     foodGuidance: 'Very warm, unctuous, heavy foods. Avoid cold and raw. Sesame, dates, warm soups.',
+    foods: ['Heavy, oily, sour', 'Sesame', 'Urad dal', 'Wheat', 'Jaggery', 'Warm spiced milk'],
     movementGuidance: 'Warm, grounded movement. Avoid cold outdoor exercise. Hot oil massage essential.',
+    lifestyle: ['Stay warm always', 'Extra abhyanga', 'Shorter meditation', 'Adequate sleep', 'Social warmth'],
+    doshaEffect: 'Vata aggravated — warm, oily, heavy foods; routine is medicine',
+    detox: 'Snehana (oleation) therapy — internal ghee, sesame oil internally + externally',
   },
 ];
 

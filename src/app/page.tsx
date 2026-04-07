@@ -20,12 +20,16 @@ import SmartLogBubbles from '@/components/Dashboard/SmartLogBubbles';
 import EphemeralGreeting from '@/components/HomePage/EphemeralGreeting';
 import StickyTopNav from '@/components/HomePage/StickyTopNav';
 import LifestylePanel from '@/components/HomePage/LifestylePanel';
+import DailyInsightsCarousel from '@/components/Dashboard/DailyInsightsCarousel';
 import StickyFeedbackButton from '@/components/StickyFeedbackButton';
 import MagicSyncModule from '@/components/Dashboard/MagicSyncModule'; // kept for potential other usage
 import { useLifestyleEngine } from '@/hooks/useLifestyleEngine';
 
 import BrahmastraFocusCard from '@/components/Dashboard/BrahmastraFocusCard';
 import UpgradeDonateCard from '@/components/Dashboard/UpgradeDonateCard';
+// DoshaCompass moved to /lifestyle/dosha-compass page
+import PanchakoshaNav from '@/components/Dashboard/PanchakoshaNav';
+import StreakMala from '@/components/Dashboard/StreakMala';
 import InviteCard from '@/components/PranaVerse/InviteCard';
 import StorySlider from '@/components/PranaVerse/StorySlider';
 import { useTimeOfDay } from '@/hooks/useTimeOfDay';
@@ -48,18 +52,18 @@ function buildGreeting(lang: 'en' | 'hi', h: number) {
   const en = isNight
     ? { emoji: '🌙', text: 'Shubh Ratri', period: 'Night Blessings' }
     : h < 12
-      ? { emoji: '🙏', text: 'Shubhodaya', period: 'Morning Blessings' }
+      ? { emoji: '🌄', text: 'Shubhodaya', period: 'Morning Blessings' }
       : h < 16
         ? { emoji: '☀️', text: 'Shubh Madhyahna', period: 'Midday Blessings' }
-        : { emoji: '🪔', text: 'Shubh Sandhya', period: 'Evening Blessings' };
+        : { emoji: '🌇', text: 'Shubh Sandhya', period: 'Evening Blessings' };
 
   const hi = isNight
     ? { emoji: '🌙', text: 'शुभ रात्रि', period: 'रात्रि विश्राम' }
     : h < 12
-      ? { emoji: '🙏', text: 'शुभोदय', period: 'शुभ प्रभात' }
+      ? { emoji: '🌄', text: 'शुभोदय', period: 'शुभ प्रभात' }
       : h < 16
         ? { emoji: '☀️', text: 'शुभ मध्याह्न', period: 'मध्याह्न वंदना' }
-        : { emoji: '🪔', text: 'शुभ सन्ध्या', period: 'सन्ध्या वंदना' };
+        : { emoji: '🌇', text: 'शुभ सन्ध्या', period: 'सन्ध्या वंदना' };
 
   return lang === 'hi' ? hi : en;
 }
@@ -107,6 +111,34 @@ const HOME_MOOD_OPTIONS = [
   { value: 2, emoji: '😔', label: 'Low', color: '#a78bfa' },
   { value: 1, emoji: '😢', label: 'Hard', color: '#f87171' },
 ];
+
+// ─── Firebase Homepage Mood helpers ─────────────────────────────────────────
+async function saveHomepageMood(uid: string, value: number): Promise<void> {
+  try {
+    const { getFirebaseFirestore } = await import('@/lib/firebase');
+    const { doc, setDoc } = await import('firebase/firestore');
+    const db = await getFirebaseFirestore();
+    const today = new Date().toISOString().split('T')[0];
+    await setDoc(doc(db, 'users', uid), {
+      homepage_mood: { value, date: today, loggedAt: Date.now() },
+    }, { merge: true });
+  } catch { /* silent */ }
+}
+
+async function loadHomepageMood(uid: string): Promise<number | null> {
+  try {
+    const { getFirebaseFirestore } = await import('@/lib/firebase');
+    const { doc, getDoc } = await import('firebase/firestore');
+    const db = await getFirebaseFirestore();
+    const snap = await getDoc(doc(db, 'users', uid));
+    if (!snap.exists()) return null;
+    const m = snap.data()?.homepage_mood;
+    if (!m) return null;
+    const today = new Date().toISOString().split('T')[0];
+    if (m.date !== today) return null;
+    return m.value as number;
+  } catch { return null; }
+}
 
 // ─── Ayurveda Home Card ───────────────────────────────────────────────────────
 function AyurvedaHomeCard() {
@@ -181,6 +213,18 @@ export default function Home() {
   const [isStoryOpen, setIsStoryOpen] = useState(false);
 
   const brahmastraState = useBrahmastraState(userId);
+  const { prakriti: doshaForTheme } = useDoshaEngine();
+
+  // ── Sync dosha theme to <html data-dosha="..."> ─────────────────────────────
+  useEffect(() => {
+    const root = document.documentElement;
+    if (doshaForTheme?.primary) {
+      root.dataset.dosha = doshaForTheme.primary;
+    } else {
+      delete root.dataset.dosha;
+    }
+    return () => { delete root.dataset.dosha; };
+  }, [doshaForTheme?.primary]);
 
   useEnergyProtector({
     enabled: hasStarted,
@@ -322,6 +366,27 @@ export default function Home() {
     }
   }, [hasStarted]);
 
+  // ── Load mood from Firebase when userId becomes available ────────────────────
+  useEffect(() => {
+    if (!userId || lifestyleEngine.todayMood) return;
+    loadHomepageMood(userId).then(value => {
+      if (value !== null) lifestyleEngine.logMood(value, 3, [], undefined);
+    });
+  }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Midnight reset: clear mood picker so it reappears next day ───────────────
+  useEffect(() => {
+    const now = new Date();
+    const midnight = new Date(now);
+    midnight.setDate(midnight.getDate() + 1);
+    midnight.setHours(0, 0, 0, 0);
+    const timer = setTimeout(() => {
+      setShowMoodCheck(true);
+      setEditingMood(false);
+    }, midnight.getTime() - now.getTime());
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleBeginJourney = () => { localStorage.setItem('pranav_has_started', 'true'); setHasStarted(true); };
   const handleAuthSuccess = (name: string) => { handleBeginJourney(); };
   const displayName = userName || 'Traveller';
@@ -402,16 +467,16 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
             style={{
-              margin: '0.5rem 0.75rem 0',
+              margin: '0.5rem 0.75rem 0.75rem',
               padding: '0.55rem 0.9rem',
-              borderRadius: 14,
+              borderRadius: 16,
               background: lifestyleEngine.todayMood
-                ? `linear-gradient(135deg, ${HOME_MOOD_OPTIONS.find(m => m.value === lifestyleEngine.todayMood!.mood)?.color ?? '#a78bfa'}12, rgba(255,255,255,0.02))`
-                : 'rgba(8,6,22,0.72)',
+                ? `linear-gradient(135deg, ${HOME_MOOD_OPTIONS.find(m => m.value === lifestyleEngine.todayMood!.mood)?.color ?? '#a78bfa'}12, rgba(0,0,0,0.18))`
+                : 'rgba(0,0,0,0.18)',
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
-              border: `1px solid ${lifestyleEngine.todayMood ? ((HOME_MOOD_OPTIONS.find(m => m.value === lifestyleEngine.todayMood!.mood)?.color ?? '#a78bfa') + '30') : 'rgba(255,255,255,0.1)'}`,
-              boxShadow: '0 4px 24px rgba(0,0,0,0.35)',
+              border: `1px solid ${lifestyleEngine.todayMood ? ((HOME_MOOD_OPTIONS.find(m => m.value === lifestyleEngine.todayMood!.mood)?.color ?? '#a78bfa') + '28') : 'rgba(255,255,255,0.09)'}`,
+              boxShadow: '0 4px 24px rgba(0,0,0,0.28)',
               zIndex: 100,
             }}
           >
@@ -440,7 +505,7 @@ export default function Home() {
                 <div style={{ display: 'flex', gap: '0.38rem' }}>
                   {HOME_MOOD_OPTIONS.map(m => (
                     <motion.button key={m.value} whileTap={{ scale: 0.85 }}
-                      onClick={() => { lifestyleEngine.logMood(m.value, 3, [], undefined); setEditingMood(false); }}
+                      onClick={() => { lifestyleEngine.logMood(m.value, 3, [], undefined); setEditingMood(false); if (userId) saveHomepageMood(userId, m.value); }}
                       style={{
                         flex: 1, padding: '0.3rem 0.1rem', borderRadius: 10, cursor: 'pointer',
                         background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)',
@@ -456,33 +521,32 @@ export default function Home() {
           </motion.div>
         )}
 
-        {/* ══ ADVANCED PROTOCOL (Brahmastra) — Top emphasis ══ */}
-        {!isPortalOpen && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            style={{ margin: '0.5rem 0.6rem 0.8rem', position: 'relative', zIndex: 11 }}
-          >
-            <BrahmastraFocusCard
-              active={brahmastraState.active}
-              focusWindowMinutes={brahmastraState.focusWindowMinutes}
-              impactedMeetings={brahmastraState.impactedMeetings}
-              subtitle={
-                brahmastraState.reason
-                  ? `Current mantra: ${brahmastraState.reason}`
-                  : 'Silence the noise. Guard the inner fire.'
-              }
-            />
-          </motion.div>
-        )}
 
-        {/* ══ STORIES SECTION ══ */}
-        <div style={{ display: isPortalOpen ? 'none' : 'block', marginTop: '0.5rem', marginBottom: '1.5rem' }}>
+
+        {/* ══ STORIES / NAV ══ */}
+        <div style={{ display: isPortalOpen ? 'none' : 'block', marginTop: '0.5rem', marginBottom: '0.4rem' }}>
           <StickyTopNav />
         </div>
 
-        {/* ══ SMART LOG BUBBLES ══ */}
+        {/* ══ DAILY INSIGHTS STORIES STRIP — swipeable Instagram-style ══ */}
+        {!isPortalOpen && (
+          <div style={{
+            margin: '0 0.6rem 0.8rem',
+            borderRadius: 18,
+            background: 'rgba(4,2,18,0.45)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: '1px solid rgba(255,255,255,0.07)',
+            overflow: 'hidden',
+          }}>
+            <DailyInsightsCarousel />
+          </div>
+        )}
+
+        {/* ══ PANCHAKOSHA MOBILE STRIP ══ */}
+        {!isPortalOpen && <PanchakoshaNav />}
+
+        {/* ══ SMART LOG BUBBLES — same glass style as LifestylePanel ══ */}
         {!isPortalOpen && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -491,14 +555,14 @@ export default function Home() {
             style={{
               position: 'relative', zIndex: 10,
               overflow: 'hidden',
-              border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: 24,
-              margin: '0 0.75rem 1.6rem',
+              border: '1px solid rgba(255,255,255,0.09)',
+              borderRadius: 26,
+              margin: '0 0.6rem 1.2rem',
               padding: '0.3rem 0',
-              boxShadow: '0 12px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08)',
+              boxShadow: '0 24px 72px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)',
             }}
           >
-            {/* Nature bg */}
+            {/* Identical nature bg layer as LifestylePanel */}
             <div style={{ position: 'absolute', inset: 0, backgroundImage: `url('${globalBg}')`, backgroundSize: 'cover', backgroundPosition: 'center', transform: 'scale(1.07)', filter: 'blur(2px) brightness(0.68) saturate(1.15)', zIndex: 0 }} />
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(4,2,16,0.06) 0%, rgba(4,2,16,0.28) 60%, rgba(4,2,16,0.42) 100%)', zIndex: 1 }} />
             <div style={{ position: 'relative', zIndex: 2 }}>
@@ -506,8 +570,6 @@ export default function Home() {
             </div>
           </motion.div>
         )}
-
-        {/* MagicSyncModule is now embedded inside LifestylePanel as InlineSmartPlanner */}
 
         {/* ══ LIFESTYLE HUB — integrated from /lifestyle ══ */}
         {!isPortalOpen && (
@@ -526,6 +588,7 @@ export default function Home() {
           {/* LEFT SIDEBAR */}
           <aside className={dashStyles.sidebarLeft}>
             <motion.div {...fadeUp(0.22)}><WisdomTicker /></motion.div>
+            <motion.div {...fadeUp(0.35)}><StreakMala /></motion.div>
           </aside>
 
           {/* CENTER FEED */}

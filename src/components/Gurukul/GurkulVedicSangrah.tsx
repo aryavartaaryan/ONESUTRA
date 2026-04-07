@@ -512,8 +512,6 @@ export default function GurkulVedicSangrah() {
                                     {[
                                         { href: '/laghu-sandhya', icon: '✨', title: 'Laghu Sandhya', desc: 'Live Vedic ritual with Voice AI Acharya', color: '#fbbf24' },
                                         { href: '/vedic-sangrah', icon: '🔥', title: 'Vedic Mantra Sangrah', desc: 'Sandhya & Agnihotra mantras with meanings', color: '#f87171' },
-                                        { href: '/jyotirlinga', icon: '☀️', title: '12 Jyotirlingas', desc: 'Sacred Shiva shrines and their glory', color: '#a78bfa' },
-                                        { href: '/ancient-temples', icon: '🏛️', title: 'Ancient Temples', desc: "India's most ancient & magnificent temples", color: '#34d399' },
                                     ].map((link, i) => (
                                         <Link key={i} href={link.href} style={{ textDecoration: 'none' }}>
                                             <motion.div

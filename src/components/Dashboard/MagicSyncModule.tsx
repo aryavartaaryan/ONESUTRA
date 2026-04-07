@@ -986,7 +986,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                             textTransform: 'uppercase',
                         }}>
                             <span style={{ marginRight: 6 }}>✦</span>
-                            Smart Life Planner
+                            Smart Ayur Planner
                         </h2>
                         <p style={{
                             margin: '0.2rem 0 0', fontSize: '0.68rem',
@@ -1084,7 +1084,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                             } else if (h >= 16 && h < 20) {
                                 timeLogs = [
                                     { key: 'LogWorkout', label: 'Physicals & Games 💪', emoji: '🏋️', logMsg: 'I worked out today [UI_EVENT: EVENING_LOGS_CLICKED]', subOptions: [{ icon: '🏋️', label: 'Gym session', detail: 'full gym session done' }, { icon: '🏃', label: 'Evening run', detail: 'went for an evening run' }, { icon: '🧘', label: 'Yoga flow', detail: 'yoga flow session done' }, { icon: '🚶', label: 'Walk', detail: 'took an evening walk' }, { icon: '🏠', label: 'Home workout', detail: 'home workout session done' }], color: '#f87171', bg: 'rgba(248,113,113,0.3)', glare: 'rgba(248,113,113,0.6)', anim: 'msFloat0', dur: 3.8, size: 70, arcY: -20, isLog: true },
-                                    { key: 'LogDinner', label: 'Dinner Served!', emoji: '🍽️', logMsg: 'I had dinner tonight [UI_EVENT: EVENING_LOGS_CLICKED]', subOptions: [{ icon: '🥗', label: 'Light & clean', detail: 'had a light clean dinner' }, { icon: '🍚', label: 'Full meal', detail: 'had a full dinner meal' }, { icon: '🫓', label: 'Roti sabzi', detail: 'had roti and sabzi for dinner' }, { icon: '⏭️', label: 'Skipping', detail: 'skipping dinner tonight' }], color: '#fdba74', bg: 'rgba(253,186,116,0.3)', glare: 'rgba(253,186,116,0.6)', anim: 'msFloat3', dur: 3.8, size: 66, arcY: -15, isLog: true },
+                                    ...(h >= 18 ? [{ key: 'LogDinner', label: 'Dinner Served!', emoji: '🍽️', logMsg: 'I had dinner tonight [UI_EVENT: EVENING_LOGS_CLICKED]', subOptions: [{ icon: '🥗', label: 'Light & clean', detail: 'had a light clean dinner' }, { icon: '🍚', label: 'Full meal', detail: 'had a full dinner meal' }, { icon: '🫓', label: 'Roti sabzi', detail: 'had roti and sabzi for dinner' }, { icon: '⏭️', label: 'Skipping', detail: 'skipping dinner tonight' }], color: '#fdba74', bg: 'rgba(253,186,116,0.3)', glare: 'rgba(253,186,116,0.6)', anim: 'msFloat3', dur: 3.8, size: 66, arcY: -15, isLog: true }] : []),
                                     { key: 'LogMeditate', label: 'Eve Meditate', emoji: '🧘', logMsg: 'I did evening meditation [UI_EVENT: EVENING_LOGS_CLICKED]', subOptions: [{ icon: '⏱️', label: '5 min calm', detail: '5 minute evening calm down' }, { icon: '🕐', label: '15 min deep', detail: '15 minute deep meditation' }, { icon: '📿', label: 'Mantra', detail: 'mantra meditation session done' }], color: '#67e8f9', bg: 'rgba(103,232,249,0.3)', glare: 'rgba(103,232,249,0.5)', anim: 'msFloat4', dur: 4.0, size: 64, arcY: -18, isLog: true },
                                 ];
                             } else {

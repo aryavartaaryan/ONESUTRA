@@ -1,0 +1,231 @@
+/* ═══════════════════════════════════════
+   PanchakoshaNav — Floating Kosha Dock
+   ═══════════════════════════════════════ */
+
+/* ── Desktop dock (fixed left side) ── */
+.desktopDock {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .desktopDock {
+    display: block;
+    position: fixed;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 600;
+  }
+}
+
+.dockWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 10px 8px;
+  background: rgba(5, 3, 20, 0.82);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.55);
+  position: relative;
+}
+
+.dockToggle {
+  width: 28px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.55rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+  transition: all 0.2s ease;
+  align-self: center;
+}
+.dockToggle:hover {
+  background: rgba(255, 255, 255, 0.10);
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* ── Each kosha item row ── */
+.koshaItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+.koshaBtn {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.25s ease;
+  position: relative;
+  z-index: 2;
+}
+.koshaBtn:hover {
+  transform: scale(1.08);
+}
+
+.koshaSymbol {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+/* ── Expanded labels ── */
+.koshaLabel {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.koshaName {
+  margin: 0;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transition: color 0.3s ease;
+}
+
+.koshaSub {
+  margin: 0;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.53rem;
+  color: rgba(255, 255, 255, 0.28);
+  margin-top: 1px;
+}
+
+/* ── Tooltip ── */
+.tooltip {
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 180px;
+  padding: 0.65rem 0.8rem;
+  border-radius: 14px;
+  border: 1px solid;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  z-index: 100;
+}
+
+.tooltipTitle {
+  margin: 0 0 0.2rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.tooltipSub {
+  margin: 0 0 0.3rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.60rem;
+  color: rgba(255, 255, 255, 0.40);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tooltipDesc {
+  margin: 0;
+  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
+  font-size: 0.65rem;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.55;
+}
+
+/* ── Active indicator ── */
+.activeIndicator {
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 24px;
+  border-radius: 999px;
+}
+
+/* ── Vertical thread ── */
+.dockThread {
+  position: absolute;
+  left: 27px;
+  top: 52px;
+  bottom: 14px;
+  width: 1px;
+  background: linear-gradient(180deg,
+    rgba(201,168,76,0.35) 0%,
+    rgba(34,211,238,0.30) 25%,
+    rgba(244,114,182,0.30) 50%,
+    rgba(212,175,55,0.30) 75%,
+    rgba(167,139,250,0.35) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Mobile horizontal strip ── */
+.mobileStrip {
+  display: block;
+  margin: 0 0.75rem 1.2rem;
+}
+
+@media (min-width: 900px) {
+  .mobileStrip {
+    display: none;
+  }
+}
+
+.stripScroll {
+  display: flex;
+  gap: 0.45rem;
+  overflow-x: auto;
+  padding: 0.2rem 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.stripScroll::-webkit-scrollbar { display: none; }
+
+.stripItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 0.45rem 0.65rem;
+  border-radius: 14px;
+  border: 1px solid;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.25s ease;
+}
+.stripItem:hover {
+  transform: scale(1.04);
+}
+
+.stripSymbol {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.stripLabel {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  transition: color 0.3s ease;
+}

@@ -26,7 +26,7 @@ const MOOD_EMOJIS_ORB = [
 const PHASE_CONFIG: Record<DayPhase, { label: string; emoji: string; wisdom: string }> = {
     morning: {
         label: 'Brahma Muhurta · Morning',
-        emoji: '🌅',
+        emoji: '🌄',
         wisdom: 'The morning breeze carries the wisdom of a thousand sages. Begin with intention.'
     },
     midday: {
@@ -36,7 +36,7 @@ const PHASE_CONFIG: Record<DayPhase, { label: string; emoji: string; wisdom: str
     },
     evening: {
         label: 'Sandhya · Evening',
-        emoji: '🪔',
+        emoji: '🌇',
         wisdom: 'Shaam ka yeh waqt mann ko shaant karta hai — Ishwar aur swayam se jodne ka sabse uttam samay. ✨'
     },
     night: {
@@ -171,25 +171,20 @@ export default function SakhaBodhiOrb({
             ).catch(() => { });
         }
 
-        if (sakhaState === 'speaking') {
-            // Float-up animation mode — emoji rises and disappears
-            const floatId = `float_${Date.now()}_${Math.random()}`;
-            setFloatingEmojis(prev => [...prev, { id: floatId, emoji }]);
-            setTimeout(() => setFloatingEmojis(prev => prev.filter(e => e.id !== floatId)), 1600);
-            // Still update mood so Bodhi knows
+        // Float-up animation fires at ANY time (not just when speaking)
+        const floatId = `float_${Date.now()}_${Math.random()}`;
+        setFloatingEmojis(prev => [...prev, { id: floatId, emoji }]);
+        setTimeout(() => setFloatingEmojis(prev => prev.filter(e => e.id !== floatId)), 1600);
+
+        // Toggle selected mood
+        if (orbMoodEmoji === emoji) {
+            setOrbMoodEmoji('');
+            setOrbMoodLabel('');
+        } else {
             setOrbMoodEmoji(emoji);
             setOrbMoodLabel(label);
-        } else {
-            // Normal toggle mode
-            if (orbMoodEmoji === emoji) {
-                setOrbMoodEmoji('');
-                setOrbMoodLabel('');
-            } else {
-                setOrbMoodEmoji(emoji);
-                setOrbMoodLabel(label);
-            }
         }
-    }, [orbMoodEmoji, sakhaState, userId]);
+    }, [orbMoodEmoji, userId]);
 
     // ── Quick Action Handlers ────────────────────────────────────────────────
     const handleMeditate = () => {
@@ -603,63 +598,64 @@ export default function SakhaBodhiOrb({
                             ))}
                         </AnimatePresence>
 
-                        {/* ── Mood Emoji Picker (always visible, real-time feedback) ── */}
+                        {/* ── Mood Emoji Picker (always visible, react at ANY time) ── */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.5, duration: 0.4 }}
                             style={{
                                 position: 'fixed',
-                                bottom: 110,
+                                bottom: 108,
                                 left: 0,
                                 right: 0,
                                 zIndex: 200,
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
-                                gap: 8,
+                                gap: 5,
                                 pointerEvents: 'none',
                             }}
                         >
                             <div style={{
-                                fontSize: '0.52rem',
-                                color: 'rgba(255,255,255,0.38)',
-                                letterSpacing: '0.12em',
+                                fontSize: '0.48rem',
+                                color: 'rgba(255,255,255,0.35)',
+                                letterSpacing: '0.10em',
                                 textTransform: 'uppercase',
                                 fontFamily: 'system-ui, sans-serif',
                                 fontWeight: 600,
                                 pointerEvents: 'none',
                             }}>
                                 {orbMoodEmoji
-                                    ? `Feeling ${orbMoodLabel} — Bodhi knows`
-                                    : sakhaState === 'speaking' ? 'Share your mood ↓' : 'How are you feeling?'}
+                                    ? `${orbMoodEmoji} ${orbMoodLabel} — Bodhi knows`
+                                    : 'React anytime ↓'}
                             </div>
-                            <div style={{ display: 'flex', gap: 10, pointerEvents: 'auto' }}>
+                            {/* Compact emoji grid — 4+4 in two rows on mobile */}
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', maxWidth: 280, pointerEvents: 'auto' }}>
                                 {MOOD_EMOJIS_ORB.map(m => (
                                     <motion.button
                                         key={m.emoji}
-                                        whileTap={{ scale: 0.80 }}
-                                        whileHover={{ scale: 1.15 }}
+                                        whileTap={{ scale: 0.78 }}
+                                        whileHover={{ scale: 1.18 }}
                                         onClick={(e) => { e.stopPropagation(); handleOrbMoodSelect(m.emoji, m.label, m.mood); }}
                                         title={m.label}
                                         style={{
-                                            width: 40,
-                                            height: 40,
+                                            width: 32,
+                                            height: 32,
                                             borderRadius: '50%',
-                                            background: orbMoodEmoji === m.emoji ? `${m.color}30` : 'rgba(255,255,255,0.06)',
+                                            background: orbMoodEmoji === m.emoji ? `${m.color}35` : 'rgba(255,255,255,0.07)',
                                             border: orbMoodEmoji === m.emoji
-                                                ? `2px solid ${m.color}90`
-                                                : '1px solid rgba(255,255,255,0.12)',
+                                                ? `2px solid ${m.color}99`
+                                                : '1px solid rgba(255,255,255,0.13)',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
                                             cursor: 'pointer',
-                                            fontSize: '1.2rem',
-                                            backdropFilter: 'blur(12px)',
+                                            fontSize: '1.0rem',
+                                            backdropFilter: 'blur(10px)',
                                             boxShadow: orbMoodEmoji === m.emoji
-                                                ? `0 0 14px ${m.color}50, inset 0 1px 0 rgba(255,255,255,0.20)`
-                                                : '0 2px 8px rgba(0,0,0,0.20)',
-                                            transition: 'background 0.2s, border 0.2s, box-shadow 0.2s',
+                                                ? `0 0 10px ${m.color}55, inset 0 1px 0 rgba(255,255,255,0.18)`
+                                                : '0 1px 6px rgba(0,0,0,0.18)',
+                                            transition: 'background 0.18s, border 0.18s, box-shadow 0.18s',
                                         }}
                                     >
                                         {m.emoji}

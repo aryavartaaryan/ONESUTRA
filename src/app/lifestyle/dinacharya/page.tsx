@@ -10,7 +10,7 @@ import {
 import { useDoshaEngine } from '@/hooks/useDoshaEngine';
 import {
   DOSHA_INFO, getCurrentDoshaPhase,
-  type Dosha, type DoshaPhase,
+  type Dosha, type DoshaPhase, type RitucharayaSeason,
 } from '@/lib/doshaService';
 import { useDoshaStore } from '@/stores/doshaStore';
 
@@ -658,21 +658,102 @@ function DoshaClockWidget({ currentPhase }: { currentPhase: DoshaPhase }) {
 
 // ─── Seasonal Banner ───────────────────────────────────────────────────────────
 
-function SeasonalBanner({ season }: { season: ReturnType<typeof useDoshaEngine>['currentSeason'] }) {
-  const doshaColors: Record<Dosha, string> = { vata: '#a78bfa', pitta: '#fb923c', kapha: '#4ade80' };
-  const color = doshaColors[season.dominantDosha];
+function SeasonalBanner({ season }: { season: RitucharayaSeason }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const color = season.color;
+
   return (
-    <div style={{ padding: '0.8rem 1rem', borderRadius: 14, background: `${color}08`, border: `1px solid ${color}20`, marginBottom: '1rem', display: 'flex', gap: '0.6rem', alignItems: 'flex-start' }}>
-      <span style={{ fontSize: '1.2rem', flexShrink: 0 }}>🌿</span>
-      <div>
-        <p style={{ margin: '0 0 0.2rem', fontSize: '0.75rem', fontWeight: 700, color, fontFamily: "'Outfit', sans-serif" }}>
-          {season.name} · {season.nameHi}
-        </p>
-        <p style={{ margin: 0, fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.5 }}>
-          {season.focus}. {season.foodGuidance}
-        </p>
+    <motion.div
+      layout
+      style={{
+        padding: '1rem', borderRadius: 20,
+        background: season.gradient, border: `1px solid ${color}30`,
+        marginBottom: '1.2rem', backdropFilter: 'blur(16px)',
+        position: 'relative', overflow: 'hidden'
+      }}
+    >
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: isExpanded ? '1rem' : '0' }}>
+        <span style={{ fontSize: '2.2rem', flexShrink: 0 }}>{season.emoji}</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <p style={{ margin: 0, fontSize: '1rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif" }}>
+              {season.name} <span style={{ color, fontSize: '0.85rem' }}>· {season.nameHi}</span>
+            </p>
+          </div>
+          <p style={{ margin: '0.1rem 0 0', fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', fontFamily: "'Outfit', sans-serif" }}>
+            Seasonal Wisdom · {season.focus}
+          </p>
+        </div>
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setIsExpanded(!isExpanded)}
+          style={{ background: 'none', border: 'none', color, cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}
+        >
+          {isExpanded ? 'Show Less' : 'Details'}
+          <ChevronDown size={14} style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />
+        </motion.button>
       </div>
-    </div>
+
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            style={{ overflow: 'hidden' }}
+          >
+            {/* Qualities */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1rem', marginTop: '0.5rem' }}>
+              {season.qualities.map((q: string) => (
+                <span key={q} style={{ padding: '0.2rem 0.6rem', borderRadius: 99, fontSize: '0.62rem', background: `${color}15`, border: `1px solid ${color}30`, color, fontWeight: 700, letterSpacing: '0.02em' }}>
+                  {q}
+                </span>
+              ))}
+            </div>
+
+            {/* Dosha Effect */}
+            <div style={{ padding: '0.7rem 0.9rem', borderRadius: 12, background: 'rgba(0,0,0,0.22)', border: '1px solid rgba(255,255,255,0.06)', marginBottom: '1rem' }}>
+              <p style={{ margin: '0 0 4px', fontSize: '0.58rem', color: 'rgba(255,255,255,0.35)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Energy Influence</p>
+              <p style={{ margin: 0, fontSize: '0.75rem', color: 'rgba(255,255,255,0.85)', lineHeight: 1.5 }}>
+                {season.doshaEffect}
+              </p>
+            </div>
+
+            {/* Foods & Lifestyle */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div>
+                <p style={{ margin: '0 0 0.5rem', fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>🥗 Seasonal Foods</p>
+                {season.foods.map((f: string) => (
+                  <p key={f} style={{ margin: '0 0 4px', fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ color, fontSize: '0.4rem' }}>●</span>{f}
+                  </p>
+                ))}
+              </div>
+              <div>
+                <p style={{ margin: '0 0 0.5rem', fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>🌿 Daily Practices</p>
+                {season.lifestyle.map((l: string) => (
+                  <p key={l} style={{ margin: '0 0 4px', fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ color, fontSize: '0.4rem' }}>●</span>{l}
+                  </p>
+                ))}
+              </div>
+            </div>
+
+            {/* Detox */}
+            <div style={{ padding: '0.8rem 1rem', borderRadius: 14, background: `${color}12`, border: `1px solid ${color}35`, marginBottom: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                <Sparkles size={12} style={{ color }} />
+                <p style={{ margin: 0, fontSize: '0.62rem', color, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Seasonal Cleanse</p>
+              </div>
+              <p style={{ margin: 0, fontSize: '0.72rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.45 }}>
+                {season.detox}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 

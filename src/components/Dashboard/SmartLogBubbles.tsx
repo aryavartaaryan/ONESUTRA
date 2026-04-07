@@ -294,7 +294,7 @@ export function getTimedBubbles(): LogBubble[] {
     const h = new Date().getHours();
     if (h >= 3 && h < 11) return MORNING_BUBBLES;
     if (h >= 11 && h < 15) return NOON_BUBBLES;
-    if (h >= 15 && h < 21) return EVENING_BUBBLES;
+    if (h >= 15 && h < 21) return h < 18 ? EVENING_BUBBLES.filter(b => b.id !== 'dinner') : EVENING_BUBBLES;
     return NIGHT_BUBBLES;
 }
 

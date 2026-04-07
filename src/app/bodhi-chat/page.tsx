@@ -153,96 +153,179 @@ function parseLogMessage(text: string): ParsedLog | null {
     return { activityKey: 'general', icon: '\u2726', color: '#4ade80', label: activityText.replace(/^I (had|did|went|took|got|am|woke|going|setting|heading|starting)\s+/i, '').slice(0, 18).toUpperCase(), detail };
 }
 
-// ─── Activity-specific smart chips after logging ──────────────────────────────
+// ─── Activity-specific smart chips after logging (Ayurvedic sequence order) ───
 function getActivitySpecificChips(key: string): Array<{ icon: string; label: string; message: string }> {
     switch (key) {
-        case 'lunch': return [
-            { icon: '\uD83D\uDCA7', label: 'Drink water', message: 'I drank water after lunch' },
-            { icon: '\uD83D\uDEB6', label: 'Post-lunch walk', message: 'I went for a short walk after lunch' },
-            { icon: '\uD83C\uDFAF', label: 'Focus sprint', message: 'Starting a deep work sprint now' },
-            { icon: '\u23F0', label: 'Dinner later', message: 'Remind me for dinner at 8 PM' },
-        ];
-        case 'breakfast': return [
-            { icon: '\uD83D\uDCA7', label: 'Hydrate', message: 'I drank water after breakfast' },
-            { icon: '\uD83E\uDDD8', label: 'Meditate', message: 'I meditated this morning' },
-            { icon: '\u2600\uFE0F', label: 'Morning sun', message: 'I got morning sunlight exposure' },
-            { icon: '\uD83C\uDFAF', label: 'Plan today', message: "Help me plan today's priorities" },
-        ];
-        case 'dinner': return [
-            { icon: '\uD83D\uDEB6', label: 'Evening walk', message: 'Going for a post-dinner walk' },
-            { icon: '\uD83D\uDCF5', label: 'Screens off', message: 'Setting digital sunset \u2014 screens going off for the night [UI_EVENT: EVENING_LOGS_CLICKED]' },
-            { icon: '\uD83D\uDCD3', label: 'Brain dump', message: 'I did an evening brain dump and reflection [UI_EVENT: EVENING_LOGS_CLICKED]' },
-            { icon: '\uD83D\uDCA4', label: 'Sleep soon', message: 'Going to sleep now, goodnight [UI_EVENT: NIGHT_LOGS]' },
-        ];
-        case 'workout': return [
-            { icon: '\uD83D\uDCA7', label: 'Hydrate', message: 'I drank water after my workout' },
-            { icon: '\uD83E\uDD57', label: 'Recovery meal', message: 'Had a recovery meal after workout' },
-            { icon: '\uD83D\uDE4C', label: 'How I felt', message: 'Let me tell you how my workout felt today' },
-            { icon: '\uD83E\uDDD8', label: 'Cool down', message: 'Doing a cool down stretch after workout' },
-        ];
         case 'wake_up': return [
-            { icon: '\uD83D\uDEBF', label: 'Bath', message: 'I took a bath and recharged this morning' },
-            { icon: '\uD83E\uDD63', label: 'Breakfast', message: 'I had breakfast' },
-            { icon: '\uD83D\uDCA7', label: 'Hydrate', message: 'I drank water' },
-            { icon: '\uD83E\uDDD8', label: 'Meditate', message: 'I meditated this morning' },
+            { icon: '💧', label: 'Warm water', message: 'I drank warm water after waking up' },
+            { icon: '🪥', label: 'Tongue scrape', message: 'I did tongue scraping this morning' },
+            { icon: '🚿', label: 'Bath', message: 'I took a bath and recharged this morning' },
+            { icon: '🧘', label: 'Breathwork', message: 'I did morning breathwork today' },
         ];
         case 'bath': return [
-            { icon: '\uD83E\uDD63', label: 'Breakfast', message: 'I had breakfast' },
-            { icon: '\uD83E\uDDD8', label: 'Breathwork', message: 'I did morning breathwork today' },
-            { icon: '\u2600\uFE0F', label: 'Morning sun', message: 'I got morning sunlight exposure' },
-            { icon: '\uD83C\uDFAF', label: 'Plan today', message: "Help me plan today's priorities" },
-        ];
-        case 'sleep': return [
-            { icon: '\uD83D\uDE4F', label: 'Gratitude', message: 'I am feeling grateful today' },
-            { icon: '\uD83D\uDCD6', label: 'Read first', message: 'I read before bed tonight' },
-            { icon: '\uD83C\uDF19', label: 'Goodnight', message: 'Goodnight Bodhi, see you tomorrow' },
-        ];
-        case 'mindfulness': return [
-            { icon: '\uD83D\uDCA7', label: 'Hydrate', message: 'I drank water after meditation' },
-            { icon: '\u2600\uFE0F', label: 'Morning sun', message: 'I got morning sunlight exposure' },
-            { icon: '\uD83E\uDD63', label: 'Breakfast', message: 'I had breakfast' },
-            { icon: '\uD83C\uDFAF', label: 'Plan today', message: "Help me plan today's priorities" },
-        ];
-        case 'deep_work': return [
-            { icon: '\uD83D\uDCA7', label: 'Hydrate', message: 'I drank water' },
-            { icon: '\uD83D\uDC41\uFE0F', label: 'Eye break', message: 'I took a screen break' },
-            { icon: '\uD83C\uDF71', label: 'Log lunch', message: 'I had lunch' },
-            { icon: '\uD83D\uDE4F', label: 'Grateful', message: 'I am feeling grateful today' },
-        ];
-        case 'hydration': return [
-            { icon: '\uD83E\uDDD8', label: 'Meditate', message: 'I meditated today' },
-            { icon: '\uD83C\uDFAF', label: 'Focus sprint', message: 'Starting a deep work sprint now' },
-            { icon: '\uD83D\uDEB6', label: 'Walk', message: 'Going for a short walk' },
-            { icon: '\uD83D\uDE4F', label: 'Grateful', message: 'I am feeling grateful today' },
-        ];
-        case 'gratitude': return [
-            { icon: '\uD83D\uDCA4', label: 'Sleep', message: 'Going to sleep now, goodnight' },
-            { icon: '\uD83D\uDCF5', label: 'Screens off', message: 'Setting digital sunset \u2014 screens going off for the night [UI_EVENT: EVENING_LOGS_CLICKED]' },
-            { icon: '\uD83D\uDCD6', label: 'Read', message: 'I read before bed tonight' },
-            { icon: '\uD83C\uDF19', label: 'Goodnight', message: 'Goodnight Bodhi, see you tomorrow' },
+            { icon: '☀️', label: 'Morning sun', message: 'I got morning sunlight exposure' },
+            { icon: '🧘', label: 'Breathwork', message: 'I did morning breathwork today' },
+            { icon: '🕊️', label: 'Meditate', message: 'I meditated this morning' },
+            { icon: '🥣', label: 'Breakfast', message: 'I had breakfast' },
         ];
         case 'morning_light': return [
-            { icon: '\uD83E\uDD63', label: 'Breakfast', message: 'I had breakfast' },
-            { icon: '\uD83E\uDDD8', label: 'Meditate', message: 'I meditated this morning' },
-            { icon: '\uD83D\uDCA7', label: 'Hydrate', message: 'I drank water' },
-            { icon: '\uD83C\uDFAF', label: 'Plan today', message: "Help me plan today's priorities" },
+            { icon: '🧘', label: 'Breathwork', message: 'I did morning breathwork today' },
+            { icon: '🕊️', label: 'Meditate', message: 'I meditated this morning' },
+            { icon: '🙏', label: 'Gratitude', message: 'I am feeling grateful today' },
+            { icon: '🥣', label: 'Breakfast', message: 'I had breakfast' },
+        ];
+        case 'mindfulness': return [
+            { icon: '🙏', label: 'Gratitude', message: 'I am feeling grateful today' },
+            { icon: '🥣', label: 'Breakfast', message: 'I had breakfast' },
+            { icon: '🎯', label: 'Plan today', message: "Help me plan today's priorities" },
+            { icon: '💧', label: 'Hydrate', message: 'I drank water after meditation' },
+        ];
+        case 'gratitude': return [
+            { icon: '🥣', label: 'Breakfast', message: 'I had breakfast' },
+            { icon: '🎯', label: 'Plan today', message: "Help me plan today's priorities" },
+            { icon: '💤', label: 'Sleep', message: 'Going to sleep now, goodnight [UI_EVENT: NIGHT_LOGS]' },
+            { icon: '🌙', label: 'Goodnight', message: 'Goodnight Bodhi, see you tomorrow' },
+        ];
+        case 'breakfast': return [
+            { icon: '🎯', label: 'Plan today', message: "Help me plan today's priorities" },
+            { icon: '💧', label: 'Hydrate', message: 'I drank water after breakfast' },
+            { icon: '🧘', label: 'Meditate', message: 'I meditated this morning' },
+            { icon: '☀️', label: 'Morning sun', message: 'I got morning sunlight exposure' },
+        ];
+        case 'lunch': return [
+            { icon: '🚶', label: 'Post-lunch walk', message: 'I went for a short walk after lunch' },
+            { icon: '💧', label: 'Drink water', message: 'I drank water after lunch' },
+            { icon: '🎯', label: 'Focus sprint', message: 'Starting a deep work sprint now' },
+            { icon: '⏰', label: 'Dinner later', message: 'Remind me for dinner at 8 PM' },
+        ];
+        case 'workout': return [
+            { icon: '💧', label: 'Hydrate', message: 'I drank water after my workout' },
+            { icon: '🥗', label: 'Recovery meal', message: 'Had a recovery meal after workout' },
+            { icon: '🙌', label: 'How I felt', message: 'Let me tell you how my workout felt today' },
+            { icon: '🧘', label: 'Cool down', message: 'Doing a cool down stretch after workout' },
+        ];
+        case 'dinner': return [
+            { icon: '🚶', label: 'Evening walk', message: 'Going for a post-dinner walk' },
+            { icon: '📵', label: 'Screens off', message: 'Setting digital sunset \u2014 screens going off for the night [UI_EVENT: EVENING_LOGS_CLICKED]' },
+            { icon: '📓', label: 'Brain dump', message: 'I did an evening brain dump and reflection [UI_EVENT: EVENING_LOGS_CLICKED]' },
+            { icon: '💤', label: 'Sleep soon', message: 'Going to sleep now, goodnight [UI_EVENT: NIGHT_LOGS]' },
+        ];
+        case 'sleep': return [
+            { icon: '🙏', label: 'Gratitude', message: 'I am feeling grateful today' },
+            { icon: '📖', label: 'Read first', message: 'I read before bed tonight' },
+            { icon: '🌙', label: 'Goodnight', message: 'Goodnight Bodhi, see you tomorrow' },
+        ];
+        case 'hydration': return [
+            { icon: '🧘', label: 'Meditate', message: 'I meditated today' },
+            { icon: '🎯', label: 'Focus sprint', message: 'Starting a deep work sprint now' },
+            { icon: '🚶', label: 'Walk', message: 'Going for a short walk' },
+            { icon: '🙏', label: 'Grateful', message: 'I am feeling grateful today' },
+        ];
+        case 'deep_work': return [
+            { icon: '💧', label: 'Hydrate', message: 'I drank water' },
+            { icon: '👁️', label: 'Eye break', message: 'I took a screen break' },
+            { icon: '🍱', label: 'Log lunch', message: 'I had lunch' },
+            { icon: '🙏', label: 'Grateful', message: 'I am feeling grateful today' },
         ];
         case 'digital_sunset': return [
-            { icon: '\uD83D\uDE4F', label: 'Gratitude', message: 'I am feeling grateful today' },
-            { icon: '\uD83D\uDCD6', label: 'Read', message: 'I read before bed tonight' },
-            { icon: '\uD83D\uDCA4', label: 'Sleep', message: 'Going to sleep now, goodnight' },
+            { icon: '🙏', label: 'Gratitude', message: 'I am feeling grateful today' },
+            { icon: '📖', label: 'Read', message: 'I read before bed tonight' },
+            { icon: '💤', label: 'Sleep', message: 'Going to sleep now, goodnight' },
         ];
         case 'brain_dump': return [
-            { icon: '\uD83D\uDCA4', label: 'Sleep', message: 'Going to sleep now, goodnight' },
-            { icon: '\uD83D\uDE4F', label: 'Gratitude', message: 'I am feeling grateful today' },
-            { icon: '\uD83D\uDCA7', label: 'Hydrate', message: 'I drank water' },
+            { icon: '💤', label: 'Sleep', message: 'Going to sleep now, goodnight' },
+            { icon: '🙏', label: 'Gratitude', message: 'I am feeling grateful today' },
+            { icon: '💧', label: 'Hydrate', message: 'I drank water' },
         ];
         default: return [
-            { icon: '\uD83D\uDCA7', label: 'Hydrate', message: 'I drank water' },
-            { icon: '\uD83D\uDE4F', label: 'Grateful', message: 'I am feeling grateful today' },
-            { icon: '\uD83C\uDFAF', label: 'Focus', message: 'Starting a deep work sprint now' },
-            { icon: '\uD83D\uDCAC', label: 'Check in', message: 'Let me tell you how I am feeling right now' },
+            { icon: '💧', label: 'Hydrate', message: 'I drank water' },
+            { icon: '🙏', label: 'Grateful', message: 'I am feeling grateful today' },
+            { icon: '🎯', label: 'Focus', message: 'Starting a deep work sprint now' },
+            { icon: '💬', label: 'Check in', message: 'Let me tell you how I am feeling right now' },
         ];
+    }
+}
+
+// ─── Direct-log helpers (bypass Bodhi tool for homepage UI events) ─────────────
+function extractActivityName(msg: string): string {
+    const habitMatch = msg.match(/completed my [\w\s]+ habit:\s*(.+?)(?:\s*\(|\. )/i);
+    if (habitMatch) return habitMatch[1].trim();
+    const withoutTag = msg.replace(/\s*\[UI_EVENT:[^\]]+\]/gi, '').trim();
+    const dashIdx = withoutTag.indexOf(' \u2014 ');
+    const actPart = (dashIdx >= 0 ? withoutTag.slice(0, dashIdx) : withoutTag).trim();
+    const parsed = parseLogMessage(msg);
+    if (parsed && parsed.activityKey !== 'general') {
+        const lbl = parsed.label;
+        return lbl.charAt(0) + lbl.slice(1).toLowerCase();
+    }
+    return actPart
+        .replace(/^i (just |had |took |did |woke |completed |got |am |going |setting |heading |starting )/i, '')
+        .replace(/\s+(today|tonight|this morning|this evening|now).*$/i, '')
+        .trim()
+        .slice(0, 40) || 'activity';
+}
+
+function getIstTimeStr(): string {
+    return new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true });
+}
+
+function getSimpleLogVerdict(activityName: string): LogVerdict {
+    const h = parseInt(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', hour12: false }), 10) % 24;
+    const act = activityName.toLowerCase();
+    if (/wake|woke|rise|ris(e|ing)|good morning|subah/.test(act)) return h < 9 ? 'on_time' : h < 11 ? 'late' : 'very_late';
+    if (/\blunch\b|dopahar/.test(act)) return h < 12 ? 'early' : h <= 14 ? 'on_time' : h <= 16 ? 'late' : 'very_late';
+    if (/\bdinner\b|raat/.test(act)) return h < 19 ? 'early' : h <= 21 ? 'on_time' : h <= 22 ? 'late' : 'very_late';
+    if (/breakfast|nashta/.test(act)) return h <= 9 ? 'on_time' : h <= 11 ? 'late' : 'very_late';
+    if (/sleep|goodnight|neend/.test(act)) return (h >= 21 || h < 2) ? 'on_time' : h < 23 ? 'late' : 'very_late';
+    return 'on_time';
+}
+
+// ─── Ayurvedic morning sequence: what comes NEXT after each practice ──────────
+const AYURVEDIC_SEQUENCE: Array<{ match: RegExp; next: string; emoji: string }> = [
+    { match: /wake|woke|ris(e|ing)|uthna|jaag|good morning/i,     emoji: '💧', next: 'Warm water — pehla kadam! Ek bada glass pi lo abhi.' },
+    { match: /warm water|morning water|paani/i,                     emoji: '🪥', next: 'Tongue scraping (jihva shodhana) — 30 seconds, toxins bahar!' },
+    { match: /tongue|jihva|scraping/i,                              emoji: '🚿', next: 'Bath & snana — body ko activate karo.' },
+    { match: /bath|shower|snaan|snana/i,                            emoji: '☀️', next: 'Morning sunlight — 5 min bahar niklo, solar activation complete.' },
+    { match: /sunlight|morning sun|solar|sun gaz/i,                 emoji: '🧘', next: 'Pranayama / breathwork — sirf 5 minute, din ka trajectory set ho jaayega.' },
+    { match: /pranayama|breathwork|breathing|breath/i,              emoji: '🕊️', next: 'Morning meditation (dhyan) — 10 minutes, fir poora din focused.' },
+    { match: /meditat|dhyan|mindful/i,                              emoji: '🙏', next: 'Gratitude practice — 3 achi cheezein yaad karo aaj ki.' },
+    { match: /gratitude|grateful|shukriya/i,                        emoji: '🥣', next: 'Nourishing breakfast — pitta ko fuel do, subah ka sabse important meal.' },
+    { match: /breakfast|nashta|nasta/i,                             emoji: '🎯', next: 'Deep work sprint — 2 hour focus block, morning energy peak pe hai.' },
+    { match: /\blunch\b|dopahar|din ka khana/i,                     emoji: '🚶', next: 'Post-lunch walk — sirf 10 min, digestion 2x better ho jaayegi.' },
+    { match: /workout|exercise|gym|yoga|run/i,                      emoji: '💧', next: 'Protein + hydration — recovery ke liye zaruri hai abhi.' },
+    { match: /\bwalk\b|evening walk/i,                              emoji: '🌙', next: 'Light dinner plan karo — sunset ke 2 ghante ke andar best hai.' },
+    { match: /\bdinner\b|raat ka khana|supper/i,                    emoji: '📵', next: 'Digital sunset — screens band karo, neend ki quality double hogi.' },
+    { match: /digital sunset|screen off|screens/i,                  emoji: '📖', next: 'Light reading or journaling — 15 min, mind ko settle karo.' },
+    { match: /read|journal|brain dump/i,                            emoji: '💤', next: 'Sleep — body ko deep repair mode mein jaane do. Shubh Ratri!' },
+];
+
+function getAyurvedicNext(activityName: string): string | null {
+    const act = activityName.toLowerCase();
+    for (const item of AYURVEDIC_SEQUENCE) {
+        if (item.match.test(act)) return `${item.emoji} ${item.next}`;
+    }
+    return null;
+}
+
+async function directSaveActivityToFirestore(uid: string, activityName: string, verdict: LogVerdict): Promise<void> {
+    try {
+        const { getFirebaseFirestore } = await import('@/lib/firebase');
+        const { doc, setDoc } = await import('firebase/firestore');
+        const db = await getFirebaseFirestore();
+        const logId = Date.now().toString();
+        const istHour = parseInt(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', hour12: false }), 10) % 24;
+        await setDoc(doc(db, 'users', uid, 'logs_daily', logId), {
+            id: logId,
+            text: activityName,
+            category: 'lifestyle',
+            timing_verdict: verdict,
+            ist_hour: istHour,
+            createdAt: Date.now(),
+            uid,
+        });
+        console.log(`[Direct Log] ✅ Saved: "${activityName}" [${verdict}]`);
+    } catch (e) {
+        console.warn('[Direct Log] Firestore save failed', e);
     }
 }
 
@@ -949,7 +1032,8 @@ export default function BodhiChatPage() {
     const [showMoodPicker, setShowMoodPicker] = useState(false);
     const [showEmoji, setShowEmoji] = useState(false);
     const [logToast, setLogToast] = useState<{ id: string; activity: string; verdict: LogVerdict } | null>(null);
-    const [loggedActivities, setLoggedActivities] = useState<Array<{ name: string; verdict: LogVerdict; timestamp: number }>>([])
+    const [loggedActivities, setLoggedActivities] = useState<Array<{ name: string; verdict: LogVerdict; timestamp: number }>>([]);
+    const [sessionLoggedActivities, setSessionLoggedActivities] = useState<Array<{ name: string; verdict: LogVerdict; timestamp: number }>>([]);
     const [followUpChips, setFollowUpChips] = useState<FollowUpChip[] | null>(null);
     const [lastLoggedActivity, setLastLoggedActivity] = useState<string | null>(null);
     const [activeQuickChip, setActiveQuickChip] = useState<string | null>(null);
@@ -958,6 +1042,7 @@ export default function BodhiChatPage() {
     const inputRef = useRef<HTMLInputElement>(null);
     const chatEndRef = useRef<HTMLDivElement>(null);
     const pendingSentRef = useRef(false);
+    const uidRef = useRef<string | null>(null);
     const greetedRef = useRef(false);
     const connectCalledRef = useRef(false);
     const recognitionRef = useRef<any>(null);
@@ -1031,10 +1116,14 @@ export default function BodhiChatPage() {
         onRemoveTask: async (taskId) => { await removeTask(taskId); },
         onLogActivity: (activity, verdict, _reaction) => {
             setLogToast({ id: `${Date.now()}`, activity, verdict });
+            const newEntry = { name: activity, verdict, timestamp: Date.now() };
+            setSessionLoggedActivities(prev => {
+                if (prev.some(a => a.name.toLowerCase() === activity.toLowerCase())) return prev;
+                return [...prev, newEntry];
+            });
             setLoggedActivities(prev => {
-                const exists = prev.some(a => a.name.toLowerCase() === activity.toLowerCase());
-                if (exists) return prev;
-                return [...prev, { name: activity, verdict, timestamp: Date.now() }];
+                if (prev.some(a => a.name.toLowerCase() === activity.toLowerCase())) return prev;
+                return [...prev, newEntry];
             });
             // Save to unified log bridge so Practice section stays in sync
             saveUnifiedLog(activity, verdict);
@@ -1125,6 +1214,7 @@ export default function BodhiChatPage() {
                     onAuthStateChanged(auth, async (u) => {
                         if (u) {
                             setUid(u.uid);
+                            uidRef.current = u.uid;
                             const saved = await loadMoodFromFirebase(u.uid);
                             if (saved) {
                                 setSelectedMoodEmoji(saved.emoji);
@@ -1255,24 +1345,61 @@ export default function BodhiChatPage() {
         const msg = pendingMessage;
         clearPendingMessage();
         const logInfo = parseLogMessage(msg);
+        const isUIEvent = /\[UI_EVENT:/i.test(msg);
+
         if (logInfo) setLastLoggedActivity(logInfo.activityKey);
-        // Auto-log habit immediately when coming from Today's Practices section
-        if (/\[UI_EVENT:\s*HABIT_LOGGED\]/i.test(msg) && logInfo) {
-            const ts = Date.now();
-            setLogToast({ id: `habit_log_${ts}`, activity: logInfo.label, verdict: 'on_time' });
-            setLoggedActivities(prev => [...prev, { name: logInfo.label, verdict: 'on_time', timestamp: ts }]);
-        }
-        // Add LogCard to chat immediately — visible the moment user lands on this page
+
+        // Add LogCard to chat immediately — visible the moment user lands
+        const ts = Date.now();
         const immediateMsg: ChatMessage = {
-            id: `pending_${Date.now()}`,
+            id: `pending_${ts}`,
             role: 'user',
             text: msg.trim(),
-            timestamp: Date.now(),
+            timestamp: ts,
         };
         setMessages(prev => [...prev, immediateMsg]);
         setFollowUpChips(getFollowUpChips(msg.trim()));
-        // Send to Bodhi directly — skip local sendMessage to avoid adding a duplicate bubble
-        setTimeout(() => bodhiSend(msg), 600);
+
+        if (isUIEvent && logInfo) {
+            // ── DIRECT LOG PATH: save immediately, skip Bodhi tool roundtrip ──
+            const activityName = extractActivityName(msg);
+            const verdict = getSimpleLogVerdict(activityName);
+            const istTime = getIstTimeStr();
+
+            // Instant toast + session strip update
+            setLogToast({ id: `direct_${ts}`, activity: activityName, verdict });
+            const entry = { name: activityName, verdict, timestamp: ts };
+            setSessionLoggedActivities(prev => [...prev, entry]);
+            setLoggedActivities(prev => {
+                if (prev.some(a => a.name.toLowerCase() === activityName.toLowerCase())) return prev;
+                return [...prev, entry];
+            });
+
+            // Persist to localStorage immediately (sync)
+            saveUnifiedLog(activityName, verdict);
+
+            // Best-effort Firestore save (non-blocking, uses uidRef to avoid race)
+            if (uidRef.current) {
+                directSaveActivityToFirestore(uidRef.current, activityName, verdict);
+            }
+
+            // Tell Bodhi it's already saved — skip tool, just react warmly
+            const verdictCtx: Record<LogVerdict, string> = {
+                early:     'logged EARLY — celebrate this discipline with high energy',
+                on_time:   'logged on time — affirm the perfect flow with warm energy',
+                late:      'logged a bit late — warm non-judgmental acknowledgment + gentle nudge',
+                very_late: 'logged very late — warm concern + 1-line micro fix, never lecture',
+            };
+            const nextPractice = getAyurvedicNext(activityName);
+            const nextLine = nextPractice
+                ? `SENTENCE 2 MUST be: invite them to do the EXACT next Ayurvedic practice — "${nextPractice}" — right now. Do NOT make up a different next step.`
+                : 'Sentence 2: give one specific micro-action relevant to what they just did.';
+            const bodhiMsg = `SYSTEM_LOG_CONFIRMED: "${activityName}" has been automatically saved at ${istTime}. DO NOT call log_activity — already done. IMMEDIATELY give exactly 2 warm Hinglish sentences. Timing context: ${verdictCtx[verdict]}. ${nextLine} Sound like their brilliant best friend, not a system.`;
+            setTimeout(() => bodhiSend(bodhiMsg), 350);
+        } else {
+            // Regular message (non-log event): send to Bodhi as-is
+            setTimeout(() => bodhiSend(msg), 600);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pendingMessage, chatState]);
 
@@ -1576,8 +1703,8 @@ export default function BodhiChatPage() {
                         )}
                     </AnimatePresence>
 
-                    {/* Daily Story Strip — logged activities for today */}
-                    <DailyStoryStrip activities={loggedActivities} />
+                    {/* Daily Story Strip — only this session's logged activities */}
+                    <DailyStoryStrip activities={sessionLoggedActivities} />
 
                     {/* Smart context-aware chips — activity-specific after logging, time-based otherwise */}
                     <AnimatePresence mode="wait">

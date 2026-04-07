@@ -7,7 +7,7 @@ import {
   CheckCircle2, SkipForward, Plus,
   ChevronRight, Zap, RotateCcw, Heart, TrendingUp, Bell, MessageCircle,
   Sunrise, Sun, Sunset, Moon, Clock, Infinity as InfinityIcon, Star,
-  ChevronDown, Target, Layers,
+  ChevronDown, Target, Layers, X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useLifestyleEngine } from '@/hooks/useLifestyleEngine';
@@ -16,6 +16,12 @@ import { DOSHA_INFO } from '@/lib/doshaService';
 import { getLevelFromXP, getNextLevel, getToday, type HabitItem } from '@/stores/lifestyleStore';
 import { useBodhiChatStore } from '@/stores/bodhiChatStore';
 import { useDailyTasks } from '@/hooks/useDailyTasks';
+import dynamic from 'next/dynamic';
+
+const GunaTracker = dynamic(() => import('@/components/Dashboard/GunaTracker'), { ssr: false });
+const DoshaCompass = dynamic(() => import('@/components/Dashboard/DoshaCompass'), { ssr: false });
+const SutraOfDay = dynamic(() => import('@/components/Dashboard/SutraOfDay'), { ssr: false });
+const DigitalMala = dynamic(() => import('@/components/Dashboard/DigitalMala'), { ssr: false });
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const LIFE_AREA_COLORS: Record<string, string> = {
@@ -625,6 +631,8 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
   const [showCompleted, setShowCompleted] = useState(false);
   const [intentionIdx] = useState(() => Math.floor(Math.random() * DAILY_INTENTIONS.length));
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showGunaTracker, setShowGunaTracker] = useState(false);
+  const [activeGunaTab, setActiveGunaTab] = useState<'guna' | 'dosha'>('guna');
   const [smartLogDoneIds, setSmartLogDoneIds] = useState<Set<string>>(readSmartLogDoneHabitIds);
   useEffect(() => {
     const refresh = () => setSmartLogDoneIds(readSmartLogDoneHabitIds());
@@ -837,6 +845,57 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
         {showMoodLog && <MoodLogPanel onClose={() => setShowMoodLog(false)} onLog={(mood, energy, tags, note) => engine.logMood(mood, energy, tags, note)} bgImage={bgImage} />}
       </AnimatePresence>
 
+      {/* ── Ayurvedic Intelligence Panel (Guna Tracker + Dosha Compass) ───── */}
+      <AnimatePresence>
+        {showGunaTracker && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowGunaTracker(false)}
+            style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(2,1,10,0.92)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', backdropFilter: 'blur(20px)' }}
+          >
+            <motion.div
+              onClick={e => e.stopPropagation()}
+              initial={{ y: 100 }} animate={{ y: 0 }}
+              style={{ width: '100%', maxWidth: 500, background: 'linear-gradient(160deg, rgba(251,191,36,0.07), rgba(6,3,18,0.98))', border: '1px solid rgba(251,191,36,0.18)', borderRadius: '28px 28px 0 0', padding: '1.5rem 1.4rem 2.5rem', maxHeight: '90vh', overflowY: 'auto' }}
+            >
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif" }}>Ayurvedic Intelligence</h3>
+                  <p style={{ margin: 0, fontSize: '0.62rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif" }}>Guna Tracker · Dosha Compass</p>
+                </div>
+                <button onClick={() => setShowGunaTracker(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', display: 'flex' }}><X size={18} /></button>
+              </div>
+
+              {/* Tab switcher */}
+              <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '1.2rem', padding: '0.22rem', borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                {(['guna', 'dosha'] as const).map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveGunaTab(tab)}
+                    style={{
+                      flex: 1, padding: '0.42rem 0.6rem', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: "'Outfit', sans-serif", fontSize: '0.78rem', fontWeight: 800, transition: 'all 0.2s',
+                      background: activeGunaTab === tab ? (tab === 'guna' ? 'rgba(251,191,36,0.22)' : 'rgba(167,139,250,0.22)') : 'transparent',
+                      color: activeGunaTab === tab ? (tab === 'guna' ? '#fbbf24' : '#c4b5fd') : 'rgba(255,255,255,0.35)',
+                      boxShadow: activeGunaTab === tab ? (tab === 'guna' ? '0 0 12px rgba(251,191,36,0.18)' : '0 0 12px rgba(167,139,250,0.18)') : 'none',
+                    }}
+                  >
+                    {tab === 'guna' ? '☯️ Guna Tracker' : '🧭 Dosha Compass'}
+                  </button>
+                ))}
+              </div>
+
+              {/* Tab content */}
+              {activeGunaTab === 'guna' ? (
+                <GunaTracker onClose={() => setShowGunaTracker(false)} minimal />
+              ) : (
+                <DoshaCompass />
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ══════════════════════════════════════════════════════════════════════
           OUTER NATURE-FUSED GLASS CARD
       ══════════════════════════════════════════════════════════════════════ */}
@@ -860,7 +919,7 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
                 style={{ fontSize: '1.25rem', filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.6))' }}
               >✦</motion.div>
               <div style={{ flex: 1 }}>
-                <p style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.01em', lineHeight: 1 }}>Smart Life Planner</p>
+                <p style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.01em', lineHeight: 1 }}>Smart Ayur Planner</p>
                 <p style={{ margin: 0, fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif", marginTop: 2, letterSpacing: '0.05em' }}>Habits · Progress · Planner · Ayurveda</p>
               </div>
               <motion.span
@@ -1018,6 +1077,12 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
             );
           })()}
 
+          {/* ── ONESUTRA 2.0 Widget Strip ─────────────────────────────────── */}
+
+          <SutraOfDay compact />
+
+          <DigitalMala compact />
+
           {/* ── SECTION 2 : Daily Intention ───────────────────────────────── */}
           <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
             style={{ padding: '0.82rem 1rem', borderRadius: 14, marginBottom: '1rem', background: 'rgba(0,0,0,0.28)', border: '1px solid rgba(251,191,36,0.28)', borderLeft: '3px solid rgba(251,191,36,0.72)', backdropFilter: 'blur(12px)' }}>
@@ -1029,12 +1094,14 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
           {/* ── SECTION 3 : Quick Links — Floating bubble orbs ──────────── */}
           <div style={{ display: 'flex', gap: '0.65rem', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '0.35rem', marginBottom: '1rem', paddingTop: '0.15rem' }}>
             {([
+              { href: '/lifestyle/dosha-compass', label: 'Dosha', color: '#fbbf24', emoji: '🧭' },
+              { href: '/lifestyle/panchakosha', label: 'Koshas', color: '#c084fc', emoji: '🪷' },
+              { href: '/lifestyle/ahar', label: 'Āhāra', color: '#4ade80', emoji: '🌿' },
               { href: '/pranayama', label: 'Breathe', color: '#22d3ee', emoji: '🌬️' },
-              { href: '/sadhana', label: 'Mantras', color: '#c084fc', emoji: '🕉️' },
               { href: '/dhyan-kshetra', label: 'Meditate', color: '#a78bfa', emoji: '🧘' },
               { href: '/journal', label: 'Journal', color: '#34d399', emoji: '📓' },
-              { href: '/bodhi-chat', label: 'Bodhi', color: '#fbbf24', emoji: '✨' },
-              { href: '/pranaverse', label: 'Insights', color: '#fb923c', emoji: '📊' },
+              { href: '/bodhi-chat', label: 'Bodhi', color: '#fb923c', emoji: '✨' },
+              { href: '/sadhana', label: 'Mantras', color: '#e879f9', emoji: '🕉️' },
             ] as { href: string; label: string; color: string; emoji: string }[]).map((link, i) => (
               <motion.div key={link.href}
                 initial={{ opacity: 0, y: 14 }}
@@ -1089,7 +1156,7 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
                 )}
                 <motion.button
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => router.push('/lifestyle/habits')}
+                  onClick={() => router.push('/lifestyle/ayurvedic-habits')}
                   style={{ position: 'relative', background: 'linear-gradient(135deg, #7c3aed, #a855f7, #ec4899)', border: 'none', borderRadius: 999, padding: '0.38rem 0.9rem', color: '#fff', fontSize: '0.76rem', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontFamily: "'Outfit', sans-serif", boxShadow: '0 4px 22px rgba(124,58,237,0.5)' }}>
                   <motion.span
                     style={{ position: 'absolute', top: -4, right: -4, width: 10, height: 10, borderRadius: '50%', background: '#f97316', border: '1.5px solid rgba(0,0,0,0.4)', display: 'block' }}
@@ -1215,7 +1282,7 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
             )}
           </div>
 
-          {/* ── SECTION 5 : Ayurveda 2×2 Grid ───────────────────────────── */}
+          {/* ── SECTION 5 : Ayurveda Grid ─────────────────────────────────── */}
           <div style={{ marginBottom: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.55rem' }}>
               <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'rgba(255,255,255,0.65)', letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: "'Outfit', sans-serif" }}>🌿 Ayurveda</span>
@@ -1232,6 +1299,18 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
                   svg: (<svg width="28" height="28" viewBox="0 0 32 32" fill="none"><path d="M16 4C16 4 8 8 8 16C8 22 11.5 26 16 28C20.5 26 24 22 24 16C24 8 16 4 16 4Z" fill="#a78bfa" fillOpacity="0.18" stroke="#a78bfa" strokeWidth="1.4" strokeLinejoin="round" /><path d="M16 10C16 10 12 13 12 17C12 20 13.8 22 16 23C18.2 22 20 20 20 17C20 13 16 10 16 10Z" fill="#a78bfa" fillOpacity="0.35" /><circle cx="16" cy="17" r="2.5" fill="#a78bfa" fillOpacity="0.85" /></svg>)
                 },
                 {
+                  href: '/lifestyle/dosha-compass', color: '#fbbf24', label: 'Dosha Compass', desc: doshaOnboardingComplete && prakriti ? `${prakriti.primary?.toUpperCase()} dominant` : 'Your tri-dosha map',
+                  svg: (<svg width="28" height="28" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="12" fill="#fbbf2410" stroke="#fbbf24" strokeWidth="1.4" /><circle cx="16" cy="16" r="6" fill="#fbbf2418" /><text x="16" y="21" textAnchor="middle" fontSize="11" fill="#fbbf24" fontFamily="serif">ॐ</text><line x1="16" y1="4" x2="16" y2="8" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" /><line x1="16" y1="24" x2="16" y2="28" stroke="#fbbf24" strokeWidth="1.2" strokeLinecap="round" strokeOpacity="0.5" /><line x1="4" y1="16" x2="8" y2="16" stroke="#fbbf24" strokeWidth="1.2" strokeLinecap="round" strokeOpacity="0.5" /><line x1="24" y1="16" x2="28" y2="16" stroke="#fbbf24" strokeWidth="1.2" strokeLinecap="round" strokeOpacity="0.5" /></svg>)
+                },
+                {
+                  href: '/lifestyle/panchakosha', color: '#c084fc', label: 'Panchakosha', desc: '5-layer wellness hub',
+                  svg: (<svg width="28" height="28" viewBox="0 0 32 32" fill="none"><ellipse cx="16" cy="16" rx="13" ry="6" fill="none" stroke="#c084fc" strokeWidth="1" strokeOpacity="0.9" /><ellipse cx="16" cy="16" rx="10" ry="4.5" fill="none" stroke="#c084fc" strokeWidth="1" strokeOpacity="0.7" /><ellipse cx="16" cy="16" rx="7" ry="3" fill="none" stroke="#c084fc" strokeWidth="1" strokeOpacity="0.55" /><ellipse cx="16" cy="16" rx="4.5" ry="2" fill="none" stroke="#c084fc" strokeWidth="1" strokeOpacity="0.4" /><circle cx="16" cy="16" r="2" fill="#c084fc" fillOpacity="0.8" /></svg>)
+                },
+                {
+                  href: '/lifestyle/ahar', color: '#4ade80', label: 'Āhāra Vigyan', desc: '6-Rasa food science',
+                  svg: (<svg width="28" height="28" viewBox="0 0 32 32" fill="none"><path d="M16 4L19 12H28L21 17L24 26L16 21L8 26L11 17L4 12H13L16 4Z" fill="#4ade80" fillOpacity="0.15" stroke="#4ade80" strokeWidth="1.2" strokeLinejoin="round" /><circle cx="16" cy="16" r="4" fill="#4ade80" fillOpacity="0.5" /></svg>)
+                },
+                {
                   href: '/lifestyle/dinacharya', color: '#fbbf24', label: 'Dinacharya', desc: currentPhase.label,
                   svg: (<svg width="28" height="28" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="11" stroke="#fbbf24" strokeWidth="1.5" fill="#fbbf24" fillOpacity="0.07" /><path d="M16 8v8l5 3" stroke="#fbbf24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />{[0, 60, 120, 180, 240, 300].map((d, i) => (<line key={i} x1={16 + 9.5 * Math.cos((d - 90) * Math.PI / 180)} y1={16 + 9.5 * Math.sin((d - 90) * Math.PI / 180)} x2={16 + 11 * Math.cos((d - 90) * Math.PI / 180)} y2={16 + 11 * Math.sin((d - 90) * Math.PI / 180)} stroke="#fbbf24" strokeWidth={i % 3 === 0 ? 1.8 : 1} strokeOpacity={i % 3 === 0 ? 0.9 : 0.5} strokeLinecap="round" />))}</svg>)
                 },
@@ -1241,7 +1320,15 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
                 },
                 {
                   href: '/lifestyle/ayurvedic-habits', color: '#4ade80', label: 'Niyama', desc: 'Dosha practices',
-                  svg: (<svg width="28" height="28" viewBox="0 0 32 32" fill="none"><path d="M16 6C16 6 6 10 6 19C6 24 10 28 16 28C22 28 26 24 26 19C26 10 16 6 16 6Z" fill="#4ade80" fillOpacity="0.12" stroke="#4ade80" strokeWidth="1.4" strokeLinejoin="round" /><path d="M16 12C16 12 11 15 11 19C11 22 13 24 16 24C19 24 21 22 21 19C21 15 16 12 16 12Z" fill="#4ade80" fillOpacity="0.3" /><circle cx="16" cy="19" r="2.2" fill="#4ade80" fillOpacity="0.9" /><path d="M16 28V22M16 22C14 19 11 16 16 12M16 22C18 19 21 16 16 12" stroke="#4ade80" strokeWidth="1.2" strokeLinecap="round" strokeOpacity="0.6" /></svg>)
+                  svg: (<svg width="28" height="28" viewBox="0 0 32 32" fill="none"><path d="M16 6C16 6 6 10 6 19C6 24 10 28 16 28C22 28 26 24 26 19C26 10 16 6 16 6Z" fill="#4ade80" fillOpacity="0.12" stroke="#4ade80" strokeWidth="1.4" strokeLinejoin="round" /><path d="M16 12C16 12 11 15 11 19C11 22 13 24 16 24C19 24 21 22 21 19C21 15 16 12 16 12Z" fill="#4ade80" fillOpacity="0.3" /><circle cx="16" cy="19" r="2.2" fill="#4ade80" fillOpacity="0.9" /></svg>)
+                },
+                {
+                  href: '/pranayama', color: '#22d3ee', label: 'Pranayama', desc: 'Breath & vital energy',
+                  svg: (<svg width="28" height="28" viewBox="0 0 32 32" fill="none"><path d="M6 16C6 16 10 10 16 10C22 10 26 16 26 16C26 16 22 22 16 22C10 22 6 16 6 16Z" fill="#22d3ee" fillOpacity="0.12" stroke="#22d3ee" strokeWidth="1.4" strokeLinejoin="round" /><circle cx="16" cy="16" r="4" fill="#22d3ee" fillOpacity="0.4" /><circle cx="16" cy="16" r="1.8" fill="#22d3ee" fillOpacity="0.9" /><path d="M16 4V9M16 23V28" stroke="#22d3ee" strokeWidth="1.2" strokeLinecap="round" strokeOpacity="0.5" /></svg>)
+                },
+                {
+                  href: '/sadhana', color: '#e879f9', label: 'Sadhana', desc: 'Mantras & sacred practice',
+                  svg: (<svg width="28" height="28" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="11" fill="#e879f910" stroke="#e879f9" strokeWidth="1.3" /><text x="16" y="22" textAnchor="middle" fontSize="14" fill="#e879f9" fontFamily="serif" fillOpacity="0.9">ॐ</text></svg>)
                 },
               ] as { href: string; color: string; label: string; desc: string; svg: React.ReactNode }[]).map(link => (
                 <motion.button key={link.label} whileTap={{ scale: 0.95 }} onClick={() => router.push(link.href)}
@@ -1251,6 +1338,32 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
                   <p style={{ margin: 0, fontSize: '0.67rem', color: 'rgba(255,255,255,0.3)', fontFamily: "'Outfit', sans-serif", marginTop: 2 }}>{link.desc}</p>
                 </motion.button>
               ))}
+
+              {/* Guna Tracker — full width button inside Ayurveda section */}
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => { setActiveGunaTab('guna'); setShowGunaTracker(true); }}
+                style={{ gridColumn: '1 / -1', padding: '0.88rem 0.92rem', borderRadius: 16, cursor: 'pointer', textAlign: 'left', background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(251,191,36,0.4)', backdropFilter: 'blur(12px)', boxShadow: '0 4px 20px rgba(251,191,36,0.1)', display: 'flex', alignItems: 'center', gap: '0.85rem' }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+                    <circle cx="16" cy="16" r="12" fill="rgba(251,191,36,0.1)" stroke="rgba(251,191,36,0.5)" strokeWidth="1.4" />
+                    <text x="16" y="21" textAnchor="middle" fontSize="13" fill="rgba(251,191,36,0.9)" fontFamily="serif">☯</text>
+                  </svg>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: 0, fontSize: '0.88rem', fontWeight: 700, color: '#fbbf24', fontFamily: "'Outfit', sans-serif" }}>Guna Tracker</p>
+                  {(() => {
+                    const gunaToday = (engine as any).gunaLogs?.find((l: { date: string }) => l.date === getToday());
+                    return (
+                      <p style={{ margin: 0, fontSize: '0.67rem', color: 'rgba(255,255,255,0.3)', fontFamily: "'Outfit', sans-serif", marginTop: 2 }}>
+                        {gunaToday ? `Sattva ${gunaToday.sattva} · Rajas ${gunaToday.rajas} · Tamas ${gunaToday.tamas}` : 'Map Sattva · Rajas · Tamas · Dosha Compass'}
+                      </p>
+                    );
+                  })()}
+                </div>
+                <ChevronRight size={14} style={{ color: '#fbbf24', opacity: 0.55, flexShrink: 0 }} />
+              </motion.button>
             </div>
           </div>
 
@@ -1315,43 +1428,50 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
 // ─── Inline Smart Planner Component ─────────────────────────────────────────
 function InlineSmartPlanner() {
   const router = useRouter();
-  const { tasks, addTask, toggleTaskDone, removeTask } = useDailyTasks();
+  const { tasks } = useDailyTasks();
+  const setPendingMessage = useBodhiChatStore(s => s.setPendingMessage);
   const [collapsed, setCollapsed] = useState(false);
-  const [inputVal, setInputVal] = useState('');
-  const pendingTasks = tasks.filter(t => !t.done);
-  const doneTasks = tasks.filter(t => t.done);
 
-  const handleAdd = () => {
-    const text = inputVal.trim();
-    if (!text) return;
-    const icons = ['✨', '🎯', '💡', '📝', '🔥', '⚡', '🌱', '🏆'];
-    const cats = ['Deep Work', 'Health', 'Creative', 'Spiritual', 'Connection', 'Rest'];
-    const catStyles: Record<string, { colorClass: string; accentColor: string }> = {
-      'Deep Work': { colorClass: 'blue', accentColor: 'rgba(96,165,250,0.85)' },
-      Health: { colorClass: 'green', accentColor: 'rgba(74,222,128,0.85)' },
-      Creative: { colorClass: 'purple', accentColor: 'rgba(196,181,253,0.85)' },
-      Spiritual: { colorClass: 'gold', accentColor: 'rgba(251,191,36,0.85)' },
-      Connection: { colorClass: 'teal', accentColor: 'rgba(45,212,191,0.85)' },
-      Rest: { colorClass: 'pink', accentColor: 'rgba(249,168,212,0.85)' },
-    };
-    const cat = cats[Math.floor(Math.random() * cats.length)];
-    const style = catStyles[cat];
-    addTask({
-      id: `task_${Date.now()}`,
-      text,
-      icon: icons[Math.floor(Math.random() * icons.length)],
-      colorClass: style.colorClass,
-      accentColor: style.accentColor,
-      category: cat,
-      done: false,
-      createdAt: Date.now(),
-    });
-    setInputVal('');
-  };
+  const pendingCount = tasks.filter(t => !t.done).length;
+  const doneCount = tasks.filter(t => t.done).length;
 
-  const accentColors: Record<string, string> = {
-    blue: '#60a5fa', green: '#4ade80', purple: '#a78bfa',
-    gold: '#fbbf24', teal: '#2dd4bf', pink: '#f472b6',
+  const BODHI_PROMPTS: Array<{
+    label: string;
+    emoji: string;
+    color: string;
+    border: string;
+    glow: string;
+    message: string;
+  }> = [
+      {
+        label: 'Task',
+        emoji: '✅',
+        color: '#4ade80',
+        border: 'rgba(74,222,128,0.35)',
+        glow: 'rgba(74,222,128,0.18)',
+        message: "I have a new task I want to plan. [UI_EVENT: NEW_TASK]",
+      },
+      {
+        label: 'Idea',
+        emoji: '💡',
+        color: '#fbbf24',
+        border: 'rgba(251,191,36,0.35)',
+        glow: 'rgba(251,191,36,0.18)',
+        message: "I have an idea I want to explore and develop. [UI_EVENT: NEW_IDEA]",
+      },
+      {
+        label: 'Challenge',
+        emoji: '⚡',
+        color: '#fb923c',
+        border: 'rgba(251,146,60,0.35)',
+        glow: 'rgba(251,146,60,0.18)',
+        message: "I have a challenge I want to work through with you. [UI_EVENT: NEW_CHALLENGE]",
+      },
+    ];
+
+  const handleBodhiPrompt = (msg: string) => {
+    setPendingMessage(msg);
+    router.push('/bodhi-chat');
   };
 
   return (
@@ -1368,9 +1488,14 @@ function InlineSmartPlanner() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
           <Target size={14} style={{ color: '#a78bfa' }} />
           <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.06em', textTransform: 'uppercase' }}>Smart Planner</span>
-          {pendingTasks.length > 0 && (
+          {pendingCount > 0 && (
             <span style={{ fontSize: '0.5rem', padding: '0.06rem 0.32rem', borderRadius: 99, background: 'rgba(167,139,250,0.2)', border: '1px solid rgba(167,139,250,0.4)', color: '#c084fc', fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>
-              {pendingTasks.length} active
+              {pendingCount} active
+            </span>
+          )}
+          {doneCount > 0 && (
+            <span style={{ fontSize: '0.5rem', padding: '0.06rem 0.32rem', borderRadius: 99, background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.3)', color: '#4ade80', fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>
+              ✓ {doneCount} done
             </span>
           )}
         </div>
@@ -1392,60 +1517,51 @@ function InlineSmartPlanner() {
             initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25 }} style={{ overflow: 'hidden' }}
           >
-            <div style={{ padding: '0.7rem 0.9rem 0.85rem' }}>
-              {/* Quick add input */}
-              <div style={{ display: 'flex', gap: '0.42rem', marginBottom: '0.65rem' }}>
-                <input
-                  value={inputVal}
-                  onChange={e => setInputVal(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleAdd()}
-                  placeholder="Add a task, idea or challenge…"
-                  style={{ flex: 1, padding: '0.48rem 0.75rem', borderRadius: 10, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(167,139,250,0.25)', color: '#fff', fontSize: '0.78rem', fontFamily: "'Outfit', sans-serif", outline: 'none' }}
-                />
-                <motion.button
-                  whileTap={{ scale: 0.9 }}
-                  onClick={handleAdd}
-                  style={{ padding: '0.48rem 0.75rem', borderRadius: 10, background: inputVal.trim() ? 'linear-gradient(135deg, #7c3aed, #a855f7)' : 'rgba(255,255,255,0.06)', border: 'none', color: '#fff', fontSize: '0.82rem', cursor: inputVal.trim() ? 'pointer' : 'default', boxShadow: inputVal.trim() ? '0 2px 12px rgba(124,58,237,0.4)' : 'none' }}
-                >
-                  <Plus size={14} />
-                </motion.button>
-              </div>
+            <div style={{ padding: '0.85rem 0.9rem 1rem' }}>
+              {/* Header text */}
+              <p style={{ margin: '0 0 0.7rem', fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif", fontStyle: 'italic', letterSpacing: '0.02em' }}>
+                Talk to Bodhi — who will save it for you
+              </p>
 
-              {/* Pending tasks */}
-              {pendingTasks.length === 0 && doneTasks.length === 0 ? (
-                <p style={{ margin: 0, fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', fontFamily: "'Outfit', sans-serif", textAlign: 'center', padding: '0.5rem 0' }}>Add your first intention above ✦</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.32rem' }}>
-                  {pendingTasks.slice(0, 5).map(task => {
-                    const color = accentColors[task.colorClass] ?? '#a78bfa';
-                    return (
-                      <motion.div key={task.id} layout
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', padding: '0.48rem 0.62rem', borderRadius: 12, background: `${color}10`, border: `1px solid ${color}28` }}
-                      >
-                        <span style={{ fontSize: '1rem', flexShrink: 0 }}>{task.icon}</span>
-                        <span style={{ flex: 1, fontSize: '0.8rem', color: 'rgba(255,255,255,0.82)', fontFamily: "'Outfit', sans-serif", fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.text}</span>
-                        <span style={{ fontSize: '0.5rem', padding: '0.1rem 0.35rem', borderRadius: 99, background: `${color}20`, color, fontFamily: "'Outfit', sans-serif", fontWeight: 700, flexShrink: 0 }}>{task.category}</span>
-                        <motion.button whileTap={{ scale: 0.85 }} onClick={() => toggleTaskDone(task.id)}
-                          style={{ flexShrink: 0, background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.25)', borderRadius: 8, padding: '0.18rem 0.38rem', cursor: 'pointer', color: '#4ade80', fontSize: '0.65rem', fontWeight: 700, fontFamily: "'Outfit', sans-serif" }}
-                        >✓</motion.button>
-                        <motion.button whileTap={{ scale: 0.85 }} onClick={() => removeTask(task.id)}
-                          style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', fontSize: '0.8rem', lineHeight: 1 }}
-                        >×</motion.button>
-                      </motion.div>
-                    );
-                  })}
-                  {pendingTasks.length > 5 && (
-                    <motion.button whileTap={{ scale: 0.97 }} onClick={() => router.push('/vedic-planner')}
-                      style={{ padding: '0.38rem', borderRadius: 10, background: 'none', border: '1px dashed rgba(167,139,250,0.22)', color: '#a78bfa', fontSize: '0.7rem', cursor: 'pointer', fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}
-                    >+ {pendingTasks.length - 5} more in Full Planner →</motion.button>
-                  )}
-                  {doneTasks.length > 0 && (
-                    <div style={{ marginTop: '0.3rem', padding: '0.38rem 0.55rem', borderRadius: 10, background: 'rgba(74,222,128,0.06)', border: '1px solid rgba(74,222,128,0.15)' }}>
-                      <span style={{ fontSize: '0.62rem', color: '#4ade80', fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>✓ {doneTasks.length} done today</span>
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Elegant 3-button row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
+                {BODHI_PROMPTS.map((prompt) => (
+                  <motion.button
+                    key={prompt.label}
+                    whileTap={{ scale: 0.92 }}
+                    whileHover={{ scale: 1.03 }}
+                    onClick={() => handleBodhiPrompt(prompt.message)}
+                    style={{
+                      position: 'relative', overflow: 'hidden',
+                      padding: '0.75rem 0.5rem',
+                      borderRadius: 14,
+                      background: `radial-gradient(circle at 50% 20%, ${prompt.glow}, rgba(0,0,0,0.35) 70%)`,
+                      border: `1px solid ${prompt.border}`,
+                      cursor: 'pointer',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.28rem',
+                      boxShadow: `0 4px 20px ${prompt.glow}, inset 0 1px 0 rgba(255,255,255,0.08)`,
+                      backdropFilter: 'blur(12px)',
+                    }}
+                  >
+                    {/* Subtle top glow bar */}
+                    <div style={{
+                      position: 'absolute', top: 0, left: 0, right: 0, height: 2,
+                      background: `linear-gradient(90deg, transparent, ${prompt.color}80, transparent)`,
+                      borderRadius: '14px 14px 0 0',
+                    }} />
+                    <span style={{ fontSize: '1.3rem', filter: `drop-shadow(0 0 8px ${prompt.color}80)` }}>
+                      {prompt.emoji}
+                    </span>
+                    <span style={{
+                      fontSize: '0.68rem', fontWeight: 800, color: prompt.color,
+                      fontFamily: "'Outfit', sans-serif", letterSpacing: '0.06em',
+                      textShadow: `0 0 10px ${prompt.color}60`,
+                    }}>
+                      {prompt.label}
+                    </span>
+                  </motion.button>
+                ))}
+              </div>
             </div>
           </motion.div>
         )}
@@ -1453,3 +1569,5 @@ function InlineSmartPlanner() {
     </motion.div>
   );
 }
+
+

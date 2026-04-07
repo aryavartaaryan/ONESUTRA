@@ -278,8 +278,12 @@ function UIPanel({ onSuccess, onGuest, compact = false }: Props & { compact?: bo
                 const localDone = !isTestEmail && localStorage.getItem('acharya_onboarding_done') === uid;
 
                 if (isTestEmail || (!hasCompleted && !localDone)) {
-                    // Test email → always show onboarding; new user → first-time onboarding
+                    // Test email → always reset BOTH onboarding and Prakriti quiz
                     localStorage.removeItem('acharya_onboarding_done');
+                    if (isTestEmail) {
+                        // Also clear Prakriti/doshaStore cache so the test account always retakes the quiz
+                        localStorage.removeItem('onesutra_dosha_v1');
+                    }
                     window.location.href = '/lifestyle/onboarding';
                     return;
                 }
@@ -287,6 +291,23 @@ function UIPanel({ onSuccess, onGuest, compact = false }: Props & { compact?: bo
                 if (hasCompleted && !localDone) {
                     localStorage.setItem('acharya_onboarding_done', uid);
                 }
+
+                // ── Check Prakriti quiz completion (even for returning users) ──
+                // Read from doshaStore localStorage to check if prakriti analysis was done
+                try {
+                    const doshaRaw = localStorage.getItem('onesutra_dosha_v1');
+                    const doshaState = doshaRaw ? JSON.parse(doshaRaw) : null;
+                    const prakritiDone = !!(doshaState?.prakritiAssessment?.primaryDosha) || !!(doshaState?.doshaOnboardingComplete);
+                    // Also check Firestore for prakriti completion
+                    const onesutraSnap = await getDoc(doc(db, 'onesutra_users', uid));
+                    const od = onesutraSnap.exists() ? onesutraSnap.data() : null;
+                    const prakritiDoneServer = !!(od?.doshaOnboardingComplete || od?.prakritiAssessment?.primaryDosha);
+                    if (!prakritiDone && !prakritiDoneServer) {
+                        // User completed onboarding but never took Prakriti quiz — send them there
+                        window.location.href = '/lifestyle/prakriti';
+                        return;
+                    }
+                } catch { /* offline — proceed to home */ }
             } catch { /* offline — proceed to home */ }
             onSuccess(name);
         } catch (err: any) {

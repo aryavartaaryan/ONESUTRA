@@ -297,6 +297,172 @@ a {
   --accent-sapphire: #1e1b4b;
 }
 
+/* ═══════════════════════════════════════════════════════════
+   RASA DESIGN SYSTEM — Onesutra 2.0
+   Organic precision · Fluid rituals · Conscious minimalism
+   ═══════════════════════════════════════════════════════════ */
+:root {
+  /* ── Dosha Palette ── */
+  --rasa-vata-soft:    #E6E6FA;
+  --rasa-vata-medium:  #B0C4DE;
+  --rasa-vata-vivid:   #a78bfa;
+  --rasa-vata-glow:    rgba(167, 139, 250, 0.35);
+  --rasa-vata-bg:      rgba(124, 58, 237, 0.10);
+
+  --rasa-pitta-soft:   #F7C59F;
+  --rasa-pitta-medium: #FF6B35;
+  --rasa-pitta-vivid:  #fb923c;
+  --rasa-pitta-glow:   rgba(251, 146, 60, 0.35);
+  --rasa-pitta-bg:     rgba(194, 65, 12, 0.10);
+
+  --rasa-kapha-soft:   #C8E6C9;
+  --rasa-kapha-medium: #87A878;
+  --rasa-kapha-vivid:  #4ade80;
+  --rasa-kapha-glow:   rgba(74, 222, 128, 0.35);
+  --rasa-kapha-bg:     rgba(21, 128, 61, 0.10);
+
+  /* ── Sattvic (balanced) Palette ── */
+  --rasa-sattvic-pearl:  #F8F6F0;
+  --rasa-sattvic-gold:   #D4AF37;
+  --rasa-sattvic-glow:   rgba(212, 175, 55, 0.40);
+  --rasa-sattvic-bg:     rgba(212, 175, 55, 0.08);
+
+  /* ── Active Dosha Theme (defaults to sattvic) ── */
+  --rasa-active-soft:    var(--rasa-sattvic-pearl);
+  --rasa-active-vivid:   var(--rasa-sattvic-gold);
+  --rasa-active-glow:    var(--rasa-sattvic-glow);
+  --rasa-active-bg:      var(--rasa-sattvic-bg);
+
+  /* ── Chandramana (Lunar Dark Mode) ── */
+  --chandra-void:        #0d0d2b;
+  --chandra-deep:        #191970;
+  --chandra-mid:         #1e2080;
+  --chandra-surface:     #252594;
+  --chandra-silver:      #C0C0C0;
+  --chandra-moonlight:   #e8e8f5;
+  --chandra-gold:        #FFD700;
+  --chandra-phase-glow:  rgba(192, 192, 192, 0.30);
+
+  /* ── Panchakosha Colors ── */
+  --kosha-anna:    #8B6914;    /* earth / food  */
+  --kosha-prana:   #0891B2;    /* cyan / breath */
+  --kosha-mano:    #BE185D;    /* rose / mind   */
+  --kosha-vijnana: #D4AF37;    /* gold / wisdom */
+  --kosha-ananda:  #7C3AED;    /* violet / bliss */
+
+  /* ── Spanda Motion Timing ── */
+  --spanda-breath:   4s;
+  --spanda-sattvic:  800ms;
+  --spanda-rajasic:  300ms;
+  --spanda-tamasic:  1200ms;
+
+  /* ── Sutra Typography ── */
+  --font-sutra: 'Cormorant Garamond', 'Playfair Display', serif;
+}
+
+/* ── Dosha-aware active theme overrides ── */
+[data-dosha="vata"] {
+  --rasa-active-soft:  var(--rasa-vata-soft);
+  --rasa-active-vivid: var(--rasa-vata-vivid);
+  --rasa-active-glow:  var(--rasa-vata-glow);
+  --rasa-active-bg:    var(--rasa-vata-bg);
+}
+[data-dosha="pitta"] {
+  --rasa-active-soft:  var(--rasa-pitta-soft);
+  --rasa-active-vivid: var(--rasa-pitta-vivid);
+  --rasa-active-glow:  var(--rasa-pitta-glow);
+  --rasa-active-bg:    var(--rasa-pitta-bg);
+}
+[data-dosha="kapha"] {
+  --rasa-active-soft:  var(--rasa-kapha-soft);
+  --rasa-active-vivid: var(--rasa-kapha-vivid);
+  --rasa-active-glow:  var(--rasa-kapha-glow);
+  --rasa-active-bg:    var(--rasa-kapha-bg);
+}
+
+/* ── Chandramana dark mode ── */
+[data-theme="chandramana"] {
+  --bg-primary:    var(--chandra-void);
+  --bg-secondary:  var(--chandra-deep);
+  --bg-tertiary:   var(--chandra-mid);
+  --text-main:     var(--chandra-moonlight);
+  --text-muted:    var(--chandra-silver);
+  --accent-saffron: var(--chandra-gold);
+}
+
+/* ── Spanda breath animation (4-second inhale/exhale) ── */
+@keyframes spanda-breathe {
+  0%, 100% { transform: scale(1);    opacity: 0.92; }
+  50%       { transform: scale(1.04); opacity: 1;    }
+}
+
+/* ── Sattvic page transition (golden ratio timing) ── */
+@keyframes sattvic-enter {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+/* ── Rajasic alert pulse ── */
+@keyframes rajasic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--rasa-pitta-glow); }
+  50%       { box-shadow: 0 0 0 8px transparent; }
+}
+
+/* ── Mala bead shimmer ── */
+@keyframes mala-glow {
+  0%, 100% { opacity: 0.65; transform: scale(1);    }
+  50%       { opacity: 1;    transform: scale(1.18); }
+}
+
+/* ── Incense smoke dissolve ── */
+@keyframes smoke-dissolve {
+  from { opacity: 1; transform: translateY(0)   scale(1);    filter: blur(0); }
+  to   { opacity: 0; transform: translateY(-18px) scale(1.1); filter: blur(6px); }
+}
+
+/* ── Liquid fill for dosha compass segments ── */
+@keyframes liquid-fill {
+  from { stroke-dashoffset: 440; }
+  to   { stroke-dashoffset: 0;   }
+}
+
+/* ── Utility: Spanda hover class (apply to any interactive element) ── */
+.spanda-hover:hover {
+  animation: spanda-breathe var(--spanda-breath) ease-in-out infinite;
+}
+
+/* ── Sutra quote style ── */
+.sutra-text {
+  font-family: var(--font-sutra);
+  font-style: italic;
+  letter-spacing: 0.055em;
+  line-height: 1.8;
+  color: var(--rasa-sattvic-gold);
+}
+.sutra-text-indigo {
+  font-family: var(--font-sutra);
+  font-style: italic;
+  letter-spacing: 0.055em;
+  line-height: 1.8;
+  color: #6366f1;
+}
+
+/* ── Rasa glass panel ── */
+.rasa-glass {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Dosha accent border ── */
+.dosha-border-active {
+  border-color: var(--rasa-active-vivid) !important;
+  box-shadow: 0 0 18px var(--rasa-active-glow) !important;
+}
+
 /* ── Ultra-fast page transitions via CSS View Transitions API ── */
 @view-transition {
   navigation: auto;

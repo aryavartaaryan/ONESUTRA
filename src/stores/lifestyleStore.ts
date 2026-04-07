@@ -133,6 +133,16 @@ export interface JournalEntry {
     loggedAt: number;
 }
 
+export interface GunaLog {
+    date: string;
+    sattva: number;  // 0-100
+    rajas: number;   // 0-100
+    tamas: number;   // 0-100
+    dominantEmotion?: string;
+    note?: string;
+    loggedAt: number;
+}
+
 export interface Badge {
     id: string;
     name: string;
@@ -156,6 +166,7 @@ interface LifestyleState {
     habitLogs: HabitLog[];
     streaks: Record<string, StreakData>;
     moodLogs: MoodLog[];
+    gunaLogs: GunaLog[];
     mantraSessions: MantraSession[];
     mantraStreaks: Record<string, MantraStreak>;
     breathingSessions: BreathingSession[];
@@ -172,6 +183,7 @@ interface LifestyleState {
     removeHabit: (id: string) => void;
     logHabit: (log: HabitLog) => void;
     logMood: (log: MoodLog) => void;
+    logGuna: (log: GunaLog) => void;
     logMantraSession: (session: MantraSession) => void;
     updateMantraStreak: (streak: MantraStreak) => void;
     logBreathingSession: (session: BreathingSession) => void;
@@ -267,6 +279,7 @@ function persistState(state: LifestyleState) {
             habitLogs: state.habitLogs.slice(0, 1000),
             streaks: state.streaks,
             moodLogs: state.moodLogs.slice(0, 365),
+            gunaLogs: state.gunaLogs.slice(0, 365),
             mantraSessions: state.mantraSessions.slice(0, 500),
             mantraStreaks: state.mantraStreaks,
             breathingSessions: state.breathingSessions.slice(0, 200),
@@ -282,14 +295,23 @@ function persistState(state: LifestyleState) {
 
 // ─── XP / Level thresholds ─────────────────────────────────────────────────────
 
+// ─── Ashrama Progression System ───────────────────────────────────────────────
+// Based on the four stages of life from ancient Vedic wisdom.
+// Each stage has sub-levels within it for granular progression.
 export const LEVELS = [
-    { name: 'Seedling', minXP: 0, icon: '🌱' },
-    { name: 'Sprout', minXP: 100, icon: '🌿' },
-    { name: 'Bloom', minXP: 300, icon: '🌸' },
-    { name: 'Flourish', minXP: 700, icon: '🌺' },
-    { name: 'Radiant', minXP: 1500, icon: '✨' },
-    { name: 'Sage', minXP: 3000, icon: '🧘' },
-    { name: 'Siddha', minXP: 7000, icon: '🔱' },
+    // Brahmacharya — The Student Stage
+    { name: 'Brahmacharya I', minXP: 0, icon: '📿', ashrama: 'brahmacharya', subtitle: 'Sowing the seeds of practice' },
+    { name: 'Brahmacharya II', minXP: 150, icon: '📿', ashrama: 'brahmacharya', subtitle: 'Daily rhythm is forming' },
+    { name: 'Brahmacharya III', minXP: 350, icon: '📿', ashrama: 'brahmacharya', subtitle: 'Foundation of discipline' },
+    // Grihastha — The Householder Stage
+    { name: 'Grihastha I', minXP: 700, icon: '🏡', ashrama: 'grihastha', subtitle: 'Balancing dharma and life' },
+    { name: 'Grihastha II', minXP: 1400, icon: '🏡', ashrama: 'grihastha', subtitle: 'Embodied conscious living' },
+    { name: 'Grihastha III', minXP: 2500, icon: '🏡', ashrama: 'grihastha', subtitle: 'Mastery in the household' },
+    // Vanaprastha — The Forest Dweller
+    { name: 'Vanaprastha I', minXP: 4000, icon: '🌳', ashrama: 'vanaprastha', subtitle: 'Turning inward with wisdom' },
+    { name: 'Vanaprastha II', minXP: 6000, icon: '🌳', ashrama: 'vanaprastha', subtitle: 'Deepening spiritual vision' },
+    // Sannyasa — The Renunciate
+    { name: 'Sannyasa', minXP: 9000, icon: '🔱', ashrama: 'sannyasa', subtitle: 'Touched by the infinite' },
 ];
 
 export function getLevelFromXP(xp: number) {
@@ -377,6 +399,7 @@ export const useLifestyleStore = create<LifestyleState>((set, get) => ({
     habitLogs: (saved as any).habitLogs ?? [],
     streaks: (saved as any).streaks ?? {},
     moodLogs: (saved as any).moodLogs ?? [],
+    gunaLogs: (saved as any).gunaLogs ?? [],
     mantraSessions: (saved as any).mantraSessions ?? [],
     mantraStreaks: (saved as any).mantraStreaks ?? {},
     breathingSessions: (saved as any).breathingSessions ?? [],
@@ -428,6 +451,13 @@ export const useLifestyleStore = create<LifestyleState>((set, get) => ({
     logMood: (log) => set((s) => {
         const moodLogs = [log, ...s.moodLogs.filter(l => l.date !== log.date)];
         const n = { ...s, moodLogs };
+        persistState(n as LifestyleState);
+        return n;
+    }),
+
+    logGuna: (log) => set((s) => {
+        const gunaLogs = [log, ...s.gunaLogs.filter(l => l.date !== log.date)];
+        const n = { ...s, gunaLogs };
         persistState(n as LifestyleState);
         return n;
     }),
