@@ -1480,7 +1480,7 @@ function InlineSmartPlanner() {
       style={{ marginBottom: '1rem', borderRadius: 18, background: 'rgba(0,0,0,0.24)', border: '1px solid rgba(167,139,250,0.22)', backdropFilter: 'blur(14px)', overflow: 'hidden' }}
     >
       {/* Header */}
-      <motion.button
+      <motion.div
         whileTap={{ scale: 0.99 }}
         onClick={() => setCollapsed(s => !s)}
         style={{ width: '100%', padding: '0.72rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'none', border: 'none', cursor: 'pointer', borderBottom: collapsed ? 'none' : '1px solid rgba(255,255,255,0.06)' }}
@@ -1509,7 +1509,7 @@ function InlineSmartPlanner() {
           </motion.button>
           <ChevronDown size={13} style={{ color: 'rgba(255,255,255,0.35)', transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 0.22s', flexShrink: 0 }} />
         </div>
-      </motion.button>
+      </motion.div>
 
       <AnimatePresence>
         {!collapsed && (
