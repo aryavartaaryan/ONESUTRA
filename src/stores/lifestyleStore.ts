@@ -3,7 +3,7 @@ import { create } from 'zustand';
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
 export type LifeArea = 'mental' | 'physical' | 'social' | 'professional' | 'financial' | 'spiritual' | 'creative';
-export type HabitCategory = 'morning' | 'evening' | 'midday' | 'anytime' | 'sacred';
+export type HabitCategory = 'morning' | 'evening' | 'midday' | 'night' | 'anytime' | 'sacred';
 export type TrackingType = 'checkbox' | 'counter' | 'duration' | 'numeric';
 export type BuddyPersonality = 'gentle_coach' | 'tough_love' | 'wise_friend' | 'hype_person' | 'calm_monk' | 'nerdy_analyst' | 'devotional_guide';
 

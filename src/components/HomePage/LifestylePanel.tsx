@@ -613,7 +613,7 @@ function MoodLogPanel({ onClose, onLog, bgImage }: {
 }
 
 // ─── Main Component ──────────────────────────────────────────────────────────
-export default function LifestylePanel() {
+export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
   const router = useRouter();
   const engine = useLifestyleEngine();
   const { prakriti, vikriti, currentPhase, doshaOnboardingComplete, inBrahmaMuhurta } = useDoshaEngine();
@@ -783,7 +783,8 @@ export default function LifestylePanel() {
     ],
   };
   const bgPool = NATURE_BG[timeSlot === 'night' ? 'night' : timeSlot] ?? NATURE_BG.morning;
-  const bgImage = bgPool[Math.floor(Date.now() / (30 * 60_000)) % bgPool.length];
+  const computedBgImage = bgPool[Math.floor(Date.now() / (30 * 60_000)) % bgPool.length];
+  const bgImage = globalBg || computedBgImage;
 
   // ── Week progress data ───────────────────────────────────────────────────
   const weekDays = useMemo(() => {
@@ -842,9 +843,9 @@ export default function LifestylePanel() {
       <div style={{ borderRadius: 26, overflow: 'hidden', position: 'relative', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 24px 72px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)' }}>
 
         {/* Nature background layer */}
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: `url('${bgImage}')`, backgroundSize: 'cover', backgroundPosition: 'center', transform: 'scale(1.07)', filter: 'blur(2px) brightness(0.72) saturate(1.1)', zIndex: 0 }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: `url('${bgImage}')`, backgroundSize: 'cover', backgroundPosition: 'center', transform: 'scale(1.07)', filter: 'blur(2px) brightness(0.68) saturate(1.15)', zIndex: 0 }} />
         {/* Overlay — exactly matches Smart Planner */}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(4,2,16,0.10) 0%, rgba(4,2,16,0.34) 55%, rgba(4,2,16,0.48) 100%)', zIndex: 1 }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(4,2,16,0.06) 0%, rgba(4,2,16,0.28) 60%, rgba(4,2,16,0.42) 100%)', zIndex: 1 }} />
 
         {/* Content */}
         <div style={{ position: 'relative', zIndex: 2, padding: '1.2rem 1rem 1.4rem' }}>

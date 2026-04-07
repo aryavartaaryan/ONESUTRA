@@ -1110,7 +1110,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                                                     ← BACK
                                                 </motion.button>
                                                 <span style={{ fontSize: '0.62rem', fontWeight: 800, color: unifiedTimeLabel.color, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: "'Outfit', sans-serif", filter: `drop-shadow(0 0 5px ${unifiedTimeLabel.color}60)` }}>
-                                                    {unifiedTimeLabel.prefix}
+                                                    {unifiedTimeLabel.label}
                                                 </span>
                                             </div>
                                             <span style={{ fontSize: '0.48rem', color: 'rgba(255,255,255,0.28)', letterSpacing: '0.08em', fontFamily: "'Outfit', sans-serif" }}>tap to log ✦</span>

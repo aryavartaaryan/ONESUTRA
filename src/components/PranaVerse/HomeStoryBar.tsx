@@ -1900,7 +1900,9 @@ export default function HomeStoryBar() {
     const todayPanchang = computeDailyPanchang(new Date());
     const prakritiKey = prakriti ? (prakriti.primary.charAt(0).toUpperCase() + prakriti.primary.slice(1)) : null;
     const prakritiInfo = prakritiKey ? (PRAKRITI_INFO[prakritiKey] ?? PRAKRITI_INFO.Vata) : null;
-    const moodInfo = todayMood ? (MOOD_STORY_INFO[todayMood.mood] ?? MOOD_STORY_INFO.okay) : null;
+    const moodMap: Record<number, string> = { 5: 'great', 4: 'good', 3: 'okay', 2: 'low', 1: 'stressed' };
+    const moodKey = todayMood ? moodMap[todayMood.mood] ?? 'okay' : null;
+    const moodInfo = moodKey ? (MOOD_STORY_INFO[moodKey] ?? MOOD_STORY_INFO.okay) : null;
 
     const imageGroups: StoryGroup[] = [
         {
@@ -1933,7 +1935,7 @@ export default function HomeStoryBar() {
             gradient: moodInfo.gradient,
             ringColors: [moodInfo.color, '#fbbf24'] as [string, string],
             slides: [
-                { id: 'md1', bg: getImg(3), accent: moodInfo.color, content: <MoodStoryContent mood={todayMood.mood} energy={todayMood.energy} userName={userName} /> },
+                { id: 'md1', bg: getImg(3), accent: moodInfo.color, content: <MoodStoryContent mood={moodKey as string} energy={todayMood.energy} userName={userName} /> },
             ],
         }] : []),
         {

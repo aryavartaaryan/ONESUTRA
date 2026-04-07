@@ -22,7 +22,7 @@ export function useSpeechInput({ lang = 'en', onResult, onError }: UseSpeechInpu
     useEffect(() => { onErrorRef.current = onError; }, [onError]);
 
     const isSupported = typeof window !== 'undefined' &&
-        !!(window.SpeechRecognition || (window as any).webkitSpeechRecognition);
+        !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
 
     const startListening = useCallback(() => {
         if (!isSupported) {
@@ -31,7 +31,7 @@ export function useSpeechInput({ lang = 'en', onResult, onError }: UseSpeechInpu
         }
         if (isListening) return;
 
-        const SR = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+        const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         const recognition = new SR();
         recognition.lang = lang === 'hi' ? 'hi-IN' : 'en-US';
         recognition.interimResults = false;

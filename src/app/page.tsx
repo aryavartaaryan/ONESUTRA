@@ -517,7 +517,7 @@ export default function Home() {
             transition={{ delay: 0.35, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             style={{ position: 'relative', zIndex: 10 }}
           >
-            <LifestylePanel />
+            <LifestylePanel globalBg={globalBg} />
           </motion.div>
         )}
 
