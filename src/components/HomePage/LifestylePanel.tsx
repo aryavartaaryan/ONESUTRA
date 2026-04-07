@@ -848,30 +848,30 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(4,2,16,0.06) 0%, rgba(4,2,16,0.28) 60%, rgba(4,2,16,0.42) 100%)', zIndex: 1 }} />
 
         {/* Content */}
-        <div style={{ position: 'relative', zIndex: 2, padding: '1.2rem 1rem 1.4rem' }}>
+        <div style={{ position: 'relative', zIndex: 2, padding: '1rem' }}>
 
-          {/* ── CARD HERO TITLE ────────────────────────────────────────────── */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', marginBottom: '0.85rem' }}>
-            <motion.div
-              animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.07, 1] }}
-              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-              style={{ fontSize: '1.25rem', filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.6))' }}
-            >✦</motion.div>
-            <div style={{ flex: 1 }}>
-              <p style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.01em', lineHeight: 1 }}>Smart Life Planner</p>
-              <p style={{ margin: 0, fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif", marginTop: 2, letterSpacing: '0.05em' }}>Habits · Progress · Planner · Ayurveda</p>
+          {/* ── SECTION 0 : Header Card ────────────────────────────────────── */}
+          <div style={{ background: 'rgba(0,0,0,0.26)', borderRadius: 22, border: '1px solid rgba(255,255,255,0.08)', padding: '1rem', backdropFilter: 'blur(18px)', boxShadow: '0 4px 32px rgba(0,0,0,0.2)', marginBottom: '1rem' }}>
+            {/* ── CARD HERO TITLE ────────────────────────────────────────────── */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', marginBottom: '1rem' }}>
+              <motion.div
+                animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.07, 1] }}
+                transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                style={{ fontSize: '1.25rem', filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.6))' }}
+              >✦</motion.div>
+              <div style={{ flex: 1 }}>
+                <p style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.01em', lineHeight: 1 }}>Smart Life Planner</p>
+                <p style={{ margin: 0, fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif", marginTop: 2, letterSpacing: '0.05em' }}>Habits · Progress · Planner · Ayurveda</p>
+              </div>
+              <motion.span
+                animate={{ opacity: [0.6, 1, 0.6] }}
+                transition={{ duration: 3, repeat: Infinity }}
+                style={{ fontSize: '0.56rem', padding: '0.2rem 0.6rem', borderRadius: 99, background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' }}
+              >Live</motion.span>
             </div>
-            <motion.span
-              animate={{ opacity: [0.6, 1, 0.6] }}
-              transition={{ duration: 3, repeat: Infinity }}
-              style={{ fontSize: '0.56rem', padding: '0.2rem 0.6rem', borderRadius: 99, background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' }}
-            >Live</motion.span>
-          </div>
 
-          {/* ── SECTION 0 : Header ────────────────────────────────────────── */}
-          <div style={{ marginBottom: '1rem' }}>
             {/* Row 1: date + controls */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
               <p style={{ margin: 0, fontSize: '0.68rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.04em' }}>{todayLabel}</p>
               <div style={{ display: 'flex', gap: '0.32rem', alignItems: 'center' }}>
                 <motion.button whileTap={{ scale: 0.88 }} onClick={() => setShowMoodLog(true)}
@@ -902,7 +902,7 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
             </div>
 
             {/* Row 2: greeting */}
-            <div style={{ margin: '0 0 0.6rem', display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
+            <div style={{ margin: '0 0 0.8rem', display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
               {/* Real Sun / Moon / Sunrise / Sunset SVG orb */}
               <motion.div
                 animate={{

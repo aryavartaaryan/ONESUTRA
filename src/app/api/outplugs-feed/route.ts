@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NEWS_FEED } from '@/data/outplugs-news';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const apiKey = process.env.GEMINI_API_KEY || '';
+const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
 
 // 1 hour cache — reduces API calls; gemini-2.0-flash-lite has 1500 req/day free
 export const revalidate = 3600;
@@ -37,6 +38,8 @@ function timeAgo(ms: number) {
 }
 
 async function generateLiveNews(): Promise<unknown[]> {
+    if (!genAI) throw new Error('GEMINI_API_KEY is not configured');
+
     // gemini-2.0-flash-lite: 1500 req/day free vs 20 req/day for 2.5-flash
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
 
