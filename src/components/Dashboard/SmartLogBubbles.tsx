@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation';
-import { useBodhiChatStore } from '@/stores/bodhiChatStore';
 import { Sunrise, Sun, Sunset, Moon } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { bodhiSpeakLog, bodhiSpeakAllDone } from '@/lib/bodhiVoice';
+import type { TimeSlot } from '@/lib/bodhiVoice';
 
 // ─── Order Enforcement ────────────────────────────────────────────────────────
 const MORNING_ORDER = ['wake', 'bath', 'breakfast', 'breathwork', 'morning_light'];
@@ -28,6 +28,40 @@ function saveLoggedToday(ids: Set<string>) {
         localStorage.setItem(LOG_STORE_KEY, JSON.stringify(raw));
     } catch { /* ignore */ }
 }
+
+// ─── Daily Log Story store ────────────────────────────────────────────────────
+const DAILY_LOG_STORY_KEY = 'onesutra_daily_log_story_v1';
+
+export interface DailyLogEntry {
+    id: string;
+    icon: string;
+    label: string;
+    color: string;
+    loggedAt: number; // unix ms
+    date: string;     // YYYY-MM-DD
+}
+
+export function saveToDailyLogStory(id: string, icon: string, label: string, color: string): void {
+    try {
+        const today = getTodayStr();
+        const raw: DailyLogEntry[] = JSON.parse(localStorage.getItem(DAILY_LOG_STORY_KEY) ?? '[]');
+        // Remove old entries from previous days + duplicates for today
+        const filtered = raw.filter(e => e.date === today && e.id !== id);
+        filtered.push({ id, icon, label, color, loggedAt: Date.now(), date: today });
+        localStorage.setItem(DAILY_LOG_STORY_KEY, JSON.stringify(filtered));
+        // Notify DailyLogStory component
+        window.dispatchEvent(new CustomEvent('daily-log-story-updated'));
+    } catch { /* ignore */ }
+}
+
+export function getTodayLogStory(): DailyLogEntry[] {
+    try {
+        const today = getTodayStr();
+        const raw: DailyLogEntry[] = JSON.parse(localStorage.getItem(DAILY_LOG_STORY_KEY) ?? '[]');
+        return raw.filter(e => e.date === today).sort((a, b) => a.loggedAt - b.loggedAt);
+    } catch { return []; }
+}
+
 
 // ─── Pull completed habit IDs from the lifestyle store ───────────────────────
 function getCompletedHabitIds(): Set<string> {
@@ -59,12 +93,25 @@ function getActiveHabits(): StoredHabit[] {
 }
 
 // ─── Current time slot ────────────────────────────────────────────────────────
-function getCurrentTimeSlot(): 'morning' | 'midday' | 'evening' | 'night' {
+function getCurrentTimeSlot(): TimeSlot {
     const h = new Date().getHours();
     if (h >= 3 && h < 11) return 'morning';
     if (h >= 11 && h < 15) return 'midday';
     if (h >= 15 && h < 21) return 'evening';
     return 'night';
+}
+
+// ─── Check if log is in its ideal time slot ───────────────────────────────────
+function isOnTimeForSlot(bubbleId: string, slot: TimeSlot): boolean {
+    const morningIds = new Set(['wake', 'bath', 'breakfast', 'breathwork', 'morning_light']);
+    const middayIds = new Set(['lunch', 'deep_work', 'screen_break', 'hydration']);
+    const eveningIds = new Set(['workout', 'dinner', 'digital_sunset', 'brain_dump']);
+    const nightIds = new Set(['sleep', 'gratitude', 'dinner_night', 'read']);
+    if (slot === 'morning') return morningIds.has(bubbleId);
+    if (slot === 'midday') return middayIds.has(bubbleId);
+    if (slot === 'evening') return eveningIds.has(bubbleId);
+    if (slot === 'night') return nightIds.has(bubbleId);
+    return true;
 }
 
 // ─── IDs that are already in the static bubble lists (don't duplicate) ───────
@@ -349,8 +396,6 @@ function buildDynamicHabitBubbles(
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function SmartLogBubbles() {
-    const router = useRouter();
-    const setPendingMessage = useBodhiChatStore(s => s.setPendingMessage);
     const [activeBubble, setActiveBubble] = useState<string | null>(null);
     const [loggedToday, setLoggedToday] = useState<Set<string>>(() => getLoggedToday());
     const [completedHabitIds, setCompletedHabitIds] = useState<Set<string>>(() => getCompletedHabitIds());
@@ -402,6 +447,32 @@ export default function SmartLogBubbles() {
         return null;
     }, [loggedToday]);
 
+    // ── Bodhi background voice bubble ────────────────────────────────────────
+    const [bodhiSpeaking, setBodhiSpeaking] = useState(false);
+    const [bodhiBubbleLabel, setBodhiBubbleLabel] = useState('');
+    // Prime AudioContext on the first user interaction so Gemini audio can play
+    const audioUnlocked = useRef(false);
+    const unlockAudio = useCallback(() => {
+        if (audioUnlocked.current) return;
+        audioUnlocked.current = true;
+        try {
+            const ac = new AudioContext();
+            ac.resume().then(() => ac.close()).catch(() => { /* ignore */ });
+        } catch { /* ignore */ }
+    }, []);
+
+    useEffect(() => {
+        const handler = (e: Event) => {
+            const { speaking } = (e as CustomEvent<{ speaking: boolean }>).detail;
+            setBodhiSpeaking(speaking);
+            if (speaking) {
+                try { setBodhiBubbleLabel(sessionStorage.getItem('bodhi_pending_inject') ?? ''); } catch { /* ignore */ }
+            }
+        };
+        window.addEventListener('bodhi-log-speaking', handler);
+        return () => window.removeEventListener('bodhi-log-speaking', handler);
+    }, []);
+
     const toggleBubble = (bubble: LogBubble) => {
         if (loggedToday.has(bubble.id)) {
             setOrderToast('Already logged today ✓');
@@ -412,20 +483,39 @@ export default function SmartLogBubbles() {
         if (block) {
             setOrderToast(block);
             setTimeout(() => setOrderToast(null), 2500);
+            // Extract prereq name from block message e.g. 'Log "Rise & Shine" first ✦'
+            const prereqMatch = block.match(/Log "([^"]+)"/);
+            const prereqName = prereqMatch ? prereqMatch[1] : undefined;
+            bodhiSpeakLog({
+                habitName: bubble.label,
+                isLocked: true,
+                lockReason: block,
+                prereqName,
+                timeSlot: getCurrentTimeSlot(),
+            });
             return;
         }
         setActiveBubble(prev => prev === bubble.id ? null : bubble.id);
     };
 
     const logAndNavigate = (bubble: LogBubble, sub?: SubOption) => {
+        unlockAudio();
         const updated = new Set(loggedToday).add(bubble.id);
         setLoggedToday(updated);
         saveLoggedToday(updated);
-        const msg = sub
-            ? `${bubble.logMessage} — ${sub.detail}`
-            : bubble.logMessage;
-        setPendingMessage(msg);
-        router.push('/bodhi-chat');
+        // Save to daily log story store
+        saveToDailyLogStory(bubble.id, bubble.icon, bubble.label, bubble.color);
+        const slot = getCurrentTimeSlot();
+        const onTime = isOnTimeForSlot(bubble.id, slot);
+        bodhiSpeakLog({
+            habitIcon: bubble.icon,
+            habitName: bubble.label,
+            isLocked: false,
+            timeSlot: slot,
+            isOnTime: onTime,
+        });
+        // Close the sub-option panel after logging
+        setActiveBubble(null);
     };
 
     const active = bubbles.find(b => b.id === activeBubble) ?? null;
@@ -433,8 +523,84 @@ export default function SmartLogBubbles() {
     // All done for this time slot
     const allLogged = bubbles.length === 0;
 
+    // Speak when all done (once per session)
+    useEffect(() => {
+        if (allLogged) {
+            const timer = setTimeout(() => bodhiSpeakAllDone(getCurrentTimeSlot()), 800);
+            return () => clearTimeout(timer);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [allLogged]);
+
     return (
-        <div style={{ padding: '0.55rem 0.75rem 0.2rem' }}>
+        <div style={{ padding: '0.55rem 0.75rem 0.2rem' }} onClick={unlockAudio}>
+
+            {/* ── Bodhi speaking floating bubble ── */}
+            <AnimatePresence>
+                {bodhiSpeaking && (
+                    <motion.div
+                        key="bodhi-log-bubble"
+                        initial={{ opacity: 0, y: 50, scale: 0.94 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 24, scale: 0.97 }}
+                        transition={{ type: 'spring', stiffness: 340, damping: 28 }}
+                        style={{
+                            position: 'fixed',
+                            bottom: 88,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            zIndex: 9998,
+                            width: 'calc(100vw - 1.8rem)',
+                            maxWidth: 470,
+                            background: 'linear-gradient(135deg, rgba(4,2,20,0.97), rgba(18,8,36,0.99))',
+                            border: '1.5px solid rgba(251,191,36,0.45)',
+                            borderRadius: 22,
+                            padding: '0.85rem 1rem',
+                            backdropFilter: 'blur(28px)',
+                            boxShadow: '0 12px 48px rgba(0,0,0,0.75), 0 0 48px rgba(251,191,36,0.08)',
+                        }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            {/* Pulsing Bodhi orb */}
+                            <motion.div
+                                animate={{ boxShadow: ['0 0 0 2px rgba(251,191,36,0.3)', '0 0 0 6px rgba(251,191,36,0.13)', '0 0 0 2px rgba(251,191,36,0.3)'] }}
+                                transition={{ duration: 0.9, repeat: Infinity }}
+                                style={{
+                                    width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
+                                    background: 'radial-gradient(circle at 35% 30%, rgba(251,191,36,0.45) 0%, rgba(139,92,246,0.28) 65%, transparent 100%)',
+                                    border: '1.5px solid rgba(251,191,36,0.6)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem',
+                                }}
+                            >✦</motion.div>
+
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.25rem' }}>
+                                    <span style={{ fontSize: '0.52rem', padding: '0.08rem 0.38rem', borderRadius: 99, background: 'rgba(74,222,128,0.18)', border: '1px solid rgba(74,222,128,0.4)', color: '#4ade80', fontWeight: 800, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.08em' }}>✓ LOGGED</span>
+                                    {bodhiBubbleLabel && (
+                                        <span style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.5)', fontFamily: "'Outfit', sans-serif", fontWeight: 600, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 140 }}>{bodhiBubbleLabel}</span>
+                                    )}
+                                </div>
+                                <p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(255,255,255,0.78)', fontFamily: "'Outfit', sans-serif", fontStyle: 'italic', lineHeight: 1.45 }}>
+                                    Bodhi is speaking…
+                                </p>
+                            </div>
+
+                            {/* Speaking wave bars */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
+                                {[0, 1, 2].map(i => (
+                                    <motion.div
+                                        key={i}
+                                        animate={{ scaleY: [0.35, 1.2, 0.35] }}
+                                        transition={{ duration: 0.75, repeat: Infinity, delay: i * 0.18, ease: 'easeInOut' }}
+                                        style={{ width: 3, height: 18, borderRadius: 3, background: '#fbbf24', transformOrigin: 'center', flexShrink: 0 }}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* ── Order toast ── */}
             <AnimatePresence>
                 {orderToast && (

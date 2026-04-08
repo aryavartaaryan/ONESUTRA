@@ -358,6 +358,7 @@ export default function Home() {
     return () => window.removeEventListener('story-viewer-change', handler);
   }, []);
 
+
   useEffect(() => {
     if (hasStarted) {
       document.documentElement.classList.add('app-zoomed');

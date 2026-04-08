@@ -1520,10 +1520,7 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
                   href: '/pranayama', color: '#22d3ee', label: 'Pranayama', desc: 'Breath & vital energy',
                   svg: (<svg width="28" height="28" viewBox="0 0 32 32" fill="none"><path d="M6 16C6 16 10 10 16 10C22 10 26 16 26 16C26 16 22 22 16 22C10 22 6 16 6 16Z" fill="#22d3ee" fillOpacity="0.12" stroke="#22d3ee" strokeWidth="1.4" strokeLinejoin="round" /><circle cx="16" cy="16" r="4" fill="#22d3ee" fillOpacity="0.4" /><circle cx="16" cy="16" r="1.8" fill="#22d3ee" fillOpacity="0.9" /><path d="M16 4V9M16 23V28" stroke="#22d3ee" strokeWidth="1.2" strokeLinecap="round" strokeOpacity="0.5" /></svg>)
                 },
-                {
-                  href: '/sadhana', color: '#e879f9', label: 'Sadhana', desc: 'Mantras & sacred practice',
-                  svg: (<svg width="28" height="28" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="11" fill="#e879f910" stroke="#e879f9" strokeWidth="1.3" /><text x="16" y="22" textAnchor="middle" fontSize="14" fill="#e879f9" fontFamily="serif" fillOpacity="0.9">ॐ</text></svg>)
-                },
+
               ] as { href: string; color: string; label: string; desc: string; svg: React.ReactNode }[]).map(link => (
                 <motion.button key={link.label} whileTap={{ scale: 0.95 }} onClick={() => router.push(link.href)}
                   style={{ padding: '0.88rem 0.92rem', borderRadius: 16, cursor: 'pointer', textAlign: 'left', background: 'rgba(0,0,0,0.25)', border: `1px solid ${link.color}40`, backdropFilter: 'blur(12px)', boxShadow: `0 4px 20px ${link.color}18` }}>

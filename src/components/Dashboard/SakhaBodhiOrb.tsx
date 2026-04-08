@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSakhaConversation, type DayPhase } from '@/hooks/useSakhaConversation';
 import { useLanguage } from '@/context/LanguageContext';
@@ -158,6 +158,7 @@ export default function SakhaBodhiOrb({
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
 
     const handleOrbMoodSelect = useCallback((emoji: string, label: string, mood: string) => {
         // Always save mood to Firebase
