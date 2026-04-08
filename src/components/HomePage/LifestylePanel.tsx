@@ -708,7 +708,16 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
     ? [...pendingNow].sort((a, b) => (MORNING_PRACTICE_ORDER[a.id] ?? 99) - (MORNING_PRACTICE_ORDER[b.id] ?? 99))
     : pendingNow;
   const pendingNowCount = sortedPendingNow.length;
-  const totalPending = sortedPendingNow.length + pendingAnytime.length + pendingOther.length;
+  const currentSlotSlotsToShow = timeSlot === 'morning' ? ['morning', 'sacred', 'anytime']
+    : timeSlot === 'midday' ? ['midday', 'anytime']
+      : timeSlot === 'evening' ? ['evening', 'anytime']
+        : ['night', 'anytime'];
+  const totalPending = allActiveHabits.filter(h => {
+    const c = h.category ?? 'anytime';
+    const inSlot = currentSlotSlotsToShow.includes(c);
+    if (!inSlot) return false;
+    return !effectiveCompletedIds.has(h.id) && !skippedIds.has(h.id);
+  }).length;
 
 
   const handleComplete = useCallback((id: string) => {
@@ -1134,39 +1143,38 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
             ))}
           </div>
 
-          {/* ── SECTION 4 : Today Habits ────────────────────────────────────── */}
+          {/* ── SECTION 4 : Habits to be Logged ──────────────────────────────── */}
           <div style={{ marginBottom: '1.1rem' }}>
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: "'Outfit', sans-serif" }}>✦ Today Habits</span>
-                {totalPending > 0 && (
-                  <motion.span animate={{ opacity: [1, 0.55, 1] }} transition={{ duration: 2, repeat: Infinity }}
-                    style={{ fontSize: '0.58rem', padding: '0.08rem 0.38rem', borderRadius: 99, background: 'rgba(251,191,36,0.18)', border: '1px solid rgba(251,191,36,0.38)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>
-                    {totalPending} pending
-                  </motion.span>
-                )}
-              </div>
-              <div style={{ display: 'flex', gap: '0.38rem', alignItems: 'center' }}>
-                {engine.adhdMode && totalPending > 3 && (
-                  <button onClick={() => setShowAllHabits(!showAllHabits)}
-                    style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.36)', fontSize: '0.72rem', cursor: 'pointer', fontFamily: "'Outfit', sans-serif" }}>
-                    {showAllHabits ? 'less ↑' : `+${totalPending - 3} more`}
-                  </button>
-                )}
+            {/* Header — mobile-friendly, fully visible even on narrow screens */}
+            <div style={{ marginBottom: '0.6rem' }}>
+              {/* Title row — wraps naturally on mobile */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', minWidth: 0 }}>
+                  <span style={{
+                    fontSize: '0.82rem', fontWeight: 900, color: '#fff',
+                    letterSpacing: '0.04em', fontFamily: "'Outfit', sans-serif",
+                    lineHeight: 1.3, flexShrink: 0,
+                  }}>
+                    ✦ {SlotCfg.emoji} {SlotCfg.label} Habits to be Logged
+                  </span>
+                  {totalPending > 0 && (
+                    <motion.span animate={{ opacity: [1, 0.55, 1] }} transition={{ duration: 2, repeat: Infinity }}
+                      style={{ fontSize: '0.58rem', padding: '0.08rem 0.42rem', borderRadius: 99, background: 'rgba(251,191,36,0.18)', border: '1px solid rgba(251,191,36,0.38)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 700, flexShrink: 0 }}>
+                      {totalPending} pending
+                    </motion.span>
+                  )}
+                </div>
                 <motion.button
                   whileTap={{ scale: 0.9 }}
                   onClick={() => router.push('/lifestyle/ayurvedic-habits')}
-                  style={{ position: 'relative', background: 'linear-gradient(135deg, #7c3aed, #a855f7, #ec4899)', border: 'none', borderRadius: 999, padding: '0.38rem 0.9rem', color: '#fff', fontSize: '0.76rem', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontFamily: "'Outfit', sans-serif", boxShadow: '0 4px 22px rgba(124,58,237,0.5)' }}>
+                  style={{ position: 'relative', background: 'linear-gradient(135deg, #7c3aed, #a855f7, #ec4899)', border: 'none', borderRadius: 999, padding: '0.35rem 0.8rem', color: '#fff', fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontFamily: "'Outfit', sans-serif", boxShadow: '0 4px 22px rgba(124,58,237,0.5)', flexShrink: 0, whiteSpace: 'nowrap' }}>
                   <motion.span
-                    style={{ position: 'absolute', top: -4, right: -4, width: 10, height: 10, borderRadius: '50%', background: '#f97316', border: '1.5px solid rgba(0,0,0,0.4)', display: 'block' }}
+                    style={{ position: 'absolute', top: -4, right: -4, width: 9, height: 9, borderRadius: '50%', background: '#f97316', border: '1.5px solid rgba(0,0,0,0.4)', display: 'block' }}
                     animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
                     transition={{ duration: 1.8, repeat: Infinity }}
                   />
-                  <motion.span animate={{ rotate: [0, 15, -15, 0] }} transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}>
-                    <Bell size={12} fill="white" />
-                  </motion.span>
-                  + Add habits as logs
+                  <Bell size={11} fill="white" />
+                  + Add Habit
                 </motion.button>
               </div>
             </div>
@@ -1175,11 +1183,11 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
             {totalPending > 0 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.32rem', marginBottom: '0.55rem' }}>
                 <motion.span animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.8, repeat: Infinity }} style={{ fontSize: '0.75rem' }}>👆</motion.span>
-                <span style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.36)', fontFamily: "'Outfit', sans-serif", fontStyle: 'italic' }}>Tap to complete · Bodhi celebrates with you</span>
+                <span style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.36)', fontFamily: "'Outfit', sans-serif", fontStyle: 'italic' }}>Tap to log · Bodhi celebrates with you</span>
               </div>
             )}
 
-            {/* ── Unified practices — all time slots ────────────────────────── */}
+            {/* ── Time-aware practices — current slot + anytime only ─────────── */}
             {allActiveHabits.length === 0 ? (
               /* No habits at all */
               <motion.div whileTap={{ scale: 0.98 }} onClick={() => router.push('/lifestyle/habits')}
@@ -1190,69 +1198,88 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
                   <Plus size={12} /> Add your first habit
                 </span>
               </motion.div>
-            ) : totalPending === 0 ? (
-              /* All done celebration */
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-                style={{ textAlign: 'center', padding: '1.2rem 1rem', border: '1px solid rgba(74,222,128,0.28)', borderRadius: 18, background: 'rgba(74,222,128,0.05)' }}>
-                <motion.p animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 2, repeat: Infinity }} style={{ margin: '0 0 0.3rem', fontSize: '1.6rem' }}>✨</motion.p>
-                <p style={{ margin: 0, color: '#4ade80', fontSize: '0.9rem', fontWeight: 700, fontFamily: "'Outfit', sans-serif" }}>All practices complete — beautiful day!</p>
-              </motion.div>
-            ) : (
-              <div>
-                {/* All time slots: morning → midday → evening → night → anytime */}
-                {(['morning', 'midday', 'evening', 'night', 'anytime'] as const).map(slot => {
-                  const slotCfg = TIME_SLOT_CONFIG[slot] ?? TIME_SLOT_CONFIG.anytime;
-                  const SlotIconEl = slotCfg.Icon;
-                  const slotHabits = allActiveHabits.filter(h => {
-                    const c = h.category ?? 'anytime';
-                    if (slot === 'morning') return c === 'morning' || c === 'sacred';
-                    if (slot === 'anytime') return c === 'anytime';
-                    return c === slot;
-                  });
-                  if (slotHabits.length === 0) return null;
-                  const slotPending = slotHabits.filter(h => !effectiveCompletedIds.has(h.id) && !skippedIds.has(h.id));
-                  if (slotPending.length === 0) return null;
-                  const isNowSlot = slot === timeSlot || slot === 'anytime';
-                  const sortedSlotPending = slot === 'morning'
-                    ? [...slotPending].sort((a, b) => (MORNING_PRACTICE_ORDER[a.id] ?? 99) - (MORNING_PRACTICE_ORDER[b.id] ?? 99))
-                    : slotPending;
-                  if (engine.adhdMode && !showAllHabits && !isNowSlot) return null;
-                  return (
-                    <div key={slot} style={{ marginBottom: '0.7rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.42rem' }}>
-                        <div style={{ flex: 1, height: 1, background: isNowSlot ? `${slotCfg.color}40` : 'rgba(255,255,255,0.07)' }} />
-                        <span style={{ fontSize: '0.6rem', fontWeight: 700, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase', color: isNowSlot ? slotCfg.color : 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', gap: 4, padding: '0.1rem 0.45rem', borderRadius: 99, background: isNowSlot ? `${slotCfg.color}14` : 'transparent' }}>
-                          <SlotIconEl size={11} strokeWidth={2.1} style={isNowSlot ? { filter: `drop-shadow(0 0 4px ${slotCfg.color}bb)` } : {}} />
-                          {slotCfg.label} · {slotPending.length} pending
-                        </span>
-                        <div style={{ flex: 1, height: 1, background: isNowSlot ? `${slotCfg.color}40` : 'rgba(255,255,255,0.07)' }} />
-                      </div>
-                      {(engine.adhdMode && !showAllHabits && isNowSlot ? sortedSlotPending.slice(0, 3) : sortedSlotPending).map(habit => (
-                        <HabitRow key={habit.id} habit={habit} isCompleted={false} isSkipped={skippedIds.has(habit.id)}
-                          streak={engine.getHabitStreak(habit.id)} isNow={isNowSlot}
-                          onComplete={() => handleComplete(habit.id)} onSkip={() => engine.skipHabit(habit.id, 'skipped for today')} />
-                      ))}
-                    </div>
-                  );
-                })}
+            ) : (() => {
+              // Only show current time-slot habits + anytime
+              // counter-type habits always show (can log multiple times per day)
+              const slotsToShow: Array<'morning' | 'sacred' | 'midday' | 'evening' | 'night' | 'anytime'> =
+                timeSlot === 'morning' ? ['morning', 'sacred', 'anytime']
+                  : timeSlot === 'midday' ? ['midday', 'anytime']
+                    : timeSlot === 'evening' ? ['evening', 'anytime']
+                      : ['night', 'anytime'];
 
-                {/* ── Daily Check-in — fused log practice ────────────────────── */}
-                {!engine.todayMood && (
-                  <motion.div whileTap={{ scale: 0.97 }} onClick={() => setShowMoodLog(true)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 0, borderRadius: 16, background: 'rgba(168,85,247,0.06)', border: '1.5px dashed rgba(168,85,247,0.28)', marginBottom: '0.48rem', cursor: 'pointer', overflow: 'hidden', position: 'relative' }}>
-                    <div style={{ width: 4, alignSelf: 'stretch', flexShrink: 0, background: 'rgba(168,85,247,0.35)', borderRadius: '16px 0 0 16px' }} />
-                    <div style={{ margin: '0.7rem 0.65rem 0.7rem 0.75rem', width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: 'rgba(168,85,247,0.14)', border: '1.5px solid rgba(168,85,247,0.28)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>💜</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, fontFamily: "'Outfit', sans-serif", color: 'rgba(255,255,255,0.82)' }}>Daily Check-in</p>
-                      <span style={{ fontSize: '0.6rem', padding: '0.1rem 0.42rem', borderRadius: 99, background: 'rgba(168,85,247,0.14)', border: '1px solid rgba(168,85,247,0.3)', color: '#c084fc', fontFamily: "'Outfit', sans-serif", fontWeight: 700, marginTop: 4, display: 'inline-block' }}>Log mood & energy</span>
-                    </div>
-                    <span style={{ paddingRight: '0.75rem', fontSize: '0.65rem', color: 'rgba(168,85,247,0.55)', fontFamily: "'Outfit', sans-serif" }}>+ Log</span>
+              // Filter habits for this time slot
+              const relevantHabits = allActiveHabits.filter(h => {
+                const c = h.category ?? 'anytime';
+                return slotsToShow.includes(c as typeof slotsToShow[0]);
+              });
+
+              // visible = not done OR counter-type (can log multiple times)
+              const visibleHabits = relevantHabits.filter(h => {
+                const isDone = effectiveCompletedIds.has(h.id) || skippedIds.has(h.id);
+                if (!isDone) return true;
+                // counter habits can always be logged again
+                return h.trackingType === 'counter';
+              });
+
+              const sortedVisible = timeSlot === 'morning'
+                ? [...visibleHabits].sort((a, b) => (MORNING_PRACTICE_ORDER[a.id] ?? 99) - (MORNING_PRACTICE_ORDER[b.id] ?? 99))
+                : visibleHabits;
+
+              const truelyPending = visibleHabits.filter(h => !effectiveCompletedIds.has(h.id) && !skippedIds.has(h.id));
+
+              if (sortedVisible.length === 0) {
+                return (
+                  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                    style={{ textAlign: 'center', padding: '1.2rem 1rem', border: '1px solid rgba(74,222,128,0.28)', borderRadius: 18, background: 'rgba(74,222,128,0.05)' }}>
+                    <motion.p animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 2, repeat: Infinity }} style={{ margin: '0 0 0.3rem', fontSize: '1.6rem' }}>✨</motion.p>
+                    <p style={{ margin: 0, color: '#4ade80', fontSize: '0.9rem', fontWeight: 700, fontFamily: "'Outfit', sans-serif" }}>All {SlotCfg.label.toLowerCase()} practices complete!</p>
                   </motion.div>
-                )}
-              </div>
-            )}
+                );
+              }
 
-            {/* ── Completed today ──────────────────────────────────────────── */}
+              return (
+                <div>
+                  {(engine.adhdMode ? sortedVisible.slice(0, showAllHabits ? undefined : 3) : sortedVisible).map(habit => {
+                    const isDone = effectiveCompletedIds.has(habit.id);
+                    const isCounter = habit.trackingType === 'counter';
+                    return (
+                      <HabitRow
+                        key={habit.id}
+                        habit={habit}
+                        isCompleted={isDone && !isCounter}
+                        isSkipped={skippedIds.has(habit.id)}
+                        streak={engine.getHabitStreak(habit.id)}
+                        isNow={true}
+                        onComplete={() => handleComplete(habit.id)}
+                        onSkip={() => engine.skipHabit(habit.id, 'skipped for today')}
+                      />
+                    );
+                  })}
+                  {engine.adhdMode && truelyPending.length > 3 && !showAllHabits && (
+                    <button onClick={() => setShowAllHabits(true)}
+                      style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.36)', fontSize: '0.72rem', cursor: 'pointer', fontFamily: "'Outfit', sans-serif", marginTop: '0.3rem' }}>
+                      +{truelyPending.length - 3} more habits
+                    </button>
+                  )}
+
+                  {/* ── Daily Check-in — fused log practice ────────────────── */}
+                  {!engine.todayMood && (
+                    <motion.div whileTap={{ scale: 0.97 }} onClick={() => setShowMoodLog(true)}
+                      style={{ display: 'flex', alignItems: 'center', gap: 0, borderRadius: 16, background: 'rgba(168,85,247,0.06)', border: '1.5px dashed rgba(168,85,247,0.28)', marginBottom: '0.48rem', cursor: 'pointer', overflow: 'hidden', position: 'relative' }}>
+                      <div style={{ width: 4, alignSelf: 'stretch', flexShrink: 0, background: 'rgba(168,85,247,0.35)', borderRadius: '16px 0 0 16px' }} />
+                      <div style={{ margin: '0.7rem 0.65rem 0.7rem 0.75rem', width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: 'rgba(168,85,247,0.14)', border: '1.5px solid rgba(168,85,247,0.28)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>💜</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, fontFamily: "'Outfit', sans-serif", color: 'rgba(255,255,255,0.82)' }}>Daily Check-in</p>
+                        <span style={{ fontSize: '0.6rem', padding: '0.1rem 0.42rem', borderRadius: 99, background: 'rgba(168,85,247,0.14)', border: '1px solid rgba(168,85,247,0.3)', color: '#c084fc', fontFamily: "'Outfit', sans-serif", fontWeight: 700, marginTop: 4, display: 'inline-block' }}>Log mood & energy</span>
+                      </div>
+                      <span style={{ paddingRight: '0.75rem', fontSize: '0.65rem', color: 'rgba(168,85,247,0.55)', fontFamily: "'Outfit', sans-serif" }}>+ Log</span>
+                    </motion.div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* ── Completed today (collapsible) ─────────────────────────────── */}
             {allDoneHabits.length > 0 && (
               <div style={{ marginTop: '0.7rem' }}>
                 <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCompleted(s => !s)}
@@ -1260,7 +1287,7 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     <CheckCircle2 size={13} style={{ color: '#4ade80' }} />
                     <span style={{ fontSize: '0.72rem', color: '#4ade80', fontWeight: 700, fontFamily: "'Outfit', sans-serif" }}>
-                      {allDoneHabits.length} completed today
+                      {allDoneHabits.length} logged today ✓
                     </span>
                   </div>
                   <ChevronDown size={13} style={{ color: 'rgba(74,222,128,0.5)', transform: showCompleted ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.22s' }} />

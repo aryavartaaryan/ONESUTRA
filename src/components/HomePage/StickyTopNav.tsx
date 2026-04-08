@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, VolumeX, X, Play, Pause, User } from 'lucide-react';
 import { useDailyTasks, type TaskItem } from '@/hooks/useDailyTasks';
+import HomeStoryBar from '@/components/PranaVerse/HomeStoryBar';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { useDoshaEngine } from '@/hooks/useDoshaEngine';
 
@@ -122,104 +123,53 @@ const PRANA_LABEL: Record<string, string> = {
 };
 
 // ── Story data ────────────────────────────────────────────────────────────────
+// ── PranavVerse Stories — shared across home + pranaverse (rectangular cards) ─
 const STORIES = [
-    {
-        id: 'task-planner',
-        type: 'awareness' as const,
-        label: 'Smart',
-        sublabel: 'Planner',
-        preview: '🗓️',
-        ring: 'conic-gradient(from 0deg, #a78bfa, #c4b5fd, #7c3aed, #a78bfa)',
-        color: '#a78bfa',
-        headline: 'Smart Task Planner',
-        description: "OneSUTRA's AI-powered planner aligns your tasks with your body's energy cycles — Dosha-aware scheduling that actually works.",
-        cta: 'Open Planner →',
-        destination: '/vedic-planner',
-        bgGradient: 'linear-gradient(160deg, #080010 0%, #180038 45%, #040010 100%)',
-        accentColor: '#a78bfa',
-    },
-    {
-        id: 'sunset',
-        type: 'video' as const,
-        label: 'Sunset',
-        sublabel: 'Sandhyā',
-        videoSrc: videoUrl('sunset.mp4'),
-        ring: 'conic-gradient(from 0deg, #38bdf8, #0ea5e9, #7dd3fc, #38bdf8)',
-        color: '#fbbf24',
-    },
-    {
-        id: 'acharya-consultation',
-        type: 'awareness' as const,
-        label: 'Gurukul',
-        sublabel: 'Find Guru',
-        preview: '🎓',
-        ring: 'conic-gradient(from 0deg, #22c55e, #4ade80, #86efac, #22c55e)',
-        color: '#4ade80',
-        headline: 'Gurukul — AI + Vedas + Startup',
-        description: 'World\'s Premier Gurukul — teaching AI, Mathematics & Modern Sciences alongside Bhagavat Gita, Upanishads, Sanskrit Vyakaran & Darshan. We also provide Startup Support: ideas, product development & launch.',
-        cta: 'Enter Gurukul →',
-        destination: '/vedic-sangrah',
-        bgGradient: 'linear-gradient(160deg, #001a08 0%, #003818 45%, #000e05 100%)',
-        accentColor: '#4ade80',
-    },
-    {
-        id: 'mantra',
-        type: 'video' as const,
-        label: 'भूरग्नये',
-        sublabel: 'स्वाहा',
-        videoSrc: videoUrl('भूरग्नये स्वाहा.mp4'),
-        ring: 'conic-gradient(from 0deg, #38bdf8, #0ea5e9, #7dd3fc, #38bdf8)',
-        color: '#a78bfa',
-    },
-    {
-        id: 'meditation-dhyan',
-        type: 'awareness' as const,
-        label: 'Meditation',
-        sublabel: 'Dhyan',
-        preview: '🧘',
-        ring: 'conic-gradient(from 0deg, #0ea5e9, #38bdf8, #7dd3fc, #0ea5e9)',
-        color: '#22d3ee',
-        headline: 'Dhyan Kshetra',
-        description: 'Reclaim your inner silence in a world of algorithmic noise. Science-backed meditation sessions, guided breathwork, and ancient Vedic Dhyan practices — available to you every moment.',
-        cta: 'Begin Meditation →',
-        destination: '/dhyan-kshetra',
-        bgGradient: 'linear-gradient(160deg, #001518 0%, #003038 45%, #000810 100%)',
-        accentColor: '#22d3ee',
-    },
-    {
-        id: 'dhyan11',
-        type: 'video' as const,
-        label: 'Dhyan',
-        sublabel: '11',
-        videoSrc: videoUrl('Dhyan11.mp4'),
-        ring: 'conic-gradient(from 0deg, #0ea5e9, #38bdf8, #7dd3fc, #0ea5e9)',
-        color: '#34d399',
-    },
-    {
-        id: 'sandhya-mantra',
-        type: 'video' as const,
-        label: 'Sandhya',
-        sublabel: 'Mantra',
-        videoSrc: videoUrl('SandhyaMantra.mp4'),
-        ring: 'conic-gradient(from 0deg, #38bdf8, #0ea5e9, #7dd3fc, #38bdf8)',
-        color: '#fb923c',
-    },
-    {
-        id: 'swadeshi-marketplace',
-        type: 'awareness' as const,
-        label: 'Swadeshi',
-        sublabel: 'Market',
-        preview: '🛍️',
-        ring: 'conic-gradient(from 0deg, #38bdf8, #0ea5e9, #7dd3fc, #38bdf8)',
-        color: '#f59e0b',
-        headline: 'Swadeshi Marketplace',
-        description: 'Discover authentic handcrafted products from verified Indian sellers — Ayurvedic remedies, Khadi fabrics, organic foods, pooja essentials & more. Support local artisans. Choose Swadeshi.',
-        cta: 'Explore Marketplace →',
-        destination: '/swadesi-product',
-        bgGradient: 'linear-gradient(160deg, #1a0800 0%, #3d1800 45%, #120400 100%)',
-        accentColor: '#f59e0b',
-    },
+    // Dhyan series
+    { id: 'v-dhyan5', type: 'video' as const, label: 'Shakti', sublabel: 'Dhyan', videoSrc: '/Slide%20Videos/Dhyan5.mp4', color: '#fbbf24', ring: 'conic-gradient(from 0deg,#fbbf24,#f59e0b,#fbbf24)' },
+    { id: 'v-dhyan7', type: 'video' as const, label: 'Vayuu', sublabel: 'Dhyan', videoSrc: '/Slide%20Videos/Dhyan7.mp4', color: '#a78bfa', ring: 'conic-gradient(from 0deg,#7c3aed,#a78bfa,#7c3aed)' },
+    { id: 'v-dhyan10', type: 'video' as const, label: 'Bodhi', sublabel: 'Dhyan', videoSrc: '/Slide%20Videos/Dhyan10.mp4', color: '#4ade80', ring: 'conic-gradient(from 0deg,#22c55e,#4ade80,#22c55e)' },
+    { id: 'v-dhyan11', type: 'video' as const, label: 'Ananda', sublabel: 'Dhyan', videoSrc: '/Slide%20Videos/Dhyan11.mp4', color: '#e879f9', ring: 'conic-gradient(from 0deg,#d946ef,#e879f9,#d946ef)' },
+    // Sacred mountains
+    { id: 'v-kedar', type: 'video' as const, label: 'Kedar', sublabel: 'Tirtha', videoSrc: '/Slide%20Videos/Kedar.mp4', color: '#60a5fa', ring: 'conic-gradient(from 0deg,#3b82f6,#60a5fa,#3b82f6)' },
+    { id: 'v-shiva', type: 'video' as const, label: 'Shiva', sublabel: 'Mahadev', videoSrc: '/Slide%20Videos/Shiva.mp4', color: '#c084fc', ring: 'conic-gradient(from 0deg,#9333ea,#c084fc,#9333ea)' },
+    { id: 'v-kailash10', type: 'video' as const, label: 'Kailash', sublabel: 'Peaks', videoSrc: '/Slide%20Videos/kailash10.mp4', color: '#93c5fd', ring: 'conic-gradient(from 0deg,#60a5fa,#93c5fd,#60a5fa)' },
+    { id: 'v-kailash11', type: 'video' as const, label: 'Himalaya', sublabel: 'Peaks', videoSrc: '/Slide%20Videos/kailash11.mp4', color: '#bae6fd', ring: 'conic-gradient(from 0deg,#0284c7,#bae6fd,#0284c7)' },
+    { id: 'v-kailash2', type: 'video' as const, label: 'Mansarovar', sublabel: 'Lake', videoSrc: '/Slide%20Videos/kailash2.mp4', color: '#38bdf8', ring: 'conic-gradient(from 0deg,#0ea5e9,#38bdf8,#0ea5e9)' },
+    { id: 'v-kaolash12', type: 'video' as const, label: 'Shivling', sublabel: 'Dham', videoSrc: '/Slide%20Videos/kaolash12.mp4', color: '#c084fc', ring: 'conic-gradient(from 0deg,#9333ea,#c084fc,#9333ea)' },
+    // Sacred rituals
+    { id: 'v-sunset', type: 'video' as const, label: 'Sandhya', sublabel: 'Sunset', videoSrc: '/Slide%20Videos/sunset.mp4', color: '#fb923c', ring: 'conic-gradient(from 0deg,#f97316,#fb923c,#f97316)' },
+    { id: 'v-bhuragni', type: 'video' as const, label: 'Agni', sublabel: 'Mantra', videoSrc: '/Slide%20Videos/%E0%A4%AD%E0%A5%82%E0%A4%B0%E0%A4%97%E0%A5%8D%E0%A4%A8%E0%A4%AF%E0%A5%87%20%E0%A4%B8%E0%A5%8D%E0%A4%B5%E0%A4%BE%E0%A4%B9%E0%A4%BE.mp4', color: '#ef4444', ring: 'conic-gradient(from 0deg,#dc2626,#ef4444,#dc2626)' },
+    { id: 'v-om-namah', type: 'video' as const, label: 'Om Shiva', sublabel: 'Darshan', videoSrc: '/Slide%20Videos/Om%20Namah%20Shivaay%F0%9F%99%8F%F0%9F%8F%BB%F0%9F%9B%95...%F0%9F%93%8D%F0%9F%93%8C%20Timbersaim%20Mahadev%20(%20Chota%20Kailash%20)%20..%23temple%20%23shiv%20%23shiva%20%23mahad.mp4', color: '#f9a8d4', ring: 'conic-gradient(from 0deg,#db2777,#f9a8d4,#db2777)' },
+    { id: 'v-sriyantra', type: 'video' as const, label: 'Sri Yantra', sublabel: 'Sacred', videoSrc: '/Slide%20Videos/%F0%9F%94%B1%20%E0%A4%B6%E0%A5%8D%E0%A4%B0%E0%A5%80%20%E0%A4%AF%E0%A4%82%E0%A4%A4%E0%A5%8D%E0%A4%B0%20%E2%80%94%20%E0%A4%B8%E0%A4%BF%E0%A4%B0%E0%A5%8D%E0%A4%AB%20%E0%A4%8F%E0%A4%95%20%E0%A4%AA%E0%A5%8D%E0%A4%B0%E0%A4%A4%E0%A5%80%E0%A4%95%20%E0%A4%A8%E0%A4%B9%E0%A5%80%E0%A4%82%E2%80%A6%E0%A4%AF%E0%A5%87%20%E0%A4%B9%E0%A5%88%20%E0%A4%9A%E0%A5%87%E0%A4%A4%E0%A4%A8%E0%A4%BE%20%E0%A4%95%E0%A4%BE%20Blueprint%E0%A5%A14%20%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%BF%E0%A4%95%E0%A5%8B%E0%A4%A3%20%E2%80%94%20%E0%A4%B6%E0%A4%BF%E0%A4%B5%E0%A5%A45%20%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A4%BF%E0%A4%95%E0%A5%8B%E0%A4%A3%20%E2%80%94%20%E0%A4%B6%E0%A4%95%E0%A5%8D%E0%A4%A4%E0%A4%BF%E0%A5%A4.mp4', color: '#fbbf24', ring: 'conic-gradient(from 0deg,#d97706,#fbbf24,#d97706)' },
+    // Sacred moments
+    { id: 'v-sacred1', type: 'video' as const, label: 'Sacred', sublabel: 'Moment', videoSrc: '/Slide%20Videos/SaveClip.App_AQNNfA3VTBjMRS0DKZ2tv3-vhevWxwrMPZKhPI1H9xoLpaHrHIJx3ci5R1abFzFby8aZYL9-YQ5vxtaHUmwHUzuh.mp4', color: '#34d399', ring: 'conic-gradient(from 0deg,#10b981,#34d399,#10b981)' },
+    { id: 'v-sacred2', type: 'video' as const, label: 'Darshan', sublabel: 'Divine', videoSrc: '/Slide%20Videos/SaveClip.App_AQO00LBqdJg_L4Nm4P8HiJPBZYaOlGFEgj32vsgzjb3hcuQ0xDkNYBSDdt7nymEfx9ATsU9C-A_Dcr0eSO5ZVDT0g9jiaWlZ3OpxDAI.mp4', color: '#818cf8', ring: 'conic-gradient(from 0deg,#6366f1,#818cf8,#6366f1)' },
+    { id: 'v-sacred3', type: 'video' as const, label: 'Bhakti', sublabel: 'Devotion', videoSrc: '/Slide%20Videos/SaveClip.App_AQP8N4Skw0SXoFQ7nc9oyvI7KrnvzlivBE6xiEhoNFv-pNRCjmdED51KsXE3jxoDmGBwhbCCd-jS16GMLLWwlHBi.mp4', color: '#fde68a', ring: 'conic-gradient(from 0deg,#fbbf24,#fde68a,#fbbf24)' },
+    { id: 'v-sacred4', type: 'video' as const, label: 'Aarti', sublabel: 'Sacred', videoSrc: '/Slide%20Videos/SaveClip.App_AQP9f7S1Rp42JmgD6FCdl2L7_ym9OeWZ8FJt6Qc0fjXcyoCNqU6QxXZzLiTjT-5v2-16R1mzx0VAsRzyVhf-vfybov5XARoPy6RCRP4.mp4', color: '#f97316', ring: 'conic-gradient(from 0deg,#ea580c,#f97316,#ea580c)' },
 ] as const;
+
+// Video thumbnail map for story cards
+const PRANA_VIDEO_THUMBS: Record<string, string> = {
+    'v-dhyan5': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=700&fit=crop&q=80',
+    'v-dhyan7': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=700&fit=crop&q=80',
+    'v-dhyan10': 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=700&fit=crop&q=80',
+    'v-dhyan11': 'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400&h=700&fit=crop&q=80',
+    'v-kedar': 'https://images.unsplash.com/photo-1455156218388-5e61b526818b?w=400&h=700&fit=crop&q=80',
+    'v-shiva': 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=400&h=700&fit=crop&q=80',
+    'v-kailash10': 'https://images.unsplash.com/photo-1455156218388-5e61b526818b?w=400&h=700&fit=crop&q=80',
+    'v-kailash11': 'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400&h=700&fit=crop&q=80',
+    'v-kailash2': 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400&h=700&fit=crop&q=80',
+    'v-kaolash12': 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=400&h=700&fit=crop&q=80',
+    'v-sunset': 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=400&h=700&fit=crop&q=80',
+    'v-bhuragni': 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&h=700&fit=crop&q=80',
+    'v-om-namah': 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=400&h=700&fit=crop&q=80',
+    'v-sriyantra': 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=400&h=700&fit=crop&q=80',
+    'v-sacred1': 'https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=400&h=700&fit=crop&q=80',
+    'v-sacred2': 'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?w=400&h=700&fit=crop&q=80',
+    'v-sacred3': 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400&h=700&fit=crop&q=80',
+    'v-sacred4': 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=400&h=700&fit=crop&q=80',
+};
 
 // ── User Story Types (Tasks / Challenges / Ideas) ──────────────────────────────
 type UserStoryCategory = 'task' | 'challenge' | 'idea' | 'issue' | 'wellness' | 'log';
@@ -875,12 +825,8 @@ const AWARENESS_IMAGES: Record<string, string> = {
     'task-planner': 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=600&fit=crop&q=80',
     'swadeshi-marketplace': 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=400&h=600&fit=crop&q=80',
 };
-const VIDEO_THUMBS: Record<string, string> = {
-    'sunset': 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=400&h=600&fit=crop&q=80',
-    'mantra': 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=400&h=600&fit=crop&q=80',
-    'dhyan11': 'https://images.unsplash.com/photo-1501630834273-4b5604d2ee31?w=400&h=600&fit=crop&q=80',
-    'sandhya-mantra': 'https://images.unsplash.com/photo-1484627147104-f5197bcd6651?w=400&h=600&fit=crop&q=80',
-};
+// VIDEO_THUMBS now merged into PRANA_VIDEO_THUMBS above — kept as alias for backward compat
+const VIDEO_THUMBS: Record<string, string> = PRANA_VIDEO_THUMBS;
 
 // ── Floating Emoji Reaction Bar (Facebook-style — tap for burst) ─────────────
 interface FloatingEmoji {
@@ -991,14 +937,14 @@ function FloatingReactionBar() {
         </div>
     );
 }
-
 // ── Story Bubble — Large Cinematic Portrait Card ─────────────────────────────
 function StoryBubble({ story, onClick, index = 0 }: { story: typeof STORIES[number]; onClick: () => void; index?: number }) {
     const vidRef = useRef<HTMLVideoElement>(null);
     const isVideo = 'videoSrc' in story;
+    const s = story as any; // all stories are video; awareness path is dead code
     const bgImg = isVideo
-        ? VIDEO_THUMBS[story.id] || 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=400&h=700&fit=crop&q=80'
-        : AWARENESS_IMAGES[story.id] || 'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400&h=700&fit=crop&q=80';
+        ? (PRANA_VIDEO_THUMBS[s.id] || VIDEO_THUMBS[s.id] || 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=400&h=700&fit=crop&q=80')
+        : (AWARENESS_IMAGES[s.id] || 'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400&h=700&fit=crop&q=80');
 
     useEffect(() => {
         const v = vidRef.current;
@@ -1093,16 +1039,16 @@ function StoryBubble({ story, onClick, index = 0 }: { story: typeof STORIES[numb
                     width: 32, height: 32, borderRadius: '50%',
                     background: isVideo
                         ? 'rgba(0,0,0,0.42)'
-                        : `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.55) 0%, ${story.color}55 60%, rgba(0,0,0,0.1) 100%)`,
+                        : `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.55) 0%, ${s.color}55 60%, rgba(0,0,0,0.1) 100%)`,
                     backdropFilter: 'blur(12px)',
                     WebkitBackdropFilter: 'blur(12px)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: `0 3px 14px rgba(0,0,0,0.45), inset 0 1px 2px rgba(255,255,255,0.55), 0 0 14px ${story.color}70`,
+                    boxShadow: `0 3px 14px rgba(0,0,0,0.45), inset 0 1px 2px rgba(255,255,255,0.55), 0 0 14px ${s.color}70`,
                     border: '1.5px solid rgba(255,255,255,0.50)',
                     fontSize: isVideo ? 0 : 14, zIndex: 2,
                 }}
             >
-                {isVideo ? <Play size={13} color="#fff" fill="#fff" /> : story.preview}
+                {isVideo ? <Play size={13} color="#fff" fill="#fff" /> : s.preview}
             </motion.div>
 
             {/* Bottom frosted-glass label */}
@@ -1544,98 +1490,103 @@ function StoryViewer({ story, totalStoryCount, globalIndex, onClose, onPrev, onN
                     </div>
                 </>
             ) : (
-                /* ── AWARENESS CARD ── */
-                <div style={{
-                    position: 'absolute', inset: 0,
-                    background: story.bgGradient,
-                    display: 'flex', flexDirection: 'column',
-                    alignItems: 'center', justifyContent: 'center',
-                    padding: '5rem 2rem 3rem', textAlign: 'center',
-                    overflow: 'hidden',
-                }}>
-                    {/* Ambient glow blobs */}
-                    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+                /* ── AWARENESS CARD (dead code — all stories are now video) ── */
+                (() => {
+                    const s = story as any; // all stories are video; this branch is never reached
+                    return (
                         <div style={{
-                            position: 'absolute', width: 340, height: 340,
-                            background: `radial-gradient(circle, ${story.accentColor}22, transparent 70%)`,
-                            top: '5%', left: '50%', transform: 'translateX(-50%)',
-                            filter: 'blur(55px)',
-                        }} />
-                        <div style={{
-                            position: 'absolute', width: 240, height: 240,
-                            background: `radial-gradient(circle, ${story.accentColor}18, transparent 70%)`,
-                            bottom: '10%', left: '10%', filter: 'blur(40px)',
-                        }} />
-                        <div style={{
-                            position: 'absolute', width: 180, height: 180,
-                            background: `radial-gradient(circle, ${story.accentColor}12, transparent 70%)`,
-                            bottom: '20%', right: '8%', filter: 'blur(30px)',
-                        }} />
-                    </div>
+                            position: 'absolute', inset: 0,
+                            background: s.bgGradient,
+                            display: 'flex', flexDirection: 'column',
+                            alignItems: 'center', justifyContent: 'center',
+                            padding: '5rem 2rem 3rem', textAlign: 'center',
+                            overflow: 'hidden',
+                        }}>
+                            {/* Ambient glow blobs */}
+                            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+                                <div style={{
+                                    position: 'absolute', width: 340, height: 340,
+                                    background: `radial-gradient(circle, ${s.accentColor}22, transparent 70%)`,
+                                    top: '5%', left: '50%', transform: 'translateX(-50%)',
+                                    filter: 'blur(55px)',
+                                }} />
+                                <div style={{
+                                    position: 'absolute', width: 240, height: 240,
+                                    background: `radial-gradient(circle, ${s.accentColor}18, transparent 70%)`,
+                                    bottom: '10%', left: '10%', filter: 'blur(40px)',
+                                }} />
+                                <div style={{
+                                    position: 'absolute', width: 180, height: 180,
+                                    background: `radial-gradient(circle, ${s.accentColor}12, transparent 70%)`,
+                                    bottom: '20%', right: '8%', filter: 'blur(30px)',
+                                }} />
+                            </div>
 
-                    {/* Floating emoji icon */}
-                    <motion.div
-                        animate={{ scale: [1, 1.1, 1], y: [0, -10, 0] }}
-                        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                        style={{
-                            fontSize: 'clamp(3.5rem, 10vw, 5rem)',
-                            marginBottom: '1.6rem',
-                            position: 'relative', zIndex: 1,
-                            filter: `drop-shadow(0 0 24px ${story.accentColor}80)`,
-                        }}
-                    >
-                        {story.preview}
-                    </motion.div>
+                            {/* Floating emoji icon */}
+                            <motion.div
+                                animate={{ scale: [1, 1.1, 1], y: [0, -10, 0] }}
+                                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                                style={{
+                                    fontSize: 'clamp(3.5rem, 10vw, 5rem)',
+                                    marginBottom: '1.6rem',
+                                    position: 'relative', zIndex: 1,
+                                    filter: `drop-shadow(0 0 24px ${s.accentColor}80)`,
+                                }}
+                            >
+                                {s.preview}
+                            </motion.div>
 
-                    {/* Headline */}
-                    <h2 style={{
-                        fontSize: 'clamp(1.7rem, 6vw, 2.8rem)', fontWeight: 800,
-                        color: '#fff', margin: '0 0 1rem',
-                        fontFamily: "'Playfair Display', Georgia, serif",
-                        lineHeight: 1.12, position: 'relative', zIndex: 1,
-                        textShadow: `0 0 48px ${story.accentColor}60`,
-                        letterSpacing: '-0.01em',
-                    }}>{story.headline}</h2>
+                            {/* Headline */}
+                            <h2 style={{
+                                fontSize: 'clamp(1.7rem, 6vw, 2.8rem)', fontWeight: 800,
+                                color: '#fff', margin: '0 0 1rem',
+                                fontFamily: "'Playfair Display', Georgia, serif",
+                                lineHeight: 1.12, position: 'relative', zIndex: 1,
+                                textShadow: `0 0 48px ${s.accentColor}60`,
+                                letterSpacing: '-0.01em',
+                            }}>{s.headline}</h2>
 
-                    {/* Thin accent divider */}
-                    <div style={{
-                        width: 48, height: 2, borderRadius: 2,
-                        background: story.accentColor,
-                        marginBottom: '1.2rem',
-                        boxShadow: `0 0 12px ${story.accentColor}80`,
-                        position: 'relative', zIndex: 1,
-                    }} />
+                            {/* Thin accent divider */}
+                            <div style={{
+                                width: 48, height: 2, borderRadius: 2,
+                                background: s.accentColor,
+                                marginBottom: '1.2rem',
+                                boxShadow: `0 0 12px ${s.accentColor}80`,
+                                position: 'relative', zIndex: 1,
+                            }} />
 
-                    {/* Description */}
-                    <p style={{
-                        fontSize: 'clamp(0.9rem, 2.8vw, 1.05rem)',
-                        color: 'rgba(255,255,255,0.68)',
-                        lineHeight: 1.8, maxWidth: '300px',
-                        margin: '0 0 2.8rem',
-                        position: 'relative', zIndex: 1,
-                        fontWeight: 300, letterSpacing: '0.012em',
-                    }}>{story.description}</p>
+                            {/* Description */}
+                            <p style={{
+                                fontSize: 'clamp(0.9rem, 2.8vw, 1.05rem)',
+                                color: 'rgba(255,255,255,0.68)',
+                                lineHeight: 1.8, maxWidth: '300px',
+                                margin: '0 0 2.8rem',
+                                position: 'relative', zIndex: 1,
+                                fontWeight: 300, letterSpacing: '0.012em',
+                            }}>{s.description}</p>
 
-                    {/* ── Elegant CTA Button ── */}
-                    <motion.button
-                        onClick={e => { e.stopPropagation(); router.push(story.destination); onClose(); }}
-                        whileHover={{ scale: 1.06, boxShadow: `0 8px 40px ${story.accentColor}60` }}
-                        whileTap={{ scale: 0.96 }}
-                        style={{
-                            padding: '0.95rem 2.4rem',
-                            background: `linear-gradient(135deg, ${story.accentColor}ee 0%, ${story.accentColor}99 100%)`,
-                            border: `1.5px solid ${story.accentColor}`,
-                            borderRadius: 50,
-                            color: '#fff', fontSize: '1rem', fontWeight: 700,
-                            cursor: 'pointer', position: 'relative', zIndex: 10,
-                            backdropFilter: 'blur(14px)',
-                            boxShadow: `0 6px 32px ${story.accentColor}44, inset 0 1px 0 rgba(255,255,255,0.24)`,
-                            letterSpacing: '0.04em',
-                            fontFamily: "'Inter', system-ui, sans-serif",
-                            textShadow: '0 1px 4px rgba(0,0,0,0.3)',
-                        }}
-                    >{story.cta}</motion.button>
-                </div>
+                            {/* ── Elegant CTA Button ── */}
+                            <motion.button
+                                onClick={e => { e.stopPropagation(); router.push(s.destination); onClose(); }}
+                                whileHover={{ scale: 1.06, boxShadow: `0 8px 40px ${s.accentColor}60` }}
+                                whileTap={{ scale: 0.96 }}
+                                style={{
+                                    padding: '0.95rem 2.4rem',
+                                    background: `linear-gradient(135deg, ${s.accentColor}ee 0%, ${s.accentColor}99 100%)`,
+                                    border: `1.5px solid ${s.accentColor}`,
+                                    borderRadius: 50,
+                                    color: '#fff', fontSize: '1rem', fontWeight: 700,
+                                    cursor: 'pointer', position: 'relative', zIndex: 10,
+                                    backdropFilter: 'blur(14px)',
+                                    boxShadow: `0 6px 32px ${s.accentColor}44, inset 0 1px 0 rgba(255,255,255,0.24)`,
+                                    letterSpacing: '0.04em',
+                                    fontFamily: "'Inter', system-ui, sans-serif",
+                                    textShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                                }}
+                            >{s.cta}</motion.button>
+                        </div>
+                    );
+                })()
             )}
 
             {/* ── Progress bars ── */}
@@ -2077,66 +2028,17 @@ export default function StickyTopNav() {
 
             </header>
 
-            {/* ── STORY BAR TITLE ── */}
-            <div style={{
-                padding: '0.3rem 0.85rem 0.12rem',
-                background: 'transparent',
-            }}>
+            {/* ── STORY BAR: Full PranaVerse story system in rectangular card mode ── */}
+            <div style={{ padding: '0.3rem 0 0.12rem', background: 'transparent' }}>
                 <h2 style={{
-                    margin: 0,
-                    fontSize: '0.95rem',
-                    fontWeight: 700,
-                    color: 'rgba(255, 255, 255, 0.95)',
+                    margin: '0 0 0 0.85rem',
+                    fontSize: '0.95rem', fontWeight: 700,
+                    color: 'rgba(255,255,255,0.95)',
                     fontFamily: "'Playfair Display', Georgia, serif",
-                    letterSpacing: '-0.01em',
-                    textShadow: '0 2px 8px rgba(0,0,0,0.4)',
-                }}>
-                    Watch the stories and amplify your life.✨
-                </h2>
+                    letterSpacing: '-0.01em', textShadow: '0 2px 8px rgba(0,0,0,0.4)',
+                }}>Watch the stories and amplify your life.✨</h2>
             </div>
-            {/* ── STORY BAR: in page flow — renders below the unified glass card — scrolls naturally ── */}
-            <div
-                className="os-stories-row"
-                style={{
-                    display: 'flex', flexDirection: 'row', alignItems: 'flex-start',
-                    gap: 8, padding: '4px 0.85rem 6px',
-                    overflowX: 'auto', overflowY: 'visible',
-                    scrollbarWidth: 'none',
-                    WebkitOverflowScrolling: 'touch',
-                    scrollSnapType: 'x proximity',
-                    overscrollBehaviorX: 'contain',
-                    touchAction: 'pan-x',
-                    WebkitTapHighlightColor: 'transparent',
-                    transform: 'translateZ(0)',
-                    willChange: 'scroll-position',
-                    background: 'transparent',
-                    backdropFilter: 'none',
-                    WebkitBackdropFilter: 'none',
-                    borderBottom: 'none',
-                    boxShadow: 'none',
-                }}
-            >
-                <CosmicDateBubble onClick={openCosmicStory} />
-                {prakritiLabel && (
-                    <PrakritiStoryBubble prakritiLabel={prakritiLabel} onClick={openPrakritiStory} />
-                )}
-                <div style={{ width: 1, height: 64, background: 'rgba(251,191,36,0.22)', alignSelf: 'center', flexShrink: 0, borderRadius: 1 }} />
-                {groupedCategories.map((cat, i) => (
-                    <CategoryGroupBubble
-                        key={cat}
-                        category={cat}
-                        stories={userStories.filter(s => s.category === cat)}
-                        onOpen={() => openUserStory(userStories.findIndex(s => s.category === cat))}
-                        index={i}
-                    />
-                ))}
-                {groupedCategories.length > 0 && (
-                    <div style={{ width: 1, height: 64, background: 'rgba(255,255,255,0.10)', alignSelf: 'center', flexShrink: 0, borderRadius: 1 }} />
-                )}
-                {STORIES.map((story, i) => (
-                    <StoryBubble key={story.id} story={story} index={i} onClick={() => openStory(i)} />
-                ))}
-            </div>
+            <HomeStoryBar rectangular />
 
 
             {isMounted && createPortal(

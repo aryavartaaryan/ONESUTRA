@@ -1847,8 +1847,70 @@ function MantraStoryViewer({
     );
 }
 
+// ── RectStoryCard — portrait 124×156 card for home-page rectangular story bar ──────────────
+function RectStoryCard({
+    icon, label, sublabel, color, ring, thumbBg, videoSrc, index = 0, isViewed, onClick,
+}: {
+    icon: string; label: string; sublabel: string; color: string; ring: string;
+    thumbBg: string; videoSrc?: string; index?: number; isViewed?: boolean; onClick: () => void;
+}) {
+    const vidRef = React.useRef<HTMLVideoElement>(null);
+    React.useEffect(() => { const v = vidRef.current; if (v && videoSrc) { v.currentTime = 0.5; } }, [videoSrc]);
+
+    return (
+        <motion.button
+            onClick={onClick}
+            whileTap={{ scale: 0.94 }}
+            whileHover={{ scale: 1.05, y: -6, transition: { duration: 0.18 } }}
+            initial={{ opacity: 0, scale: 0.72, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20, delay: index * 0.04 }}
+            style={{
+                flexShrink: 0, width: 114, height: 148,
+                background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                position: 'relative', borderRadius: 18, overflow: 'hidden',
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                scrollSnapAlign: 'start', transform: 'translateZ(0)', willChange: 'transform',
+                filter: isViewed ? 'brightness(0.55) saturate(0.5)' : 'none',
+            }}
+        >
+            {/* Background image */}
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${thumbBg})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: 18 }} />
+            {/* Video overlay */}
+            {videoSrc && (
+                <video ref={vidRef} src={videoSrc} muted playsInline preload="metadata" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: 18 }} />
+            )}
+            {/* Dark gradient */}
+            <div style={{ position: 'absolute', inset: 0, borderRadius: 18, background: `linear-gradient(180deg,${color}22 0%,rgba(0,0,0,0) 28%,rgba(0,0,0,0.12) 52%,rgba(0,0,0,0.65) 80%,rgba(0,0,0,0.90) 100%)` }} />
+            {/* Pulsing ring glow */}
+            <motion.div
+                animate={{ opacity: isViewed ? [0.2] : [0.4, 0.9, 0.4] }}
+                transition={{ duration: 2.8 + index * 0.22, repeat: Infinity }}
+                style={{ position: 'absolute', inset: -2, borderRadius: 20, boxShadow: `0 0 0 2px ${color}88, 0 0 28px ${color}60`, pointerEvents: 'none' }}
+            />
+            {/* Glass inner ring */}
+            <div style={{ position: 'absolute', inset: 0, borderRadius: 18, boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,0.44)', pointerEvents: 'none' }} />
+            {/* Top glare */}
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '32%', borderRadius: '18px 18px 60% 60%', background: 'linear-gradient(180deg,rgba(255,255,255,0.28) 0%,rgba(255,255,255,0.06) 55%,transparent 100%)', pointerEvents: 'none' }} />
+            {/* Icon badge */}
+            <motion.div
+                animate={{ scale: [1, 1.1, 1], y: [0, -2, 0] }}
+                transition={{ duration: 3.2 + index * 0.35, repeat: Infinity }}
+                style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', width: 30, height: 30, borderRadius: '50%', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: videoSrc ? 0 : 13, boxShadow: `0 0 12px ${color}70`, border: '1.5px solid rgba(255,255,255,0.44)', zIndex: 2 }}
+            >
+                {videoSrc ? <span style={{ fontSize: 11, color: '#fff' }}>▶</span> : icon}
+            </motion.div>
+            {/* Label */}
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '6px 6px 9px', background: 'rgba(0,0,0,0.42)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', borderTop: `1px solid ${color}35`, zIndex: 3 }}>
+                <div style={{ fontSize: '0.43rem', fontWeight: 800, letterSpacing: '0.13em', textTransform: 'uppercase', color, textShadow: `0 0 8px ${color}90`, lineHeight: 1.2, marginBottom: 2 }}>{sublabel}</div>
+                <div style={{ fontSize: '0.50rem', fontWeight: 600, color: 'rgba(255,255,255,0.92)', lineHeight: 1.25, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{label}</div>
+            </div>
+        </motion.button>
+    );
+}
+
 // ── Main HomeStoryBar ─────────────────────────────────────────────────────────
-export default function HomeStoryBar() {
+export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } = {}) {
 
     const getImg = useTimeImages();
     const [viewedIds, setViewedIds] = useState<Set<string>>(new Set());
@@ -2028,81 +2090,79 @@ export default function HomeStoryBar() {
             `}</style>
 
             <div className="pvStoryBarScroll" style={{
-                display: 'flex', gap: '0.65rem',
-                padding: '0.75rem 0.85rem 0.65rem',
+                display: 'flex', gap: rectangular ? '8px' : '0.65rem',
+                padding: rectangular ? '4px 0.85rem 6px' : '0.75rem 0.85rem 0.65rem',
                 overflowX: 'auto', scrollbarWidth: 'none',
-                /* iOS momentum scroll */
                 WebkitOverflowScrolling: 'touch',
-                /* Snap but proximity so drag feels natural – NOT 'smooth' (that causes lag) */
                 scrollSnapType: 'x mandatory',
-                /* GPU layer on the scroll container */
                 transform: 'translateZ(0)',
                 willChange: 'scroll-position',
-                /* CRITICAL: tell browser this element only handles horizontal pan.
-                 * Eliminates vertical-scroll hijack that causes jank on mobile. */
                 touchAction: 'pan-x',
-                /* No rubber-band snap at the edges – kills the flicker */
                 overscrollBehaviorX: 'contain',
-                /* Remove tap flash on iOS/Android */
                 WebkitTapHighlightColor: 'transparent',
-                background: 'linear-gradient(180deg,rgba(0,0,0,0.94) 0%,rgba(0,0,0,0.6) 100%)',
-                backdropFilter: 'blur(20px)',
-                borderBottom: '1px solid rgba(251,191,36,0.06)',
+                background: rectangular ? 'transparent' : 'linear-gradient(180deg,rgba(0,0,0,0.94) 0%,rgba(0,0,0,0.6) 100%)',
+                backdropFilter: rectangular ? 'none' : 'blur(20px)',
+                borderBottom: rectangular ? 'none' : '1px solid rgba(251,191,36,0.06)',
                 flexShrink: 0, alignItems: 'flex-start',
-                visibility: isAnyViewerOpen ? 'hidden' : 'visible',
+                visibility: 'visible',
                 pointerEvents: isAnyViewerOpen ? 'none' : 'auto',
+                scrollBehavior: 'smooth',
             }}>
-                {/* "Add Story" */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', flexShrink: 0, scrollSnapAlign: 'start', scrollSnapStop: 'always' }}>
-                    <div style={{ width: 86, height: 86, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', border: '1.5px dashed rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', cursor: 'pointer' }}>+</div>
-                    <span style={{ fontSize: '0.48rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.04em' }}>Your Story</span>
-                </div>
+                {/* "Add Story" button — only shown in circular mode */}
+                {!rectangular && (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', flexShrink: 0, scrollSnapAlign: 'start', scrollSnapStop: 'always' }}>
+                        <div style={{ width: 86, height: 86, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', border: '1.5px dashed rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', cursor: 'pointer' }}>+</div>
+                        <span style={{ fontSize: '0.48rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.04em' }}>Your Story</span>
+                    </div>
+                )}
 
                 {/* ── USER TASK STORIES: ONE grouped card per category ── */}
                 {(['task', 'challenge', 'idea', 'issue', 'wellness'] as const).map((cat, i) => {
                     const catStories = userTaskStories.filter(s => s.category === cat);
                     if (catStories.length === 0) return null;
-                    return (
+                    const catInfo: Record<string, { icon: string; color: string; label: string; thumb: string }> = {
+                        task: { icon: '📋', color: '#60a5fa', label: 'Tasks', thumb: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=450&fit=crop&q=80' },
+                        challenge: { icon: '⚡', color: '#fbbf24', label: 'Challenges', thumb: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=300&h=450&fit=crop&q=80' },
+                        idea: { icon: '💡', color: '#e879f9', label: 'Ideas', thumb: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=300&h=450&fit=crop&q=80' },
+                        issue: { icon: '🔧', color: '#f87171', label: 'Issues', thumb: 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=300&h=450&fit=crop&q=80' },
+                        wellness: { icon: '🌿', color: '#4ade80', label: 'Wellness', thumb: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&h=450&fit=crop&q=80' },
+                    };
+                    const inf = catInfo[cat];
+                    return rectangular ? (
+                        <RectStoryCard key={cat} icon={inf.icon} label={`${catStories.length} ${inf.label}`} sublabel="My Story" color={inf.color} ring={`conic-gradient(${inf.color},#fbbf24,${inf.color})`} thumbBg={inf.thumb} index={i} isViewed={catStories.every(s => viewedIds.has(s.id))} onClick={() => openUserTask(userTaskStories.findIndex(s => s.category === cat))} />
+                    ) : (
                         <div key={cat} style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always', flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
-                            <UserCategoryGroupBubble
-                                category={cat}
-                                stories={catStories}
-                                onOpen={() => openUserTask(userTaskStories.findIndex(s => s.category === cat))}
-                                isViewed={catStories.every(s => viewedIds.has(s.id))}
-                                idx={i}
-                            />
+                            <UserCategoryGroupBubble category={cat} stories={catStories} onOpen={() => openUserTask(userTaskStories.findIndex(s => s.category === cat))} isViewed={catStories.every(s => viewedIds.has(s.id))} idx={i} />
                         </div>
                     );
                 })}
 
                 {/* ── LOG STORIES: completed habits today ── */}
                 {logStories.length > 0 && (
-                    <>
-                        {userTaskStories.length > 0 && (
-                            <div style={{ width: 1, height: 48, background: 'rgba(96,165,250,0.2)', flexShrink: 0, alignSelf: 'center' }} />
-                        )}
-                        <div style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always', flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
-                            <UserCategoryGroupBubble
-                                category="log"
-                                stories={logStories}
-                                onOpen={() => { setActiveLogIdx(0); setViewedIds(v => new Set([...v, logStories[0]?.id ?? ''])); }}
-                                isViewed={logStories.every(s => viewedIds.has(s.id))}
-                                idx={99}
-                            />
-                        </div>
-                    </>
+                    rectangular ? (
+                        <RectStoryCard icon="📓" label={`${logStories.length} Logged`} sublabel="Today's Log" color="#4ade80" ring="conic-gradient(#4ade80,#fbbf24,#4ade80)" thumbBg="https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=300&h=450&fit=crop&q=80" index={99} isViewed={logStories.every(s => viewedIds.has(s.id))} onClick={() => { setActiveLogIdx(0); setViewedIds(v => new Set([...v, logStories[0]?.id ?? ''])); }} />
+                    ) : (
+                        <>
+                            {userTaskStories.length > 0 && <div style={{ width: 1, height: 48, background: 'rgba(96,165,250,0.2)', flexShrink: 0, alignSelf: 'center' }} />}
+                            <div style={{ scrollSnapAlign: 'start', flexShrink: 0 }}>
+                                <UserCategoryGroupBubble category="log" stories={logStories} onOpen={() => { setActiveLogIdx(0); setViewedIds(v => new Set([...v, logStories[0]?.id ?? ''])); }} isViewed={logStories.every(s => viewedIds.has(s.id))} idx={99} />
+                            </div>
+                        </>
+                    )
                 )}
 
-                {/* Divider between user/log stories and cosmic/mantra stories */}
-                {(userTaskStories.length > 0 || logStories.length > 0) && (
+                {/* Divider between user/log stories and cosmic/mantra stories — circles only */}
+                {!rectangular && (userTaskStories.length > 0 || logStories.length > 0) && (
                     <div style={{ width: 1, height: 58, background: 'rgba(251,191,36,0.18)', flexShrink: 0, alignSelf: 'center' }} />
                 )}
 
-                {/* ── IMAGE STORY BUBBLES (Cosmic Date, Mantras, Wisdom, Portals) ── */}
+                {/* ── IMAGE STORY BUBBLES (Cosmic Date, Prakriti, Mood, Wisdom, Portals, Gurukul) ── */}
                 {imageGroups.map((group, idx) => {
                     const isViewed = viewedIds.has(group.id);
                     const bgImg = group.slides[0]?.bg ?? '';
-                    return (
+                    return rectangular ? (
+                        <RectStoryCard key={group.id} icon={group.icon} label={group.label} sublabel={group.slides.length > 1 ? `${group.slides.length} slides` : 'Story'} color={group.color} ring={`conic-gradient(${group.ringColors[0]},#fde68a,${group.ringColors[1]})`} thumbBg={bgImg} index={idx} isViewed={isViewed} onClick={() => openImageGroup(idx)} />
+                    ) : (
                         <motion.div
                             key={group.id}
                             initial={{ opacity: 0, scale: 0.7, y: 10 }}
@@ -2110,25 +2170,10 @@ export default function HomeStoryBar() {
                             transition={{ delay: idx * 0.04, type: 'spring', stiffness: 280, damping: 20 }}
                             whileTap={{ scale: 0.91 }}
                             onClick={() => openImageGroup(idx)}
-                            style={{
-                                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem',
-                                flexShrink: 0, cursor: 'pointer', scrollSnapAlign: 'start', scrollSnapStop: 'always',
-                                animation: isViewed ? 'none' : `storyBubbleFloat ${3.5 + idx * 0.4}s ease-in-out ${idx * 0.15}s infinite`,
-                            }}
+                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', flexShrink: 0, cursor: 'pointer', scrollSnapAlign: 'start', scrollSnapStop: 'always', animation: isViewed ? 'none' : `storyBubbleFloat ${3.5 + idx * 0.4}s ease-in-out ${idx * 0.15}s infinite` }}
                         >
-                            <div style={{
-                                width: 86, height: 86, borderRadius: '50%', padding: 3,
-                                background: isViewed
-                                    ? 'rgba(255,255,255,0.08)'
-                                    : `conic-gradient(${group.ringColors[0]} 0deg, #fde68a 90deg, ${group.ringColors[1]} 180deg, #fde68a 270deg, ${group.ringColors[0]} 360deg)`,
-                                animation: isViewed ? 'none' : `videoRingPulse ${2.6 + idx * 0.28}s ease-in-out ${idx * 0.22}s infinite, videoShimmer ${3.2 + idx * 0.2}s ease-in-out ${idx * 0.18}s infinite`,
-                                flexShrink: 0, position: 'relative',
-                            }}>
-                                <div style={{
-                                    width: '100%', height: '100%', borderRadius: '50%',
-                                    border: '2.5px solid #000', overflow: 'hidden', position: 'relative',
-                                    filter: isViewed ? 'grayscale(0.6) brightness(0.55)' : 'none',
-                                }}>
+                            <div style={{ width: 86, height: 86, borderRadius: '50%', padding: 3, background: isViewed ? 'rgba(255,255,255,0.08)' : `conic-gradient(${group.ringColors[0]} 0deg, #fde68a 90deg, ${group.ringColors[1]} 180deg, #fde68a 270deg, ${group.ringColors[0]} 360deg)`, animation: isViewed ? 'none' : `videoRingPulse ${2.6 + idx * 0.28}s ease-in-out ${idx * 0.22}s infinite, videoShimmer ${3.2 + idx * 0.2}s ease-in-out ${idx * 0.18}s infinite`, flexShrink: 0, position: 'relative' }}>
+                                <div style={{ width: '100%', height: '100%', borderRadius: '50%', border: '2.5px solid #000', overflow: 'hidden', position: 'relative', filter: isViewed ? 'grayscale(0.6) brightness(0.55)' : 'none' }}>
                                     <img src={bgImg} alt={group.label} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', filter: 'brightness(0.78) saturate(1.3)' }} />
                                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 25%, rgba(0,0,0,0.58) 100%)' }} />
                                     <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at 50% 40%, ${group.color}44 0%, transparent 72%)` }} />
@@ -2142,13 +2187,15 @@ export default function HomeStoryBar() {
                     );
                 })}
 
-                {/* Divider between image stories and mantra stories */}
-                <div style={{ width: 1, height: 58, background: 'rgba(192,132,252,0.22)', flexShrink: 0, alignSelf: 'center' }} />
+                {/* Divider between image stories and mantra stories — circles only */}
+                {!rectangular && <div style={{ width: 1, height: 58, background: 'rgba(192,132,252,0.22)', flexShrink: 0, alignSelf: 'center' }} />}
 
                 {/* ── MANTRA STORY BUBBLES — Fused with sacred images ───────────────── */}
                 {MANTRA_REELS.map((reel, idx) => {
                     const isViewed = viewedIds.has(`mantra-${reel.id}`);
-                    return (
+                    return rectangular ? (
+                        <RectStoryCard key={reel.id} icon={reel.emoji} label={reel.name.split(' ').slice(0, 3).join(' ')} sublabel="Mantra" color={reel.color} ring={`conic-gradient(${reel.color},${reel.secondColor},${reel.color})`} thumbBg={reel.imageBg} index={idx} isViewed={isViewed} onClick={() => setActiveMantraIdx(idx)} />
+                    ) : (
                         <motion.div
                             key={reel.id}
                             initial={{ opacity: 0, scale: 0.7, y: 10 }}
@@ -2209,13 +2256,15 @@ export default function HomeStoryBar() {
                     );
                 })}
 
-                {/* Divider between mantra stories and video stories */}
-                <div style={{ width: 1, height: 58, background: 'rgba(251,191,36,0.12)', flexShrink: 0, alignSelf: 'center' }} />
+                {/* Divider between mantra stories and video stories — circles only */}
+                {!rectangular && <div style={{ width: 1, height: 58, background: 'rgba(251,191,36,0.12)', flexShrink: 0, alignSelf: 'center' }} />}
 
                 {/* ── VIDEO STORY BUBBLES (after non-video) ── */}
                 {VIDEO_STORIES.map((story, idx) => {
                     const isViewed = viewedIds.has(story.id);
-                    return (
+                    return rectangular ? (
+                        <RectStoryCard key={story.id} icon="▶" label={story.label} sublabel={story.description ?? 'Video'} color={story.color} ring={`conic-gradient(#fbbf24,${story.color},#fbbf24)`} thumbBg={story.thumbBg} videoSrc={story.videoSrc} index={idx} isViewed={isViewed} onClick={() => openVideoStory(idx)} />
+                    ) : (
                         <motion.div
                             key={story.id}
                             className="pvVideoRingWrapper"
@@ -2225,21 +2274,11 @@ export default function HomeStoryBar() {
                             onClick={() => openVideoStory(idx)}
                             style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', flexShrink: 0, cursor: 'pointer', scrollSnapAlign: 'start', scrollSnapStop: 'always', animation: isViewed ? 'none' : `storyBubbleFloat ${3.8 + idx * 0.35}s ease-in-out ${idx * 0.12}s infinite` }}
                         >
-                            <div style={{
-                                width: 86, height: 86, borderRadius: '50%',
-                                padding: 3,
-                                background: isViewed ? 'rgba(255,255,255,0.08)' : `conic-gradient(#fbbf24 0deg, #fde68a 90deg, ${story.color} 180deg, #fde68a 270deg, #fbbf24 360deg)`,
-                                animation: isViewed ? 'none' : `videoRingPulse 2.4s ease-in-out ${idx * 0.22}s infinite, videoShimmer 3s ease-in-out ${idx * 0.18}s infinite`,
-                                flexShrink: 0, position: 'relative',
-                            }}>
+                            <div style={{ width: 86, height: 86, borderRadius: '50%', padding: 3, background: isViewed ? 'rgba(255,255,255,0.08)' : `conic-gradient(#fbbf24 0deg, #fde68a 90deg, ${story.color} 180deg, #fde68a 270deg, #fbbf24 360deg)`, animation: isViewed ? 'none' : `videoRingPulse 2.4s ease-in-out ${idx * 0.22}s infinite, videoShimmer 3s ease-in-out ${idx * 0.18}s infinite`, flexShrink: 0, position: 'relative' }}>
                                 <div style={{ width: '100%', height: '100%', borderRadius: '50%', border: '2.5px solid #000', overflow: 'hidden', filter: isViewed ? 'grayscale(0.6) brightness(0.55)' : 'none' }}>
                                     <VideoBubble story={story} isViewed={isViewed} idx={idx} />
                                 </div>
-                                {!isViewed && (
-                                    <div style={{ position: 'absolute', bottom: -1, right: -1, background: 'linear-gradient(135deg,#fbbf24,#f59e0b)', borderRadius: '50%', width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #000', boxShadow: '0 0 8px rgba(251,191,36,0.8)' }}>
-                                        <span style={{ fontSize: '0.35rem', color: '#000', fontWeight: 800, marginLeft: 1 }}>▶</span>
-                                    </div>
-                                )}
+                                {!isViewed && <div style={{ position: 'absolute', bottom: -1, right: -1, background: 'linear-gradient(135deg,#fbbf24,#f59e0b)', borderRadius: '50%', width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #000', boxShadow: '0 0 8px rgba(251,191,36,0.8)' }}><span style={{ fontSize: '0.35rem', color: '#000', fontWeight: 800, marginLeft: 1 }}>▶</span></div>}
                             </div>
                             <span style={{ fontSize: '0.52rem', fontFamily: "'Inter',sans-serif", fontWeight: 700, color: isViewed ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.88)', letterSpacing: '0.04em', textAlign: 'center', maxWidth: 86, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{story.label}</span>
                         </motion.div>

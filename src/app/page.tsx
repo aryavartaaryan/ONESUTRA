@@ -20,7 +20,7 @@ import SmartLogBubbles from '@/components/Dashboard/SmartLogBubbles';
 import EphemeralGreeting from '@/components/HomePage/EphemeralGreeting';
 import StickyTopNav from '@/components/HomePage/StickyTopNav';
 import LifestylePanel from '@/components/HomePage/LifestylePanel';
-import DailyInsightsCarousel from '@/components/Dashboard/DailyInsightsCarousel';
+
 import StickyFeedbackButton from '@/components/StickyFeedbackButton';
 import MagicSyncModule from '@/components/Dashboard/MagicSyncModule'; // kept for potential other usage
 import { useLifestyleEngine } from '@/hooks/useLifestyleEngine';
@@ -528,20 +528,8 @@ export default function Home() {
           <StickyTopNav />
         </div>
 
-        {/* ══ DAILY INSIGHTS STORIES STRIP — swipeable Instagram-style ══ */}
-        {!isPortalOpen && (
-          <div style={{
-            margin: '0 0.6rem 0.8rem',
-            borderRadius: 18,
-            background: 'rgba(4,2,18,0.45)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            border: '1px solid rgba(255,255,255,0.07)',
-            overflow: 'hidden',
-          }}>
-            <DailyInsightsCarousel />
-          </div>
-        )}
+
+
 
         {/* ══ PANCHAKOSHA MOBILE STRIP ══ */}
         {!isPortalOpen && <PanchakoshaNav />}
