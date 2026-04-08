@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import {
@@ -391,6 +391,22 @@ function UnifiedProgressHub({ completionRate, completedCount, totalHabits, consi
   );
 }
 
+// ─── Bodhi Speaking Wave ────────────────────────────────────────────────────
+function SpeakingWave() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '0 2px', height: 22 }}>
+      {[0, 1, 2].map(i => (
+        <motion.div
+          key={i}
+          animate={{ scaleY: [0.35, 1.2, 0.35] }}
+          transition={{ duration: 0.75, repeat: Infinity, delay: i * 0.18, ease: 'easeInOut' }}
+          style={{ width: 3, height: 18, borderRadius: 3, background: '#fbbf24', transformOrigin: 'center', flexShrink: 0 }}
+        />
+      ))}
+    </div>
+  );
+}
+
 // ─── Streak Flame ────────────────────────────────────────────────────────────
 function StreakFlame({ count }: { count: number }) {
   if (count === 0) return null;
@@ -623,7 +639,6 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
   const router = useRouter();
   const engine = useLifestyleEngine();
   const { prakriti, vikriti, currentPhase, doshaOnboardingComplete, inBrahmaMuhurta } = useDoshaEngine();
-  const setPendingMessage = useBodhiChatStore(s => s.setPendingMessage);
 
   const [showMoodLog, setShowMoodLog] = useState(false);
   const [completedFlash, setCompletedFlash] = useState<string | null>(null);
@@ -634,6 +649,9 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
   const [showGunaTracker, setShowGunaTracker] = useState(false);
   const [activeGunaTab, setActiveGunaTab] = useState<'guna' | 'dosha'>('guna');
   const [smartLogDoneIds, setSmartLogDoneIds] = useState<Set<string>>(readSmartLogDoneHabitIds);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [bodhiVoiceBubble, setBodhiVoiceBubble] = useState<{ text: string; isOptimalTime: boolean; habitName: string; habitIcon: string } | null>(null);
+  const [bodhiSpeaking, setBodhiSpeaking] = useState(false);
   useEffect(() => {
     const refresh = () => setSmartLogDoneIds(readSmartLogDoneHabitIds());
     window.addEventListener('focus', refresh);
@@ -720,31 +738,89 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
   }).length;
 
 
+  const triggerBodhiHabitVoice = useCallback(async (
+    habit: HabitItem,
+    nextHabit: HabitItem | null,
+    completedSoFar: number,
+  ) => {
+    setBodhiSpeaking(true);
+    setBodhiVoiceBubble({ text: '...', isOptimalTime: true, habitName: habit.name, habitIcon: habit.icon });
+    try {
+      const res = await fetch('/api/bodhi/habit-voice-feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          habitName: habit.name,
+          habitIcon: habit.icon,
+          habitCategory: habit.category ?? 'anytime',
+          habitLifeArea: habit.lifeArea,
+          prakriti: prakriti?.primary ?? 'unknown',
+          nextHabitName: nextHabit?.name ?? null,
+          nextHabitIcon: nextHabit?.icon ?? null,
+          completedCount: completedSoFar,
+          totalHabits: engine.activeHabits.length,
+        }),
+      });
+      const { voiceMessage, isOptimalTime } = await res.json();
+      setBodhiVoiceBubble({ text: voiceMessage, isOptimalTime, habitName: habit.name, habitIcon: habit.icon });
+      // TTS playback
+      try {
+        const ttsRes = await fetch('/api/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: voiceMessage, voice: 'Aoede' }),
+        });
+        if (ttsRes.ok) {
+          const { audio, mimeType } = await ttsRes.json();
+          if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+          const audioEl = new Audio(`data:${mimeType ?? 'audio/wav'};base64,${audio}`);
+          audioRef.current = audioEl;
+          audioEl.onended = () => {
+            setBodhiSpeaking(false);
+            setTimeout(() => setBodhiVoiceBubble(null), 2500);
+          };
+          await audioEl.play();
+        } else {
+          setBodhiSpeaking(false);
+          setTimeout(() => setBodhiVoiceBubble(null), 4000);
+        }
+      } catch {
+        setBodhiSpeaking(false);
+        setTimeout(() => setBodhiVoiceBubble(null), 4000);
+      }
+    } catch {
+      setBodhiVoiceBubble({ text: 'Practice logged! Aapka Agni strong hai — keep going.', isOptimalTime: true, habitName: habit.name, habitIcon: habit.icon });
+      setBodhiSpeaking(false);
+      setTimeout(() => setBodhiVoiceBubble(null), 4000);
+    }
+  }, [prakriti, engine.activeHabits.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleComplete = useCallback((id: string) => {
     const habit = engine.activeHabits.find(h => h.id === id);
     engine.completeHabit(id);
     setCompletedFlash(id);
     if (habit) {
       saveToUnifiedLog(habit.icon, habit.name);
-      const HABIT_PROMPTS = [
-        `What wisdom does Ayurveda offer about ${habit.name}? Keep it to one powerful sentence.`,
-        `How does ${habit.name} serve my ${habit.lifeArea} energy today?`,
-        `What shifts in my body-mind when I consistently do ${habit.name}?`,
-        `Connect ${habit.name} to the Vedic understanding of daily rhythm — briefly.`,
-        `What is the deeper purpose of ${habit.name} in a conscious life?`,
-      ];
-      const prompt = HABIT_PROMPTS[Math.floor(Date.now() / 1000) % HABIT_PROMPTS.length];
-      const habitTimeCtx = habit.category === 'morning' ? 'morning' : habit.category === 'midday' ? 'afternoon' : habit.category === 'evening' ? 'evening' : habit.category === 'night' ? 'night' : habit.category === 'sacred' ? 'sacred morning' : 'anytime';
-      const msg = `✅ I just completed my ${habitTimeCtx} habit: ${habit.icon} ${habit.name}${habit.scheduledTime ? ` (scheduled: ${habit.scheduledTime})` : ''}. This is a ${habitTimeCtx} practice from my ${habit.lifeArea} life area. ${prompt} [UI_EVENT: HABIT_LOGGED]`;
-      setPendingMessage(msg);
-      setTimeout(() => {
-        setCompletedFlash(null);
-        router.push('/bodhi-chat');
-      }, 650);
-    } else {
-      setTimeout(() => setCompletedFlash(null), 900);
+      // Determine next habit in sequence for Bodhi to mention
+      const newDoneIds = new Set([...effectiveCompletedIds, id]);
+      const slotsForSlot = timeSlot === 'morning' ? ['morning', 'sacred', 'anytime']
+        : timeSlot === 'midday' ? ['midday', 'anytime']
+          : timeSlot === 'evening' ? ['evening', 'anytime']
+            : ['night', 'anytime'];
+      const pendingAfter = engine.activeHabits.filter(h => {
+        if (h.id === id) return false;
+        const c = h.category ?? 'anytime';
+        if (!slotsForSlot.includes(c)) return false;
+        return !newDoneIds.has(h.id) && !skippedIds.has(h.id) && h.trackingType !== 'counter';
+      });
+      const sortedAfter = timeSlot === 'morning'
+        ? [...pendingAfter].sort((a, b) => (MORNING_PRACTICE_ORDER[a.id] ?? 99) - (MORNING_PRACTICE_ORDER[b.id] ?? 99))
+        : pendingAfter;
+      const nextHabit = sortedAfter[0] ?? null;
+      triggerBodhiHabitVoice(habit, nextHabit, effectiveCompletedIds.size + 1);
     }
-  }, [engine, setPendingMessage, router]);
+    setTimeout(() => setCompletedFlash(null), 900);
+  }, [engine, effectiveCompletedIds, skippedIds, timeSlot, triggerBodhiHabitVoice]);
 
   // Real-time insights
   const insights = useMemo(() => {
@@ -840,6 +916,97 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
 
   return (
     <div style={{ margin: '0 0.6rem 1.5rem' }}>
+
+      {/* ── Bodhi Voice Bubble ───────────────────────────────────────────── */}
+      <AnimatePresence>
+        {bodhiVoiceBubble && (
+          <motion.div
+            key="bodhi-voice-bubble"
+            initial={{ opacity: 0, y: 60, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 30, scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 340, damping: 28 }}
+            style={{
+              position: 'fixed',
+              bottom: 88,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 9998,
+              width: 'calc(100vw - 1.8rem)',
+              maxWidth: 470,
+              background: 'linear-gradient(135deg, rgba(4,2,20,0.97), rgba(18,8,36,0.99))',
+              border: `1.5px solid ${bodhiVoiceBubble.isOptimalTime ? 'rgba(251,191,36,0.5)' : 'rgba(251,146,60,0.45)'}`,
+              borderRadius: 22,
+              padding: '0.95rem 1.1rem',
+              backdropFilter: 'blur(28px)',
+              boxShadow: `0 12px 48px rgba(0,0,0,0.75), 0 0 48px ${bodhiVoiceBubble.isOptimalTime ? 'rgba(251,191,36,0.1)' : 'rgba(251,146,60,0.08)'}`,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+              {/* Bodhi orb */}
+              <motion.div
+                animate={bodhiSpeaking ? { boxShadow: ['0 0 0 2px rgba(251,191,36,0.3)', '0 0 0 6px rgba(251,191,36,0.15)', '0 0 0 2px rgba(251,191,36,0.3)'] } : {}}
+                transition={{ duration: 0.9, repeat: Infinity }}
+                style={{
+                  width: 42, height: 42, borderRadius: '50%', flexShrink: 0,
+                  background: 'radial-gradient(circle at 35% 30%, rgba(251,191,36,0.45) 0%, rgba(139,92,246,0.28) 65%, transparent 100%)',
+                  border: `1.5px solid ${bodhiVoiceBubble.isOptimalTime ? 'rgba(251,191,36,0.65)' : 'rgba(251,146,60,0.55)'}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '1.15rem',
+                }}
+              >✦</motion.div>
+
+              <div style={{ flex: 1, minWidth: 0 }}>
+                {/* Status tags */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '1rem', lineHeight: 1 }}>{bodhiVoiceBubble.habitIcon}</span>
+                  <span style={{
+                    fontSize: '0.52rem', padding: '0.1rem 0.4rem', borderRadius: 99,
+                    background: 'rgba(74,222,128,0.2)', border: '1px solid rgba(74,222,128,0.45)',
+                    color: '#4ade80', fontWeight: 800, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.08em',
+                  }}>✓ LOGGED</span>
+                  {!bodhiVoiceBubble.isOptimalTime && (
+                    <span style={{
+                      fontSize: '0.52rem', padding: '0.1rem 0.4rem', borderRadius: 99,
+                      background: 'rgba(251,146,60,0.18)', border: '1px solid rgba(251,146,60,0.4)',
+                      color: '#fb923c', fontWeight: 800, fontFamily: "'Outfit', sans-serif",
+                    }}>Off-time</span>
+                  )}
+                  {bodhiVoiceBubble.isOptimalTime && (
+                    <span style={{
+                      fontSize: '0.52rem', padding: '0.1rem 0.4rem', borderRadius: 99,
+                      background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.38)',
+                      color: '#fbbf24', fontWeight: 800, fontFamily: "'Outfit', sans-serif",
+                    }}>✦ Optimal</span>
+                  )}
+                </div>
+                {/* Bodhi message */}
+                <p style={{
+                  margin: 0, fontSize: '0.87rem', lineHeight: 1.55,
+                  fontFamily: "'Outfit', sans-serif",
+                  color: bodhiVoiceBubble.text === '...' ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.9)',
+                  fontStyle: bodhiVoiceBubble.text === '...' ? 'italic' : 'normal',
+                }}>
+                  {bodhiVoiceBubble.text === '...' ? 'Bodhi sun raha hai...' : bodhiVoiceBubble.text}
+                </p>
+              </div>
+
+              {/* Right — wave or close */}
+              <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                {bodhiSpeaking ? (
+                  <SpeakingWave />
+                ) : (
+                  <motion.button
+                    whileTap={{ scale: 0.88 }}
+                    onClick={() => { setBodhiVoiceBubble(null); if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.28)', padding: 4, display: 'flex', alignItems: 'center', fontSize: '0.75rem' }}
+                  >✕</motion.button>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Completion flash ─────────────────────────────────────────────── */}
       <AnimatePresence>
@@ -1021,7 +1188,7 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
           {/* ── SECTION 1 : Unified Progress Hub ─────────────────────────── */}
           <UnifiedProgressHub
             completionRate={completionRate}
-            completedCount={completedIds.size}
+            completedCount={effectiveCompletedIds.size}
             totalHabits={engine.activeHabits.length}
             consistencyScore={engine.consistencyScore}
             todayXP={todayXP}
