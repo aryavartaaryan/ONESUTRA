@@ -653,7 +653,7 @@ function MoodLogPanel({ onClose, onLog, bgImage }: {
 }
 
 // ─── Main Component ──────────────────────────────────────────────────────────
-export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
+export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { globalBg?: string; hideGreetingRow?: boolean }) {
   const router = useRouter();
   const engine = useLifestyleEngine();
   const { prakriti, vikriti, currentPhase, doshaOnboardingComplete, inBrahmaMuhurta } = useDoshaEngine();
@@ -1363,37 +1363,39 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
               </div>
             </div>
 
-            {/* Row 2: greeting */}
-            <div style={{ margin: '0 0 0.8rem', display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
-              {/* Real Sun / Moon / Sunrise / Sunset SVG orb */}
-              <motion.div
-                animate={{
-                  boxShadow: [
-                    `0 0 0 1px ${greetingIconColor}40, 0 0 18px ${greetingIconColor}55`,
-                    `0 0 0 1px ${greetingIconColor}88, 0 0 36px ${greetingIconColor}bb`,
-                    `0 0 0 1px ${greetingIconColor}40, 0 0 18px ${greetingIconColor}55`,
-                  ],
-                }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                style={{
-                  width: 54, height: 54, borderRadius: '50%', flexShrink: 0,
-                  background: `radial-gradient(circle at 38% 32%, ${greetingIconColor}28 0%, transparent 70%)`,
-                  border: `1px solid ${greetingIconColor}44`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  overflow: 'hidden',
-                }}
-              >
-                {hour >= 3 && hour < 7 ? <RisingSunSVG size={44} /> : hour >= 7 && hour < 17 ? <RealSunSVG size={44} /> : hour >= 17 && hour < 21 ? <SunsetSVG size={44} /> : <RealMoonSVG size={44} />}
-              </motion.div>
-              <div>
-                <p style={{ margin: 0, fontSize: '1.28rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.02em', textShadow: '0 2px 12px rgba(0,0,0,0.4)', lineHeight: 1.1 }}>
-                  {smartGreeting}
-                </p>
-                <p style={{ margin: 0, fontSize: '0.68rem', color: `${greetingIconColor}cc`, fontFamily: "'Outfit', sans-serif", fontWeight: 600, letterSpacing: '0.06em', marginTop: '0.15rem' }}>
-                  {timeSlot === 'morning' ? 'Brahma muhurta — begin your sadhana' : timeSlot === 'midday' ? 'Pitta noon — peak focus time' : timeSlot === 'evening' ? 'Vata sandhya — wind down gently' : 'Deep rest — honour your Ojas'}
-                </p>
+            {/* Row 2: greeting — hidden when page-level SmartAyuHeader is shown */}
+            {!hideGreetingRow && (
+              <div style={{ margin: '0 0 0.8rem', display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
+                {/* Real Sun / Moon / Sunrise / Sunset SVG orb */}
+                <motion.div
+                  animate={{
+                    boxShadow: [
+                      `0 0 0 1px ${greetingIconColor}40, 0 0 18px ${greetingIconColor}55`,
+                      `0 0 0 1px ${greetingIconColor}88, 0 0 36px ${greetingIconColor}bb`,
+                      `0 0 0 1px ${greetingIconColor}40, 0 0 18px ${greetingIconColor}55`,
+                    ],
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                  style={{
+                    width: 54, height: 54, borderRadius: '50%', flexShrink: 0,
+                    background: `radial-gradient(circle at 38% 32%, ${greetingIconColor}28 0%, transparent 70%)`,
+                    border: `1px solid ${greetingIconColor}44`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {hour >= 3 && hour < 7 ? <RisingSunSVG size={44} /> : hour >= 7 && hour < 17 ? <RealSunSVG size={44} /> : hour >= 17 && hour < 21 ? <SunsetSVG size={44} /> : <RealMoonSVG size={44} />}
+                </motion.div>
+                <div>
+                  <p style={{ margin: 0, fontSize: '1.28rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.02em', textShadow: '0 2px 12px rgba(0,0,0,0.4)', lineHeight: 1.1 }}>
+                    {smartGreeting}
+                  </p>
+                  <p style={{ margin: 0, fontSize: '0.68rem', color: `${greetingIconColor}cc`, fontFamily: "'Outfit', sans-serif", fontWeight: 600, letterSpacing: '0.06em', marginTop: '0.15rem' }}>
+                    {timeSlot === 'morning' ? 'Brahma muhurta — begin your sadhana' : timeSlot === 'midday' ? 'Pitta noon — peak focus time' : timeSlot === 'evening' ? 'Vata sandhya — wind down gently' : 'Deep rest — honour your Ojas'}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Row 3: dosha phase strip */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', padding: '0.52rem 0.8rem', borderRadius: 12, background: 'rgba(0,0,0,0.28)', border: `1px solid ${doshaColor}40`, backdropFilter: 'blur(10px)' }}>

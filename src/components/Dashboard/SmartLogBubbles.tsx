@@ -987,7 +987,7 @@ export default function SmartLogBubbles() {
                             <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(251,191,36,0.25), transparent)' }} />
                         </div>
                         <AnimatePresence>
-                            {doneItems.map(({ bubble, loggedAt }) => renderDoneCard(bubble as LogBubble, loggedAt))}
+                            {[...doneItems].reverse().map(({ bubble, loggedAt }) => renderDoneCard(bubble as LogBubble, loggedAt))}
                         </AnimatePresence>
                     </div>
                 );

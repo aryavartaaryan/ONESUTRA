@@ -16,6 +16,7 @@ import ConsciousManifesto from '@/components/HomePage/ConsciousManifesto';
 import SacredCanvas from '@/components/SacredCanvas/SacredCanvas';
 import SakhaBodhiOrb from '@/components/Dashboard/SakhaBodhiOrb';
 import SmartLogBubbles from '@/components/Dashboard/SmartLogBubbles';
+import SmartAnalyticsDashboard from '@/components/Dashboard/SmartAnalyticsDashboard';
 
 import EphemeralGreeting from '@/components/HomePage/EphemeralGreeting';
 import StickyTopNav from '@/components/HomePage/StickyTopNav';
@@ -461,64 +462,125 @@ export default function Home() {
           </motion.div>
         )}
 
-        {/* ══ ELEGANT MOOD PICKER — Topmost ══ */}
-        {!isPortalOpen && showMoodCheck && (
+        {/* ══ SMART AYU HEADER — Greeting + Sun/Moon Orb + Mood (Topmost) ══ */}
+        {!isPortalOpen && greeting && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
             style={{
               margin: '0.5rem 0.75rem 0.75rem',
-              padding: '0.55rem 0.9rem',
-              borderRadius: 16,
-              background: lifestyleEngine.todayMood
-                ? `linear-gradient(135deg, ${HOME_MOOD_OPTIONS.find(m => m.value === lifestyleEngine.todayMood!.mood)?.color ?? '#a78bfa'}12, rgba(0,0,0,0.18))`
-                : 'rgba(0,0,0,0.18)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              border: `1px solid ${lifestyleEngine.todayMood ? ((HOME_MOOD_OPTIONS.find(m => m.value === lifestyleEngine.todayMood!.mood)?.color ?? '#a78bfa') + '28') : 'rgba(255,255,255,0.09)'}`,
-              boxShadow: '0 4px 24px rgba(0,0,0,0.28)',
+              padding: '0.72rem 0.9rem',
+              borderRadius: 20,
+              background: 'rgba(0,0,0,0.22)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              boxShadow: '0 4px 28px rgba(0,0,0,0.3)',
               zIndex: 100,
             }}
           >
-            {lifestyleEngine.todayMood && !editingMood ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <span style={{ fontSize: '1.3rem' }}>{HOME_MOOD_OPTIONS.find(m => m.value === lifestyleEngine.todayMood!.mood)?.emoji}</span>
-                <div style={{ flex: 1 }}>
-                  <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 800, color: '#fff', fontFamily: "'Outfit', sans-serif" }}>
-                    Feeling {HOME_MOOD_OPTIONS.find(m => m.value === lifestyleEngine.todayMood!.mood)?.label} &middot; <span style={{ color: 'rgba(255,255,255,0.38)', fontWeight: 500, fontSize: '0.72rem' }}>logged ✔</span>
-                  </p>
-                </div>
-                <motion.button whileTap={{ scale: 0.9 }} onClick={() => setEditingMood(true)}
-                  style={{ padding: '0.22rem 0.65rem', borderRadius: 99, background: 'rgba(168,85,247,0.16)', border: '1px solid rgba(168,85,247,0.35)', color: '#c084fc', fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer', fontFamily: "'Outfit', sans-serif", flexShrink: 0, whiteSpace: 'nowrap' }}>
-                  Update
-                </motion.button>
-                <button onClick={() => setShowMoodCheck(false)}
-                  style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.28)', cursor: 'pointer', fontSize: '1rem', padding: '0 2px' }}>×</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              {/* Animated greeting orb */}
+              <motion.div
+                animate={{
+                  boxShadow: [
+                    '0 0 0 1px rgba(251,191,36,0.28), 0 0 14px rgba(251,191,36,0.35)',
+                    '0 0 0 1px rgba(251,191,36,0.58), 0 0 28px rgba(251,191,36,0.65)',
+                    '0 0 0 1px rgba(251,191,36,0.28), 0 0 14px rgba(251,191,36,0.35)',
+                  ],
+                }}
+                transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+                style={{
+                  width: 52, height: 52, borderRadius: '50%', flexShrink: 0,
+                  background: 'radial-gradient(circle at 38% 32%, rgba(251,191,36,0.18), transparent 68%)',
+                  border: '1px solid rgba(251,191,36,0.32)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '2rem',
+                }}
+              >
+                {greeting.emoji}
+              </motion.div>
+
+              {/* Greeting text */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{
+                  margin: 0, fontSize: '1.12rem', fontWeight: 900, color: '#fff',
+                  fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.02em',
+                  lineHeight: 1.1, textShadow: '0 2px 10px rgba(0,0,0,0.5)',
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}>
+                  {greeting.text}
+                </p>
+                <p style={{ margin: '0.18rem 0 0', fontSize: '0.62rem', color: 'rgba(251,191,36,0.82)', fontFamily: "'Outfit', sans-serif", fontWeight: 600, letterSpacing: '0.06em' }}>
+                  {greeting.period}
+                </p>
               </div>
-            ) : (
-              <>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-                  <p style={{ margin: 0, fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)', fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>{editingMood ? '↻ Update your mood' : '✦ How are you feeling right now?'}</p>
-                  <button onClick={() => { setShowMoodCheck(false); setEditingMood(false); }}
-                    style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.28)', cursor: 'pointer', fontSize: '1rem', padding: '0 2px' }}>×</button>
-                </div>
-                <div style={{ display: 'flex', gap: '0.38rem' }}>
-                  {HOME_MOOD_OPTIONS.map(m => (
-                    <motion.button key={m.value} whileTap={{ scale: 0.85 }}
-                      onClick={() => { lifestyleEngine.logMood(m.value, 3, [], undefined); setEditingMood(false); if (userId) saveHomepageMood(userId, m.value); }}
-                      style={{
-                        flex: 1, padding: '0.3rem 0.1rem', borderRadius: 10, cursor: 'pointer',
-                        background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)',
-                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-                      }}>
-                      <span style={{ fontSize: '1.1rem' }}>{m.emoji}</span>
-                      <span style={{ fontSize: '0.55rem', color: m.color, fontWeight: 700, fontFamily: "'Outfit', sans-serif" }}>{m.label}</span>
-                    </motion.button>
-                  ))}
-                </div>
-              </>
-            )}
+
+              {/* Compact mood toggle */}
+              {lifestyleEngine.todayMood && !editingMood ? (
+                <motion.button whileTap={{ scale: 0.9 }} onClick={() => setEditingMood(true)}
+                  style={{
+                    padding: '0.28rem 0.62rem', borderRadius: 99, display: 'flex', alignItems: 'center', gap: 5,
+                    background: 'rgba(168,85,247,0.14)', border: '1px solid rgba(168,85,247,0.32)',
+                    color: '#c084fc', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer',
+                    fontFamily: "'Outfit', sans-serif", flexShrink: 0,
+                  }}>
+                  {HOME_MOOD_OPTIONS.find(m => m.value === lifestyleEngine.todayMood!.mood)?.emoji}
+                  <span style={{ fontSize: '0.6rem' }}>✔</span>
+                </motion.button>
+              ) : (
+                <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowMoodCheck(s => !s)}
+                  style={{
+                    padding: '0.28rem 0.62rem', borderRadius: 99,
+                    background: showMoodCheck ? 'rgba(251,191,36,0.12)' : 'rgba(255,255,255,0.06)',
+                    border: `1px solid ${showMoodCheck ? 'rgba(251,191,36,0.38)' : 'rgba(255,255,255,0.12)'}`,
+                    color: showMoodCheck ? '#fbbf24' : 'rgba(255,255,255,0.45)',
+                    fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer',
+                    fontFamily: "'Outfit', sans-serif", flexShrink: 0,
+                  }}>
+                  + Mood
+                </motion.button>
+              )}
+            </div>
+
+            {/* Expandable mood picker */}
+            <AnimatePresence>
+              {(showMoodCheck || editingMood) && (!lifestyleEngine.todayMood || editingMood) && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.22 }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div style={{ paddingTop: '0.58rem' }}>
+                    <p style={{ margin: '0 0 0.32rem', fontSize: '0.62rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>
+                      {editingMood ? '↻ Update your mood' : '✦ How are you feeling right now?'}
+                    </p>
+                    <div style={{ display: 'flex', gap: '0.32rem' }}>
+                      {HOME_MOOD_OPTIONS.map(m => (
+                        <motion.button key={m.value} whileTap={{ scale: 0.85 }}
+                          onClick={() => {
+                            lifestyleEngine.logMood(m.value, 3, [], undefined);
+                            setEditingMood(false);
+                            setShowMoodCheck(false);
+                            if (userId) saveHomepageMood(userId, m.value);
+                          }}
+                          style={{
+                            flex: 1, padding: '0.32rem 0.1rem', borderRadius: 10, cursor: 'pointer',
+                            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)',
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+                          }}>
+                          <span style={{ fontSize: '1.1rem' }}>{m.emoji}</span>
+                          <span style={{ fontSize: '0.55rem', color: m.color, fontWeight: 700, fontFamily: "'Outfit', sans-serif" }}>{m.label}</span>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
 
@@ -560,6 +622,11 @@ export default function Home() {
           </motion.div>
         )}
 
+        {/* ══ SMART ANALYTICS — below the logging system ══ */}
+        {!isPortalOpen && (
+          <SmartAnalyticsDashboard globalBg={globalBg} />
+        )}
+
         {/* ══ LIFESTYLE HUB — integrated from /lifestyle ══ */}
         {!isPortalOpen && (
           <motion.div
@@ -568,7 +635,7 @@ export default function Home() {
             transition={{ delay: 0.35, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             style={{ position: 'relative', zIndex: 10 }}
           >
-            <LifestylePanel globalBg={globalBg} />
+            <LifestylePanel globalBg={globalBg} hideGreetingRow />
           </motion.div>
         )}
 
