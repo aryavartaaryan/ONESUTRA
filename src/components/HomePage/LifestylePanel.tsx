@@ -1592,7 +1592,7 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
                   <Plus size={12} /> Add your first habit
                 </span>
               </motion.div>
-            }) : (() => {
+            ) : (() => {
               // Only show current time-slot habits + anytime
               const slotsToShow: Array<'morning' | 'sacred' | 'midday' | 'evening' | 'night' | 'anytime'> =
                 timeSlot === 'morning' ? ['morning', 'sacred', 'anytime']

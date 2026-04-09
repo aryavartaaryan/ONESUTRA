@@ -1077,6 +1077,13 @@ export default function BodhiChatPage() {
         .sort((a, b) => (MORNING_HABIT_ORDER[a.id] ?? 99) - (MORNING_HABIT_ORDER[b.id] ?? 99))[0]
         ?? pendingHabitsToday[0];
 
+    const bathTakenToday = lifestyle.activeHabits.some(h => h.id === 'h_bathing')
+        ? todayHabitLogs.some(l => l.habitId === 'h_bathing')
+        : undefined;
+    const breakfastTakenToday = lifestyle.activeHabits.some(h => h.id === 'h_breakfast')
+        ? todayHabitLogs.some(l => l.habitId === 'h_breakfast')
+        : undefined;
+
     const bodhiLifestyleCtx = lifestyle.profile?.onboardingComplete ? {
         buddyName: lifestyle.profile.buddyName,
         buddyPersonality: lifestyle.profile.buddyPersonality,
@@ -1102,6 +1109,8 @@ export default function BodhiChatPage() {
         onboardingComplete: true,
         adhdMode: lifestyle.adhdMode,
         nextPendingHabit: nextPendingHabit ? `${nextPendingHabit.icon} ${nextPendingHabit.name}` : undefined,
+        bathTakenToday,
+        breakfastTakenToday,
     } : undefined;
 
     // ── Bodhi Chat Voice (Gemini Live) ────────────────────────────────────────
