@@ -22,6 +22,14 @@ const nextConfig: NextConfig = {
     '@modelcontextprotocol/sdk',
     'tdweb',
     'telegram',
+    // Heavy AI / server-only packages — must NOT be bundled into lambdas
+    '@google/genai',
+    '@google/generative-ai',
+    '@ai-sdk/google',
+    'openai',
+    'ai',
+    'yt-search',
+    'jspdf',
   ],
 
   images: {
