@@ -113,6 +113,89 @@ function isOnTimeForSlot(bubbleId: string, slot: TimeSlot): boolean {
     return true;
 }
 
+// ─── Timing Status Engine ─────────────────────────────────────────────────────
+export type TimingStatus = 'ON_TIME' | 'ACCEPTABLE' | 'LATE' | 'VERY_LATE';
+
+const TIMING_WINDOWS: Record<string, { ideal: [number, number]; late: [number, number] }> = {
+    warm_water: { ideal: [4, 7], late: [7, 9] },
+    tongue_scrape: { ideal: [4, 8], late: [8, 10] },
+    breathwork: { ideal: [4, 8], late: [8, 10] },
+    bath: { ideal: [4, 8], late: [8, 10] },
+    morning_light: { ideal: [6, 8], late: [8, 10] },
+    breakfast: { ideal: [7, 9], late: [9, 11] },
+    lunch: { ideal: [12, 13], late: [13, 15] },
+    workout: { ideal: [18, 19], late: [19, 21] },
+    dinner: { ideal: [18, 20], late: [20, 22] },
+    dinner_night: { ideal: [18, 20], late: [20, 22] },
+    digital_sunset: { ideal: [20, 21], late: [21, 23] },
+    sleep: { ideal: [21, 22], late: [22, 24] },
+    gratitude: { ideal: [20, 22], late: [22, 24] },
+    read: { ideal: [20, 22], late: [22, 24] },
+};
+
+export function getTimingStatus(bubbleId: string): TimingStatus {
+    const now = new Date();
+    const hDec = now.getHours() + now.getMinutes() / 60;
+    const w = TIMING_WINDOWS[bubbleId];
+    if (!w) return 'ON_TIME';
+    const [is, ie] = w.ideal;
+    const [, le] = w.late;
+    if (hDec >= is && hDec <= ie + 1) return 'ON_TIME';
+    const diff = hDec - ie;
+    if (diff <= 1) return 'ACCEPTABLE';
+    if (hDec <= le) return 'LATE';
+    return 'VERY_LATE';
+}
+
+// ─── Inline Insight Snippets ──────────────────────────────────────────────────
+export const INSIGHT_SNIPPETS: Record<string, string> = {
+    wake: 'Circadian rhythm set — aligned with Brahma Muhurta.',
+    warm_water: 'Agni kindled — overnight Ama moving out.',
+    tongue_scrape: 'Ama from last night — gone. Organ reflex points activated.',
+    breathwork: 'Prana calibrated. Nervous system got its morning reset.',
+    bath: 'Tamas lifted before the world asks anything of you.',
+    morning_light: 'Surya Shakti absorbed — circadian rhythm anchored.',
+    breakfast: 'Agni fed at the right time — energy has a foundation.',
+    lunch: 'Pitta peak honoured — food converts to Ojas now.',
+    deep_work: 'Pitta intellect harnessed — sharpest focus window.',
+    screen_break: 'Alochaka Pitta rested — eye prana restored.',
+    hydration: 'Prana flows with water — every cell grateful.',
+    workout: 'Vyayama done — lightness, endurance, Kapha balanced.',
+    dinner: 'Light evening meal — Ojas protected for deep sleep.',
+    dinner_night: 'Sattvic dinner — final act of self-love tonight.',
+    digital_sunset: 'Melatonin protected — sleep architecture intact.',
+    brain_dump: 'Svadhyaya complete — mind emptied, tomorrow clearer.',
+    sleep: 'Pitta gets its full repair window. Cellular clock grateful.',
+    gratitude: 'Santosha practice — gratitude rewires the brain toward joy.',
+    read: 'Dreaming mind integrates wisdom — feed it light.',
+};
+
+const TIMING_NUDGES: Record<string, string> = {
+    warm_water: 'First sip within 5 min of waking tomorrow.',
+    tongue_scrape: 'Before any food or water tomorrow keeps Ama clear.',
+    breathwork: 'Before 8 AM tomorrow — Prana sets the whole day.',
+    bath: 'Earlier tomorrow shifts the whole morning. 🙏',
+    morning_light: 'Within 1 hr of sunrise tomorrow — circadian magic.',
+    breakfast: '7–9 AM tomorrow — Agni peak honoured.',
+    sleep: 'Before 10 PM tonight — Pitta repair window open. 🙏',
+    lunch: '12–1 PM tomorrow — Pitta peak for best digestion.',
+};
+
+function getTimingAck(status: TimingStatus, label: string): string {
+    if (status === 'ON_TIME') return `${label} ✅`;
+    if (status === 'ACCEPTABLE') return `${label} done`;
+    if (status === 'LATE') return `${label} done`;
+    return `Better late —`;
+}
+
+function getInsight(id: string): string {
+    return INSIGHT_SNIPPETS[id] ?? 'Every act of self-care is a vote for who you are becoming.';
+}
+
+function getNudge(id: string): string | null {
+    return TIMING_NUDGES[id] ?? null;
+}
+
 // ─── IDs that are already in the static bubble lists (don't duplicate) ───────
 const STATIC_BUBBLE_IDS = new Set([
     'wake', 'warm_water', 'tongue_scrape', 'bath', 'breakfast', 'breathwork', 'morning_light',
@@ -614,6 +697,42 @@ export default function SmartLogBubbles() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [allLogged]);
 
+    // ── Render a logged done-card (inline timing response) ───────────────────
+    const renderDoneCard = (bubble: LogBubble, loggedAtMs?: number) => {
+        const status = getTimingStatus(bubble.id);
+        const ack = getTimingAck(status, bubble.label);
+        const insight = getInsight(bubble.id);
+        const nudge = (status === 'LATE' || status === 'VERY_LATE') ? getNudge(bubble.id) : null;
+        const statusColor = status === 'ON_TIME' ? '#4ade80' : status === 'ACCEPTABLE' ? '#a3e635' : status === 'LATE' ? '#fbbf24' : '#f87171';
+        const timeStr = loggedAtMs ? new Date(loggedAtMs).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '';
+        return (
+            <motion.div
+                key={bubble.id + '_done'}
+                initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+                style={{
+                    display: 'flex', alignItems: 'flex-start', gap: '0.65rem',
+                    padding: '0.55rem 0.75rem',
+                    borderRadius: 14,
+                    background: `linear-gradient(135deg, ${statusColor}0D 0%, rgba(4,2,18,0.0) 100%)`,
+                    border: `1px solid ${statusColor}28`,
+                    marginBottom: '0.35rem',
+                }}
+            >
+                <div style={{ fontSize: '1.35rem', flexShrink: 0, lineHeight: 1, paddingTop: 2 }}>{bubble.icon}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: statusColor, fontFamily: "'Outfit', sans-serif", lineHeight: 1.2 }}>{ack}</span>
+                        {timeStr && <span style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.28)', fontFamily: "'Outfit', sans-serif", fontWeight: 500 }}>{timeStr}</span>}
+                    </div>
+                    <p style={{ margin: '0.18rem 0 0', fontSize: '0.68rem', color: 'rgba(255,255,255,0.52)', fontFamily: "'Outfit', sans-serif", fontStyle: 'italic', lineHeight: 1.4 }}>{insight}</p>
+                    {nudge && <p style={{ margin: '0.18rem 0 0', fontSize: '0.62rem', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 600, lineHeight: 1.3 }}>↑ {nudge}</p>}
+                </div>
+            </motion.div>
+        );
+    };
+
     // ── Render a single bubble ───────────────────────────────────────────────
     const renderBubble = (bubble: LogBubble, i: number) => {
         const isActive = activeBubble === bubble.id;
@@ -842,6 +961,37 @@ export default function SmartLogBubbles() {
                     </motion.div>
                 )}
             </motion.div>
+
+            {/* ══ TODAY'S LOG — embedded done-cards (shows inside dashboard only) ══ */}
+            {(() => {
+                const todayStory = getTodayLogStory();
+                const allBubbles = [...MORNING_BUBBLES, ...NOON_BUBBLES, ...EVENING_BUBBLES, ...NIGHT_BUBBLES];
+                const doneItems = todayStory.map(entry => ({
+                    bubble: allBubbles.find(b => b.id === entry.id) ?? {
+                        id: entry.id, icon: entry.icon, label: entry.label,
+                        color: entry.color, sublabel: '', logMessage: '', subOptions: [],
+                    } as LogBubble,
+                    loggedAt: entry.loggedAt,
+                })).filter(item => item.bubble);
+                if (doneItems.length === 0) return null;
+                return (
+                    <div style={{ padding: '0 0.75rem 0.2rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '0.5rem' }}>
+                            <motion.span animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 2.5, repeat: Infinity }} style={{ fontSize: '0.7rem' }}>✨</motion.span>
+                            <span style={{ fontSize: '0.62rem', fontWeight: 800, color: '#fbbf24', letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: "'Outfit', sans-serif" }}>
+                                Today&apos;s Log
+                            </span>
+                            <span style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.28)', fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>
+                                · {doneItems.length} logged
+                            </span>
+                            <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(251,191,36,0.25), transparent)' }} />
+                        </div>
+                        <AnimatePresence>
+                            {doneItems.map(({ bubble, loggedAt }) => renderDoneCard(bubble as LogBubble, loggedAt))}
+                        </AnimatePresence>
+                    </div>
+                );
+            })()}
 
             {/* ══ ALL-DONE STATE ═══════════════════════════════════════════════ */}
             {allLogged ? (
