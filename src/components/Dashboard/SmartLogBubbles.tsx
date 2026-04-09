@@ -2,13 +2,13 @@
 
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sunrise, Sun, Sunset, Moon } from 'lucide-react';
+import { Flame, Sunrise, Sun, Sunset, Moon, Sparkles } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { bodhiSpeakLog, bodhiSpeakAllDone } from '@/lib/bodhiVoice';
 import type { TimeSlot } from '@/lib/bodhiVoice';
 
 // ─── Order Enforcement ────────────────────────────────────────────────────────
-const MORNING_ORDER = ['wake', 'bath', 'breakfast', 'breathwork', 'morning_light'];
+const MORNING_ORDER = ['wake', 'warm_water', 'tongue_scrape', 'breathwork', 'bath', 'morning_light', 'breakfast'];
 const LOG_STORE_KEY = 'onesutra_smartlog_v2';
 const LIFESTYLE_STORE_KEY = 'onesutra_lifestyle_v2';
 
@@ -45,11 +45,9 @@ export function saveToDailyLogStory(id: string, icon: string, label: string, col
     try {
         const today = getTodayStr();
         const raw: DailyLogEntry[] = JSON.parse(localStorage.getItem(DAILY_LOG_STORY_KEY) ?? '[]');
-        // Remove old entries from previous days + duplicates for today
         const filtered = raw.filter(e => e.date === today && e.id !== id);
         filtered.push({ id, icon, label, color, loggedAt: Date.now(), date: today });
         localStorage.setItem(DAILY_LOG_STORY_KEY, JSON.stringify(filtered));
-        // Notify DailyLogStory component
         window.dispatchEvent(new CustomEvent('daily-log-story-updated'));
     } catch { /* ignore */ }
 }
@@ -61,7 +59,6 @@ export function getTodayLogStory(): DailyLogEntry[] {
         return raw.filter(e => e.date === today).sort((a, b) => a.loggedAt - b.loggedAt);
     } catch { return []; }
 }
-
 
 // ─── Pull completed habit IDs from the lifestyle store ───────────────────────
 function getCompletedHabitIds(): Set<string> {
@@ -95,28 +92,30 @@ function getActiveHabits(): StoredHabit[] {
 // ─── Current time slot ────────────────────────────────────────────────────────
 function getCurrentTimeSlot(): TimeSlot {
     const h = new Date().getHours();
-    if (h >= 3 && h < 11) return 'morning';
+    if (h >= 2 && h < 6) return 'pre-dawn';
+    if (h >= 6 && h < 11) return 'morning';
     if (h >= 11 && h < 15) return 'midday';
-    if (h >= 15 && h < 21) return 'evening';
+    if (h >= 15 && h < 18) return 'afternoon';
+    if (h >= 18 && h < 22) return 'evening';
     return 'night';
 }
 
 // ─── Check if log is in its ideal time slot ───────────────────────────────────
 function isOnTimeForSlot(bubbleId: string, slot: TimeSlot): boolean {
-    const morningIds = new Set(['wake', 'bath', 'breakfast', 'breathwork', 'morning_light']);
+    const morningIds = new Set(['wake', 'warm_water', 'tongue_scrape', 'bath', 'breakfast', 'breathwork', 'morning_light']);
     const middayIds = new Set(['lunch', 'deep_work', 'screen_break', 'hydration']);
     const eveningIds = new Set(['workout', 'dinner', 'digital_sunset', 'brain_dump']);
     const nightIds = new Set(['sleep', 'gratitude', 'dinner_night', 'read']);
-    if (slot === 'morning') return morningIds.has(bubbleId);
+    if (slot === 'morning' || slot === 'pre-dawn') return morningIds.has(bubbleId);
     if (slot === 'midday') return middayIds.has(bubbleId);
-    if (slot === 'evening') return eveningIds.has(bubbleId);
+    if (slot === 'evening' || slot === 'afternoon') return eveningIds.has(bubbleId);
     if (slot === 'night') return nightIds.has(bubbleId);
     return true;
 }
 
 // ─── IDs that are already in the static bubble lists (don't duplicate) ───────
 const STATIC_BUBBLE_IDS = new Set([
-    'wake', 'bath', 'breakfast', 'breathwork', 'morning_light',
+    'wake', 'warm_water', 'tongue_scrape', 'bath', 'breakfast', 'breathwork', 'morning_light',
     'lunch', 'deep_work', 'screen_break', 'hydration',
     'workout', 'dinner', 'digital_sunset', 'brain_dump',
     'sleep', 'gratitude', 'dinner_night', 'read',
@@ -150,12 +149,13 @@ type LogBubble = {
     logMessage: string;
     subOptions: SubOption[];
     isDynamic?: boolean;
+    isAnytime?: boolean;
 };
 
 // ─── Time-contextual bubble data ──────────────────────────────────────────────
 const MORNING_BUBBLES: LogBubble[] = [
     {
-        id: 'wake', icon: '🌅', label: 'Rise & Shine!', sublabel: 'Log wake-up', color: '#fbbf24',
+        id: 'wake', icon: '🌅', label: 'Rise & Shine', sublabel: 'Wake-up ritual', color: '#fbbf24',
         logMessage: 'I woke up this morning [UI_EVENT: MORNING_LOGS_CLICKED]',
         subOptions: [
             { icon: '⚡', label: 'Energized & fresh', detail: 'woke up feeling energized and completely fresh' },
@@ -165,27 +165,27 @@ const MORNING_BUBBLES: LogBubble[] = [
         ],
     },
     {
-        id: 'bath', icon: '🚿', label: 'Bath & Recharge', sublabel: 'Cleanse ritual done', color: '#38bdf8',
-        logMessage: 'I took a bath and recharged this morning [UI_EVENT: MORNING_LOGS_CLICKED]',
+        id: 'warm_water', icon: '🫗', label: 'Warm Water', sublabel: 'Ushapana · First sip', color: '#7dd3fc',
+        logMessage: 'I drank warm water first thing this morning [UI_EVENT: MORNING_LOGS_CLICKED]',
         subOptions: [
-            { icon: '🧊', label: 'Cold shower', detail: 'took an invigorating cold shower' },
-            { icon: '♨️', label: 'Warm bath', detail: 'had a warm, relaxing bath' },
-            { icon: '🌿', label: 'Herbal & mindful', detail: 'mindful bath with herbal oils or scrub' },
-            { icon: '⚡', label: 'Quick refresh', detail: 'quick fresh shower, ready to go' },
+            { icon: '🍋', label: 'Warm lemon water', detail: 'had warm lemon water to activate digestion' },
+            { icon: '💧', label: 'Plain warm water', detail: 'drank a glass of plain warm water' },
+            { icon: '🌿', label: 'Herbal infusion', detail: 'had warm herbal or tulsi infused water' },
+            { icon: '�', label: 'Honey & ginger', detail: 'had warm water with honey and ginger' },
         ],
     },
     {
-        id: 'breakfast', icon: '🥣', label: 'Breakfast done?', sublabel: 'What did you eat?', color: '#34d399',
-        logMessage: 'I had breakfast today [UI_EVENT: MORNING_LOGS_CLICKED]',
+        id: 'tongue_scrape', icon: '✨', label: 'Tongue Clean', sublabel: 'Jihwa prakshalana', color: '#86efac',
+        logMessage: 'I did tongue scraping this morning [UI_EVENT: MORNING_LOGS_CLICKED]',
         subOptions: [
-            { icon: '🥣', label: 'Oats & fruits', detail: 'had oats with fruits' },
-            { icon: '🫓', label: 'Parathas', detail: 'had parathas this morning' },
-            { icon: '🍳', label: 'Eggs', detail: 'had eggs for breakfast' },
-            { icon: '🍵', label: 'Just chai', detail: 'just had chai, light start today' },
+            { icon: '🥈', label: 'Silver scraper', detail: 'used a silver tongue scraper this morning' },
+            { icon: '🥇', label: 'Copper scraper', detail: 'used a copper tongue scraper as Ayurveda recommends' },
+            { icon: '✅', label: 'Done & fresh', detail: 'tongue scraped — mouth feels fresh and clean' },
+            { icon: '🌊', label: 'Oil pulling too', detail: 'did tongue scraping and oil pulling (gandusha)' },
         ],
     },
     {
-        id: 'breathwork', icon: '🧘', label: 'Morning breathwork?', sublabel: 'Breathing reset', color: '#818cf8',
+        id: 'breathwork', icon: '🧘', label: 'Pranayama', sublabel: 'Breathing reset', color: '#818cf8',
         logMessage: 'I did morning breathwork today [UI_EVENT: MORNING_LOGS_CLICKED]',
         subOptions: [
             { icon: '⏱️', label: '5 min reset', detail: '5 minute breathing reset done' },
@@ -195,7 +195,17 @@ const MORNING_BUBBLES: LogBubble[] = [
         ],
     },
     {
-        id: 'morning_light', icon: '☀️', label: 'Caught morning sun?', sublabel: 'Solar activation', color: '#fb923c',
+        id: 'bath', icon: '🚿', label: 'Bath & Recharge', sublabel: 'Snana · Cleanse ritual', color: '#38bdf8',
+        logMessage: 'I took a bath and recharged this morning [UI_EVENT: MORNING_LOGS_CLICKED]',
+        subOptions: [
+            { icon: '�', label: 'Cold shower', detail: 'took an invigorating cold shower' },
+            { icon: '♨️', label: 'Warm bath', detail: 'had a warm, relaxing bath' },
+            { icon: '�', label: 'Herbal & mindful', detail: 'mindful bath with herbal oils or scrub' },
+            { icon: '⚡', label: 'Quick refresh', detail: 'quick fresh shower, ready to go' },
+        ],
+    },
+    {
+        id: 'morning_light', icon: '☀️', label: 'Morning Sun', sublabel: 'Surya darshana', color: '#fb923c',
         logMessage: 'I got morning sunlight exposure [UI_EVENT: MORNING_LOGS_CLICKED]',
         subOptions: [
             { icon: '👁️', label: 'Sun gazing', detail: 'did morning sun gazing ritual' },
@@ -204,11 +214,21 @@ const MORNING_BUBBLES: LogBubble[] = [
             { icon: '🪟', label: 'Near window', detail: 'sat near window with morning light' },
         ],
     },
+    {
+        id: 'breakfast', icon: '🥣', label: 'Breakfast', sublabel: 'Ahara · First meal', color: '#34d399',
+        logMessage: 'I had breakfast today [UI_EVENT: MORNING_LOGS_CLICKED]',
+        subOptions: [
+            { icon: '🥣', label: 'Oats & fruits', detail: 'had oats with fruits' },
+            { icon: '🫓', label: 'Parathas', detail: 'had parathas this morning' },
+            { icon: '🍳', label: 'Eggs', detail: 'had eggs for breakfast' },
+            { icon: '🍵', label: 'Just chai', detail: 'just had chai, light start today' },
+        ],
+    },
 ];
 
 const NOON_BUBBLES: LogBubble[] = [
     {
-        id: 'lunch', icon: '🍱', label: "Lunch o'clock! 🍴", sublabel: 'What did you eat?', color: '#f59e0b',
+        id: 'lunch', icon: '🍱', label: 'Lunch', sublabel: 'Midday nourishment', color: '#f59e0b',
         logMessage: 'I had lunch today [UI_EVENT: NOON_LOGS_CLICKED]',
         subOptions: [
             { icon: '🍚', label: 'Dal rice', detail: 'had dal rice for lunch' },
@@ -219,7 +239,7 @@ const NOON_BUBBLES: LogBubble[] = [
         ],
     },
     {
-        id: 'deep_work', icon: '🎯', label: 'Deep work sprint?', sublabel: 'Flow session done', color: '#4ade80',
+        id: 'deep_work', icon: '🎯', label: 'Deep Work', sublabel: 'Flow session', color: '#4ade80',
         logMessage: 'I completed a deep work session [UI_EVENT: NOON_LOGS_CLICKED]',
         subOptions: [
             { icon: '⏰', label: '1 hour sprint', detail: '1 hour focused deep work sprint' },
@@ -229,7 +249,7 @@ const NOON_BUBBLES: LogBubble[] = [
         ],
     },
     {
-        id: 'screen_break', icon: '👁️', label: 'Eye reset taken?', sublabel: 'Sense reset', color: '#22d3ee',
+        id: 'screen_break', icon: '👁️', label: 'Eye Reset', sublabel: 'Sense restoration', color: '#22d3ee',
         logMessage: 'I took a screen break [UI_EVENT: NOON_LOGS_CLICKED]',
         subOptions: [
             { icon: '🚶', label: '5 min walk', detail: '5 minute screen-free walk taken' },
@@ -239,7 +259,7 @@ const NOON_BUBBLES: LogBubble[] = [
         ],
     },
     {
-        id: 'hydration', icon: '💧', label: 'Stayed hydrated?', sublabel: 'Water intake', color: '#60a5fa',
+        id: 'hydration', icon: '💧', label: 'Hydration', sublabel: 'Water intake', color: '#60a5fa',
         logMessage: 'I drank water and stayed hydrated [UI_EVENT: NOON_LOGS_CLICKED]',
         subOptions: [
             { icon: '🥛', label: '2+ glasses', detail: 'had 2 or more glasses of water' },
@@ -252,7 +272,7 @@ const NOON_BUBBLES: LogBubble[] = [
 
 const EVENING_BUBBLES: LogBubble[] = [
     {
-        id: 'workout', icon: '💪', label: 'Physicals & Games', sublabel: 'Movement logged', color: '#f87171',
+        id: 'workout', icon: '💪', label: 'Movement', sublabel: 'Physical practice', color: '#f87171',
         logMessage: 'I worked out today [UI_EVENT: EVENING_LOGS_CLICKED]',
         subOptions: [
             { icon: '🏋️', label: 'Gym session', detail: 'full gym session completed' },
@@ -263,7 +283,7 @@ const EVENING_BUBBLES: LogBubble[] = [
         ],
     },
     {
-        id: 'dinner', icon: '🌙', label: 'Dinner served! 🍽️', sublabel: 'What did you eat?', color: '#a78bfa',
+        id: 'dinner', icon: '🌙', label: 'Dinner', sublabel: 'Evening nourishment', color: '#a78bfa',
         logMessage: 'I had dinner tonight [UI_EVENT: EVENING_LOGS_CLICKED]',
         subOptions: [
             { icon: '🥗', label: 'Light & clean', detail: 'had a light, clean dinner' },
@@ -274,7 +294,7 @@ const EVENING_BUBBLES: LogBubble[] = [
         ],
     },
     {
-        id: 'digital_sunset', icon: '📵', label: 'Digital sunset mode?', sublabel: 'Screens off ritual', color: '#fb923c',
+        id: 'digital_sunset', icon: '📵', label: 'Digital Sunset', sublabel: 'Screens off', color: '#fb923c',
         logMessage: 'Setting digital sunset — screens going off for the night [UI_EVENT: EVENING_LOGS_CLICKED]',
         subOptions: [
             { icon: '✅', label: 'Done! Screens off', detail: 'put all screens away for the night' },
@@ -284,7 +304,7 @@ const EVENING_BUBBLES: LogBubble[] = [
         ],
     },
     {
-        id: 'brain_dump', icon: '📓', label: 'Evening brain dump?', sublabel: 'Self-audit done', color: '#2dd4bf',
+        id: 'brain_dump', icon: '📓', label: 'Brain Dump', sublabel: 'Evening reflection', color: '#2dd4bf',
         logMessage: 'I did an evening brain dump and reflection [UI_EVENT: EVENING_LOGS_CLICKED]',
         subOptions: [
             { icon: '📝', label: 'Thoughts dump', detail: 'dumped all thoughts on paper' },
@@ -297,7 +317,7 @@ const EVENING_BUBBLES: LogBubble[] = [
 
 const NIGHT_BUBBLES: LogBubble[] = [
     {
-        id: 'sleep', icon: '💤', label: 'Heading to sleep?', sublabel: 'Rest mode on', color: '#818cf8',
+        id: 'sleep', icon: '💤', label: 'Sleep Ritual', sublabel: 'Rest mode', color: '#818cf8',
         logMessage: 'Going to sleep now, goodnight [UI_EVENT: NIGHT_LOGS]',
         subOptions: [
             { icon: '🌙', label: 'Before 10 PM', detail: 'early sleep — before 10 PM tonight' },
@@ -307,7 +327,7 @@ const NIGHT_BUBBLES: LogBubble[] = [
         ],
     },
     {
-        id: 'gratitude', icon: '🙏', label: 'Gratitude moment?', sublabel: 'Count your wins', color: '#fbbf24',
+        id: 'gratitude', icon: '🙏', label: 'Gratitude', sublabel: 'Count your wins', color: '#fbbf24',
         logMessage: 'I am feeling grateful today [UI_EVENT: NIGHT_LOGS]',
         subOptions: [
             { icon: '✨', label: '3 good things', detail: 'named 3 things I am grateful for today' },
@@ -317,7 +337,7 @@ const NIGHT_BUBBLES: LogBubble[] = [
         ],
     },
     {
-        id: 'dinner_night', icon: '🌙', label: 'Had dinner yet?', sublabel: 'Evening fuel', color: '#a78bfa',
+        id: 'dinner_night', icon: '🌙', label: 'Dinner', sublabel: 'Light dinner', color: '#a78bfa',
         logMessage: 'I had dinner tonight [UI_EVENT: NIGHT_LOGS]',
         subOptions: [
             { icon: '🥗', label: 'Light meal', detail: 'had a light dinner tonight' },
@@ -326,7 +346,7 @@ const NIGHT_BUBBLES: LogBubble[] = [
         ],
     },
     {
-        id: 'read', icon: '📚', label: 'Read before bed?', sublabel: 'Screen-free wind down', color: '#34d399',
+        id: 'read', icon: '📚', label: 'Bedtime Read', sublabel: 'Screen-free wind down', color: '#34d399',
         logMessage: 'I read before bed tonight [UI_EVENT: NIGHT_LOGS]',
         subOptions: [
             { icon: '⏱️', label: '10 minutes', detail: '10 minute read before sleep' },
@@ -339,46 +359,58 @@ const NIGHT_BUBBLES: LogBubble[] = [
 
 export function getTimedBubbles(): LogBubble[] {
     const h = new Date().getHours();
-    if (h >= 3 && h < 11) return MORNING_BUBBLES;
+    if (h >= 2 && h < 11) return MORNING_BUBBLES;
     if (h >= 11 && h < 15) return NOON_BUBBLES;
-    if (h >= 15 && h < 21) return h < 18 ? EVENING_BUBBLES.filter(b => b.id !== 'dinner') : EVENING_BUBBLES;
+    if (h >= 15 && h < 22) return h < 18
+        ? EVENING_BUBBLES.filter(b => b.id !== 'dinner')
+        : EVENING_BUBBLES;
     return NIGHT_BUBBLES;
 }
 
-export function getTimeLabel(): { label: string; color: string; Icon: LucideIcon } {
+export function getTimeLabel(): { label: string; color: string; Icon: LucideIcon; sublabel: string } {
     const h = new Date().getHours();
-    if (h >= 3 && h < 11) return { label: 'Morning Logs', color: '#fbbf24', Icon: Sunrise };
-    if (h >= 11 && h < 15) return { label: 'Midday Logs', color: '#f59e0b', Icon: Sun };
-    if (h >= 15 && h < 21) return { label: 'Evening Logs', color: '#fb923c', Icon: Sunset };
-    return { label: 'Night Logs', color: '#818cf8', Icon: Moon };
+    if (h >= 2 && h < 6) return { label: 'Brahma Muhurta', color: '#fbbf24', Icon: Sparkles, sublabel: 'Sacred window open' };
+    if (h >= 6 && h < 11) return { label: 'Morning Log', color: '#fbbf24', Icon: Sunrise, sublabel: 'Kapha window • Agni activation' };
+    if (h >= 11 && h < 15) return { label: 'Midday Log', color: '#fb923c', Icon: Sun, sublabel: 'Pitta window • Peak energy' };
+    if (h >= 15 && h < 18) return { label: 'Afternoon Log', color: '#f59e0b', Icon: Sun, sublabel: 'Vata window • Anchor your energy' };
+    if (h >= 18 && h < 22) return { label: 'Evening Log', color: '#a78bfa', Icon: Sunset, sublabel: 'Kapha wind-down • Wind down ritual' };
+    return { label: 'Night Log', color: '#818cf8', Icon: Moon, sublabel: 'Late Pitta • Sleep ritual' };
+}
+
+// ─── Semantic ordering heuristic (strict Ayurvedic dinacharya sequence) ──────
+function getSortIndex(label: string, id: string): number {
+    const text = (label + ' ' + id).toLowerCase();
+    if (text.includes('wake') || text.includes('rise')) return 10;
+    if (id === 'warm_water' || text.includes('ushapana') || (text.includes('warm') && text.includes('water'))) return 15;
+    if (text.includes('water') || text.includes('hydrat')) return 20;
+    if (text.includes('teeth') || text.includes('tongue') || text.includes('scrap') || text.includes('oil pull')) return 25;
+    if (text.includes('meditat') || text.includes('pranayama') || text.includes('breath') || text.includes('yoga') || text.includes('stretch')) return 35;
+    if (text.includes('bath') || text.includes('shower') || text.includes('snana') || text.includes('clean')) return 45;
+    if (text.includes('sun') || text.includes('light') || text.includes('surya')) return 60;
+    if (text.includes('breakfast') || text.includes('ahara') || text.includes('food') || text.includes('eat') || text.includes('meal')) return 70;
+    return 100;
 }
 
 // ─── Build dynamic habit bubbles ──────────────────────────────────────────────
 function buildDynamicHabitBubbles(
     loggedToday: Set<string>,
     completedHabitIds: Set<string>
-): LogBubble[] {
+): { timed: LogBubble[]; anytime: LogBubble[] } {
     const habits = getActiveHabits();
     const currentSlot = getCurrentTimeSlot();
-    const result: LogBubble[] = [];
+    const timed: LogBubble[] = [];
+    const anytime: LogBubble[] = [];
 
     for (const habit of habits) {
-        // Skip if already in static list
         if (STATIC_BUBBLE_IDS.has(habit.id)) continue;
-
-        // Skip if already logged or already completed in lifestyle engine
         if (loggedToday.has(habit.id) || completedHabitIds.has(habit.id)) continue;
 
-        // Only show habits for current time slot (or 'anytime' habits)
         const slot = habitTimeSlot(habit.category);
-        if (slot !== currentSlot && slot !== 'anytime') continue;
-
         const color = LIFE_AREA_COLORS[habit.lifeArea ?? ''] ?? '#a78bfa';
-
-        result.push({
+        const bubble: LogBubble = {
             id: habit.id,
             icon: habit.icon,
-            label: habit.name.length > 16 ? habit.name.slice(0, 15) + '…' : habit.name,
+            label: habit.name,
             sublabel: habit.scheduledTime ? `Due ${habit.scheduledTime}` : 'Tap to log',
             color,
             logMessage: `I completed my habit: ${habit.icon} ${habit.name} [UI_EVENT: HABIT_AS_LOG]`,
@@ -389,9 +421,16 @@ function buildDynamicHabitBubbles(
                 { icon: '🌱', label: 'Partial but done', detail: `partially completed ${habit.name} — still counts` },
                 { icon: '📅', label: 'Will do later', detail: `planning to do ${habit.name} later today` },
             ],
-        });
+        };
+
+        if (slot === 'anytime') {
+            bubble.isAnytime = true;
+            anytime.push(bubble);
+        } else if (slot === currentSlot || (currentSlot === 'pre-dawn' && slot === 'morning')) {
+            timed.push(bubble);
+        }
     }
-    return result;
+    return { timed, anytime };
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -399,13 +438,13 @@ export default function SmartLogBubbles() {
     const [activeBubble, setActiveBubble] = useState<string | null>(null);
     const [loggedToday, setLoggedToday] = useState<Set<string>>(() => getLoggedToday());
     const [completedHabitIds, setCompletedHabitIds] = useState<Set<string>>(() => getCompletedHabitIds());
-
     const [orderToast, setOrderToast] = useState<string | null>(null);
 
     const staticBubbles = useMemo(() => getTimedBubbles(), []);
     const timeLabel = useMemo(() => getTimeLabel(), []);
+    const TimeLabelIcon = timeLabel.Icon;
 
-    // Refresh on mount and periodically
+    // Refresh on mount, periodically, and when any log event fires
     useEffect(() => {
         const refresh = () => {
             setLoggedToday(getLoggedToday());
@@ -413,35 +452,52 @@ export default function SmartLogBubbles() {
         };
         refresh();
         window.addEventListener('focus', refresh);
+        window.addEventListener('daily-log-story-updated', refresh);
+        window.addEventListener('storage', refresh);
         const timer = setInterval(refresh, 20_000);
-        return () => { window.removeEventListener('focus', refresh); clearInterval(timer); };
+        return () => {
+            window.removeEventListener('focus', refresh);
+            window.removeEventListener('daily-log-story-updated', refresh);
+            window.removeEventListener('storage', refresh);
+            clearInterval(timer);
+        };
     }, []);
 
-    // Dynamic habit bubbles (not yet logged/completed)
-    const dynamicHabitBubbles = useMemo(
+    // Dynamic habit bubbles
+    const { timed: dynamicTimed, anytime: dynamicAnytime } = useMemo(
         () => buildDynamicHabitBubbles(loggedToday, completedHabitIds),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [loggedToday.size, completedHabitIds.size]
     );
 
-    // Merge: static bubbles (not yet done) + dynamic habit bubbles
+    // Pending static bubbles for this time slot
     const pendingStaticBubbles = useMemo(
         () => staticBubbles.filter(b => !loggedToday.has(b.id)),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [staticBubbles, loggedToday.size]
     );
 
-    const bubbles = useMemo(
-        () => [...pendingStaticBubbles, ...dynamicHabitBubbles],
-        [pendingStaticBubbles, dynamicHabitBubbles]
+    // Timed section: static + timed dynamic
+    const timedBubbles = useMemo(() => {
+        const sorted = [...pendingStaticBubbles, ...dynamicTimed];
+        sorted.sort((a, b) => getSortIndex(a.label, a.id) - getSortIndex(b.label, b.id));
+        return sorted;
+    }, [pendingStaticBubbles, dynamicTimed]);
+
+    // Anytime section: always-visible personal habits
+    const anytimeBubbles = useMemo(
+        () => dynamicAnytime,
+        [dynamicAnytime]
     );
+
+    const allLogged = timedBubbles.length === 0 && anytimeBubbles.length === 0;
 
     const getBlockReason = useCallback((id: string): string | null => {
         const orderIdx = MORNING_ORDER.indexOf(id);
         if (orderIdx <= 0) return null;
         const prereq = MORNING_ORDER[orderIdx - 1];
         if (!loggedToday.has(prereq)) {
-            const names: Record<string, string> = { wake: 'Rise & Shine', bath: 'Bath & Recharge', breakfast: 'Breakfast', breathwork: 'Breathwork', morning_light: 'Morning Sun' };
+            const names: Record<string, string> = { wake: 'Rise & Shine', warm_water: 'Warm Water', tongue_scrape: 'Tongue Clean', breathwork: 'Pranayama', bath: 'Bath', morning_light: 'Morning Sun', breakfast: 'Breakfast' };
             return `Log "${names[prereq] ?? prereq}" first ✦`;
         }
         return null;
@@ -450,7 +506,6 @@ export default function SmartLogBubbles() {
     // ── Bodhi background voice bubble ────────────────────────────────────────
     const [bodhiSpeaking, setBodhiSpeaking] = useState(false);
     const [bodhiBubbleLabel, setBodhiBubbleLabel] = useState('');
-    // Prime AudioContext on the first user interaction so Gemini audio can play
     const audioUnlocked = useRef(false);
     const unlockAudio = useCallback(() => {
         if (audioUnlocked.current) return;
@@ -483,7 +538,6 @@ export default function SmartLogBubbles() {
         if (block) {
             setOrderToast(block);
             setTimeout(() => setOrderToast(null), 2500);
-            // Extract prereq name from block message e.g. 'Log "Rise & Shine" first ✦'
             const prereqMatch = block.match(/Log "([^"]+)"/);
             const prereqName = prereqMatch ? prereqMatch[1] : undefined;
             bodhiSpeakLog({
@@ -498,15 +552,48 @@ export default function SmartLogBubbles() {
         setActiveBubble(prev => prev === bubble.id ? null : bubble.id);
     };
 
-    const logAndNavigate = (bubble: LogBubble, sub?: SubOption) => {
+    const logAndNavigate = async (bubble: LogBubble, sub?: SubOption) => {
         unlockAudio();
         const updated = new Set(loggedToday).add(bubble.id);
         setLoggedToday(updated);
         saveLoggedToday(updated);
-        // Save to daily log story store
         saveToDailyLogStory(bubble.id, bubble.icon, bubble.label, bubble.color);
+        setActiveBubble(null);
+
         const slot = getCurrentTimeSlot();
         const onTime = isOnTimeForSlot(bubble.id, slot);
+
+        // Try to get the full 4-part AI-generated message from habit-voice-feedback
+        const siteLang = (typeof localStorage !== 'undefined' ? localStorage.getItem('site-lang') : null) ?? 'hi';
+        try {
+            const res = await fetch('/api/bodhi/habit-voice-feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    habitName: bubble.label,
+                    habitIcon: bubble.icon,
+                    habitCategory: bubble.isDynamic ? 'anytime' : slot,
+                    habitLifeArea: 'physical',
+                    completedCount: loggedToday.size + 1,
+                    totalHabits: Math.max(timedBubbles.length + anytimeBubbles.length, 1),
+                    currentTimeOfDay: slot,
+                    isFirstHabitToday: loggedToday.size === 0,
+                    language: siteLang,
+                }),
+            });
+            if (res.ok) {
+                const { voiceMessage } = await res.json();
+                if (voiceMessage && voiceMessage.length > 10) {
+                    // Speak using Gemini Live with the AI-generated rich message
+                    try { sessionStorage.setItem('bodhi_pending_inject', bubble.label); } catch { /* ignore */ }
+                    const { speakBodhiRaw } = await import('@/lib/bodhiVoice');
+                    speakBodhiRaw(voiceMessage);
+                    return;
+                }
+            }
+        } catch { /* fall through to template */ }
+
+        // Fallback: template-based Gemini Live voice
         bodhiSpeakLog({
             habitIcon: bubble.icon,
             habitName: bubble.label,
@@ -514,14 +601,9 @@ export default function SmartLogBubbles() {
             timeSlot: slot,
             isOnTime: onTime,
         });
-        // Close the sub-option panel after logging
-        setActiveBubble(null);
     };
 
-    const active = bubbles.find(b => b.id === activeBubble) ?? null;
-
-    // All done for this time slot
-    const allLogged = bubbles.length === 0;
+    const active = [...timedBubbles, ...anytimeBubbles].find(b => b.id === activeBubble) ?? null;
 
     // Speak when all done (once per session)
     useEffect(() => {
@@ -532,65 +614,166 @@ export default function SmartLogBubbles() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [allLogged]);
 
-    return (
-        <div style={{ padding: '0.55rem 0.75rem 0.2rem' }} onClick={unlockAudio}>
+    // ── Render a single bubble ───────────────────────────────────────────────
+    const renderBubble = (bubble: LogBubble, i: number) => {
+        const isActive = activeBubble === bubble.id;
+        const isDone = loggedToday.has(bubble.id);
+        if (isDone) return null;
+        const isLocked = !isDone && getBlockReason(bubble.id) !== null;
+        const isDynamic = !!bubble.isDynamic;
 
-            {/* ── Bodhi speaking floating bubble ── */}
+        return (
+            <motion.div
+                key={bubble.id}
+                initial={{ opacity: 0, y: 16, scale: 0.9 }}
+                animate={{ opacity: isDone ? 0.38 : 1, y: 0, scale: 1 }}
+                transition={{ delay: i * 0.06, type: 'spring', stiffness: 340, damping: 26 }}
+                style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, cursor: isLocked || isDone ? 'default' : 'pointer', opacity: isLocked ? 0.45 : undefined }}
+                onClick={() => !isDone && toggleBubble(bubble)}
+            >
+                {/* Bubble circle */}
+                <motion.div
+                    animate={isDone ? {
+                        boxShadow: '0 0 0 1.5px rgba(74,222,128,0.45), 0 4px 12px rgba(0,0,0,0.35)',
+                        scale: 1, y: 0,
+                    } : isActive ? {
+                        // plain string — no array for active state (avoids framer-motion interpolation crash)
+                        boxShadow: `0 0 0 2.5px ${bubble.color}90, 0 0 32px ${bubble.color}55, inset 0 0 24px ${bubble.color}20`,
+                        scale: 1.12,
+                        y: -5,
+                    } : {
+                        // 3-element array = valid breathing keyframe animation
+                        boxShadow: [
+                            `0 0 0 1.5px ${bubble.color}${isDynamic ? '60' : '30'}, 0 6px 20px rgba(0,0,0,0.4)`,
+                            `0 0 0 1.5px ${bubble.color}${isDynamic ? '85' : '55'}, 0 6px 28px ${bubble.color}28`,
+                            `0 0 0 1.5px ${bubble.color}${isDynamic ? '60' : '30'}, 0 6px 20px rgba(0,0,0,0.4)`,
+                        ],
+                        scale: [1, 1.04, 1],
+                        y: [0, -5, 0],
+                    }}
+                    transition={isDone
+                        ? { duration: 0.3 }
+                        : isActive
+                            ? { type: 'spring', stiffness: 380, damping: 24 }
+                            : { duration: 3.5 + i * 0.4, repeat: Infinity, ease: 'easeInOut', delay: i * 0.35 }}
+
+                    style={{
+                        width: 'min(88px, 17vw)',
+                        height: 'min(88px, 17vw)',
+                        minWidth: 68,
+                        minHeight: 68,
+                        borderRadius: '50%',
+                        background: isDone
+                            ? 'rgba(74,222,128,0.12)'
+                            : isDynamic
+                                ? `radial-gradient(circle at 32% 26%, ${bubble.color}35 0%, ${bubble.color}12 45%, rgba(4,2,18,0.22) 80%)`
+                                : `radial-gradient(circle at 32% 26%, ${bubble.color}25 0%, ${bubble.color}08 50%, rgba(4,2,18,0.18) 80%)`,
+                        border: isDone
+                            ? '1.5px solid rgba(74,222,128,0.45)'
+                            : isDynamic
+                                ? `2px solid ${bubble.color}${isActive ? 'ee' : '70'}`
+                                : `1.5px solid ${bubble.color}${isActive ? 'aa' : '45'}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 'clamp(1.55rem, 4.2vw, 2rem)',
+                        backdropFilter: 'blur(18px)',
+                        WebkitBackdropFilter: 'blur(18px)',
+                        position: 'relative',
+                        transition: 'border-color 0.25s, background 0.25s',
+                    }}
+                >
+                    {/* Active pulse ring */}
+                    <AnimatePresence>
+                        {isActive && !isDone && (
+                            <motion.div
+                                initial={{ scale: 1, opacity: 0.7 }}
+                                animate={{ scale: 1.6, opacity: 0 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.95, repeat: Infinity, ease: 'easeOut' }}
+                                style={{ position: 'absolute', inset: -5, borderRadius: '50%', border: `2px solid ${bubble.color}55`, pointerEvents: 'none' }}
+                            />
+                        )}
+                    </AnimatePresence>
+                    {/* Dynamic badge */}
+                    {isDynamic && !isDone && (
+                        <motion.div
+                            animate={{ scale: [1, 1.25, 1], opacity: [0.8, 1, 0.8] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                            style={{ position: 'absolute', top: -3, right: -3, width: 13, height: 13, borderRadius: '50%', background: bubble.color, border: '2px solid rgba(0,0,0,0.6)', boxShadow: `0 0 8px ${bubble.color}` }}
+                        />
+                    )}
+                    {/* Done checkmark */}
+                    {isDone ? <span style={{ fontSize: '1.4rem' }}>✓</span> : bubble.icon}
+                </motion.div>
+
+                {/* Label */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                    <span style={{
+                        fontSize: '0.76rem', fontWeight: isDone ? 600 : 800,
+                        color: isDone ? 'rgba(74,222,128,0.55)' : isActive ? bubble.color : 'rgba(255,255,255,0.78)',
+                        letterSpacing: '0.02em', textAlign: 'center', maxWidth: 160,
+                        lineHeight: 1.25, fontFamily: "'Outfit', sans-serif",
+                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                        filter: isActive && !isDone ? `drop-shadow(0 0 6px ${bubble.color}80)` : 'none',
+                        transition: 'color 0.2s', padding: '0 4px',
+                    }}>
+                        {bubble.label}
+                    </span>
+                </div>
+            </motion.div>
+        );
+    };
+
+    return (
+        <div style={{ padding: '0.4rem 0.75rem 0.2rem' }} onClick={unlockAudio}>
+
+            {/* ── Bodhi speaking floating bubble ──────────────────────────── */}
             <AnimatePresence>
                 {bodhiSpeaking && (
                     <motion.div
                         key="bodhi-log-bubble"
-                        initial={{ opacity: 0, y: 50, scale: 0.94 }}
+                        initial={{ opacity: 0, y: 50, scale: 0.93 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 24, scale: 0.97 }}
                         transition={{ type: 'spring', stiffness: 340, damping: 28 }}
                         style={{
-                            position: 'fixed',
-                            bottom: 88,
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            zIndex: 9998,
-                            width: 'calc(100vw - 1.8rem)',
-                            maxWidth: 470,
+                            position: 'fixed', bottom: 88, left: '50%', transform: 'translateX(-50%)',
+                            zIndex: 9998, width: 'calc(100vw - 1.8rem)', maxWidth: 470,
                             background: 'linear-gradient(135deg, rgba(4,2,20,0.97), rgba(18,8,36,0.99))',
-                            border: '1.5px solid rgba(251,191,36,0.45)',
-                            borderRadius: 22,
-                            padding: '0.85rem 1rem',
+                            border: '1.5px solid rgba(251,191,36,0.5)',
+                            borderRadius: 22, padding: '0.9rem 1rem',
                             backdropFilter: 'blur(28px)',
-                            boxShadow: '0 12px 48px rgba(0,0,0,0.75), 0 0 48px rgba(251,191,36,0.08)',
+                            boxShadow: '0 12px 48px rgba(0,0,0,0.8), 0 0 60px rgba(251,191,36,0.1)',
                         }}
                     >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            {/* Pulsing Bodhi orb */}
                             <motion.div
-                                animate={{ boxShadow: ['0 0 0 2px rgba(251,191,36,0.3)', '0 0 0 6px rgba(251,191,36,0.13)', '0 0 0 2px rgba(251,191,36,0.3)'] }}
+                                animate={{ boxShadow: ['0 0 0 2px rgba(251,191,36,0.35)', '0 0 0 7px rgba(251,191,36,0.13)', '0 0 0 2px rgba(251,191,36,0.35)'] }}
                                 transition={{ duration: 0.9, repeat: Infinity }}
                                 style={{
-                                    width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-                                    background: 'radial-gradient(circle at 35% 30%, rgba(251,191,36,0.45) 0%, rgba(139,92,246,0.28) 65%, transparent 100%)',
-                                    border: '1.5px solid rgba(251,191,36,0.6)',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem',
+                                    width: 42, height: 42, borderRadius: '50%', flexShrink: 0,
+                                    background: 'radial-gradient(circle at 35% 30%, rgba(251,191,36,0.5) 0%, rgba(139,92,246,0.3) 65%, transparent 100%)',
+                                    border: '2px solid rgba(251,191,36,0.65)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.15rem',
                                 }}
                             >✦</motion.div>
-
                             <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.25rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.22rem' }}>
                                     <span style={{ fontSize: '0.52rem', padding: '0.08rem 0.38rem', borderRadius: 99, background: 'rgba(74,222,128,0.18)', border: '1px solid rgba(74,222,128,0.4)', color: '#4ade80', fontWeight: 800, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.08em' }}>✓ LOGGED</span>
                                     {bodhiBubbleLabel && (
                                         <span style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.5)', fontFamily: "'Outfit', sans-serif", fontWeight: 600, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 140 }}>{bodhiBubbleLabel}</span>
                                     )}
                                 </div>
-                                <p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(255,255,255,0.78)', fontFamily: "'Outfit', sans-serif", fontStyle: 'italic', lineHeight: 1.45 }}>
-                                    Bodhi is speaking…
+                                <p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(255,255,255,0.8)', fontFamily: "'Outfit', sans-serif", fontStyle: 'italic', lineHeight: 1.45 }}>
+                                    {(typeof localStorage !== 'undefined' && localStorage.getItem('site-lang') === 'en') ? 'Bodhi is speaking…' : 'बोधि बोल रहा है…'}
                                 </p>
                             </div>
-
-                            {/* Speaking wave bars */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
                                 {[0, 1, 2].map(i => (
                                     <motion.div
                                         key={i}
-                                        animate={{ scaleY: [0.35, 1.2, 0.35] }}
+                                        animate={{ scaleY: [0.35, 1.25, 0.35] }}
                                         transition={{ duration: 0.75, repeat: Infinity, delay: i * 0.18, ease: 'easeInOut' }}
                                         style={{ width: 3, height: 18, borderRadius: 3, background: '#fbbf24', transformOrigin: 'center', flexShrink: 0 }}
                                     />
@@ -606,139 +789,105 @@ export default function SmartLogBubbles() {
                 {orderToast && (
                     <motion.div
                         initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-                        style={{ marginBottom: '0.4rem', padding: '0.38rem 0.9rem', borderRadius: 99, background: 'rgba(251,191,36,0.13)', border: '1px solid rgba(251,191,36,0.35)', fontSize: '0.72rem', fontWeight: 700, color: '#fbbf24', fontFamily: "'Outfit', sans-serif", textAlign: 'center', letterSpacing: '0.04em' }}
+                        style={{ marginBottom: '0.5rem', padding: '0.4rem 1rem', borderRadius: 99, background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.38)', fontSize: '0.72rem', fontWeight: 700, color: '#fbbf24', fontFamily: "'Outfit', sans-serif", textAlign: 'center' }}
                     >
                         {orderToast}
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* ── Section header ── */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '0.45rem' }}>
-                <motion.div
-                    animate={{ filter: [`drop-shadow(0 0 5px ${timeLabel.color}55)`, `drop-shadow(0 0 14px ${timeLabel.color}cc)`, `drop-shadow(0 0 5px ${timeLabel.color}55)`] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                    style={{ display: 'flex', alignItems: 'center' }}
-                >
-                    <timeLabel.Icon size={16} strokeWidth={1.9} style={{ color: timeLabel.color }} />
-                </motion.div>
-                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: timeLabel.color, letterSpacing: '0.13em', textTransform: 'uppercase', fontFamily: "'Outfit', sans-serif", filter: `drop-shadow(0 0 6px ${timeLabel.color}70)` }}>
-                    {timeLabel.label}
-                </span>
-                <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${timeLabel.color}30, transparent)` }} />
-                {!allLogged && (
-                    <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.28)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.08em' }}>
-                        tap to log ✦
-                    </span>
-                )}
-            </div>
+            {/* ══ PREMIUM HEADER ══════════════════════════════════════════════ */}
+            <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{
+                    marginBottom: '0.7rem',
+                    padding: '0.6rem 0.85rem',
+                    borderRadius: 18,
+                    background: `linear-gradient(135deg, ${timeLabel.color}14 0%, rgba(4,2,20,0.0) 100%)`,
+                    border: `1.5px solid ${timeLabel.color}28`,
+                    display: 'flex', alignItems: 'center', gap: '0.65rem',
+                    position: 'relative', overflow: 'hidden',
+                }}
+            >
+                {/* Ambient glow */}
+                <div style={{ position: 'absolute', right: -20, top: -20, width: 80, height: 80, borderRadius: '50%', background: `radial-gradient(circle, ${timeLabel.color}18, transparent 70%)`, pointerEvents: 'none' }} />
 
-            {/* ── All done state ── */}
+                <motion.div
+                    animate={{ filter: [`drop-shadow(0 0 6px ${timeLabel.color}60)`, `drop-shadow(0 0 16px ${timeLabel.color}cc)`, `drop-shadow(0 0 6px ${timeLabel.color}60)`] }}
+                    transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                    <TimeLabelIcon size={22} strokeWidth={2} style={{ color: timeLabel.color, display: 'block' }} />
+                </motion.div>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 900, color: timeLabel.color, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.06em', textTransform: 'uppercase', lineHeight: 1 }}>
+                        {timeLabel.label}
+                    </p>
+                    <p style={{ margin: '0.22rem 0 0', fontSize: '0.6rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.06em' }}>
+                        {timeLabel.sublabel}
+                    </p>
+                </div>
+
+                {!allLogged && (
+                    <motion.div
+                        animate={{ opacity: [0.5, 1, 0.5] }}
+                        transition={{ duration: 2.2, repeat: Infinity }}
+                        style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }}
+                    >
+                        <Flame size={11} style={{ color: timeLabel.color }} />
+                        <span style={{ fontSize: '0.62rem', color: timeLabel.color, fontFamily: "'Outfit', sans-serif", fontWeight: 700, whiteSpace: 'nowrap' }}>
+                            Tap to log
+                        </span>
+                    </motion.div>
+                )}
+            </motion.div>
+
+            {/* ══ ALL-DONE STATE ═══════════════════════════════════════════════ */}
             {allLogged ? (
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.96 }}
+                    initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    style={{ textAlign: 'center', padding: '0.9rem 1rem', borderRadius: 16, background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.25)' }}
+                    style={{ textAlign: 'center', padding: '1.2rem 1rem', borderRadius: 20, background: 'rgba(74,222,128,0.07)', border: '1px solid rgba(74,222,128,0.28)' }}
                 >
-                    <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity }} style={{ fontSize: '1.4rem', display: 'block', marginBottom: 4 }}>✨</motion.span>
-                    <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 700, color: '#4ade80', fontFamily: "'Outfit', sans-serif" }}>
-                        All {timeLabel.label.toLowerCase()} done — incredible!
+                    <motion.span animate={{ scale: [1, 1.22, 1], rotate: [0, 10, -10, 0] }} transition={{ duration: 2.5, repeat: Infinity }} style={{ fontSize: '1.8rem', display: 'block', marginBottom: 6 }}>✨</motion.span>
+                    <p style={{ margin: '0 0 0.2rem', fontSize: '0.88rem', fontWeight: 800, color: '#4ade80', fontFamily: "'Outfit', sans-serif" }}>
+                        All {timeLabel.label.toLowerCase()} logged — incredible!
                     </p>
-                    <p style={{ margin: '0.2rem 0 0', fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif" }}>
-                        Keep this momentum through the day ✦
+                    <p style={{ margin: 0, fontSize: '0.65rem', color: 'rgba(255,255,255,0.32)', fontFamily: "'Outfit', sans-serif" }}>
+                        Bodhi sees your discipline ✦ Keep this momentum
                     </p>
                 </motion.div>
             ) : (
                 <>
-                    {/* ── Bubble row ── */}
+                    {/* ── SINGLE UNIFIED SCROLL ROW ───────────────────────── */}
                     <div
-                        className="smart-log-bubbles"
-                        style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '0.3rem' }}
+                        className="smart-log-row"
+                        style={{
+                            display: 'flex',
+                            gap: '1rem',
+                            overflowX: 'auto',
+                            scrollbarWidth: 'none',
+                            padding: '1.4rem 1rem 1.4rem',
+                            alignItems: 'flex-start',
+                        }}
                     >
-                        <style>{`.smart-log-bubbles::-webkit-scrollbar{display:none}`}</style>
-                        {bubbles.map((bubble, i) => {
-                            const isActive = activeBubble === bubble.id;
-                            const isLocked = !loggedToday.has(bubble.id) && getBlockReason(bubble.id) !== null;
-                            const isDynamic = !!bubble.isDynamic;
-                            return (
-                                <motion.div
-                                    key={bubble.id}
-                                    initial={{ opacity: 0, y: 14 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: i * 0.07, type: 'spring', stiffness: 320, damping: 26 }}
-                                    style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, cursor: isLocked ? 'not-allowed' : 'pointer', opacity: isLocked ? 0.45 : 1 }}
-                                    onClick={() => toggleBubble(bubble)}
-                                >
-                                    {/* Bubble circle */}
-                                    <motion.div
-                                        animate={{
-                                            boxShadow: isActive
-                                                ? `0 0 0 2px ${bubble.color}80, 0 0 24px ${bubble.color}55`
-                                                : `0 0 0 1px ${bubble.color}${isDynamic ? '50' : '28'}, 0 4px 18px rgba(0,0,0,0.35)`,
-                                            scale: isActive ? 1.10 : [1, 1.03, 1],
-                                            y: isActive ? -4 : [0, -4, 0],
-                                        }}
-                                        transition={
-                                            isActive
-                                                ? { type: 'spring', stiffness: 360, damping: 26 }
-                                                : { duration: 4 + i * 0.5, repeat: Infinity, ease: 'easeInOut', delay: i * 0.3 }
-                                        }
-                                        style={{
-                                            width: 'min(84px, 16vw)',
-                                            height: 'min(84px, 16vw)',
-                                            minWidth: 64,
-                                            minHeight: 64,
-                                            borderRadius: '50%',
-                                            background: isDynamic
-                                                ? `radial-gradient(circle at 36% 28%, ${bubble.color}28 0%, rgba(4,2,18,0.20) 75%)`
-                                                : `radial-gradient(circle at 36% 28%, ${bubble.color}18 0%, rgba(4,2,18,0.15) 75%)`,
-                                            border: isDynamic
-                                                ? `1.8px solid ${bubble.color}${isActive ? 'cc' : '65'}`
-                                                : `1.2px solid ${bubble.color}${isActive ? '88' : '38'}`,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: 'clamp(1.5rem, 4vw, 1.95rem)',
-                                            backdropFilter: 'blur(14px)',
-                                            WebkitBackdropFilter: 'blur(14px)',
-                                            position: 'relative',
-                                            transition: 'border-color 0.2s',
-                                        }}
-                                    >
-                                        {/* Pulse ring when active */}
-                                        <AnimatePresence>
-                                            {isActive && (
-                                                <motion.div
-                                                    initial={{ scale: 1, opacity: 0.6 }}
-                                                    animate={{ scale: 1.55, opacity: 0 }}
-                                                    exit={{ opacity: 0 }}
-                                                    transition={{ duration: 0.9, repeat: Infinity, ease: 'easeOut' }}
-                                                    style={{ position: 'absolute', inset: -4, borderRadius: '50%', border: `1.5px solid ${bubble.color}55`, pointerEvents: 'none' }}
-                                                />
-                                            )}
-                                        </AnimatePresence>
-                                        {/* Dynamic badge */}
-                                        {isDynamic && (
-                                            <div style={{ position: 'absolute', top: -2, right: -2, width: 12, height: 12, borderRadius: '50%', background: bubble.color, border: '1.5px solid rgba(0,0,0,0.5)', boxShadow: `0 0 6px ${bubble.color}` }} />
-                                        )}
-                                        {bubble.icon}
-                                    </motion.div>
-
-                                    {/* Label */}
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-                                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: isActive ? bubble.color : 'rgba(255,255,255,0.65)', letterSpacing: '0.03em', textAlign: 'center', maxWidth: 100, lineHeight: 1.3, fontFamily: "'Outfit', sans-serif", whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', transition: 'color 0.2s', filter: isActive ? `drop-shadow(0 0 5px ${bubble.color}80)` : 'none' }}>
-                                            {bubble.label}
-                                        </span>
-                                        <span style={{ fontSize: '0.66rem', color: isDynamic ? `${bubble.color}88` : 'rgba(255,255,255,0.28)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
-                                            {bubble.sublabel}
-                                        </span>
-                                    </div>
-                                </motion.div>
-                            );
-                        })}
+                        <style>{`.smart-log-row::-webkit-scrollbar{display:none}`}</style>
+                        {timedBubbles.map((bubble, i) => renderBubble(bubble, i))}
+                        {timedBubbles.length > 0 && anytimeBubbles.length > 0 && (
+                            <div style={{
+                                flexShrink: 0,
+                                width: 1,
+                                height: 64,
+                                alignSelf: 'center',
+                                background: 'linear-gradient(180deg, transparent, rgba(255,255,255,0.10), transparent)',
+                                margin: '0 0.1rem',
+                            }} />
+                        )}
+                        {anytimeBubbles.map((bubble, i) => renderBubble(bubble, timedBubbles.length + i))}
                     </div>
 
-                    {/* ── Sub-option pills ── */}
+                    {/* ── Sub-option pills ────────────────────────────────── */}
                     <AnimatePresence>
                         {active && (
                             <motion.div
@@ -746,40 +895,53 @@ export default function SmartLogBubbles() {
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
                                 exit={{ opacity: 0, height: 0 }}
-                                transition={{ duration: 0.20, ease: [0.22, 1, 0.36, 1] }}
+                                transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
                                 style={{ overflow: 'hidden' }}
                             >
-                                <p style={{ margin: '0.4rem 0 0.25rem', fontSize: '0.72rem', color: active.color, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.06em', opacity: 0.82 }}>
-                                    {active.sublabel} →
-                                </p>
-                                <div className="sub-option-pills" style={{ display: 'flex', gap: '0.28rem', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 6 }}>
-                                    <style>{`.sub-option-pills::-webkit-scrollbar{display:none}`}</style>
-                                    {active.subOptions.map((sub, i) => (
+                                <div style={{ paddingTop: '0.5rem' }}>
+                                    <p style={{ margin: '0 0 0.32rem', fontSize: '0.68rem', color: active.color, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.05em', fontWeight: 700 }}>
+                                        {active.icon} {active.sublabel} →
+                                    </p>
+                                    <div className="sub-option-pills" style={{ display: 'flex', gap: '0.28rem', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 6 }}>
+                                        <style>{`.sub-option-pills::-webkit-scrollbar{display:none}`}</style>
+                                        {active.subOptions.map((sub, i) => (
+                                            <motion.button
+                                                key={sub.label}
+                                                initial={{ opacity: 0, x: -12 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: i * 0.045, type: 'spring', stiffness: 420, damping: 28 }}
+                                                whileTap={{ scale: 0.84 }}
+                                                onClick={() => logAndNavigate(active, sub)}
+                                                style={{
+                                                    flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5,
+                                                    background: `radial-gradient(circle at 28% 28%, ${active.color}22, rgba(8,4,30,0.90))`,
+                                                    border: `1px solid ${active.color}50`, borderRadius: 999,
+                                                    padding: '0.35rem 0.8rem 0.35rem 0.55rem', cursor: 'pointer',
+                                                    backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
+                                                    boxShadow: `0 2px 12px ${active.color}18`,
+                                                }}
+                                            >
+                                                <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>{sub.icon}</span>
+                                                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'rgba(255,255,255,0.82)', letterSpacing: '0.03em', whiteSpace: 'nowrap', fontFamily: "'Outfit', sans-serif" }}>{sub.label}</span>
+                                            </motion.button>
+                                        ))}
+                                        {/* Quick log pill */}
                                         <motion.button
-                                            key={sub.label}
-                                            initial={{ opacity: 0, x: -10 }}
+                                            initial={{ opacity: 0, x: -12 }}
                                             animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: i * 0.045, type: 'spring', stiffness: 420, damping: 28 }}
-                                            whileTap={{ scale: 0.86 }}
-                                            onClick={() => logAndNavigate(active, sub)}
-                                            style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5, background: `radial-gradient(circle at 28% 28%, ${active.color}1e, rgba(8,4,30,0.90))`, border: `1px solid ${active.color}48`, borderRadius: 999, padding: '0.32rem 0.75rem 0.32rem 0.50rem', cursor: 'pointer', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', boxShadow: `0 2px 10px ${active.color}14` }}
+                                            transition={{ delay: active.subOptions.length * 0.045 + 0.04 }}
+                                            whileTap={{ scale: 0.84 }}
+                                            onClick={() => logAndNavigate(active)}
+                                            style={{
+                                                flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5,
+                                                background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.18)',
+                                                borderRadius: 999, padding: '0.3rem 0.7rem 0.3rem 0.45rem', cursor: 'pointer',
+                                            }}
                                         >
-                                            <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>{sub.icon}</span>
-                                            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'rgba(255,255,255,0.78)', letterSpacing: '0.03em', whiteSpace: 'nowrap', fontFamily: "'Outfit', sans-serif" }}>{sub.label}</span>
+                                            <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>✏️</span>
+                                            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'rgba(255,255,255,0.38)', letterSpacing: '0.03em', whiteSpace: 'nowrap', fontFamily: "'Outfit', sans-serif" }}>Tell Bodhi…</span>
                                         </motion.button>
-                                    ))}
-                                    {/* Manual entry pill */}
-                                    <motion.button
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: active.subOptions.length * 0.045 + 0.04 }}
-                                        whileTap={{ scale: 0.86 }}
-                                        onClick={() => logAndNavigate(active)}
-                                        style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.20)', borderRadius: 999, padding: '0.28rem 0.65rem 0.28rem 0.42rem', cursor: 'pointer' }}
-                                    >
-                                        <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>✏️</span>
-                                        <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'rgba(255,255,255,0.40)', letterSpacing: '0.03em', whiteSpace: 'nowrap', fontFamily: "'Outfit', sans-serif" }}>Tell Bodhi...</span>
-                                    </motion.button>
+                                    </div>
                                 </div>
                             </motion.div>
                         )}

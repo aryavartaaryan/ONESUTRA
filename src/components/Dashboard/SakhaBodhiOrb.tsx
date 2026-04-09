@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSakhaConversation, type DayPhase } from '@/hooks/useSakhaConversation';
 import { useLanguage } from '@/context/LanguageContext';
 import { type TaskItem } from '@/hooks/useDailyTasks';
-import AgenticWebView from '@/components/AgenticWebView';
 import { Sparkles, Calendar, Focus, Moon, Wind, Lightbulb } from 'lucide-react';
 import styles from './SakhaBodhiOrb.module.css';
 
@@ -108,8 +107,6 @@ export default function SakhaBodhiOrb({
         sakhaState,
         phase,
         micVolume,
-        webViewAction,
-        closeWebView,
         activate,
         deactivate,
     } = useSakhaConversation({
@@ -218,22 +215,9 @@ export default function SakhaBodhiOrb({
 
     const showLiveDot = sakhaState === 'listening' || sakhaState === 'speaking';
 
-    const isWebViewOpen = Boolean(webViewAction?.action === 'OPEN_WEBVIEW' && webViewAction.url);
-
     const handleDismiss = () => {
         deactivate();
-        // Keep component mounted while WebView is open so video/page continues.
-        if (!isWebViewOpen) {
-            onDismiss();
-        }
-    };
-
-    const handleWebViewClose = () => {
-        closeWebView();
-        // If Sakha is already dismissed, now we can safely unmount parent wrapper.
-        if (sakhaState === 'dismissed') {
-            onDismiss();
-        }
+        onDismiss();
     };
 
     // ── Blob scale driven by mic volume while listening ───────────────────────
@@ -767,25 +751,6 @@ export default function SakhaBodhiOrb({
                 )}
             </AnimatePresence>
 
-            <AnimatePresence>
-                {isWebViewOpen && (
-                    <motion.div
-                        key="webview-reveal"
-                        initial={{ opacity: 0, y: 24, scale: 0.97 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 16, scale: 0.97 }}
-                        transition={{ duration: 0.32, ease: [0.25, 0.46, 0.45, 0.94] }}
-                        style={{ position: 'fixed', inset: 0, zIndex: 9999 }}
-                    >
-                        <AgenticWebView
-                            isOpen={isWebViewOpen}
-                            url={webViewAction?.url ?? ''}
-                            title={webViewAction?.title}
-                            onClose={handleWebViewClose}
-                        />
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </>
     );
 }

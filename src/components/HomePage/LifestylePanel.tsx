@@ -16,6 +16,7 @@ import { DOSHA_INFO } from '@/lib/doshaService';
 import { getLevelFromXP, getNextLevel, getToday, type HabitItem } from '@/stores/lifestyleStore';
 import { useBodhiChatStore } from '@/stores/bodhiChatStore';
 import { useDailyTasks } from '@/hooks/useDailyTasks';
+import { useLanguage } from '@/context/LanguageContext';
 import dynamic from 'next/dynamic';
 
 const GunaTracker = dynamic(() => import('@/components/Dashboard/GunaTracker'), { ssr: false });
@@ -146,6 +147,25 @@ const MORNING_PRACTICE_ORDER: Record<string, number> = {
   h_morning_meditation: 6,
   h_gratitude: 7,
   h_breakfast: 8,            // Mindful breakfast after sadhana
+};
+
+// ─── OneSutra Streak Tier Helper ────────────────────────────────────────────
+function getStreakTier(days: number): string {
+  if (days >= 180) return 'Ancient Grove';
+  if (days >= 84) return 'Forest';
+  if (days >= 21) return 'Tree';
+  if (days >= 7) return 'Sapling';
+  return 'Seed';
+}
+const TIER_EMOJI: Record<string, string> = {
+  'Seed': '🌱', 'Sapling': '🌿', 'Tree': '🌳', 'Forest': '🌾', 'Ancient Grove': '🌄',
+};
+const MILESTONE_DAYS = [7, 21, 84, 180];
+const MILESTONE_LABEL: Record<number, { title: string; subtitle: string; color: string; emoji: string }> = {
+  7: { title: 'Sapling Reached 🌿', subtitle: 'One Ayurvedic dhatu (tissue) cycle complete. Your cells have been touched by this routine.', color: '#4ade80', emoji: '🌿' },
+  21: { title: 'Tree Achieved 🌳', subtitle: '21 days forms a new samskara — a groove in mind and body. What felt like effort is becoming your nature.', color: '#fbbf24', emoji: '🌳' },
+  84: { title: 'Forest Unlocked 🌾', subtitle: 'One full Ritucharya (seasonal) cycle complete. This is no longer a habit — this is who you are.', color: '#c084fc', emoji: '🏕️' },
+  180: { title: 'Ancient Grove 🌄', subtitle: '6 months of sustained sadhana. The shastras say this reshapes the very fabric of your being.', color: '#f97316', emoji: '🌄' },
 };
 
 // ─── Real Sun SVG ────────────────────────────────────────────────────────────
@@ -431,33 +451,32 @@ function StreakFlame({ count }: { count: number }) {
 }
 
 // ─── Habit Row ───────────────────────────────────────────────────────────────
-function HabitRow({ habit, isCompleted, isSkipped, streak, isNow, onComplete, onSkip }: {
+function HabitRow({ habit, isCompleted, isSkipped, streak }: {
   habit: HabitItem; isCompleted: boolean; isSkipped: boolean; streak: number;
-  isNow: boolean;
-  onComplete: () => void; onSkip: () => void;
 }) {
   const color = LIFE_AREA_COLORS[habit.lifeArea] ?? '#a78bfa';
   const timeConf = TIME_SLOT_CONFIG[habit.category ?? 'anytime'] ?? TIME_SLOT_CONFIG.anytime;
+  const isPending = !isCompleted && !isSkipped;
+
   return (
     <motion.div
       layout
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      whileTap={{ scale: !isCompleted && !isSkipped ? 0.97 : 1 }}
-      onClick={() => { if (!isCompleted && !isSkipped) onComplete(); }}
+
       style={{
         display: 'flex', alignItems: 'center', gap: 0,
         borderRadius: 16,
         background: isCompleted
           ? `linear-gradient(135deg, ${color}35, rgba(0,0,0,0.45))`
-          : isNow
+          : isPending
             ? `radial-gradient(ellipse at 28% 30%, ${color}22 0%, rgba(0,0,0,0.42) 80%)`
             : 'rgba(0,0,0,0.38)',
-        border: `1.5px solid ${isCompleted ? color + '65' : isNow ? color + '45' : 'rgba(255,255,255,0.08)'}`,
-        boxShadow: isCompleted ? `0 4px 24px ${color}30, inset 0 1px 0 rgba(255,255,255,0.06)` : isNow ? `0 2px 18px ${color}22, inset 0 1px 0 rgba(255,255,255,0.04)` : 'inset 0 1px 0 rgba(255,255,255,0.03)',
+        border: `1.5px solid ${isCompleted ? color + '65' : isPending ? color + '45' : 'rgba(255,255,255,0.08)'}`,
+        boxShadow: isCompleted ? `0 4px 24px ${color}30, inset 0 1px 0 rgba(255,255,255,0.06)` : isPending ? `0 2px 18px ${color}22, inset 0 1px 0 rgba(255,255,255,0.04)` : 'inset 0 1px 0 rgba(255,255,255,0.03)',
         marginBottom: '0.48rem',
         opacity: isSkipped ? 0.3 : 1,
-        cursor: isCompleted || isSkipped ? 'default' : 'pointer',
+        cursor: 'default',
         overflow: 'hidden',
         position: 'relative',
       }}
@@ -465,7 +484,7 @@ function HabitRow({ habit, isCompleted, isSkipped, streak, isNow, onComplete, on
       {/* Vivid left accent strip */}
       <div style={{
         width: 4, alignSelf: 'stretch', flexShrink: 0,
-        background: isCompleted ? color : isNow ? `linear-gradient(180deg, ${color}, ${color}55)` : `${color}45`,
+        background: isCompleted ? color : isPending ? `linear-gradient(180deg, ${color}, ${color}55)` : `${color}45`,
         borderRadius: '16px 0 0 16px',
       }} />
 
@@ -484,11 +503,12 @@ function HabitRow({ habit, isCompleted, isSkipped, streak, isNow, onComplete, on
             <CheckCircle2 size={20} style={{ color }} />
           </motion.div>
         )}
-        {isNow && !isCompleted && !isSkipped && (
-          <motion.div animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }} transition={{ duration: 2, repeat: Infinity }}
-            style={{ position: 'absolute', inset: -2, borderRadius: 15, border: `1.5px solid ${color}55`, pointerEvents: 'none' }} />
+        {isPending && (
+          <motion.div animate={{ scale: [1, 1.5, 1], opacity: [0.45, 0, 0.45] }} transition={{ duration: 2.5, repeat: Infinity }}
+            style={{ position: 'absolute', inset: -2, borderRadius: 15, border: `1.5px solid ${color}50`, pointerEvents: 'none' }} />
         )}
       </div>
+
 
       {/* Content */}
       <div style={{ flex: 1, minWidth: 0, paddingRight: '0.1rem' }}>
@@ -514,16 +534,14 @@ function HabitRow({ habit, isCompleted, isSkipped, streak, isNow, onComplete, on
         </div>
       </div>
 
-      {/* Streak + skip */}
+      {/* Streak + SmartLog nudge */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', paddingRight: '0.6rem', flexShrink: 0 }}>
         <StreakFlame count={streak} />
-        {!isCompleted && !isSkipped && (
-          <button onClick={e => { e.stopPropagation(); onSkip(); }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.15)', padding: '2px' }}>
-            <SkipForward size={14} />
-          </button>
+        {isPending && (
+          <span style={{ fontSize: '0.52rem', color: 'rgba(255,255,255,0.22)', fontFamily: "'Outfit', sans-serif", fontWeight: 600, letterSpacing: '0.04em', textAlign: 'right', lineHeight: 1.3, maxWidth: 42 }}>Log above ↑</span>
         )}
       </div>
+
     </motion.div>
   );
 }
@@ -639,6 +657,7 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
   const router = useRouter();
   const engine = useLifestyleEngine();
   const { prakriti, vikriti, currentPhase, doshaOnboardingComplete, inBrahmaMuhurta } = useDoshaEngine();
+  const { lang } = useLanguage();
 
   const [showMoodLog, setShowMoodLog] = useState(false);
   const [completedFlash, setCompletedFlash] = useState<string | null>(null);
@@ -652,12 +671,78 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [bodhiVoiceBubble, setBodhiVoiceBubble] = useState<{ text: string; isOptimalTime: boolean; habitName: string; habitIcon: string } | null>(null);
   const [bodhiSpeaking, setBodhiSpeaking] = useState(false);
+  // ── Rhythm nudge state ─────────────────────────────────────────────────────────────────
+  const [rhythmNudge, setRhythmNudge] = useState<{ text: string; type: 'morning' | 'midday' | 'evening' } | null>(null);
+  const [milestoneCelebration, setMilestoneCelebration] = useState<{ days: number; label: typeof MILESTONE_LABEL[number] } | null>(null);
+  const rhythmNudgeSentRef = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     const refresh = () => setSmartLogDoneIds(readSmartLogDoneHabitIds());
     window.addEventListener('focus', refresh);
     const timer = setInterval(refresh, 30_000);
     return () => { window.removeEventListener('focus', refresh); clearInterval(timer); };
   }, []);
+
+  // ── Rhythm Nudge useEffect: morning / midday / evening proactive nudges ────────────────────
+  useEffect(() => {
+    if (!engine.profile?.onboardingComplete) return;
+    const todayKey = new Date().toISOString().split('T')[0];
+    const h = new Date().getHours();
+    const score = engine.todayCompletionRate;
+    const streakDays = Math.max(...Object.values(engine.streaks).map(s => s.currentStreak ?? 0), 0);
+    const tier = getStreakTier(streakDays);
+    const pendingCount = engine.activeHabits.filter(hab => !completedIds.has(hab.id) && !skippedIds.has(hab.id)).length;
+    const firstPending = engine.activeHabits.find(hab => !completedIds.has(hab.id) && !skippedIds.has(hab.id));
+    const topCompleted = engine.activeHabits.find(hab => completedIds.has(hab.id));
+    const profileName2 = (() => {
+      try {
+        const cached = localStorage.getItem('onesutra_auth_v1');
+        if (cached) { const p = JSON.parse(cached); if (p?.name && p.name !== 'Traveller') return p.name; }
+      } catch { }
+      return localStorage.getItem('vedic_user_name') || 'Mitra';
+    })();
+
+    const sendNudge = async (type: 'morning' | 'midday' | 'evening') => {
+      const nudgeKey = `rhythm_nudge_${todayKey}_${type}`;
+      if (rhythmNudgeSentRef.current.has(nudgeKey)) return;
+      try { if (sessionStorage.getItem(nudgeKey)) return; } catch { }
+      rhythmNudgeSentRef.current.add(nudgeKey);
+      try { sessionStorage.setItem(nudgeKey, '1'); } catch { }
+      try {
+        const res = await fetch('/api/bodhi/rhythm-check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type, userName: profileName2, pendingHabits: pendingCount,
+            completedHabits: completedIds.size, disciplineScoreToday: Math.round(score),
+            streakDays, streakTier: tier, prakriti: undefined,
+            firstPendingHabit: firstPending ? `${firstPending.icon} ${firstPending.name}` : undefined,
+            topCompletedHabit: topCompleted ? `${topCompleted.icon} ${topCompleted.name}` : undefined,
+          }),
+        });
+        if (res.ok) {
+          const { message } = await res.json();
+          if (message) setRhythmNudge({ text: message, type });
+        }
+      } catch { /* silent */ }
+    };
+
+    // Morning check-in: 6–10 AM, if there are pending habits
+    if (h >= 6 && h < 10 && pendingCount > 0) {
+      sendNudge('morning');
+    }
+    // Midday nudge: if noon+ and score < 60%
+    if (h >= 12 && h < 14 && score < 60 && pendingCount > 0) {
+      sendNudge('midday');
+    }
+    // Evening summary: 8pm+, only if user has done at least 1 habit
+    if (h >= 20 && completedIds.size > 0) {
+      sendNudge('evening');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [engine.todayCompletionRate, engine.profile?.onboardingComplete]);
+
+
   const [profileName] = useState<string>(() => {
     if (typeof window === 'undefined') return '';
     try {
@@ -745,6 +830,31 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
   ) => {
     setBodhiSpeaking(true);
     setBodhiVoiceBubble({ text: '...', isOptimalTime: true, habitName: habit.name, habitIcon: habit.icon });
+
+    // Compute enriched OneSutra context
+    const streakDays = Math.max(...Object.values(engine.streaks).map(s => s.currentStreak ?? 0), 0);
+    const streakTier = getStreakTier(streakDays);
+    const totalHabits = engine.activeHabits.length;
+    const disciplineScoreToday = totalHabits > 0 ? Math.round((completedSoFar / totalHabits) * 100) : 0;
+    const isFirstHabitToday = completedSoFar === 1;
+    const h2 = new Date().getHours();
+    const currentTimeOfDay = h2 >= 2 && h2 < 6 ? 'pre-dawn'
+      : h2 >= 6 && h2 < 10 ? 'morning'
+        : h2 >= 10 && h2 < 14 ? 'midday'
+          : h2 >= 14 && h2 < 18 ? 'afternoon'
+            : h2 >= 18 && h2 < 22 ? 'evening' : 'night';
+
+    // Derive dosha imbalance label from vikriti
+    const doshaImbalanceLabel = vikriti?.primary && vikriti.imbalanceLevel !== 'balanced'
+      ? `${vikriti.primary.charAt(0).toUpperCase()}${vikriti.primary.slice(1)} ${vikriti.imbalanceLevel}`
+      : undefined;
+
+    // Check for streak milestone
+    if (MILESTONE_DAYS.includes(streakDays) && isFirstHabitToday) {
+      const ml = MILESTONE_LABEL[streakDays];
+      if (ml) setMilestoneCelebration({ days: streakDays, label: ml });
+    }
+
     try {
       const res = await fetch('/api/bodhi/habit-voice-feedback', {
         method: 'POST',
@@ -755,10 +865,17 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
           habitCategory: habit.category ?? 'anytime',
           habitLifeArea: habit.lifeArea,
           prakriti: prakriti?.primary ?? 'unknown',
+          currentDoshaImbalance: doshaImbalanceLabel,
           nextHabitName: nextHabit?.name ?? null,
           nextHabitIcon: nextHabit?.icon ?? null,
           completedCount: completedSoFar,
-          totalHabits: engine.activeHabits.length,
+          totalHabits,
+          streakDays,
+          streakTier,
+          disciplineScoreToday,
+          isFirstHabitToday,
+          currentTimeOfDay,
+          language: lang,
         }),
       });
       const { voiceMessage, isOptimalTime } = await res.json();
@@ -768,7 +885,7 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
         const ttsRes = await fetch('/api/tts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: voiceMessage, voice: 'Aoede' }),
+          body: JSON.stringify({ text: voiceMessage, voice: lang === 'hi' ? 'Kore' : 'Aoede' }),
         });
         if (ttsRes.ok) {
           const { audio, mimeType } = await ttsRes.json();
@@ -789,7 +906,10 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
         setTimeout(() => setBodhiVoiceBubble(null), 4000);
       }
     } catch {
-      setBodhiVoiceBubble({ text: 'Practice logged! Aapka Agni strong hai — keep going.', isOptimalTime: true, habitName: habit.name, habitIcon: habit.icon });
+      const fallbackText = lang === 'hi'
+        ? 'अभ्यास दर्ज हुआ! आपका अग्नि मजबूत है — आगे बढ़ते रहें।'
+        : 'Practice logged! Aapka Agni strong hai — keep going.';
+      setBodhiVoiceBubble({ text: fallbackText, isOptimalTime: true, habitName: habit.name, habitIcon: habit.icon });
       setBodhiSpeaking(false);
       setTimeout(() => setBodhiVoiceBubble(null), 4000);
     }
@@ -917,9 +1037,116 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
   return (
     <div style={{ margin: '0 0.6rem 1.5rem' }}>
 
+      {/* ── Streak Milestone Celebration Overlay ─────────────────────────── */}
+      <AnimatePresence>
+        {milestoneCelebration && (
+          <motion.div
+            key="milestone-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setMilestoneCelebration(null)}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 10000,
+              background: 'rgba(2,1,12,0.94)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              backdropFilter: 'blur(28px)',
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.7, opacity: 0, y: 30 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.85, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+              onClick={e => e.stopPropagation()}
+              style={{
+                width: 'calc(100vw - 3rem)', maxWidth: 380,
+                background: `linear-gradient(160deg, ${milestoneCelebration.label.color}18, rgba(4,2,20,0.98))`,
+                border: `1.5px solid ${milestoneCelebration.label.color}55`,
+                borderRadius: 28, padding: '2rem 1.6rem',
+                textAlign: 'center', boxShadow: `0 0 80px ${milestoneCelebration.label.color}20, 0 24px 72px rgba(0,0,0,0.7)`,
+              }}
+            >
+              <motion.div
+                animate={{ scale: [1, 1.18, 1], rotate: [0, 8, -8, 0] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                style={{ fontSize: '4rem', marginBottom: '1rem', filter: `drop-shadow(0 0 24px ${milestoneCelebration.label.color})` }}
+              >
+                {milestoneCelebration.label.emoji}
+              </motion.div>
+              <p style={{ margin: '0 0 0.35rem', fontSize: '1.35rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.01em' }}>
+                {milestoneCelebration.days} Days
+              </p>
+              <p style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 800, color: milestoneCelebration.label.color, fontFamily: "'Outfit', sans-serif" }}>
+                {milestoneCelebration.label.title}
+              </p>
+              <p style={{ margin: '0 0 1.8rem', fontSize: '0.88rem', color: 'rgba(255,255,255,0.65)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.6 }}>
+                {milestoneCelebration.label.subtitle}
+              </p>
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                onClick={() => setMilestoneCelebration(null)}
+                style={{
+                  padding: '0.75rem 2.2rem', borderRadius: 999, border: 'none', cursor: 'pointer',
+                  background: `linear-gradient(135deg, ${milestoneCelebration.label.color}, ${milestoneCelebration.label.color}99)`,
+                  color: '#fff', fontWeight: 800, fontSize: '0.9rem', fontFamily: "'Outfit', sans-serif",
+                  boxShadow: `0 8px 24px ${milestoneCelebration.label.color}40`,
+                }}
+              >
+                Jai Ho 🙏
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Rhythm Nudge Bubble (morning / midday / evening) ─────────────── */}
+      <AnimatePresence>
+        {rhythmNudge && !bodhiVoiceBubble && (
+          <motion.div
+            key="rhythm-nudge"
+            initial={{ opacity: 0, y: 60, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 30, scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+            style={{
+              position: 'fixed', bottom: 88, left: '50%', transform: 'translateX(-50%)',
+              zIndex: 9997, width: 'calc(100vw - 1.8rem)', maxWidth: 470,
+              background: 'linear-gradient(135deg, rgba(4,2,20,0.97), rgba(18,8,36,0.99))',
+              border: `1.5px solid ${rhythmNudge.type === 'morning' ? 'rgba(251,191,36,0.5)' : rhythmNudge.type === 'midday' ? 'rgba(251,146,60,0.45)' : 'rgba(139,92,246,0.45)'}`,
+              borderRadius: 22, padding: '0.95rem 1.1rem',
+              backdropFilter: 'blur(28px)',
+              boxShadow: '0 12px 48px rgba(0,0,0,0.75)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+              <div style={{
+                width: 38, height: 38, borderRadius: '50%', flexShrink: 0,
+                background: 'radial-gradient(circle at 35% 30%, rgba(251,191,36,0.35), rgba(139,92,246,0.2) 65%, transparent)',
+                border: '1.5px solid rgba(251,191,36,0.5)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem',
+              }}>
+                {rhythmNudge.type === 'morning' ? '🌅' : rhythmNudge.type === 'midday' ? '☀️' : '🌙'}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ margin: '0 0 0.22rem', fontSize: '0.56rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: rhythmNudge.type === 'morning' ? '#fbbf24' : rhythmNudge.type === 'midday' ? '#fb923c' : '#a78bfa', fontFamily: "'Outfit', sans-serif" }}>
+                  {rhythmNudge.type === 'morning' ? 'Morning Check-in' : rhythmNudge.type === 'midday' ? 'Midday Nudge' : 'Evening Summary'} · Bodhi
+                </p>
+                <p style={{ margin: 0, fontSize: '0.87rem', lineHeight: 1.55, fontFamily: "'Outfit', sans-serif", color: 'rgba(255,255,255,0.88)' }}>
+                  {rhythmNudge.text}
+                </p>
+              </div>
+              <button onClick={() => setRhythmNudge(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.28)', padding: 4, flexShrink: 0 }}>✕</button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Bodhi Voice Bubble ───────────────────────────────────────────── */}
       <AnimatePresence>
         {bodhiVoiceBubble && (
+
           <motion.div
             key="bodhi-voice-bubble"
             initial={{ opacity: 0, y: 60, scale: 0.92 }}
@@ -987,7 +1214,7 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
                   color: bodhiVoiceBubble.text === '...' ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.9)',
                   fontStyle: bodhiVoiceBubble.text === '...' ? 'italic' : 'normal',
                 }}>
-                  {bodhiVoiceBubble.text === '...' ? 'Bodhi sun raha hai...' : bodhiVoiceBubble.text}
+                  {bodhiVoiceBubble.text === '...' ? (lang === 'hi' ? 'बोधि सुन रहा है...' : 'Bodhi sun raha hai...') : bodhiVoiceBubble.text}
                 </p>
               </div>
 
@@ -1322,7 +1549,7 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
                     letterSpacing: '0.04em', fontFamily: "'Outfit', sans-serif",
                     lineHeight: 1.3, flexShrink: 0,
                   }}>
-                    ✦ {SlotCfg.emoji} {SlotCfg.label} Habits to be Logged
+                    ✦ {SlotCfg.emoji} {SlotCfg.label} Habits Today
                   </span>
                   {totalPending > 0 && (
                     <motion.span animate={{ opacity: [1, 0.55, 1] }} transition={{ duration: 2, repeat: Infinity }}
@@ -1365,36 +1592,28 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
                   <Plus size={12} /> Add your first habit
                 </span>
               </motion.div>
-            ) : (() => {
+            }) : (() => {
               // Only show current time-slot habits + anytime
-              // counter-type habits always show (can log multiple times per day)
               const slotsToShow: Array<'morning' | 'sacred' | 'midday' | 'evening' | 'night' | 'anytime'> =
                 timeSlot === 'morning' ? ['morning', 'sacred', 'anytime']
                   : timeSlot === 'midday' ? ['midday', 'anytime']
                     : timeSlot === 'evening' ? ['evening', 'anytime']
                       : ['night', 'anytime'];
 
-              // Filter habits for this time slot
               const relevantHabits = allActiveHabits.filter(h => {
                 const c = h.category ?? 'anytime';
                 return slotsToShow.includes(c as typeof slotsToShow[0]);
               });
 
-              // visible = not done OR counter-type (can log multiple times)
-              const visibleHabits = relevantHabits.filter(h => {
-                const isDone = effectiveCompletedIds.has(h.id) || skippedIds.has(h.id);
-                if (!isDone) return true;
-                // counter habits can always be logged again
-                return h.trackingType === 'counter';
-              });
+              // Split into pending and done
+              const pendingHabits = relevantHabits.filter(h => !effectiveCompletedIds.has(h.id) && !skippedIds.has(h.id));
+              const doneHabits = relevantHabits.filter(h => effectiveCompletedIds.has(h.id) || skippedIds.has(h.id));
 
-              const sortedVisible = timeSlot === 'morning'
-                ? [...visibleHabits].sort((a, b) => (MORNING_PRACTICE_ORDER[a.id] ?? 99) - (MORNING_PRACTICE_ORDER[b.id] ?? 99))
-                : visibleHabits;
+              const sortedPending = timeSlot === 'morning'
+                ? [...pendingHabits].sort((a, b) => (MORNING_PRACTICE_ORDER[a.id] ?? 99) - (MORNING_PRACTICE_ORDER[b.id] ?? 99))
+                : pendingHabits;
 
-              const truelyPending = visibleHabits.filter(h => !effectiveCompletedIds.has(h.id) && !skippedIds.has(h.id));
-
-              if (sortedVisible.length === 0) {
+              if (relevantHabits.length === 0) {
                 return (
                   <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
                     style={{ textAlign: 'center', padding: '1.2rem 1rem', border: '1px solid rgba(74,222,128,0.28)', borderRadius: 18, background: 'rgba(74,222,128,0.05)' }}>
@@ -1406,33 +1625,67 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
 
               return (
                 <div>
-                  {(engine.adhdMode ? sortedVisible.slice(0, showAllHabits ? undefined : 3) : sortedVisible).map(habit => {
-                    const isDone = effectiveCompletedIds.has(habit.id);
-                    const isCounter = habit.trackingType === 'counter';
-                    return (
-                      <HabitRow
-                        key={habit.id}
-                        habit={habit}
-                        isCompleted={isDone && !isCounter}
-                        isSkipped={skippedIds.has(habit.id)}
-                        streak={engine.getHabitStreak(habit.id)}
-                        isNow={true}
-                        onComplete={() => handleComplete(habit.id)}
-                        onSkip={() => engine.skipHabit(habit.id, 'skipped for today')}
-                      />
-                    );
-                  })}
-                  {engine.adhdMode && truelyPending.length > 3 && !showAllHabits && (
+                  {/* SmartLog nudge banner — only when habits remain */}
+                  {sortedPending.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '0.48rem 0.75rem', borderRadius: 14, marginBottom: '0.5rem',
+                        background: 'linear-gradient(135deg, rgba(251,191,36,0.08), rgba(139,92,246,0.06))',
+                        border: '1px solid rgba(251,191,36,0.22)',
+                      }}
+                    >
+                      <motion.span animate={{ scale: [1, 1.18, 1], rotate: [0, 8, -8, 0] }} transition={{ duration: 3, repeat: Infinity }} style={{ fontSize: '1rem', flexShrink: 0 }}>✦</motion.span>
+                      <p style={{ margin: 0, fontSize: '0.72rem', color: 'rgba(255,255,255,0.55)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.4 }}>
+                        <span style={{ color: '#fbbf24', fontWeight: 800 }}>Log via Smart Log</span> — tap the bubbles above to record your practices with Bodhi&apos;s guidance
+                      </p>
+                    </motion.div>
+                  )}
+
+                  {/* ── Pending habits ─────────────────────────────────────── */}
+                  {(engine.adhdMode ? sortedPending.slice(0, showAllHabits ? undefined : 3) : sortedPending).map(habit => (
+                    <HabitRow
+                      key={habit.id}
+                      habit={habit}
+                      isCompleted={false}
+                      isSkipped={skippedIds.has(habit.id)}
+                      streak={engine.getHabitStreak(habit.id)}
+                    />
+                  ))}
+                  {engine.adhdMode && sortedPending.length > 3 && !showAllHabits && (
                     <button onClick={() => setShowAllHabits(true)}
                       style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.36)', fontSize: '0.72rem', cursor: 'pointer', fontFamily: "'Outfit', sans-serif", marginTop: '0.3rem' }}>
-                      +{truelyPending.length - 3} more habits
+                      +{sortedPending.length - 3} more habits
                     </button>
+                  )}
+
+                  {/* ── Done habits — inline with divider ──────────────────── */}
+                  {doneHabits.length > 0 && (
+                    <div style={{ marginTop: sortedPending.length > 0 ? '0.65rem' : 0 }}>
+                      {sortedPending.length > 0 && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.45rem' }}>
+                          <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, rgba(74,222,128,0.28))' }} />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.28rem' }}>
+                            <CheckCircle2 size={11} style={{ color: '#4ade80' }} />
+                            <span style={{ fontSize: '0.58rem', color: '#4ade80', fontWeight: 800, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.07em' }}>
+                              {doneHabits.length} DONE TODAY
+                            </span>
+                          </div>
+                          <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(74,222,128,0.28), transparent)' }} />
+                        </div>
+                      )}
+                      {doneHabits.map(habit => (
+                        <HabitRow key={habit.id} habit={habit} isCompleted={effectiveCompletedIds.has(habit.id)} isSkipped={skippedIds.has(habit.id)}
+                          streak={engine.getHabitStreak(habit.id)} />
+                      ))}
+                    </div>
                   )}
 
                   {/* ── Daily Check-in — fused log practice ────────────────── */}
                   {!engine.todayMood && (
                     <motion.div whileTap={{ scale: 0.97 }} onClick={() => setShowMoodLog(true)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 0, borderRadius: 16, background: 'rgba(168,85,247,0.06)', border: '1.5px dashed rgba(168,85,247,0.28)', marginBottom: '0.48rem', cursor: 'pointer', overflow: 'hidden', position: 'relative' }}>
+                      style={{ display: 'flex', alignItems: 'center', gap: 0, borderRadius: 16, background: 'rgba(168,85,247,0.06)', border: '1.5px dashed rgba(168,85,247,0.28)', marginBottom: '0.48rem', cursor: 'pointer', overflow: 'hidden', position: 'relative', marginTop: '0.48rem' }}>
                       <div style={{ width: 4, alignSelf: 'stretch', flexShrink: 0, background: 'rgba(168,85,247,0.35)', borderRadius: '16px 0 0 16px' }} />
                       <div style={{ margin: '0.7rem 0.65rem 0.7rem 0.75rem', width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: 'rgba(168,85,247,0.14)', border: '1.5px solid rgba(168,85,247,0.28)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>💜</div>
                       <div style={{ flex: 1, minWidth: 0 }}>
@@ -1446,34 +1699,6 @@ export default function LifestylePanel({ globalBg }: { globalBg?: string }) {
               );
             })()}
 
-            {/* ── Completed today (collapsible) ─────────────────────────────── */}
-            {allDoneHabits.length > 0 && (
-              <div style={{ marginTop: '0.7rem' }}>
-                <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCompleted(s => !s)}
-                  style={{ width: '100%', padding: '0.5rem 0.8rem', borderRadius: 13, background: 'rgba(74,222,128,0.06)', border: '1px solid rgba(74,222,128,0.2)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxSizing: 'border-box' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <CheckCircle2 size={13} style={{ color: '#4ade80' }} />
-                    <span style={{ fontSize: '0.72rem', color: '#4ade80', fontWeight: 700, fontFamily: "'Outfit', sans-serif" }}>
-                      {allDoneHabits.length} logged today ✓
-                    </span>
-                  </div>
-                  <ChevronDown size={13} style={{ color: 'rgba(74,222,128,0.5)', transform: showCompleted ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.22s' }} />
-                </motion.button>
-                <AnimatePresence>
-                  {showCompleted && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.25 }} style={{ overflow: 'hidden' }}>
-                      <div style={{ paddingTop: '0.42rem' }}>
-                        {allDoneHabits.map(habit => (
-                          <HabitRow key={habit.id} habit={habit} isCompleted={effectiveCompletedIds.has(habit.id)} isSkipped={skippedIds.has(habit.id)}
-                            streak={engine.getHabitStreak(habit.id)} isNow={false}
-                            onComplete={() => handleComplete(habit.id)} onSkip={() => engine.skipHabit(habit.id, 'skipped for today')} />
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            )}
           </div>
 
           {/* ── SECTION 5 : Ayurveda Grid ─────────────────────────────────── */}

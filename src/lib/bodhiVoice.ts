@@ -11,7 +11,8 @@ function getLang(): 'en' | 'hi' {
     return localStorage.getItem('site-lang') === 'en' ? 'en' : 'hi';
 }
 
-export type TimeSlot = 'morning' | 'midday' | 'evening' | 'night';
+export type TimeSlot = 'pre-dawn' | 'morning' | 'midday' | 'afternoon' | 'evening' | 'night';
+
 
 export interface BodhiSpeakLogParams {
     habitIcon?: string;
@@ -41,25 +42,32 @@ function getAudioCtx(): AudioContext {
 function getSlotGreeting(slot?: TimeSlot): string {
     if (getLang() === 'en') {
         switch (slot) {
+            case 'pre-dawn': return 'Brahma Muhurta!';
             case 'morning': return 'Good morning!';
-            case 'midday': return 'Hey!';
+            case 'midday': return 'Pitta time!';
+            case 'afternoon': return 'Vata hour!';
             case 'evening': return 'Good evening!';
-            case 'night': return 'Good night!';
-            default: return 'Hey!';
+            case 'night': return 'Night Pitta!';
+            default: return 'Well done!';
         }
     }
     switch (slot) {
+        case 'pre-dawn': return 'ब्रह्म मुहूर्त!';
         case 'morning': return 'शुभ प्रभात!';
-        case 'midday': return 'नमस्ते!';
+        case 'midday': return 'पित्त काल!';
+        case 'afternoon': return 'वात काल!';
         case 'evening': return 'शुभ संध्या!';
         case 'night': return 'शुभ रात्रि!';
-        default: return 'नमस्ते!';
+        default: return 'शाबाश!';
     }
 }
+
 
 // ─── Per-habit Ayurvedic benefits ────────────────────────────────────────────
 const BENEFITS_HI: Record<string, string> = {
     wake: 'सर्केडियन रिदम सेट होती है।',
+    warm_water: 'अग्नि जाग्रत होती है और आम बाहर निकलता है।',
+    tongue_scrape: 'रात की जमी आम जीभ से साफ़ होती है, पाचन ताज़ा शुरू होता है।',
     bath: 'शरीर और ऊर्जा शुद्ध होती है।',
     breakfast: 'अग्नि सही समय पर जागती है।',
     breathwork: 'तंत्रिका तंत्र रीसेट होता है।',
@@ -83,6 +91,8 @@ const BENEFITS_HI: Record<string, string> = {
 
 const BENEFITS_EN: Record<string, string> = {
     wake: 'Circadian rhythm aligned.',
+    warm_water: 'Agni ignited, overnight Ama flushed.',
+    tongue_scrape: 'Overnight Ama removed — digestion starts clean.',
     bath: 'Body and energy field cleansed.',
     breakfast: 'Agni fueled at its peak.',
     breathwork: 'Nervous system reset.',
@@ -113,15 +123,19 @@ function getHabitBenefit(name: string): string {
 function buildSuccessMessage(p: BodhiSpeakLogParams): string {
     const g = getSlotGreeting(p.timeSlot);
     const b = getHabitBenefit(p.habitName);
+    const isOnTime = p.isOnTime !== false;
     if (getLang() === 'en') {
+        const timeNote = !isOnTime ? ' Try the ideal window tomorrow.' : '';
         return b
-            ? `${g} ${p.habitName} logged! ${b} Keep going!`
-            : `${g} ${p.habitName} logged! Well done!`;
+            ? `${g} ${p.habitName} done — ${b}${timeNote} Keep the rhythm going.`
+            : `${g} ${p.habitName} logged! Well done — every practice compounds.`;
     }
+    const timeNote = !isOnTime ? ' कल सही समय पर करें।' : '';
     return b
-        ? `${g} ${p.habitName} लॉग हुआ! ${b} अगला अभ्यास करें!`
-        : `${g} ${p.habitName} लॉग हुआ! शाबाश!`;
+        ? `${g} ${p.habitName} हुआ — ${b}${timeNote} अगला अभ्यास करें!`
+        : `${g} ${p.habitName} लॉग हुआ! शाबाश — हर अभ्यास आगे बढ़ाता है।`;
 }
+
 
 function buildLockedMessage(p: BodhiSpeakLogParams): string {
     const g = getSlotGreeting(p.timeSlot);
@@ -207,6 +221,7 @@ async function speakViaGeminiLive(text: string): Promise<void> {
     const enqueue = (data: Float32Array) => { queue.push(data); if (!isPlaying) playNext(); };
 
     const lang = getLang();
+    const voiceName = lang === 'hi' ? 'Kore' : 'Aoede';
     const systemInstruction = lang === 'en'
         ? 'You are Bodhi, a warm Ayurvedic guide. Speak the given message naturally in English — warm, caring, very brief (1-2 sentences max). Do not add anything beyond what is given.'
         : 'आप बोधि हैं — गर्मजोशी से भरे आयुर्वेदिक मार्गदर्शक। दिया गया संदेश हिंदी में स्वाभाविक रूप से बोलें — संक्षिप्त, गर्म, अधिकतम 1-2 वाक्य। जो दिया है उससे अधिक कुछ न जोड़ें।';
@@ -227,7 +242,7 @@ async function speakViaGeminiLive(text: string): Promise<void> {
             model: BODHI_TTS_MODEL,
             config: {
                 responseModalities: [Modality.AUDIO],
-                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Aoede' } } },
+                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } },
                 systemInstruction,
             },
             callbacks: {
@@ -261,6 +276,12 @@ export function bodhiSpeakLog(params: BodhiSpeakLogParams): void {
     const message = params.isLocked ? buildLockedMessage(params) : buildSuccessMessage(params);
     try { sessionStorage.setItem(BODHI_INJECT_KEY, params.habitName); } catch { /* ignore */ }
     speakViaGeminiLive(message).catch(() => { /* ignore */ });
+}
+
+/** Speak any arbitrary text via Gemini Live (Aoede voice). Used by SmartLog for AI-generated 4-part messages. */
+export function speakBodhiRaw(text: string): void {
+    try { sessionStorage.removeItem(BODHI_INJECT_KEY); } catch { /* ignore */ }
+    speakViaGeminiLive(text).catch(() => { /* ignore */ });
 }
 
 export function bodhiSpeakAllDone(timeSlot?: TimeSlot): void {
