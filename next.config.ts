@@ -1,16 +1,27 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
+  // NOTE: output: 'standalone' is intentionally omitted — Vercel manages its
+  // own packaging. Using standalone on Vercel bundles ALL node_modules into
+  // the lambda, exceeding the 250 MB serverless size limit.
 
-  // firebase-admin uses native Node modules (@opentelemetry, gRPC, etc.)
-  // that must NOT be bundled by Turbopack — require them at runtime instead.
+  // Keep heavy server-only packages external (not bundled into lambdas).
   serverExternalPackages: [
     'firebase-admin',
     '@google-cloud/firestore',
     '@google-cloud/storage',
     '@opentelemetry/api',
     'google-gax',
+    '@langchain/langgraph',
+    '@langchain/core',
+    '@langchain/community',
+    'langchain',
+    '@prisma/client',
+    'prisma',
+    'razorpay',
+    '@modelcontextprotocol/sdk',
+    'tdweb',
+    'telegram',
   ],
 
   images: {
