@@ -266,6 +266,17 @@ function loadFromStorage(): Partial<LifestyleState> {
             data._starterHabitsV4 = true;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
+        // ── Starter habits v5: digital sunset + brain dump as evening habits ──
+        if (!data._starterHabitsV5 && Array.isArray(data.habits)) {
+            const V5_NEW_IDS = ['h_digital_sunset', 'h_brain_dump'];
+            const existingIds = new Set(data.habits.map((h: HabitItem) => h.id));
+            const toAdd = DEFAULT_STARTER_HABITS.filter(h => V5_NEW_IDS.includes(h.id) && !existingIds.has(h.id));
+            if (toAdd.length > 0) {
+                data.habits = [...data.habits, ...toAdd.map(h => ({ ...h, createdAt: Date.now() }))];
+            }
+            data._starterHabitsV5 = true;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
         return data;
     } catch { return {}; }
 }
@@ -387,6 +398,8 @@ export const DEFAULT_STARTER_HABITS: HabitItem[] = [
     { id: 'h_evening_meditation', name: 'Evening Meditation', icon: '🕯️', category: 'evening', lifeArea: 'spiritual', trackingType: 'duration', targetValue: 10, color: '#a78bfa', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Sandhya — evening transition ritual, release the day with stillness' },
     { id: 'h_sleep_early', name: 'Sleep by 10 PM', icon: '🌙', category: 'night', lifeArea: 'physical', trackingType: 'checkbox', color: '#818cf8', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Honour the Pitta night cycle — restore Ojas before midnight' },
     { id: 'h_digital_detox', name: 'Screen Detox', icon: '📵', category: 'night', lifeArea: 'mental', trackingType: 'checkbox', color: '#c084fc', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'No screens 1 hour before sleep — protect melatonin and Ojas' },
+    { id: 'h_digital_sunset', name: 'Digital Sunset', icon: '📵', category: 'evening', lifeArea: 'mental', trackingType: 'checkbox', color: '#fb923c', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Screens off by evening — protect melatonin, honour the body\'s natural wind-down cycle' },
+    { id: 'h_brain_dump', name: 'Brain Dump', icon: '📓', category: 'evening', lifeArea: 'mental', trackingType: 'checkbox', color: '#2dd4bf', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Evening reflection — empty the mind on paper, plan tomorrow, release the day' },
 ];
 
 // ─── Store ─────────────────────────────────────────────────────────────────────

@@ -1312,8 +1312,8 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
         {/* Content */}
         <div style={{ position: 'relative', zIndex: 2, padding: '1rem' }}>
 
-          {/* ── SECTION 0 : Header Card ────────────────────────────────────── */}
-          <div style={{ background: 'rgba(0,0,0,0.26)', borderRadius: 22, border: '1px solid rgba(255,255,255,0.08)', padding: '1rem', backdropFilter: 'blur(18px)', boxShadow: '0 4px 32px rgba(0,0,0,0.2)', marginBottom: '1rem' }}>
+          {/* ── SECTION 0 : Header Card — moved to top of page.tsx ── */}
+          {false && <div>
             {/* ── CARD HERO TITLE ────────────────────────────────────────────── */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', marginBottom: '1rem' }}>
               <motion.div
@@ -1412,7 +1412,7 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
                 </motion.span>
               )}
             </div>
-          </div>
+          </div>}
 
           {/* ── Streak Board ─────────────────────────────────────────────── */}
           {(() => {

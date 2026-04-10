@@ -104,7 +104,7 @@ function getCurrentTimeSlot(): TimeSlot {
 function isOnTimeForSlot(bubbleId: string, slot: TimeSlot): boolean {
     const morningIds = new Set(['wake', 'warm_water', 'tongue_scrape', 'bath', 'breakfast', 'breathwork', 'morning_light']);
     const middayIds = new Set(['lunch', 'deep_work', 'screen_break', 'hydration']);
-    const eveningIds = new Set(['workout', 'dinner', 'digital_sunset', 'brain_dump']);
+    const eveningIds = new Set(['h_walk', 'h_evening_meditation', 'dinner', 'h_digital_sunset', 'h_brain_dump']);
     const nightIds = new Set(['sleep', 'gratitude', 'dinner_night', 'read']);
     if (slot === 'morning' || slot === 'pre-dawn') return morningIds.has(bubbleId);
     if (slot === 'midday') return middayIds.has(bubbleId);
@@ -124,10 +124,12 @@ const TIMING_WINDOWS: Record<string, { ideal: [number, number]; late: [number, n
     morning_light: { ideal: [6, 8], late: [8, 10] },
     breakfast: { ideal: [7, 9], late: [9, 11] },
     lunch: { ideal: [12, 13], late: [13, 15] },
-    workout: { ideal: [18, 19], late: [19, 21] },
+    h_walk: { ideal: [17, 19], late: [19, 21] },
+    h_evening_meditation: { ideal: [18, 20], late: [20, 22] },
     dinner: { ideal: [18, 20], late: [20, 22] },
     dinner_night: { ideal: [18, 20], late: [20, 22] },
-    digital_sunset: { ideal: [20, 21], late: [21, 23] },
+    h_digital_sunset: { ideal: [20, 21], late: [21, 23] },
+    h_brain_dump: { ideal: [19, 21], late: [21, 23] },
     sleep: { ideal: [21, 22], late: [22, 24] },
     gratitude: { ideal: [20, 22], late: [22, 24] },
     read: { ideal: [20, 22], late: [22, 24] },
@@ -160,11 +162,12 @@ export const INSIGHT_SNIPPETS: Record<string, string> = {
     deep_work: 'Pitta intellect harnessed — sharpest focus window.',
     screen_break: 'Alochaka Pitta rested — eye prana restored.',
     hydration: 'Prana flows with water — every cell grateful.',
-    workout: 'Vyayama done — lightness, endurance, Kapha balanced.',
+    h_walk: 'Sandhya walk done — Vata grounded, digestion aided, Ojas building.',
+    h_evening_meditation: 'Sandhya complete — day released into stillness, mind prepared for rest.',
     dinner: 'Light evening meal — Ojas protected for deep sleep.',
     dinner_night: 'Sattvic dinner — final act of self-love tonight.',
-    digital_sunset: 'Melatonin protected — sleep architecture intact.',
-    brain_dump: 'Svadhyaya complete — mind emptied, tomorrow clearer.',
+    h_digital_sunset: 'Melatonin protected — sleep architecture intact.',
+    h_brain_dump: 'Svadhyaya complete — mind emptied, tomorrow clearer.',
     sleep: 'Pitta gets its full repair window. Cellular clock grateful.',
     gratitude: 'Santosha practice — gratitude rewires the brain toward joy.',
     read: 'Dreaming mind integrates wisdom — feed it light.',
@@ -200,7 +203,7 @@ function getNudge(id: string): string | null {
 const STATIC_BUBBLE_IDS = new Set([
     'wake', 'warm_water', 'tongue_scrape', 'bath', 'breakfast', 'breathwork', 'morning_light',
     'lunch', 'deep_work', 'screen_break', 'hydration',
-    'workout', 'dinner', 'digital_sunset', 'brain_dump',
+    'h_walk', 'h_evening_meditation', 'dinner', 'h_digital_sunset', 'h_brain_dump',
     'sleep', 'gratitude', 'dinner_night', 'read',
 ]);
 
@@ -355,14 +358,14 @@ const NOON_BUBBLES: LogBubble[] = [
 
 const EVENING_BUBBLES: LogBubble[] = [
     {
-        id: 'workout', icon: '💪', label: 'Movement', sublabel: 'Physical practice', color: '#f87171',
-        logMessage: 'I worked out today [UI_EVENT: EVENING_LOGS_CLICKED]',
+        id: 'h_walk', icon: '🚶', label: 'Evening Walk', sublabel: 'Sandhya bhramaṇa', color: '#4ade80',
+        logMessage: 'I went for an evening walk — Sandhya Bhramana [UI_EVENT: EVENING_LOGS_CLICKED]',
         subOptions: [
-            { icon: '🏋️', label: 'Gym session', detail: 'full gym session completed' },
-            { icon: '🏃', label: 'Evening run', detail: 'went for an evening run' },
-            { icon: '🧘', label: 'Yoga flow', detail: 'yoga flow session done' },
-            { icon: '🚶', label: 'Evening walk', detail: 'took an evening walk' },
-            { icon: '🏠', label: 'Home workout', detail: 'home workout session done' },
+            { icon: '🚶', label: '20 min walk', detail: 'took a 20 minute mindful evening walk' },
+            { icon: '🏃', label: 'Brisk walk', detail: 'went for a brisk evening walk' },
+            { icon: '🌿', label: 'Nature walk', detail: 'walked in nature or a park' },
+            { icon: '🧘', label: 'Mindful walk', detail: 'walked slowly and mindfully in the evening' },
+            { icon: '💪', label: 'Workout instead', detail: 'did a full workout session tonight' },
         ],
     },
     {
@@ -377,7 +380,17 @@ const EVENING_BUBBLES: LogBubble[] = [
         ],
     },
     {
-        id: 'digital_sunset', icon: '📵', label: 'Digital Sunset', sublabel: 'Screens off', color: '#fb923c',
+        id: 'h_evening_meditation', icon: '🕯️', label: 'Eve. Meditation', sublabel: 'Sandhya · Stillness', color: '#a78bfa',
+        logMessage: 'I did evening meditation — Sandhya Vandana [UI_EVENT: EVENING_LOGS_CLICKED]',
+        subOptions: [
+            { icon: '⏱️', label: '5 min stillness', detail: '5 minute evening stillness done' },
+            { icon: '🕐', label: '10 min dhyan', detail: '10 minute evening dhyan complete' },
+            { icon: '🙏', label: 'Sandhya prayer', detail: 'sandhya prayer and mantra recitation' },
+            { icon: '🧘', label: 'Full meditation', detail: 'full evening meditation session done' },
+        ],
+    },
+    {
+        id: 'h_digital_sunset', icon: '📵', label: 'Digital Sunset', sublabel: 'Screens off', color: '#fb923c',
         logMessage: 'Setting digital sunset — screens going off for the night [UI_EVENT: EVENING_LOGS_CLICKED]',
         subOptions: [
             { icon: '✅', label: 'Done! Screens off', detail: 'put all screens away for the night' },
@@ -387,7 +400,7 @@ const EVENING_BUBBLES: LogBubble[] = [
         ],
     },
     {
-        id: 'brain_dump', icon: '📓', label: 'Brain Dump', sublabel: 'Evening reflection', color: '#2dd4bf',
+        id: 'h_brain_dump', icon: '📓', label: 'Brain Dump', sublabel: 'Evening reflection', color: '#2dd4bf',
         logMessage: 'I did an evening brain dump and reflection [UI_EVENT: EVENING_LOGS_CLICKED]',
         subOptions: [
             { icon: '📝', label: 'Thoughts dump', detail: 'dumped all thoughts on paper' },
@@ -455,7 +468,7 @@ export function getTimeLabel(): { label: string; color: string; Icon: LucideIcon
     if (h >= 2 && h < 6) return { label: 'Brahma Muhurta', color: '#fbbf24', Icon: Sparkles, sublabel: 'Sacred window open' };
     if (h >= 6 && h < 11) return { label: 'Morning Log', color: '#fbbf24', Icon: Sunrise, sublabel: 'Kapha window • Agni activation' };
     if (h >= 11 && h < 15) return { label: 'Midday Log', color: '#fb923c', Icon: Sun, sublabel: 'Pitta window • Peak energy' };
-    if (h >= 15 && h < 18) return { label: 'Afternoon Log', color: '#f59e0b', Icon: Sun, sublabel: 'Vata window • Anchor your energy' };
+    if (h >= 15 && h < 18) return { label: 'Evening Log', color: '#f97316', Icon: Sunset, sublabel: 'Vata-Kapha transition • Wind down begins' };
     if (h >= 18 && h < 22) return { label: 'Evening Log', color: '#a78bfa', Icon: Sunset, sublabel: 'Kapha wind-down • Wind down ritual' };
     return { label: 'Night Log', color: '#818cf8', Icon: Moon, sublabel: 'Late Pitta • Sleep ritual' };
 }
@@ -509,7 +522,7 @@ function buildDynamicHabitBubbles(
         if (slot === 'anytime') {
             bubble.isAnytime = true;
             anytime.push(bubble);
-        } else if (slot === currentSlot || (currentSlot === 'pre-dawn' && slot === 'morning')) {
+        } else if (slot === currentSlot || (currentSlot === 'pre-dawn' && slot === 'morning') || (currentSlot === 'afternoon' && slot === 'evening')) {
             timed.push(bubble);
         }
     }
@@ -560,7 +573,7 @@ export default function SmartLogBubbles() {
         [staticBubbles, loggedToday.size]
     );
 
-    // Timed section: static + timed dynamic
+    // Timed section: static + user lifestyle habits for the current time slot
     const timedBubbles = useMemo(() => {
         const sorted = [...pendingStaticBubbles, ...dynamicTimed];
         sorted.sort((a, b) => getSortIndex(a.label, a.id) - getSortIndex(b.label, b.id));

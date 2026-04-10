@@ -141,6 +141,79 @@ async function loadHomepageMood(uid: string): Promise<number | null> {
   } catch { return null; }
 }
 
+// ─── Time-of-day SVGs ───────────────────────────────────────────────────────────
+function RealSunSVG({ size = 48 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="sapSunCore" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#fff7aa" />
+          <stop offset="40%" stopColor="#fde047" />
+          <stop offset="100%" stopColor="#f97316" />
+        </radialGradient>
+        <radialGradient id="sapSunGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="#f97316" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx="24" cy="24" r="22" fill="url(#sapSunGlow)" />
+      {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg, i) => (
+        <line key={i} x1={24 + 13 * Math.cos((deg * Math.PI) / 180)} y1={24 + 13 * Math.sin((deg * Math.PI) / 180)} x2={24 + 20 * Math.cos((deg * Math.PI) / 180)} y2={24 + 20 * Math.sin((deg * Math.PI) / 180)} stroke={i % 2 === 0 ? '#fbbf24' : '#fde68a'} strokeWidth={i % 2 === 0 ? 2.2 : 1.4} strokeLinecap="round" />
+      ))}
+      <circle cx="24" cy="24" r="11" fill="url(#sapSunCore)" />
+      <circle cx="20" cy="20" r="3" fill="#fff" fillOpacity="0.45" />
+    </svg>
+  );
+}
+function RealMoonSVG({ size = 48 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="sapMoonBody" cx="38%" cy="30%" r="65%">
+          <stop offset="0%" stopColor="#fef3c7" /><stop offset="40%" stopColor="#f59e0b" /><stop offset="100%" stopColor="#92400e" stopOpacity="0.9" />
+        </radialGradient>
+        <radialGradient id="sapMoonGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.3" /><stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx="24" cy="24" r="23" fill="url(#sapMoonGlow)" />
+      <path d="M31 9.5C22.4 9.5 15.5 16 15.5 24s6.9 14.5 15.5 14.5c1.6 0 3.2-0.25 4.6-0.72-2.8 1.8-6.1 2.8-9.6 2.8C17.1 40.1 8.9 32.3 8.9 24S17.1 7.9 26 7.9c1.8 0 3.6 0.28 5.2 0.8-0.1 0.26-0.2 0.52-0.2 0.8z" fill="url(#sapMoonBody)" />
+      <circle cx="22" cy="20" r="2.1" fill="#92400e" fillOpacity="0.22" />
+      <circle cx="27" cy="31" r="1.4" fill="#78350f" fillOpacity="0.18" />
+      <circle cx="38" cy="10" r="1.3" fill="#fde68a" fillOpacity="0.9" />
+      <circle cx="41" cy="27" r="0.85" fill="#fbbf24" fillOpacity="0.7" />
+    </svg>
+  );
+}
+function RisingSunSVG({ size = 48 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs><radialGradient id="sapRiseGlow" cx="50%" cy="80%" r="60%"><stop offset="0%" stopColor="#fb923c" stopOpacity="0.5" /><stop offset="100%" stopColor="#fbbf24" stopOpacity="0" /></radialGradient></defs>
+      <rect x="4" y="34" width="40" height="1.5" rx="0.75" fill="#fb923c" fillOpacity="0.4" />
+      <path d="M24 34 C24 34 14 34 8 28 C12 22 17 18 24 18 C31 18 36 22 40 28 C34 34 24 34 24 34Z" fill="url(#sapRiseGlow)" />
+      {[-60, -40, -20, 0, 20, 40, 60].map((deg, i) => (
+        <line key={i} x1={24 + 12 * Math.cos(((90 + deg) * Math.PI) / 180)} y1={34 + 12 * Math.sin(((90 + deg) * Math.PI) / 180)} x2={24 + 20 * Math.cos(((90 + deg) * Math.PI) / 180)} y2={34 + 20 * Math.sin(((90 + deg) * Math.PI) / 180)} stroke={i % 2 === 0 ? '#fb923c' : '#fde68a'} strokeWidth={i === 3 ? 2.5 : 1.6} strokeLinecap="round" opacity={0.8} />
+      ))}
+      <circle cx="24" cy="34" r="8" fill="#fb923c" />
+      <circle cx="24" cy="34" r="6" fill="#fde047" />
+      <circle cx="21" cy="31" r="2" fill="#fff" fillOpacity="0.4" />
+    </svg>
+  );
+}
+function SunsetSVG({ size = 48 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs><radialGradient id="sapSetGlow" cx="50%" cy="80%" r="60%"><stop offset="0%" stopColor="#f97316" stopOpacity="0.5" /><stop offset="100%" stopColor="#a855f7" stopOpacity="0" /></radialGradient></defs>
+      <rect x="4" y="34" width="40" height="1.5" rx="0.75" fill="#f97316" fillOpacity="0.4" />
+      {[-50, -30, 0, 30, 50].map((deg, i) => (
+        <line key={i} x1={24 + 12 * Math.cos(((90 + deg) * Math.PI) / 180)} y1={34 + 12 * Math.sin(((90 + deg) * Math.PI) / 180)} x2={24 + 18 * Math.cos(((90 + deg) * Math.PI) / 180)} y2={34 + 18 * Math.sin(((90 + deg) * Math.PI) / 180)} stroke="#f97316" strokeWidth="1.6" strokeLinecap="round" opacity="0.7" />
+      ))}
+      <circle cx="24" cy="34" r="8" fill="#f97316" />
+      <circle cx="24" cy="34" r="5.5" fill="#fb923c" />
+    </svg>
+  );
+}
+
 // ─── Ayurveda Home Card ───────────────────────────────────────────────────────
 function AyurvedaHomeCard() {
   const router = useRouter();
@@ -214,7 +287,8 @@ export default function Home() {
   const [isStoryOpen, setIsStoryOpen] = useState(false);
 
   const brahmastraState = useBrahmastraState(userId);
-  const { prakriti: doshaForTheme } = useDoshaEngine();
+  const { prakriti: doshaForTheme, currentPhase: doshaCurrentPhase, inBrahmaMuhurta } = useDoshaEngine();
+  const router = useRouter();
 
   // ── Sync dosha theme to <html data-dosha="..."> ─────────────────────────────
   useEffect(() => {
@@ -395,6 +469,12 @@ export default function Home() {
 
   if (isLoading) return null;
 
+  const sapHour = new Date().getHours();
+  const sapIconColor = sapHour >= 3 && sapHour < 7 ? '#fb923c' : sapHour >= 7 && sapHour < 15 ? '#fbbf24' : sapHour >= 15 && sapHour < 21 ? '#f97316' : '#818cf8';
+  const isSunsetPeriod = sapHour >= 15 && sapHour < 21;
+  const SAP_DOSHA_COLORS: Record<string, string> = { vata: '#a78bfa', pitta: '#fb923c', kapha: '#4ade80' };
+  const doshaColor = doshaForTheme ? (SAP_DOSHA_COLORS[doshaForTheme.primary] ?? '#a78bfa') : '#a78bfa';
+
   // ── Conscious OS Gateway ─────────────────────────────────────────────────────
   if (!hasStarted) return (
     <ConsciousGateway
@@ -462,7 +542,7 @@ export default function Home() {
           </motion.div>
         )}
 
-        {/* ══ SMART AYU HEADER — Greeting + Sun/Moon Orb + Mood (Topmost) ══ */}
+        {/* ══ SMART AYUR PLANNER HEADER ══ */}
         {!isPortalOpen && greeting && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
@@ -470,77 +550,88 @@ export default function Home() {
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
             style={{
               margin: '0.5rem 0.75rem 0.75rem',
-              padding: '0.72rem 0.9rem',
-              borderRadius: 20,
-              background: 'rgba(0,0,0,0.22)',
-              backdropFilter: 'blur(24px)',
-              WebkitBackdropFilter: 'blur(24px)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              boxShadow: '0 4px 28px rgba(0,0,0,0.3)',
+              padding: '1rem',
+              borderRadius: 22,
+              background: 'rgba(0,0,0,0.26)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              boxShadow: '0 4px 32px rgba(0,0,0,0.2)',
               zIndex: 100,
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              {/* Animated greeting orb */}
+            {/* ── Title row: sparkle + name + LIVE ── */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', marginBottom: '1rem' }}>
+              <motion.div animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.07, 1] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                style={{ fontSize: '1.25rem', filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.6))' }}>✦</motion.div>
+              <div style={{ flex: 1 }}>
+                <p style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.01em', lineHeight: 1 }}>Smart Ayur Planner</p>
+                <p style={{ margin: '2px 0 0', fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.05em' }}>Habits · Progress · Planner · Ayurveda</p>
+              </div>
+              <motion.span animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 3, repeat: Infinity }}
+                style={{ fontSize: '0.56rem', padding: '0.2rem 0.6rem', borderRadius: 99, background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 800, letterSpacing: '0.1em' }}>LIVE</motion.span>
+            </div>
+
+            {/* ── Date + controls row ── */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+              <p style={{ margin: 0, fontSize: '0.68rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.04em' }}>
+                {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}
+              </p>
+              <div style={{ display: 'flex', gap: '0.32rem', alignItems: 'center' }}>
+                <motion.button whileTap={{ scale: 0.88 }} onClick={() => setShowMoodCheck(s => !s)}
+                  style={{ padding: '0.25rem 0.6rem', borderRadius: 999, cursor: 'pointer', background: lifestyleEngine.todayMood ? 'rgba(168,85,247,0.2)' : 'rgba(255,255,255,0.07)', border: `1px solid ${lifestyleEngine.todayMood ? 'rgba(168,85,247,0.45)' : 'rgba(255,255,255,0.1)'}`, color: lifestyleEngine.todayMood ? '#c084fc' : 'rgba(255,255,255,0.42)', fontSize: '0.7rem', fontWeight: 800, fontFamily: "'Outfit', sans-serif", display: 'flex', alignItems: 'center', gap: 3 }}>
+                  ♡ {lifestyleEngine.todayMood ? (HOME_MOOD_OPTIONS.find(m => m.value === lifestyleEngine.todayMood!.mood)?.emoji ?? '😊') : '😊'}
+                </motion.button>
+                <motion.button whileTap={{ scale: 0.88 }} onClick={lifestyleEngine.toggleAdhdMode}
+                  style={{ padding: '0.25rem 0.6rem', borderRadius: 999, cursor: 'pointer', background: lifestyleEngine.adhdMode ? 'rgba(251,191,36,0.2)' : 'rgba(255,255,255,0.07)', border: `1px solid ${lifestyleEngine.adhdMode ? 'rgba(251,191,36,0.5)' : 'rgba(255,255,255,0.1)'}`, color: lifestyleEngine.adhdMode ? '#fbbf24' : 'rgba(255,255,255,0.42)', fontSize: '0.7rem', fontWeight: 800, fontFamily: "'Outfit', sans-serif", display: 'flex', alignItems: 'center', gap: 3 }}>
+                  ⚡ {lifestyleEngine.adhdMode ? 'Focus ON' : 'Focus'}
+                </motion.button>
+                <motion.button whileTap={{ rotate: 180, scale: 0.9 }} onClick={() => setGreeting(buildGreeting(lang, new Date().getHours()))}
+                  style={{ padding: '0.25rem 0.4rem', borderRadius: 999, cursor: 'pointer', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.22)', display: 'flex', alignItems: 'center', fontSize: '0.9rem' }}>↻
+                </motion.button>
+              </div>
+            </div>
+
+            {/* ── Sun/Moon orb + greeting ── */}
+            <div style={{ margin: '0 0 0.8rem', display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
               <motion.div
-                animate={{
-                  boxShadow: [
-                    '0 0 0 1px rgba(251,191,36,0.28), 0 0 14px rgba(251,191,36,0.35)',
-                    '0 0 0 1px rgba(251,191,36,0.58), 0 0 28px rgba(251,191,36,0.65)',
-                    '0 0 0 1px rgba(251,191,36,0.28), 0 0 14px rgba(251,191,36,0.35)',
-                  ],
-                }}
-                transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
-                style={{
-                  width: 52, height: 52, borderRadius: '50%', flexShrink: 0,
-                  background: 'radial-gradient(circle at 38% 32%, rgba(251,191,36,0.18), transparent 68%)',
-                  border: '1px solid rgba(251,191,36,0.32)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '2rem',
+                animate={{ boxShadow: [`0 0 0 1px ${sapIconColor}40, 0 0 18px ${sapIconColor}55`, `0 0 0 1px ${sapIconColor}88, 0 0 36px ${sapIconColor}bb`, `0 0 0 1px ${sapIconColor}40, 0 0 18px ${sapIconColor}55`] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                style={isSunsetPeriod ? {
+                  width: 54, height: 54, borderRadius: 16, flexShrink: 0,
+                  background: 'linear-gradient(145deg, #f97316cc 0%, #dc2626aa 50%, #7c2d1288 100%)',
+                  border: '1px solid rgba(249,115,22,0.55)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+                } : {
+                  width: 54, height: 54, borderRadius: '50%', flexShrink: 0,
+                  background: `radial-gradient(circle at 38% 32%, ${sapIconColor}28 0%, transparent 70%)`,
+                  border: `1px solid ${sapIconColor}44`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
                 }}
               >
-                {greeting.emoji}
+                {sapHour >= 3 && sapHour < 7 ? <RisingSunSVG size={44} /> :
+                 sapHour >= 7 && sapHour < 15 ? <RealSunSVG size={44} /> :
+                 isSunsetPeriod ? <span style={{ fontSize: '2.1rem', lineHeight: 1, display: 'block', textAlign: 'center', filter: 'drop-shadow(0 0 8px rgba(249,115,22,0.8))' }}>{greeting?.emoji ?? '🌇'}</span> :
+                 <RealMoonSVG size={44} />}
               </motion.div>
-
-              {/* Greeting text */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{
-                  margin: 0, fontSize: '1.12rem', fontWeight: 900, color: '#fff',
-                  fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.02em',
-                  lineHeight: 1.1, textShadow: '0 2px 10px rgba(0,0,0,0.5)',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>
-                  {greeting.text}
-                </p>
-                <p style={{ margin: '0.18rem 0 0', fontSize: '0.62rem', color: 'rgba(251,191,36,0.82)', fontFamily: "'Outfit', sans-serif", fontWeight: 600, letterSpacing: '0.06em' }}>
-                  {greeting.period}
-                </p>
+              <div>
+                <p style={{ margin: 0, fontSize: '1.28rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.02em', textShadow: '0 2px 12px rgba(0,0,0,0.4)', lineHeight: 1.1 }}>{greeting.text}</p>
+                <p style={{ margin: '0.15rem 0 0', fontSize: '0.68rem', color: `${sapIconColor}cc`, fontFamily: "'Outfit', sans-serif", fontWeight: 600, letterSpacing: '0.06em' }}>{greeting.period}</p>
               </div>
+            </div>
 
-              {/* Compact mood toggle */}
-              {lifestyleEngine.todayMood && !editingMood ? (
-                <motion.button whileTap={{ scale: 0.9 }} onClick={() => setEditingMood(true)}
-                  style={{
-                    padding: '0.28rem 0.62rem', borderRadius: 99, display: 'flex', alignItems: 'center', gap: 5,
-                    background: 'rgba(168,85,247,0.14)', border: '1px solid rgba(168,85,247,0.32)',
-                    color: '#c084fc', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer',
-                    fontFamily: "'Outfit', sans-serif", flexShrink: 0,
-                  }}>
-                  {HOME_MOOD_OPTIONS.find(m => m.value === lifestyleEngine.todayMood!.mood)?.emoji}
-                  <span style={{ fontSize: '0.6rem' }}>✔</span>
-                </motion.button>
-              ) : (
-                <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowMoodCheck(s => !s)}
-                  style={{
-                    padding: '0.28rem 0.62rem', borderRadius: 99,
-                    background: showMoodCheck ? 'rgba(251,191,36,0.12)' : 'rgba(255,255,255,0.06)',
-                    border: `1px solid ${showMoodCheck ? 'rgba(251,191,36,0.38)' : 'rgba(255,255,255,0.12)'}`,
-                    color: showMoodCheck ? '#fbbf24' : 'rgba(255,255,255,0.45)',
-                    fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer',
-                    fontFamily: "'Outfit', sans-serif", flexShrink: 0,
-                  }}>
-                  + Mood
-                </motion.button>
+            {/* ── Dosha phase strip ── */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', padding: '0.52rem 0.8rem', borderRadius: 12, background: 'rgba(0,0,0,0.28)', border: `1px solid ${doshaColor}40`, backdropFilter: 'blur(10px)' }}>
+              <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 2.2, repeat: Infinity }}
+                style={{ width: 8, height: 8, borderRadius: '50%', background: doshaColor, flexShrink: 0, boxShadow: `0 0 8px ${doshaColor}` }} />
+              <span style={{ flex: 1, fontSize: '0.84rem', fontWeight: 700, color: 'rgba(255,255,255,0.82)', fontFamily: "'Outfit', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {doshaCurrentPhase.label}{doshaCurrentPhase.timeRange ? ` · ${doshaCurrentPhase.timeRange}` : ''}
+              </span>
+              <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', fontFamily: "'Outfit', sans-serif", flexShrink: 0 }}>{doshaCurrentPhase.quality}</span>
+              {inBrahmaMuhurta && (
+                <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 2, repeat: Infinity }}
+                  style={{ fontSize: '0.62rem', padding: '0.14rem 0.5rem', borderRadius: 99, background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.38)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 700, flexShrink: 0 }}>✦ Brahma
+                </motion.span>
               )}
             </div>
 

@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Sunrise, Sun, Sunset, Moon, Sparkles, Plus, CheckCircle2, Bell, Zap, Flame } from 'lucide-react';
-import { getTodayLogStory, type DailyLogEntry } from '@/components/Dashboard/SmartLogBubbles';
+import { getTodayLogStory, saveToDailyLogStory, type DailyLogEntry } from '@/components/Dashboard/SmartLogBubbles';
+import { bodhiSpeakLog } from '@/lib/bodhiVoice';
 import { useLifestyleEngine } from '@/hooks/useLifestyleEngine';
 import { getLevelFromXP, getNextLevel, getToday, type HabitItem, type HabitCategory } from '@/stores/lifestyleStore';
 
@@ -29,10 +30,29 @@ const SANSKRIT_SLOTS: Record<string, string> = {
   'Night Focus': 'रात्रि',
 };
 const AYUR_STAT_LABELS = [
-  { key: 'sadhana', label: 'SADHANA', sub: 'practices', icon: '�' },
-  { key: 'ojas',    label: 'OJAS',    sub: '7-day streak', icon: '�' },
-  { key: 'agni',    label: 'AGNI',    sub: 'energy pts', icon: '⚡' },
+  { key: 'activities', label: 'ACTIVITIES', sub: 'practices', icon: '✦' },
+  { key: 'complete',   label: 'COMPLETE',   sub: 'done today', icon: '✅' },
+  { key: 'earned',     label: 'EARNED',     sub: 'energy pts', icon: '⚡' },
 ];
+
+// ─── SmartLog store helpers ───────────────────────────────────────────────────
+function getSmartLoggedToday(): Set<string> {
+  try {
+    const raw = JSON.parse(localStorage.getItem('onesutra_smartlog_v2') ?? '{}');
+    const today = new Date().toISOString().split('T')[0];
+    return new Set(raw[today] ?? []);
+  } catch { return new Set(); }
+}
+function saveToSmartLog(id: string) {
+  try {
+    const raw = JSON.parse(localStorage.getItem('onesutra_smartlog_v2') ?? '{}');
+    const today = new Date().toISOString().split('T')[0];
+    const s = new Set(raw[today] ?? []);
+    s.add(id);
+    raw[today] = [...s];
+    localStorage.setItem('onesutra_smartlog_v2', JSON.stringify(raw));
+  } catch { /* ignore */ }
+}
 
 // ─── SVG Progress Ring ────────────────────────────────────────────────────────
 function ProgressRing({ pct, size, stroke, color }: { pct: number; size: number; stroke: number; color: string }) {
@@ -62,7 +82,8 @@ function getTimeSlotConfig() {
   if (h >= 2 && h < 6)  return { label: 'Brahma Muhurta', slotKey: 'morning' as HabitCategory, emoji: '🌟', color: '#fbbf24', Icon: Sparkles };
   if (h >= 6 && h < 11) return { label: 'Morning Focus',  slotKey: 'morning' as HabitCategory, emoji: '🌅', color: '#fbbf24', Icon: Sunrise };
   if (h >= 11 && h < 15) return { label: 'Midday Focus',  slotKey: 'midday'  as HabitCategory, emoji: '☀️', color: '#fb923c', Icon: Sun };
-  if (h >= 15 && h < 21) return { label: 'Evening Focus', slotKey: 'evening' as HabitCategory, emoji: '🌆', color: '#a78bfa', Icon: Sunset };
+  if (h >= 15 && h < 18) return { label: 'Evening Focus',   slotKey: 'evening' as HabitCategory, emoji: '�', color: '#f97316', Icon: Sunset };
+  if (h >= 18 && h < 22) return { label: 'Evening Focus',   slotKey: 'evening' as HabitCategory, emoji: '🌆', color: '#a78bfa', Icon: Sunset };
   return { label: 'Night Focus', slotKey: 'night' as HabitCategory, emoji: '🌙', color: '#60a5fa', Icon: Moon };
 }
 
@@ -163,6 +184,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<'pending' | 'done' | 'activity'>('pending');
   const [celebrateId, setCelebrateId] = useState<string | null>(null);
+  const [smartLoggedToday, setSmartLoggedToday] = useState<Set<string>>(new Set());
   const engine = useLifestyleEngine();
   const router = useRouter();
   const goAddHabit = useCallback(() => router.push('/lifestyle/ayurvedic-habits'), [router]);
@@ -170,11 +192,18 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   useEffect(() => {
     setMounted(true);
     setLogStory(getTodayLogStory());
-    const refresh = () => setLogStory(getTodayLogStory());
+    setSmartLoggedToday(getSmartLoggedToday());
+    const refresh = () => { setLogStory(getTodayLogStory()); setSmartLoggedToday(getSmartLoggedToday()); };
     window.addEventListener('focus', refresh);
     window.addEventListener('daily-log-story-updated', refresh);
-    const t = setInterval(refresh, 20_000);
-    return () => { window.removeEventListener('focus', refresh); window.removeEventListener('daily-log-story-updated', refresh); clearInterval(t); };
+    window.addEventListener('storage', refresh);
+    const t = setInterval(refresh, 15_000);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      window.removeEventListener('daily-log-story-updated', refresh);
+      window.removeEventListener('storage', refresh);
+      clearInterval(t);
+    };
   }, []);
 
   const weekDays = useMemo(() => {
@@ -190,10 +219,33 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
     return days;
   }, [engine.habitLogs, engine.activeHabits.length]);
 
-  const handleComplete = useCallback((id: string) => {
+  const handleComplete = useCallback(async (id: string) => {
+    const habit = engine.activeHabits.find(h => h.id === id);
     engine.completeHabit(id);
+    saveToSmartLog(id);
+    if (habit) saveToDailyLogStory(id, habit.icon, habit.name, LIFE_AREA_COLORS[habit.lifeArea] ?? '#a78bfa');
+    setSmartLoggedToday(getSmartLoggedToday());
     setCelebrateId(id);
     setTimeout(() => setCelebrateId(null), 1800);
+    if (!habit) return;
+    const siteLang = (typeof localStorage !== 'undefined' ? localStorage.getItem('site-lang') : null) ?? 'hi';
+    try {
+      const res = await fetch('/api/bodhi/habit-voice-feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ habitName: habit.name, habitIcon: habit.icon, habitCategory: habit.category, habitLifeArea: habit.lifeArea, completedCount: 1, totalHabits: engine.activeHabits.length, currentTimeOfDay: habit.category, isFirstHabitToday: false, language: siteLang }),
+      });
+      if (res.ok) {
+        const { voiceMessage } = await res.json();
+        if (voiceMessage?.length > 10) {
+          try { sessionStorage.setItem('bodhi_pending_inject', habit.name); } catch { /* ignore */ }
+          const { speakBodhiRaw } = await import('@/lib/bodhiVoice');
+          speakBodhiRaw(voiceMessage);
+          return;
+        }
+      }
+    } catch { /* fallback */ }
+    bodhiSpeakLog({ habitIcon: habit.icon, habitName: habit.name, isLocked: false, timeSlot: 'morning' });
   }, [engine]);
 
   if (!mounted) return null;
@@ -201,9 +253,14 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const slotCfg = getTimeSlotConfig();
   const SlotIcon = slotCfg.Icon;
   const { completedIds, skippedIds } = engine.getTodayStatus();
-  const completionRate = engine.todayCompletionRate;
-  const completedCount = engine.activeHabits.filter(h => completedIds.has(h.id)).length;
+  const allCompletedIds = new Set([...completedIds, ...smartLoggedToday]);
+  const slotsNow = slotCfg.slotKey === 'morning' ? ['morning','sacred','anytime'] : slotCfg.slotKey === 'midday' ? ['midday','anytime'] : slotCfg.slotKey === 'evening' ? ['evening','anytime'] : ['night','anytime'];
+  const relevantHabits = engine.activeHabits.filter(h => slotsNow.includes(h.category ?? 'anytime'));
+  const pendingHabits = relevantHabits.filter(h => !allCompletedIds.has(h.id) && !skippedIds.has(h.id));
+  const doneHabits = engine.activeHabits.filter(h => allCompletedIds.has(h.id));
+  const completedCount = engine.activeHabits.filter(h => allCompletedIds.has(h.id)).length;
   const totalHabits = engine.activeHabits.length;
+  const completionRate = totalHabits > 0 ? Math.round((completedCount / totalHabits) * 100) : 0;
   const levelInfo = getLevelFromXP(engine.xp.total);
   const nextLevel = getNextLevel(engine.xp.total);
   const today = getToday();
@@ -211,13 +268,8 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const maxStreak = engine.activeHabits.length > 0 ? Math.max(0, ...engine.activeHabits.map(h => engine.getHabitStreak(h.id))) : 0;
   const ringColor = completionRate >= 80 ? '#4ade80' : completionRate >= 50 ? '#fbbf24' : '#60a5fa';
   const xpPct = nextLevel ? Math.min(100, Math.round(((engine.xp.total - levelInfo.minXP) / (nextLevel.minXP - levelInfo.minXP)) * 100)) : 100;
-  const remaining = totalHabits - completedCount;
-  const statusText = completionRate >= 100 ? 'Perfect day 🏆' : completionRate >= 75 ? 'Almost there 🔥' : remaining > 0 ? `${remaining} left 🌱` : totalHabits > 0 ? 'All done ✦' : 'Add practices ✦';
-  const slotsNow = slotCfg.slotKey === 'morning' ? ['morning','sacred','anytime'] : slotCfg.slotKey === 'midday' ? ['midday','anytime'] : slotCfg.slotKey === 'evening' ? ['evening','anytime'] : ['night','anytime'];
-  const relevantHabits = engine.activeHabits.filter(h => slotsNow.includes(h.category ?? 'anytime'));
-  const pendingHabits = relevantHabits.filter(h => !completedIds.has(h.id) && !skippedIds.has(h.id));
-  const doneHabits = engine.activeHabits.filter(h => completedIds.has(h.id));
-  const otherPending = engine.activeHabits.filter(h => !slotsNow.includes(h.category ?? 'anytime') && !completedIds.has(h.id) && !skippedIds.has(h.id));
+  const remaining = pendingHabits.length;
+  const statusText = completionRate >= 100 ? 'Perfect day 🏆' : completionRate >= 75 ? 'Almost there 🔥' : remaining > 0 ? `${remaining} left 🌱` : totalHabits > 0 ? 'All done ✦' : 'Add activities ✦';
   const sanskrit = SANSKRIT_SLOTS[slotCfg.label] ?? '';
   const statVals = [
     { ...AYUR_STAT_LABELS[0], val:`${completedCount}/${totalHabits}`, bg:`${ringColor}12`, border:`${ringColor}28`, col:'#fff' },
@@ -226,17 +278,17 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   ];
   return (
     <motion.div initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{delay:0.2,duration:0.55}}
-      style={{margin:'0 0.6rem 1.4rem',borderRadius:28,overflow:'hidden',position:'relative',border:`1.5px solid ${slotCfg.color}28`,boxShadow:`0 20px 60px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.07),0 0 60px ${slotCfg.color}0a`}}>
+      style={{margin:'0 0.5rem 1rem',borderRadius:24,overflow:'hidden',position:'relative',border:`1.5px solid ${slotCfg.color}28`,boxShadow:`0 16px 48px rgba(0,0,0,0.45),inset 0 1px 0 rgba(255,255,255,0.07),0 0 40px ${slotCfg.color}08`}}>
       {globalBg&&<div style={{position:'absolute',inset:0,backgroundImage:`url('${globalBg}')`,backgroundSize:'cover',backgroundPosition:'center',transform:'scale(1.08)',filter:'blur(3px) brightness(0.35) saturate(1.2)',zIndex:0}}/>}
       <div style={{position:'absolute',inset:0,background:`radial-gradient(ellipse at 10% 0%,${slotCfg.color}18 0%,transparent 55%),radial-gradient(ellipse at 90% 100%,rgba(139,92,246,0.14) 0%,transparent 55%),linear-gradient(180deg,rgba(4,2,18,0.15) 0%,rgba(4,2,18,0.9) 100%)`,zIndex:1}}/>
       <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',fontSize:'16rem',opacity:0.016,zIndex:1,pointerEvents:'none',lineHeight:1,color:slotCfg.color}}>ॐ</div>
-      <div style={{position:'relative',zIndex:2,padding:'1rem 1rem 0.95rem'}}>
+      <div style={{position:'relative',zIndex:2,padding:'0.85rem 0.9rem 0.8rem'}}>
         {/* Header */}
         <div style={{display:'flex',alignItems:'flex-start',gap:'0.5rem',marginBottom:'0.6rem'}}>
           <div style={{flex:1,minWidth:0}}>
             <div style={{display:'flex',alignItems:'center',gap:'0.4rem'}}>
               <motion.span animate={{rotate:[0,14,-14,0],opacity:[0.7,1,0.7]}} transition={{duration:4,repeat:Infinity}} style={{fontSize:'1rem',flexShrink:0}}>✨</motion.span>
-              <span style={{fontSize:'0.78rem',fontWeight:900,color:'#fbbf24',letterSpacing:'0.1em',textTransform:'uppercase',fontFamily:"'Outfit',sans-serif",textShadow:'0 0 24px rgba(251,191,36,0.45)'}}>Your Life Progress Today</span>
+              <span style={{fontSize:'0.78rem',fontWeight:900,color:'#fbbf24',letterSpacing:'0.1em',textTransform:'uppercase',fontFamily:"'Outfit',sans-serif",textShadow:'0 0 24px rgba(251,191,36,0.45)'}}>Your Logging Progress Today</span>
             </div>
             {sanskrit&&<p style={{margin:'2px 0 0 1.5rem',fontSize:'0.7rem',color:`${slotCfg.color}aa`,fontFamily:'serif',fontStyle:'italic',letterSpacing:'0.04em'}}>{sanskrit} — दिनचर्या प्रगति</p>}
           </div>
@@ -289,7 +341,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
           </div>
         </div>
         {/* Tapas Level bar */}
-        <div style={{display:'flex',alignItems:'center',gap:'0.38rem',marginBottom:'0.9rem',padding:'0.52rem 0.7rem',borderRadius:14,background:'rgba(251,191,36,0.06)',border:'1px solid rgba(251,191,36,0.14)'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'0.38rem',marginBottom:'0.65rem',padding:'0.42rem 0.65rem',borderRadius:12,background:'rgba(251,191,36,0.06)',border:'1px solid rgba(251,191,36,0.14)'}}>
           <span style={{fontSize:'0.85rem',flexShrink:0}}>{levelInfo.icon}</span>
           <div style={{flex:1}}>
             <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
@@ -314,11 +366,11 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
         {/* Sadhana Section Header */}
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'0.52rem',flexWrap:'wrap',gap:'0.38rem'}}>
           <div style={{display:'flex',alignItems:'center',gap:'0.38rem',flexWrap:'wrap'}}>
-            <span style={{fontSize:'0.82rem',fontWeight:900,color:'#fff',fontFamily:"'Outfit',sans-serif"}}>{slotCfg.emoji} {slotCfg.label} Sadhana</span>
-            {(pendingHabits.length+otherPending.length)>0&&(
+            <span style={{fontSize:'0.82rem',fontWeight:900,color:'#fff',fontFamily:"'Outfit',sans-serif"}}>{slotCfg.emoji} {slotCfg.label} Activities</span>
+            {pendingHabits.length>0&&(
               <motion.span animate={{opacity:[1,0.5,1]}} transition={{duration:2,repeat:Infinity}}
                 style={{fontSize:'0.57rem',padding:'0.06rem 0.4rem',borderRadius:99,background:'rgba(251,191,36,0.14)',border:'1px solid rgba(251,191,36,0.32)',color:'#fbbf24',fontFamily:"'Outfit',sans-serif",fontWeight:700}}>
-                {pendingHabits.length+otherPending.length} pending
+                {pendingHabits.length} pending
               </motion.span>
             )}
           </div>
@@ -329,15 +381,15 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
           </motion.button>
         </div>
         {/* Tap hint */}
-        {(pendingHabits.length+otherPending.length)>0&&(
-          <div style={{display:'flex',alignItems:'center',gap:'0.28rem',marginBottom:'0.48rem',padding:'0.32rem 0.6rem',borderRadius:10,background:'rgba(251,191,36,0.05)',border:'1px solid rgba(251,191,36,0.12)'}}>
-            <motion.span animate={{scale:[1,1.3,1],opacity:[0.5,1,0.5]}} transition={{duration:1.8,repeat:Infinity}} style={{fontSize:'0.72rem'}}>👆</motion.span>
-            <span style={{fontSize:'0.65rem',color:'rgba(255,255,255,0.36)',fontFamily:"'Outfit',sans-serif",fontStyle:'italic'}}>Tap any practice to log · Bodhi celebrates with you</span>
+        {pendingHabits.length>0&&(
+          <div style={{display:'flex',alignItems:'center',gap:'0.28rem',marginBottom:'0.38rem',padding:'0.28rem 0.6rem',borderRadius:10,background:'rgba(251,191,36,0.05)',border:'1px solid rgba(251,191,36,0.12)'}}>
+            <motion.span animate={{scale:[1,1.3,1],opacity:[0.5,1,0.5]}} transition={{duration:1.8,repeat:Infinity}} style={{fontSize:'0.68rem'}}>👆</motion.span>
+            <span style={{fontSize:'0.62rem',color:'rgba(255,255,255,0.36)',fontFamily:"'Outfit',sans-serif",fontStyle:'italic'}}>Tap to log · Bodhi celebrates with you</span>
           </div>
         )}
         {/* Crystal Tabs */}
         <div style={{display:'flex',gap:'0.25rem',marginBottom:'0.68rem'}}>
-          {([{key:'pending',label:'To Do',emoji:'📋',count:pendingHabits.length+otherPending.length},{key:'done',label:'Done',emoji:'✅',count:doneHabits.length},{key:'activity',label:'Activity',emoji:'⚡',count:logStory.length}] as const).map(tab=>{
+          {([{key:'pending',label:'To Do',emoji:'📋',count:pendingHabits.length},{key:'done',label:'Done',emoji:'✅',count:doneHabits.length},{key:'activity',label:'Activity',emoji:'⚡',count:logStory.length}] as const).map(tab=>{
             const active=activeTab===tab.key;
             return(
               <motion.button key={tab.key} whileTap={{scale:0.93}} onClick={()=>setActiveTab(tab.key)}
@@ -360,7 +412,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
                   <p style={{margin:'0 0 0.65rem',color:'rgba(255,255,255,0.38)',fontSize:'0.84rem',fontFamily:"'Outfit',sans-serif"}}>No sadhana yet — begin your Ayurvedic practice</p>
                   <span style={{display:'inline-flex',alignItems:'center',gap:5,padding:'0.36rem 1rem',borderRadius:99,background:'rgba(139,92,246,0.22)',border:'1px solid rgba(167,139,250,0.38)',color:'#c4b5fd',fontSize:'0.74rem',fontWeight:800,fontFamily:"'Outfit',sans-serif"}}><Plus size={11}/> Add Ayurvedic Habits</span>
                 </motion.div>
-              ):pendingHabits.length===0&&otherPending.length===0?(
+              ):pendingHabits.length===0?(
                 <div style={{textAlign:'center',padding:'1.2rem 1rem',border:'1px solid rgba(74,222,128,0.22)',borderRadius:18,background:'rgba(74,222,128,0.04)'}}>
                   <motion.p animate={{scale:[1,1.15,1]}} transition={{duration:2,repeat:Infinity}} style={{margin:'0 0 0.25rem',fontSize:'1.5rem'}}>🪔</motion.p>
                   <p style={{margin:'0 0 0.12rem',color:'#4ade80',fontSize:'0.88rem',fontWeight:700,fontFamily:"'Outfit',sans-serif"}}>All {slotCfg.label.toLowerCase()} practices complete!</p>
@@ -370,22 +422,12 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
                 <>
                   {pendingHabits.length>0&&(
                     <motion.div initial={{opacity:0,y:-4}} animate={{opacity:1,y:0}}
-                      style={{display:'flex',alignItems:'center',gap:8,padding:'0.4rem 0.7rem',borderRadius:12,marginBottom:'0.5rem',background:'linear-gradient(135deg,rgba(251,191,36,0.07),rgba(139,92,246,0.05))',border:'1px solid rgba(251,191,36,0.18)'}}>
-                      <motion.span animate={{scale:[1,1.2,1],rotate:[0,8,-8,0]}} transition={{duration:3,repeat:Infinity}} style={{fontSize:'0.9rem',flexShrink:0}}>🔥</motion.span>
-                      <p style={{margin:0,fontSize:'0.68rem',color:'rgba(255,255,255,0.48)',fontFamily:"'Outfit',sans-serif",lineHeight:1.4}}><span style={{color:'#fbbf24',fontWeight:800}}>Tap to log</span> — or use Smart Log bubbles above</p>
+                      style={{display:'flex',alignItems:'center',gap:6,padding:'0.32rem 0.6rem',borderRadius:10,marginBottom:'0.42rem',background:'linear-gradient(135deg,rgba(251,191,36,0.06),rgba(139,92,246,0.04))',border:'1px solid rgba(251,191,36,0.14)'}}>
+                      <span style={{fontSize:'0.82rem',flexShrink:0}}>🔥</span>
+                      <p style={{margin:0,fontSize:'0.64rem',color:'rgba(255,255,255,0.42)',fontFamily:"'Outfit',sans-serif",lineHeight:1.3}}><span style={{color:'#fbbf24',fontWeight:800}}>Tap to log</span> — Bodhi speaks on every activity</p>
                     </motion.div>
                   )}
                   {pendingHabits.map(h=><MiniHabitCard key={h.id} habit={h} isCompleted={false} streak={engine.getHabitStreak(h.id)} onComplete={handleComplete}/>)}
-                  {otherPending.length>0&&(
-                    <>
-                      <div style={{display:'flex',alignItems:'center',gap:'0.38rem',margin:'0.55rem 0 0.42rem'}}>
-                        <div style={{flex:1,height:1,background:'rgba(255,255,255,0.06)'}}/>
-                        <span style={{fontSize:'0.5rem',color:'rgba(255,255,255,0.2)',fontFamily:"'Outfit',sans-serif",fontWeight:700,letterSpacing:'0.1em'}}>✦ OTHER PRACTICES ✦</span>
-                        <div style={{flex:1,height:1,background:'rgba(255,255,255,0.06)'}}/>
-                      </div>
-                      {otherPending.map(h=><MiniHabitCard key={h.id} habit={h} isCompleted={false} streak={engine.getHabitStreak(h.id)} onComplete={handleComplete}/>)}
-                    </>
-                  )}
                 </>
               )}
             </motion.div>
@@ -418,7 +460,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
                 </div>
               ):(
                 <>
-                  <p style={{margin:'0 0 0.38rem',fontSize:'0.56rem',fontWeight:800,color:'rgba(255,255,255,0.28)',letterSpacing:'0.12em',textTransform:'uppercase',fontFamily:"'Outfit',sans-serif"}}>⚡ Smart Log · Newest First</p>
+                  <p style={{margin:'0 0 0.32rem',fontSize:'0.52rem',fontWeight:800,color:'rgba(255,255,255,0.28)',letterSpacing:'0.12em',textTransform:'uppercase',fontFamily:"'Outfit',sans-serif"}}>⚡ Logged Today · Newest First</p>
                   <div style={{display:'flex',flexDirection:'column',gap:'0.25rem'}}>
                     {[...logStory].reverse().map((entry,i)=>{
                       const t=new Date(entry.loggedAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
@@ -454,8 +496,8 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
             <Plus size={11}/> New Habit
           </motion.button>
           <motion.button whileTap={{scale:0.93}} onClick={()=>setActiveTab('pending')}
-            style={{flex:1,padding:'0.55rem 0.4rem',borderRadius:13,background:(pendingHabits.length+otherPending.length)>0?'rgba(251,191,36,0.1)':'rgba(255,255,255,0.03)',border:`1px solid ${(pendingHabits.length+otherPending.length)>0?'rgba(251,191,36,0.28)':'rgba(255,255,255,0.07)'}`,color:(pendingHabits.length+otherPending.length)>0?'#fbbf24':'rgba(255,255,255,0.22)',fontSize:'0.63rem',fontWeight:800,fontFamily:"'Outfit',sans-serif",cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:4}}>
-            <Zap size={11}/> {(pendingHabits.length+otherPending.length)>0?`${pendingHabits.length+otherPending.length} Pending`:'All Done ✓'}
+            style={{flex:1,padding:'0.55rem 0.4rem',borderRadius:13,background:pendingHabits.length>0?'rgba(251,191,36,0.1)':'rgba(255,255,255,0.03)',border:`1px solid ${pendingHabits.length>0?'rgba(251,191,36,0.28)':'rgba(255,255,255,0.07)'}`,color:pendingHabits.length>0?'#fbbf24':'rgba(255,255,255,0.22)',fontSize:'0.63rem',fontWeight:800,fontFamily:"'Outfit',sans-serif",cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:4}}>
+            <Zap size={11}/> {pendingHabits.length>0?`${pendingHabits.length} Pending`:'All Done ✓'}
           </motion.button>
           <motion.button whileTap={{scale:0.93}} onClick={()=>setActiveTab('activity')}
             style={{flex:1,padding:'0.55rem 0.4rem',borderRadius:13,background:logStory.length>0?'rgba(34,211,238,0.08)':'rgba(255,255,255,0.03)',border:`1px solid ${logStory.length>0?'rgba(34,211,238,0.24)':'rgba(255,255,255,0.07)'}`,color:logStory.length>0?'#22d3ee':'rgba(255,255,255,0.22)',fontSize:'0.63rem',fontWeight:800,fontFamily:"'Outfit',sans-serif",cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:4}}>

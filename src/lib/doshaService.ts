@@ -176,7 +176,7 @@ export function getCurrentDoshaPhase(hour?: number): DoshaKala {
     return {
       phase: 'vata-afternoon',
       dominantDosha: 'vata',
-      label: 'Vata Afternoon',
+      label: 'Vata Period',
       timeRange: '2 PM – 6 PM',
       quality: 'Creative, communicative, airy',
       bestFor: ['Creative work', 'Communication', 'Light movement', 'Herbal tea'],
