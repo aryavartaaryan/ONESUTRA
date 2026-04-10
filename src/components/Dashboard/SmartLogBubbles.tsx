@@ -962,37 +962,6 @@ export default function SmartLogBubbles() {
                 )}
             </motion.div>
 
-            {/* ══ TODAY'S LOG — embedded done-cards (shows inside dashboard only) ══ */}
-            {(() => {
-                const todayStory = getTodayLogStory();
-                const allBubbles = [...MORNING_BUBBLES, ...NOON_BUBBLES, ...EVENING_BUBBLES, ...NIGHT_BUBBLES];
-                const doneItems = todayStory.map(entry => ({
-                    bubble: allBubbles.find(b => b.id === entry.id) ?? {
-                        id: entry.id, icon: entry.icon, label: entry.label,
-                        color: entry.color, sublabel: '', logMessage: '', subOptions: [],
-                    } as LogBubble,
-                    loggedAt: entry.loggedAt,
-                })).filter(item => item.bubble);
-                if (doneItems.length === 0) return null;
-                return (
-                    <div style={{ padding: '0 0.75rem 0.2rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '0.5rem' }}>
-                            <motion.span animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 2.5, repeat: Infinity }} style={{ fontSize: '0.7rem' }}>✨</motion.span>
-                            <span style={{ fontSize: '0.62rem', fontWeight: 800, color: '#fbbf24', letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: "'Outfit', sans-serif" }}>
-                                Today&apos;s Log
-                            </span>
-                            <span style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.28)', fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>
-                                · {doneItems.length} logged
-                            </span>
-                            <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(251,191,36,0.25), transparent)' }} />
-                        </div>
-                        <AnimatePresence>
-                            {[...doneItems].reverse().map(({ bubble, loggedAt }) => renderDoneCard(bubble as LogBubble, loggedAt))}
-                        </AnimatePresence>
-                    </div>
-                );
-            })()}
-
             {/* ══ ALL-DONE STATE ═══════════════════════════════════════════════ */}
             {allLogged ? (
                 <motion.div
