@@ -267,6 +267,15 @@ function AyurvedaHomeCard() {
   );
 }
 
+const SAP_PHASE_ESSENCE: Record<string, string> = {
+  'brahma-muhurta': 'Vata · sacred stillness · rise before the world wakes',
+  'kapha-morning':  'Kapha is groundedness · move the body · ignite your day',
+  'pitta-midday':   'Pitta is fire · peak Agni · channel your deepest focus',
+  'vata-afternoon': 'Vata is creativity · flow through inspiration · light and free',
+  'kapha-evening':  'Kapha is stability · wind down · ground · gentle nourishment',
+  'pitta-night':    'Pitta · deep repair · inner fire heals while you sleep',
+};
+
 export default function Home() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
@@ -592,47 +601,48 @@ export default function Home() {
               </div>
             </div>
 
-            {/* ── Sun/Moon orb + greeting ── */}
-            <div style={{ margin: '0 0 0.8rem', display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
+            {/* ── Sun/Moon orb + Dosha Phase (merged, elegant) ── */}
+            <div style={{ margin: '0 0 0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <motion.div
                 animate={{ boxShadow: [`0 0 0 1px ${sapIconColor}40, 0 0 18px ${sapIconColor}55`, `0 0 0 1px ${sapIconColor}88, 0 0 36px ${sapIconColor}bb`, `0 0 0 1px ${sapIconColor}40, 0 0 18px ${sapIconColor}55`] }}
                 transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
                 style={isSunsetPeriod ? {
-                  width: 54, height: 54, borderRadius: 16, flexShrink: 0,
+                  width: 50, height: 50, borderRadius: 14, flexShrink: 0,
                   background: 'linear-gradient(145deg, #f97316cc 0%, #dc2626aa 50%, #7c2d1288 100%)',
                   border: '1px solid rgba(249,115,22,0.55)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
                 } : {
-                  width: 54, height: 54, borderRadius: '50%', flexShrink: 0,
+                  width: 50, height: 50, borderRadius: '50%', flexShrink: 0,
                   background: `radial-gradient(circle at 38% 32%, ${sapIconColor}28 0%, transparent 70%)`,
                   border: `1px solid ${sapIconColor}44`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
                 }}
               >
-                {sapHour >= 3 && sapHour < 7 ? <RisingSunSVG size={44} /> :
-                 sapHour >= 7 && sapHour < 15 ? <RealSunSVG size={44} /> :
-                 isSunsetPeriod ? <span style={{ fontSize: '2.1rem', lineHeight: 1, display: 'block', textAlign: 'center', filter: 'drop-shadow(0 0 8px rgba(249,115,22,0.8))' }}>{greeting?.emoji ?? '🌇'}</span> :
-                 <RealMoonSVG size={44} />}
+                {sapHour >= 3 && sapHour < 7 ? <RisingSunSVG size={40} /> :
+                 sapHour >= 7 && sapHour < 15 ? <RealSunSVG size={40} /> :
+                 isSunsetPeriod ? <span style={{ fontSize: '2rem', lineHeight: 1, display: 'block', textAlign: 'center', filter: 'drop-shadow(0 0 8px rgba(249,115,22,0.8))' }}>{greeting?.emoji ?? '🌇'}</span> :
+                 <RealMoonSVG size={40} />}
               </motion.div>
-              <div>
-                <p style={{ margin: 0, fontSize: '1.28rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.02em', textShadow: '0 2px 12px rgba(0,0,0,0.4)', lineHeight: 1.1 }}>{greeting.text}</p>
-                <p style={{ margin: '0.15rem 0 0', fontSize: '0.68rem', color: `${sapIconColor}cc`, fontFamily: "'Outfit', sans-serif", fontWeight: 600, letterSpacing: '0.06em' }}>{greeting.period}</p>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                  <motion.div animate={{ opacity: [1, 0.25, 1] }} transition={{ duration: 2.2, repeat: Infinity }}
+                    style={{ width: 7, height: 7, borderRadius: '50%', background: doshaColor, flexShrink: 0, boxShadow: `0 0 6px ${doshaColor}` }} />
+                  <span style={{ fontSize: '0.94rem', fontWeight: 800, color: 'rgba(255,255,255,0.92)', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.01em' }}>
+                    {doshaCurrentPhase.label}
+                  </span>
+                  <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.22)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.03em' }}>
+                    {doshaCurrentPhase.timeRange}
+                  </span>
+                  {inBrahmaMuhurta && (
+                    <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 2, repeat: Infinity }}
+                      style={{ fontSize: '0.58rem', padding: '0.12rem 0.44rem', borderRadius: 99, background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.38)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>✦ Brahma
+                    </motion.span>
+                  )}
+                </div>
+                <p style={{ margin: '0.22rem 0 0', fontSize: '0.66rem', color: `${doshaColor}99`, fontFamily: "'Outfit', sans-serif", fontStyle: 'italic', letterSpacing: '0.02em', lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {SAP_PHASE_ESSENCE[doshaCurrentPhase.phase] ?? doshaCurrentPhase.quality}
+                </p>
               </div>
-            </div>
-
-            {/* ── Dosha phase strip ── */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', padding: '0.52rem 0.8rem', borderRadius: 12, background: 'rgba(0,0,0,0.28)', border: `1px solid ${doshaColor}40`, backdropFilter: 'blur(10px)' }}>
-              <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 2.2, repeat: Infinity }}
-                style={{ width: 8, height: 8, borderRadius: '50%', background: doshaColor, flexShrink: 0, boxShadow: `0 0 8px ${doshaColor}` }} />
-              <span style={{ flex: 1, fontSize: '0.84rem', fontWeight: 700, color: 'rgba(255,255,255,0.82)', fontFamily: "'Outfit', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {doshaCurrentPhase.label}{doshaCurrentPhase.timeRange ? ` · ${doshaCurrentPhase.timeRange}` : ''}
-              </span>
-              <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', fontFamily: "'Outfit', sans-serif", flexShrink: 0 }}>{doshaCurrentPhase.quality}</span>
-              {inBrahmaMuhurta && (
-                <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 2, repeat: Infinity }}
-                  style={{ fontSize: '0.62rem', padding: '0.14rem 0.5rem', borderRadius: 99, background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.38)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 700, flexShrink: 0 }}>✦ Brahma
-                </motion.span>
-              )}
             </div>
 
             {/* Expandable mood picker */}
