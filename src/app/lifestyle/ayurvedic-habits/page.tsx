@@ -71,14 +71,11 @@ interface HabitTemplate {
 
 const HABIT_LIBRARY: HabitTemplate[] = [
   { id: 't_wake_early', name: 'Wake Before 6am', icon: '🌅', category: 'morning', lifeArea: 'mental', trackingType: 'checkbox', color: '#fbbf24', description: 'Start the day with Brahma muhurta', frequency: 'daily' },
-  { id: 't_tongue_scrape', name: 'Tongue Scraping', icon: '✨', category: 'morning', lifeArea: 'physical', trackingType: 'checkbox', color: '#4ade80', description: 'Ayurvedic oral detox each morning', frequency: 'daily' },
   { id: 't_oil_pull', name: 'Oil Pulling', icon: '💛', category: 'morning', lifeArea: 'physical', trackingType: 'duration', targetValue: 15, color: '#fde68a', description: '15 min Ayurvedic oral detox with sesame oil', frequency: 'daily' },
   { id: 't_cold_shower', name: 'Cold Shower', icon: '🚿', category: 'morning', lifeArea: 'physical', trackingType: 'checkbox', color: '#22d3ee', description: 'Activate the nervous system with cold water', frequency: 'daily' },
-  { id: 't_sun_gaze', name: 'Sunrise Watching', icon: '☀️', category: 'morning', lifeArea: 'spiritual', trackingType: 'duration', targetValue: 5, color: '#f97316', description: 'Watch the first light — 5 min gentle sun exposure', frequency: 'daily' },
   { id: 't_lemon_water', name: 'Warm Lemon Water', icon: '🍋', category: 'morning', lifeArea: 'physical', trackingType: 'checkbox', color: '#fde68a', description: 'Alkalise and hydrate upon waking', frequency: 'daily' },
   { id: 't_gratitude', name: 'Gratitude Practice', icon: '🙏', category: 'morning', lifeArea: 'spiritual', trackingType: 'counter', targetValue: 3, color: '#fb923c', description: 'Write 3 genuine things you\'re grateful for', frequency: 'daily' },
   { id: 't_stretch', name: 'Morning Stretch', icon: '🌸', category: 'morning', lifeArea: 'physical', trackingType: 'duration', targetValue: 10, color: '#f472b6', description: '10 min gentle stretching to wake the body', frequency: 'daily' },
-  { id: 't_meditation', name: 'Meditation', icon: '🧘', category: 'sacred', lifeArea: 'spiritual', trackingType: 'duration', targetValue: 10, color: '#a78bfa', description: 'Daily sitting meditation practice', frequency: 'daily' },
   { id: 't_mantra', name: 'Mantra Japa', icon: '🕉️', category: 'sacred', lifeArea: 'spiritual', trackingType: 'counter', targetValue: 108, color: '#c084fc', description: 'Daily mantra repetition — 108 times', frequency: 'daily' },
   { id: 't_pranayama', name: 'Pranayama', icon: '🌬️', category: 'sacred', lifeArea: 'spiritual', trackingType: 'duration', targetValue: 10, color: '#22d3ee', description: 'Conscious breathing practice', frequency: 'daily' },
   { id: 't_nature', name: 'Time in Nature', icon: '🌳', category: 'anytime', lifeArea: 'spiritual', trackingType: 'duration', targetValue: 20, color: '#4ade80', description: 'Mindful time outdoors — barefoot if possible', frequency: 'daily' },
@@ -86,8 +83,6 @@ const HABIT_LIBRARY: HabitTemplate[] = [
   { id: 't_yoga', name: 'Yoga Asanas', icon: '🌺', category: 'morning', lifeArea: 'physical', trackingType: 'duration', targetValue: 20, color: '#f472b6', description: 'Daily yoga practice', frequency: 'daily' },
   { id: 't_walk', name: 'Walk 10,000 Steps', icon: '🚶', category: 'anytime', lifeArea: 'physical', trackingType: 'numeric', targetValue: 10000, color: '#4ade80', description: 'Hit your daily step goal', frequency: 'daily' },
   { id: 't_water', name: 'Drink 2L Water', icon: '💧', category: 'anytime', lifeArea: 'physical', trackingType: 'numeric', targetValue: 8, color: '#60a5fa', description: 'Track glasses of water throughout the day', frequency: 'daily' },
-  { id: 't_sleep_early', name: 'Sleep by 10:30pm', icon: '🌙', category: 'evening', lifeArea: 'physical', trackingType: 'checkbox', color: '#818cf8', description: 'Honour your body\'s natural sleep cycle', frequency: 'daily' },
-  { id: 't_no_phone_bed', name: 'No Phone in Bed', icon: '📵', category: 'evening', lifeArea: 'physical', trackingType: 'checkbox', color: '#a78bfa', description: 'No screens 30 min before sleep', frequency: 'daily' },
   { id: 't_read', name: 'Read 30 Minutes', icon: '📚', category: 'anytime', lifeArea: 'mental', trackingType: 'duration', targetValue: 30, color: '#60a5fa', description: 'Daily reading — books, not feeds', frequency: 'daily' },
   { id: 't_deep_work', name: 'Deep Work Block', icon: '🎯', category: 'midday', lifeArea: 'professional', trackingType: 'duration', targetValue: 90, color: '#fbbf24', description: 'Focused, undistracted work session', frequency: 'weekdays' },
   { id: 't_no_social', name: 'Social Media Fast', icon: '🔕', category: 'anytime', lifeArea: 'mental', trackingType: 'checkbox', color: '#f87171', description: 'No social media scrolling today', frequency: 'daily' },
@@ -157,9 +152,10 @@ function DoshaEffectTag({ dosha, value }: { dosha: Dosha; value: number }) {
 
 // ─── AyurvedicHabitCard ────────────────────────────────────────────────────────
 
-function AyurvedicHabitCard({ habit, isCompleted, streak, prakritiDosha, onToggle }: {
+function AyurvedicHabitCard({ habit, isCompleted, streak, prakritiDosha, onToggle, isInRoutine, onAddToRoutine }: {
   habit: AyurvedicHabit; isCompleted: boolean; streak: number;
   prakritiDosha: Dosha | null; onToggle: () => void;
+  isInRoutine: boolean; onAddToRoutine: () => void;
 }) {
   const isBestFor = prakritiDosha && habit.bestFor.includes(prakritiDosha);
   return (
@@ -194,6 +190,19 @@ function AyurvedicHabitCard({ habit, isCompleted, streak, prakritiDosha, onToggl
             {(['vata', 'pitta', 'kapha'] as Dosha[]).map(d => <DoshaEffectTag key={d} dosha={d} value={habit.doshaEffect[d]} />)}
             {habit.targetMin > 0 && <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.28)', fontFamily: "'Outfit', sans-serif" }}>{habit.targetMin} min</span>}
           </div>
+          {/* Add to Routine row */}
+          <div style={{ marginTop: '0.45rem' }} onClick={e => e.stopPropagation()}>
+            {isInRoutine ? (
+              <span style={{ fontSize: '0.6rem', color: 'rgba(74,222,128,0.75)', fontFamily: "'Outfit', sans-serif", fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                <CheckCircle2 size={10} style={{ color: '#4ade80' }} /> In My Routine
+              </span>
+            ) : (
+              <motion.button whileTap={{ scale: 0.9 }} onClick={onAddToRoutine}
+                style={{ padding: '0.18rem 0.55rem', borderRadius: 8, background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.3)', color: '#c084fc', fontSize: '0.6rem', fontWeight: 700, cursor: 'pointer', fontFamily: "'Outfit', sans-serif", display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                <Plus size={9} /> Add to Routine
+              </motion.button>
+            )}
+          </div>
         </div>
         {streak > 0 && (
           <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.1rem' }}>
@@ -201,6 +210,31 @@ function AyurvedicHabitCard({ habit, isCompleted, streak, prakritiDosha, onToggl
             <span style={{ fontSize: '0.6rem', fontWeight: 700, color: streak >= 7 ? '#fb923c' : 'rgba(255,255,255,0.4)', fontFamily: "'Outfit', sans-serif" }}>{streak}</span>
           </div>
         )}
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── LibraryHabitCard ────────────────────────────────────────────────────────────
+
+function LibraryHabitCard({ habit, onAdd }: { habit: HabitTemplate; onAdd: () => void }) {
+  return (
+    <motion.div layout whileTap={{ scale: 0.98 }} onClick={onAdd} style={{
+      padding: '0.9rem', borderRadius: 16, marginBottom: '0.55rem', cursor: 'pointer',
+      background: 'rgba(255,255,255,0.04)',
+      border: '1px solid rgba(255,255,255,0.07)',
+      transition: 'all 0.25s', position: 'relative', overflow: 'hidden',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+        <div style={{ flexShrink: 0, marginTop: 2 }}>
+          <Plus size={20} style={{ color: 'rgba(255,255,255,0.18)' }} />
+        </div>
+        <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{habit.icon}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ margin: 0, fontSize: '0.88rem', fontWeight: 700, color: 'rgba(255,255,255,0.88)', fontFamily: "'Outfit', sans-serif" }}>{habit.name}</p>
+          <p style={{ margin: '0.2rem 0 0.5rem', fontSize: '0.73rem', color: 'rgba(255,255,255,0.42)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.4 }}>{habit.description}</p>
+          <span style={{ fontSize: '0.62rem', padding: '0.15rem 0.45rem', borderRadius: 99, background: `${habit.color}15`, border: `1px solid ${habit.color}30`, color: habit.color, fontWeight: 700, fontFamily: "'Outfit', sans-serif" }}>{habit.lifeArea}</span>
+        </div>
       </div>
     </motion.div>
   );
@@ -300,9 +334,10 @@ export default function AyurvedicHabitsPage() {
   const today = getToday();
 
   // Top-level tab: ayurvedic | library | minehabits
-  const [mainTab, setMainTab] = useState<'ayurvedic' | 'library' | 'myhabits'>('ayurvedic');
+  const [mainTab, setMainTab] = useState<'library' | 'myhabits'>('library');
   const [search, setSearch] = useState('');
   const [showCustomSheet, setShowCustomSheet] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => { setLogs(loadHabitLogs()); }, []);
 
@@ -331,12 +366,15 @@ export default function AyurvedicHabitsPage() {
     return result;
   }, [logs]);
 
+  const inRoutineIds = useMemo(() => new Set(store.habits.map(h => h.id)), [store.habits]);
+
   const filteredAyurvedicHabits = useMemo(() => {
     let habits = AYURVEDIC_HABITS;
     if (activeTab !== 'all') habits = habits.filter(h => h.category === activeTab);
+    if (search.trim()) habits = habits.filter(h => h.name.toLowerCase().includes(search.toLowerCase()) || (h.nameHi && h.nameHi.includes(search)));
     if (prakriti) return [...habits].sort((a, b) => (a.bestFor.includes(prakriti.primary) ? -1 : 0) - (b.bestFor.includes(prakriti.primary) ? -1 : 0));
     return habits;
-  }, [activeTab, prakriti]);
+  }, [activeTab, prakriti, search]);
 
   const completionPct = Math.round((completedToday.size / AYURVEDIC_HABITS.length) * 100);
 
@@ -344,12 +382,32 @@ export default function AyurvedicHabitsPage() {
   const filteredLibrary = useMemo(() => {
     const existingIds = new Set(store.habits.map(h => h.id));
     let lib = HABIT_LIBRARY.filter(h => !existingIds.has(h.id));
+    if (activeTab !== 'all') lib = lib.filter(h => h.category === activeTab);
     if (search.trim()) lib = lib.filter(h => h.name.toLowerCase().includes(search.toLowerCase()));
     return lib;
-  }, [store.habits, search]);
+  }, [store.habits, search, activeTab]);
+
+  const unifiedList = useMemo(() => [
+    ...filteredAyurvedicHabits.map(h => ({ type: 'ayurvedic' as const, data: h })),
+    ...filteredLibrary.map(h => ({ type: 'library' as const, data: h })),
+  ], [filteredAyurvedicHabits, filteredLibrary]);
+
+  const addAyurvedicToRoutine = (h: AyurvedicHabit) => {
+    store.addHabit({
+      id: h.id, name: h.name, icon: h.emoji, category: h.category,
+      lifeArea: 'spiritual', trackingType: 'duration', targetValue: h.targetMin,
+      color: '#c084fc', frequency: 'daily', isActive: true,
+      createdAt: Date.now(), description: h.description,
+    });
+    setToast('✅ Added to your routine!');
+    setTimeout(() => setToast(null), 2500);
+  };
 
   const addFromLibrary = (t: HabitTemplate) => {
     store.addHabit({ id: t.id, name: t.name, icon: t.icon, category: t.category, lifeArea: t.lifeArea, trackingType: t.trackingType, targetValue: t.targetValue, color: t.color, frequency: t.frequency, isActive: true, createdAt: Date.now() });
+    setToast('✅ Habit added!');
+    setTimeout(() => setToast(null), 2500);
+    setMainTab('myhabits');
   };
 
   const saveCustomHabit = (habit: HabitItem) => {
@@ -378,11 +436,10 @@ export default function AyurvedicHabitsPage() {
           </motion.button>
         </div>
 
-        {/* 3-Tab strip */}
+        {/* 2-Tab strip */}
         <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.85rem' }}>
           {([
-            { key: 'ayurvedic', label: '🌿 Niyamas', sub: `${completedToday.size}/${AYURVEDIC_HABITS.length}` },
-            { key: 'library', label: '📚 Library', sub: `${filteredLibrary.length} habits` },
+            { key: 'library', label: '📚 Library', sub: `${completedToday.size}/${AYURVEDIC_HABITS.length} niyamas` },
             { key: 'myhabits', label: '⚙️ My Habits', sub: `${store.habits.length} active` },
           ] as const).map(t => (
             <motion.button key={t.key} whileTap={{ scale: 0.96 }} onClick={() => setMainTab(t.key)}
@@ -393,12 +450,13 @@ export default function AyurvedicHabitsPage() {
           ))}
         </div>
 
-        {/* Ayurvedic sub-tabs + progress */}
-        {mainTab === 'ayurvedic' && (
+        {/* Library: search + category tabs */}
+        {mainTab === 'library' && (
           <>
-            <div style={{ height: 3, background: 'rgba(255,255,255,0.07)', borderRadius: 2, overflow: 'hidden', marginBottom: '0.6rem' }}>
-              <motion.div animate={{ width: `${completionPct}%` }} transition={{ duration: 0.8 }}
-                style={{ height: '100%', borderRadius: 2, background: 'linear-gradient(90deg, #7c3aed, #fb923c, #4ade80)' }} />
+            <div style={{ position: 'relative', marginBottom: '0.5rem' }}>
+              <Search size={14} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)' }} />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search all habits…"
+                style={{ width: '100%', padding: '0.55rem 1rem 0.55rem 2.1rem', borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '0.82rem', ...s, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             <div style={{ display: 'flex', gap: '0.35rem', overflowX: 'auto', paddingBottom: '0.65rem', scrollbarWidth: 'none' }}>
               {CATEGORY_TABS.map(tab => (
@@ -410,25 +468,22 @@ export default function AyurvedicHabitsPage() {
             </div>
           </>
         )}
-
-        {/* Library search */}
-        {mainTab === 'library' && (
-          <div style={{ position: 'relative', marginBottom: '0.65rem' }}>
-            <Search size={14} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)' }} />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search habits…"
-              style={{ width: '100%', padding: '0.55rem 1rem 0.55rem 2.1rem', borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '0.82rem', ...s, outline: 'none', boxSizing: 'border-box' }} />
-          </div>
-        )}
       </div>
 
       {/* ── Content ── */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '1rem 1.1rem 5rem' }}>
 
-        {/* ── AYURVEDIC TAB ── */}
-        {mainTab === 'ayurvedic' && (
+        {/* ── LIBRARY TAB ── */}
+        {mainTab === 'library' && (
           <>
+            {/* Progress bar */}
+            <div style={{ height: 3, background: 'rgba(255,255,255,0.07)', borderRadius: 2, overflow: 'hidden', marginBottom: '0.55rem' }}>
+              <motion.div animate={{ width: `${completionPct}%` }} transition={{ duration: 0.8 }}
+                style={{ height: '100%', borderRadius: 2, background: 'linear-gradient(90deg, #7c3aed, #fb923c, #4ade80)' }} />
+            </div>
+            {/* Dosha meter toggle */}
             <div style={{ marginBottom: '0.9rem' }}>
-              <button onClick={() => setShowMeter(s => !s)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'rgba(255,255,255,0.35)', fontSize: '0.7rem', ...s, padding: 0 }}>
+              <button onClick={() => setShowMeter(prev => !prev)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'rgba(255,255,255,0.35)', fontSize: '0.7rem', ...s, padding: 0 }}>
                 <Sparkles size={12} /> {showMeter ? 'Hide' : 'Show'} Dosha Balance Meter
               </button>
               <AnimatePresence>
@@ -441,55 +496,37 @@ export default function AyurvedicHabitsPage() {
             </div>
             {!doshaOnboardingComplete && (
               <div style={{ marginBottom: '1rem', padding: '0.85rem 1rem', borderRadius: 14, background: 'rgba(168,85,247,0.07)', border: '1px solid rgba(168,85,247,0.2)' }}>
-                <p style={{ margin: '0 0 0.5rem', fontSize: '0.78rem', fontWeight: 700, color: '#c084fc', ...s }}>Unlock Personalised Niyamas</p>
+                <p style={{ margin: '0 0 0.5rem', fontSize: '0.78rem', fontWeight: 700, color: '#c084fc', ...s }}>Unlock Personalised Habits</p>
                 <p style={{ margin: '0 0 0.6rem', fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', ...s, lineHeight: 1.5 }}>Take the Prakriti quiz to see which habits are most recommended for your constitution.</p>
                 <button onClick={() => router.push('/lifestyle/prakriti')} style={{ padding: '0.4rem 0.85rem', borderRadius: 10, background: 'rgba(168,85,247,0.2)', border: '1px solid rgba(168,85,247,0.4)', color: '#c084fc', fontSize: '0.72rem', cursor: 'pointer', ...s, fontWeight: 700 }}>
                   Begin Prakriti Discovery →
                 </button>
               </div>
             )}
-            <AnimatePresence mode="popLayout">
-              {filteredAyurvedicHabits.map(habit => (
-                <AyurvedicHabitCard key={habit.id} habit={habit} isCompleted={completedToday.has(habit.id)}
-                  streak={streaks[habit.id] ?? 0} prakritiDosha={prakriti?.primary ?? null}
-                  onToggle={() => toggleHabit(habit.id)} />
-              ))}
-            </AnimatePresence>
-            <div style={{ marginTop: '1.25rem', padding: '0.9rem 1rem', borderRadius: 14, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <p style={{ margin: '0 0 0.4rem', fontSize: '0.68rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', ...s }}>Dosha Effect Tags</p>
-              <p style={{ margin: '0 0 0.25rem', fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', ...s }}>↓ = Pacifies (reduces) · ↑ = Increases</p>
-              <p style={{ margin: 0, fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', ...s }}>● = mild · ●● = strong</p>
-            </div>
-          </>
-        )}
 
-        {/* ── LIBRARY TAB ── */}
-        {mainTab === 'library' && (
-          <>
-            <p style={{ margin: '0 0 0.9rem', fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)', ...s }}>
-              Tap any habit to add it to your routine. Already-added habits are hidden.
-            </p>
-            {filteredLibrary.length === 0 && (
-              <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '0.82rem', marginTop: '2rem', ...s }}>All library habits have been added to your routine! ✦</p>
+            {/* ── Unified single list ── */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+              <p style={{ margin: 0, fontSize: '0.78rem', fontWeight: 700, color: 'rgba(255,255,255,0.55)', letterSpacing: '0.04em', ...s }}>Add to Your Routine</p>
+              <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.2)', ...s }}>{completedToday.size}/{AYURVEDIC_HABITS.length} niyamas today</span>
+            </div>
+            <AnimatePresence mode="popLayout">
+              {unifiedList.map(item =>
+                item.type === 'ayurvedic'
+                  ? <AyurvedicHabitCard key={item.data.id} habit={item.data} isCompleted={completedToday.has(item.data.id)}
+                      streak={streaks[item.data.id] ?? 0} prakritiDosha={prakriti?.primary ?? null}
+                      onToggle={() => toggleHabit(item.data.id)} isInRoutine={inRoutineIds.has(item.data.id)}
+                      onAddToRoutine={() => addAyurvedicToRoutine(item.data)} />
+                  : <LibraryHabitCard key={item.data.id} habit={item.data} onAdd={() => addFromLibrary(item.data)} />
+              )}
+            </AnimatePresence>
+            {unifiedList.length === 0 && (
+              <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '0.82rem', marginTop: '1.5rem', ...s }}>All habits added to your routine ✦</p>
             )}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-              {filteredLibrary.map(t => (
-                <motion.button key={t.id} whileTap={{ scale: 0.97 }} onClick={() => addFromLibrary(t)}
-                  style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: 14, background: 'rgba(255,255,255,0.04)', border: `1px solid ${t.color}25`, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <span style={{ fontSize: '1.4rem', flexShrink: 0 }}>{t.icon}</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: '0.88rem', fontWeight: 700, color: 'rgba(255,255,255,0.85)', ...s }}>{t.name}</p>
-                    <p style={{ margin: '1px 0 0', fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)', ...s }}>{t.description}</p>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3, flexShrink: 0 }}>
-                    <span style={{ fontSize: '0.58rem', padding: '0.15rem 0.45rem', borderRadius: 99, background: `${t.color}18`, border: `1px solid ${t.color}35`, color: t.color, fontWeight: 700, ...s }}>{t.lifeArea}</span>
-                    <Plus size={14} style={{ color: t.color, opacity: 0.7 }} />
-                  </div>
-                </motion.button>
-              ))}
+            <div style={{ marginTop: '1rem', marginBottom: '0.5rem', padding: '0.6rem 1rem', borderRadius: 12, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <p style={{ margin: 0, fontSize: '0.68rem', color: 'rgba(255,255,255,0.3)', ...s }}>Dosha tags (on Āyurvedic habits): ↓ Pacifies · ↑ Increases · ● mild · ●● strong</p>
             </div>
             <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCustomSheet(true)}
-              style={{ width: '100%', marginTop: '1.25rem', padding: '0.9rem', borderRadius: 14, border: '1.5px dashed rgba(168,85,247,0.35)', background: 'rgba(168,85,247,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+              style={{ width: '100%', marginTop: '0.75rem', padding: '0.9rem', borderRadius: 14, border: '1.5px dashed rgba(168,85,247,0.35)', background: 'rgba(168,85,247,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
               <Plus size={16} style={{ color: '#c084fc' }} />
               <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#c084fc', ...s }}>Create Custom Habit</span>
             </motion.button>
@@ -546,6 +583,17 @@ export default function AyurvedicHabitsPage() {
       {/* Custom habit sheet */}
       <AnimatePresence>
         {showCustomSheet && <CustomHabitSheet onClose={() => setShowCustomSheet(false)} onSave={saveCustomHabit} />}
+      </AnimatePresence>
+
+      {/* Floating toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}
+            style={{ position: 'fixed', bottom: 28, left: '50%', transform: 'translateX(-50%)', zIndex: 9999,
+              padding: '0.65rem 1.2rem', borderRadius: 99, background: 'rgba(16,185,129,0.92)', border: '1px solid rgba(16,185,129,0.4)', boxShadow: '0 4px 16px rgba(16,185,129,0.25)' }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#fff', fontFamily: "'Outfit', sans-serif" }}>{toast}</span>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );

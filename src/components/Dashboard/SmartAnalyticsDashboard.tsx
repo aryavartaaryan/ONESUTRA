@@ -35,6 +35,21 @@ const AYUR_STAT_LABELS = [
   { key: 'earned',     label: 'EARNED',     sub: 'energy pts', icon: '⚡' },
 ];
 
+const MEAL_SUBOPTIONS: Record<string, Array<{icon:string; label:string}>> = {
+  breakfast: [
+    {icon:'🥣',label:'Oats & fruits'},{icon:'🫓',label:'Parathas'},
+    {icon:'🍳',label:'Eggs'},{icon:'🍵',label:'Just chai'},{icon:'🥛',label:'Smoothie'},
+  ],
+  lunch: [
+    {icon:'🍚',label:'Dal rice'},{icon:'🫓',label:'Roti sabzi'},
+    {icon:'🥗',label:'Light salad'},{icon:'🍕',label:'Outside food'},{icon:'⏭️',label:'Skipped'},
+  ],
+  dinner: [
+    {icon:'🥗',label:'Light & clean'},{icon:'🍚',label:'Full meal'},
+    {icon:'🫓',label:'Roti sabzi'},{icon:'🍕',label:'Cheat meal'},{icon:'⏭️',label:'Skipping'},
+  ],
+};
+
 // ─── SmartLog store helpers ───────────────────────────────────────────────────
 function getSmartLoggedToday(): Set<string> {
   try {
@@ -173,6 +188,134 @@ function MiniHabitCard({ habit, isCompleted, streak, onComplete }: {
             </motion.div>
         }
       </div>
+    </motion.div>
+  );
+}
+
+function MealLoggingSection({ smartLoggedToday, onLogged, slotKey }: {
+  smartLoggedToday: Set<string>; onLogged: () => void; slotKey: HabitCategory;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const MEAL_BY_SLOT: Record<string, { id: string; icon: string; label: string; time: string; color: string } | null> = {
+    morning: { id: 'breakfast', icon: '🥣', label: 'Breakfast', time: '7–9 AM', color: '#34d399' },
+    midday:  { id: 'lunch',     icon: '🍱', label: 'Lunch',     time: '12–1 PM', color: '#f59e0b' },
+    evening: { id: 'dinner',    icon: '🌙', label: 'Dinner',    time: '6–8 PM',  color: '#a78bfa' },
+    night:   { id: 'dinner',    icon: '🌙', label: 'Dinner',    time: '6–8 PM',  color: '#a78bfa' },
+    sacred:  null,
+    anytime: null,
+  };
+  const meal = MEAL_BY_SLOT[slotKey] ?? null;
+  if (!meal) return null;
+
+  const isDone = smartLoggedToday.has(meal.id);
+  const subs = MEAL_SUBOPTIONS[meal.id] ?? [];
+  const color = meal.color;
+
+  const logMeal = () => {
+    try {
+      const raw = JSON.parse(localStorage.getItem('onesutra_smartlog_v2') ?? '{}');
+      const today = new Date().toISOString().split('T')[0];
+      const s = new Set<string>(raw[today] ?? []);
+      s.add(meal.id); raw[today] = [...s];
+      localStorage.setItem('onesutra_smartlog_v2', JSON.stringify(raw));
+    } catch { /* ignore */ }
+    saveToDailyLogStory(meal.id, meal.icon, meal.label, color);
+    window.dispatchEvent(new CustomEvent('daily-log-story-updated'));
+    setExpanded(false);
+    onLogged();
+  };
+
+  return (
+    <motion.div layout style={{
+      borderRadius: 18, marginBottom: '0.45rem', position: 'relative', overflow: 'hidden',
+      background: isDone
+        ? `linear-gradient(135deg, ${color}28 0%, rgba(0,0,0,0.55) 100%)`
+        : expanded
+          ? `linear-gradient(135deg, ${color}1e 0%, rgba(6,4,22,0.7) 100%)`
+          : `linear-gradient(135deg, ${color}16 0%, rgba(6,4,22,0.7) 100%)`,
+      border: `1.5px solid ${isDone ? color + '55' : expanded ? color + '48' : color + '32'}`,
+      boxShadow: isDone ? `0 6px 28px ${color}22` : `0 3px 18px ${color}12`,
+    }}>
+      {/* Left accent bar */}
+      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 5,
+        background: isDone ? `linear-gradient(180deg, ${color}, ${color}88)` : `linear-gradient(180deg, ${color}cc, ${color}44)`,
+        borderRadius: '18px 0 0 18px', boxShadow: isDone ? `2px 0 12px ${color}60` : `2px 0 8px ${color}30` }} />
+      {/* Main row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 0, paddingLeft: 5, cursor: isDone ? 'default' : 'pointer' }}
+        onClick={() => { if (!isDone) setExpanded(p => !p); }}>
+        {/* Icon badge */}
+        <div style={{ margin: '0.65rem 0.6rem 0.65rem 0.72rem', width: 42, height: 42, borderRadius: 14, flexShrink: 0,
+          background: `linear-gradient(135deg, ${color}28, ${color}10)`, border: `1.5px solid ${color}38`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', position: 'relative',
+          boxShadow: `0 4px 16px ${color}22` }}>
+          {meal.icon}
+          {isDone && (
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 500, damping: 18 }}
+              style={{ position: 'absolute', inset: 0, borderRadius: 14, background: `${color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <CheckCircle2 size={20} style={{ color }} />
+            </motion.div>
+          )}
+          {!isDone && (
+            <motion.div animate={{ scale: [1, 1.6, 1], opacity: [0.35, 0, 0.35] }} transition={{ duration: 2.8, repeat: Infinity }}
+              style={{ position: 'absolute', inset: -3, borderRadius: 17, border: `1.5px solid ${color}40`, pointerEvents: 'none' }} />
+          )}
+        </div>
+        {/* Name + tag */}
+        <div style={{ flex: 1, minWidth: 0, paddingRight: '0.3rem' }}>
+          <p style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, fontFamily: "'Outfit', sans-serif",
+            color: isDone ? color : 'rgba(255,255,255,0.92)',
+            textShadow: isDone ? `0 0 16px ${color}60` : 'none' }}>{meal.label}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.28rem', marginTop: 3 }}>
+            <span style={{ fontSize: '0.55rem', padding: '0.07rem 0.35rem', borderRadius: 99,
+              background: `linear-gradient(90deg, ${color}18, ${color}08)`, border: `1px solid ${color}30`, color,
+              fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>🍽 {meal.time}</span>
+            {!isDone && !expanded && <span style={{ fontSize: '0.52rem', color: 'rgba(255,255,255,0.28)', fontFamily: "'Outfit', sans-serif" }}>tap to log</span>}
+          </div>
+        </div>
+        {/* Right action */}
+        <div style={{ paddingRight: '0.65rem', flexShrink: 0 }}>
+          {isDone
+            ? <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 400 }}
+                style={{ fontSize: '0.55rem', padding: '0.18rem 0.5rem', borderRadius: 99,
+                  background: `linear-gradient(135deg, ${color}28, ${color}14)`,
+                  border: `1px solid ${color}45`, color, fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>✓ Done</motion.span>
+            : <motion.div whileTap={{ scale: 0.82 }}
+                style={{ width: 32, height: 32, borderRadius: '50%',
+                  background: `radial-gradient(circle, ${color}25, ${color}10)`,
+                  border: `2px solid ${expanded ? color + '90' : color + '50'}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: `0 0 12px ${color}30` }}>
+                <CheckCircle2 size={16} style={{ color: `${color}bb` }} />
+              </motion.div>
+          }
+        </div>
+      </div>
+      {/* Expandable sub-option pills */}
+      <AnimatePresence>
+        {expanded && !isDone && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }} style={{ overflow: 'hidden' }}>
+            <div style={{ padding: '0 0.75rem 0.65rem', display: 'flex', flexDirection: 'column', gap: '0.18rem' }}>
+              <p style={{ margin: '0 0 0.28rem', fontSize: '0.6rem', color, fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>
+                {meal.icon} What did you have? →
+              </p>
+              <div className="meal-pill-row" style={{ display: 'flex', gap: '0.26rem', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 2 }}>
+                <style>{`.meal-pill-row::-webkit-scrollbar{display:none}`}</style>
+                {subs.map(sub => (
+                  <motion.button key={sub.label} whileTap={{ scale: 0.88 }} onClick={logMeal}
+                    style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5,
+                      background: `radial-gradient(circle at 28% 28%, ${color}22, rgba(8,4,30,0.9))`,
+                      border: `1px solid ${color}50`, borderRadius: 999,
+                      padding: '0.32rem 0.75rem 0.32rem 0.5rem', cursor: 'pointer' }}>
+                    <span style={{ fontSize: '1rem' }}>{sub.icon}</span>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.82)', fontFamily: "'Outfit', sans-serif", whiteSpace: 'nowrap' }}>{sub.label}</span>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -405,6 +548,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
         <AnimatePresence mode="wait">
           {activeTab==='pending'&&(
             <motion.div key="pending" initial={{opacity:0,y:5}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-5}} transition={{duration:0.2}}>
+              <MealLoggingSection smartLoggedToday={smartLoggedToday} onLogged={() => setSmartLoggedToday(getSmartLoggedToday())} slotKey={slotCfg.slotKey} />
               {totalHabits===0?(
                 <motion.div whileTap={{scale:0.97}} onClick={goAddHabit}
                   style={{textAlign:'center',padding:'1.5rem 1rem',border:'1.5px dashed rgba(167,139,250,0.24)',borderRadius:18,cursor:'pointer',background:'rgba(167,139,250,0.04)'}}>
