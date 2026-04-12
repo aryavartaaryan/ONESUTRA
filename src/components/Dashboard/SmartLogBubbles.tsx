@@ -12,6 +12,7 @@ import {
   getISTTimeStr, getISODateIST, updateLateStreak,
 } from '@/lib/habitWindows';
 import { getMorningMood } from '@/components/MoodGarden/MorningMoodCards';
+import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 
 // ─── Read Ayurvedic context from localStorage ────────────────────────────────
 function getLocalContext(habitId: string): { prakriti: string; vikriti: string; habitStreak: number } {
@@ -559,6 +560,7 @@ function buildDynamicHabitBubbles(
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function SmartLogBubbles() {
+    const { user } = useOneSutraAuth();
     const [activeBubble, setActiveBubble] = useState<string | null>(null);
     const [loggedToday, setLoggedToday] = useState<Set<string>>(() => getLoggedToday());
     const [completedHabitIds, setCompletedHabitIds] = useState<Set<string>>(() => getCompletedHabitIds());
@@ -586,6 +588,33 @@ export default function SmartLogBubbles() {
             clearInterval(timer);
         };
     }, []);
+
+    // Firestore real-time listener — syncs today's logs across devices
+    useEffect(() => {
+        if (!user?.uid) return;
+        const uid = user.uid;
+        const today = getTodayStr();
+        let unsub: (() => void) | null = null;
+        (async () => {
+            try {
+                const { getFirebaseFirestore } = await import('@/lib/firebase');
+                const { doc, onSnapshot } = await import('firebase/firestore');
+                const db = await getFirebaseFirestore();
+                unsub = onSnapshot(doc(db, 'users', uid, 'daily_logs', today), (snap) => {
+                    if (!snap.exists()) return;
+                    const remoteIds = Object.keys(snap.data()?.habits ?? {});
+                    if (remoteIds.length === 0) return;
+                    setLoggedToday(prev => {
+                        const merged = new Set([...prev, ...remoteIds]);
+                        saveLoggedToday(merged);
+                        return merged;
+                    });
+                });
+            } catch { /* offline */ }
+        })();
+        return () => { unsub?.(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.uid]);
 
     // Dynamic habit bubbles
     const { timed: dynamicTimed, anytime: dynamicAnytime } = useMemo(
@@ -683,6 +712,23 @@ export default function SmartLogBubbles() {
         saveLoggedToday(updated);
         saveToDailyLogStory(bubble.id, bubble.icon, bubble.label, bubble.color);
         setActiveBubble(null);
+        // Firestore write for cross-device sync
+        if (user?.uid) {
+            const uid = user.uid;
+            const today = getTodayStr();
+            (async () => {
+                try {
+                    const { getFirebaseFirestore } = await import('@/lib/firebase');
+                    const { doc, setDoc } = await import('firebase/firestore');
+                    const db = await getFirebaseFirestore();
+                    await setDoc(
+                        doc(db, 'users', uid, 'daily_logs', today),
+                        { habits: { [bubble.id]: { label: bubble.label, icon: bubble.icon, color: bubble.color, loggedAt: Date.now() } } },
+                        { merge: true }
+                    );
+                } catch { /* offline */ }
+            })();
+        }
 
         const slot = getCurrentTimeSlot();
         const onTime = isOnTimeForSlot(bubble.id, slot);

@@ -466,13 +466,25 @@ export default function Home() {
   // ── Gate: show unified check-in once per day (blocks homepage until done) ─────
   useEffect(() => {
     if (!hasStarted) return;
-    // Fire immediately — no delay. User must complete/skip before seeing homepage.
-    if (shouldShowMorningCard() || shouldShowCheckIn()) {
+    // Quick local check — if already done today, skip immediately
+    if (!shouldShowMorningCard() && !shouldShowCheckIn()) return;
+    // If user is signed in, verify against Firestore so cross-device completes skip the gate
+    const cachedUid = (() => { try { return JSON.parse(localStorage.getItem('onesutra_auth_v1') ?? '{}')?.uid as string | undefined; } catch { return undefined; } })();
+    if (!cachedUid) { setShowDailyCheckIn(true); return; }
+    const today = new Date().toISOString().split('T')[0];
+    (async () => {
+      try {
+        const { getFirebaseFirestore } = await import('@/lib/firebase');
+        const { doc, getDoc } = await import('firebase/firestore');
+        const db = await getFirebaseFirestore();
+        const snap = await getDoc(doc(db, 'users', cachedUid, 'daily_checkins', today));
+        if (snap.exists() && snap.data()?.completed) return; // done on another device
+      } catch { /* offline — fall through to local */ }
       setShowDailyCheckIn(true);
-    }
+    })();
   }, [hasStarted]);
 
-  // ── Midnight reset: clear mood picker so it reappears next day ───────────────
+  // ── Midnight reset: clear daily state so everything reappears the next day ───
   useEffect(() => {
     const now = new Date();
     const midnight = new Date(now);
@@ -481,6 +493,10 @@ export default function Home() {
     const timer = setTimeout(() => {
       setShowMoodCheck(true);
       setEditingMood(false);
+      // Re-evaluate DailyCheckIn gate for the new day
+      if (shouldShowMorningCard() || shouldShowCheckIn()) {
+        setShowDailyCheckIn(true);
+      }
     }, midnight.getTime() - now.getTime());
     return () => clearTimeout(timer);
   }, []);
@@ -507,15 +523,28 @@ export default function Home() {
   );
 
   // ── Daily Check-in Gate — blocks homepage until complete/skipped ─────────────
+  const handleCheckInComplete = async () => {
+    const mood = getMorningMood();
+    if (mood?.moodValue) lifestyleEngine.logMood(mood.moodValue, 3, [], undefined);
+    // Write completion to Firestore so other devices skip the gate today
+    const uid = user?.uid;
+    if (uid) {
+      const today = new Date().toISOString().split('T')[0];
+      try {
+        const { getFirebaseFirestore } = await import('@/lib/firebase');
+        const { doc, setDoc } = await import('firebase/firestore');
+        const db = await getFirebaseFirestore();
+        await setDoc(doc(db, 'users', uid, 'daily_checkins', today), { completed: true, completedAt: Date.now(), date: today }, { merge: true });
+      } catch { /* offline */ }
+    }
+    setShowDailyCheckIn(false);
+  };
+
   if (showDailyCheckIn) return (
     <DailyCheckIn
       userName={userName ?? undefined}
       prakriti={doshaForTheme?.combo ?? doshaForTheme?.primary ?? ''}
-      onComplete={() => {
-        const mood = getMorningMood();
-        if (mood?.moodValue) lifestyleEngine.logMood(mood.moodValue, 3, [], undefined);
-        setShowDailyCheckIn(false);
-      }}
+      onComplete={handleCheckInComplete}
       onSkip={() => setShowDailyCheckIn(false)}
     />
   );
