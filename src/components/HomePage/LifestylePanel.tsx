@@ -679,6 +679,8 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
   const [rhythmNudge, setRhythmNudge] = useState<{ text: string; type: 'morning' | 'midday' | 'evening' } | null>(null);
   const [milestoneCelebration, setMilestoneCelebration] = useState<{ days: number; label: typeof MILESTONE_LABEL[number] } | null>(null);
   const rhythmNudgeSentRef = useRef<Set<string>>(new Set());
+  // todayDateKey forces full re-render at midnight so all "today" stats reset for the new day
+  const [todayDateKey, setTodayDateKey] = useState(() => new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
     const refresh = () => setSmartLogDoneIds(readSmartLogDoneHabitIds());
@@ -686,6 +688,21 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
     const timer = setInterval(refresh, 30_000);
     return () => { window.removeEventListener('focus', refresh); clearInterval(timer); };
   }, []);
+
+  // Midnight reset — re-compute all "today" stats when the date rolls over
+  useEffect(() => {
+    const now = new Date();
+    const midnight = new Date(now);
+    midnight.setDate(midnight.getDate() + 1);
+    midnight.setHours(0, 0, 1, 0); // 1 second past midnight to ensure date has changed
+    const ms = midnight.getTime() - now.getTime();
+    const timer = setTimeout(() => {
+      setTodayDateKey(new Date().toISOString().split('T')[0]);
+      setSmartLogDoneIds(readSmartLogDoneHabitIds());
+    }, ms);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [todayDateKey]); // re-arm every day
 
   // ── Rhythm Nudge useEffect: morning / midday / evening proactive nudges ────────────────────
   useEffect(() => {
@@ -764,7 +781,7 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
   const greetingWord = hour >= 3 && hour < 12 ? 'Good morning' : hour >= 12 && hour < 17 ? 'Good afternoon' : hour >= 17 && hour < 21 ? 'Good evening' : 'Good night';
   const smartGreeting = firstName ? `${greetingWord}, ${firstName}` : greetingWord;
   const greetingIconColor = hour >= 3 && hour < 7 ? '#fb923c' : hour >= 7 && hour < 17 ? '#fbbf24' : hour >= 17 && hour < 21 ? '#f97316' : '#818cf8';
-  const todayLabel = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
+  const todayLabel = new Date(todayDateKey).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
 
   const { completedIds, skippedIds } = engine.getTodayStatus();
   const effectiveCompletedIds = useMemo(
