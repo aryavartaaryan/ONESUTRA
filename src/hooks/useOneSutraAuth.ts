@@ -17,6 +17,25 @@ export interface OneSutraUser {
 
 const CACHE_KEY = 'onesutra_auth_v1';
 
+// All localStorage keys that belong to one user's session.
+// These MUST be wiped whenever a different account signs in.
+const USER_DATA_KEYS = [
+    'onesutra_lifestyle_v2',
+    'onesutra_smartlog_v2',
+    'onesutra_daily_checkin_v1',
+    'onesutra_morning_mood_v2',
+    'onesutra_checkin_skip_v1',
+    'daily_log_story',
+    'vedic_user_name',
+    'onesutra_dosha_v1',
+] as const;
+
+function clearUserData() {
+    USER_DATA_KEYS.forEach(key => {
+        try { localStorage.removeItem(key); } catch { /* ignore */ }
+    });
+}
+
 function readCachedUser(): OneSutraUser | null {
     try {
         const raw = localStorage.getItem(CACHE_KEY);
@@ -59,6 +78,11 @@ export function useOneSutraAuth() {
 
                 unsub = onAuthStateChanged(auth, async (firebaseUser: User | null) => {
                     if (firebaseUser) {
+                        const cachedUid = readCachedUser()?.uid;
+                        // Different account on same device — purge previous user's local data
+                        if (cachedUid && cachedUid !== firebaseUser.uid) {
+                            clearUserData();
+                        }
                         const profile: OneSutraUser = {
                             uid: firebaseUser.uid,
                             name: firebaseUser.displayName ?? 'Traveller',
@@ -82,6 +106,7 @@ export function useOneSutraAuth() {
                             }, { merge: true });
                         } catch { /* offline — ok */ }
                     } else {
+                        clearUserData();
                         writeCachedUser(null);
                         setUser(null);
                     }
@@ -107,6 +132,7 @@ export function useOneSutraAuth() {
 
     const signOut = async () => {
         try {
+            clearUserData();
             writeCachedUser(null);
             const { getFirebaseAuth } = await import('@/lib/firebase');
             const { signOut: fbSignOut } = await import('firebase/auth');

@@ -5,7 +5,7 @@
  * Bridges local Zustand store with Firebase for persistence + real-time sync.
  */
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import {
     useLifestyleStore,
     getToday,
@@ -46,6 +46,17 @@ const STREAK_MILESTONES = [3, 7, 14, 21, 30, 40, 48, 66, 100];
 export function useLifestyleEngine() {
     const { user } = useOneSutraAuth();
     const store = useLifestyleStore();
+    const prevUidRef = useRef<string | undefined>(undefined);
+
+    // ── Reset in-memory store when a different account logs in ────────────────
+    useEffect(() => {
+        const uid = user?.uid;
+        if (uid && prevUidRef.current && prevUidRef.current !== uid) {
+            store.resetAll();
+        }
+        prevUidRef.current = uid;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.uid]);
 
     // ── Sync profile to Firestore ──────────────────────────────────────────────
     const syncProfileToFirestore = useCallback(async (profile: LifestyleProfile) => {

@@ -197,6 +197,7 @@ interface LifestyleState {
     getTodayCompletionRate: () => number;
     getConsistencyScore: () => number;
     resetHabitData: () => void;
+    resetAll: () => void;
 }
 
 // ─── Storage ────────────────────────────────────────────────────────────────────
@@ -571,6 +572,28 @@ export const useLifestyleStore = create<LifestyleState>((set, get) => ({
         const today = getToday();
         return get().habitLogs.filter(l => l.date === today);
     },
+
+    resetAll: () => set(() => {
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem(STORAGE_KEY);
+        }
+        return {
+            profile: null,
+            habits: [],
+            habitLogs: [],
+            streaks: {},
+            moodLogs: [],
+            gunaLogs: [],
+            mantraSessions: [],
+            mantraStreaks: {},
+            breathingSessions: [],
+            meditationSessions: [],
+            journalEntries: [],
+            badges: [],
+            xp: { total: 0, level: 0, history: [] },
+            adhdMode: false,
+        };
+    }),
 
     resetHabitData: () => set((s) => {
         const n = {
