@@ -8,6 +8,31 @@ import { getTodayLogStory, saveToDailyLogStory, type DailyLogEntry } from '@/com
 import { bodhiSpeakLog } from '@/lib/bodhiVoice';
 import { useLifestyleEngine } from '@/hooks/useLifestyleEngine';
 import { getLevelFromXP, getNextLevel, getToday, type HabitItem, type HabitCategory } from '@/stores/lifestyleStore';
+import {
+  findHabitWindow,
+  getTimingStatus as getHabitWindowTimingStatus,
+  getISTTimeStr, getISODateIST, updateLateStreak,
+} from '@/lib/habitWindows';
+import { getMorningMood } from '@/components/MoodGarden/MorningMoodCards';
+
+function getLocalDoshaContext(habitId: string, currentStreak: number) {
+  try {
+    const dosha = JSON.parse(localStorage.getItem('onesutra_dosha_v1') ?? '{}');
+    const prakriti: string =
+      dosha?.prakritiAssessment?.prakriti?.combo ??
+      dosha?.prakritiAssessment?.prakriti?.primary ?? '';
+    const vikriti: string = dosha?.vikritiiAssessment?.vikriti?.primary ?? '';
+    return { prakriti, vikriti, habitStreak: currentStreak };
+  } catch { return { prakriti: '', vikriti: '', habitStreak: currentStreak }; }
+}
+
+function getLocalUserNameSAD(): string {
+  try {
+    const auth = JSON.parse(localStorage.getItem('onesutra_auth_v1') ?? '{}');
+    if (auth?.name && auth.name !== 'Traveller') return auth.name.split(' ')[0];
+  } catch { /* */ }
+  return (typeof localStorage !== 'undefined' ? localStorage.getItem('vedic_user_name') : null) ?? 'friend';
+}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const LIFE_AREA_COLORS: Record<string, string> = {
@@ -371,16 +396,42 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
     setCelebrateId(id);
     setTimeout(() => setCelebrateId(null), 1800);
     if (!habit) return;
-    const siteLang = (typeof localStorage !== 'undefined' ? localStorage.getItem('site-lang') : null) ?? 'hi';
     try {
-      const res = await fetch('/api/bodhi/habit-voice-feedback', {
+      const loggedAtMs = Date.now();
+      const logTime = getISTTimeStr(loggedAtMs);
+      const todayISO = getISODateIST(loggedAtMs);
+      const win = findHabitWindow(habit.id) ?? findHabitWindow(habit.name);
+      const timingStatus = win ? getHabitWindowTimingStatus(win, loggedAtMs) : 'ideal';
+      const lateStreak = win ? updateLateStreak(habit.id, timingStatus, todayISO) : 0;
+      const morningMood = getMorningMood();
+      const currentStreak = engine.streaks[habit.id]?.currentStreak ?? 0;
+      const { prakriti, vikriti } = getLocalDoshaContext(habit.id, currentStreak);
+
+      const res = await fetch('/api/bodhi/habit-log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ habitName: habit.name, habitIcon: habit.icon, habitCategory: habit.category, habitLifeArea: habit.lifeArea, completedCount: 1, totalHabits: engine.activeHabits.length, currentTimeOfDay: habit.category, isFirstHabitToday: false, language: siteLang }),
+        body: JSON.stringify({
+          user_name: getLocalUserNameSAD(),
+          prakriti,
+          vikruti: vikriti,
+          mood: morningMood?.mood ?? '',
+          habit_name: habit.name,
+          log_time: logTime,
+          ideal_start: win?.idealStart ?? '',
+          ideal_end: win?.idealEnd ?? '',
+          timing_status: timingStatus,
+          late_streak: lateStreak,
+          habit_streak: currentStreak,
+          dosha_effect: win?.doshaEffect ?? '',
+          habit_benefit: win?.benefit ?? habit.description ?? '',
+          duration_minutes: habit.targetValue ?? 0,
+          time_section: win?.timeSection ?? (habit.category ?? 'flexible'),
+        }),
       });
       if (res.ok) {
-        const { voiceMessage } = await res.json();
-        if (voiceMessage?.length > 10) {
+        const data = await res.json();
+        const voiceMessage: string = data.response ?? '';
+        if (voiceMessage.length > 10) {
           try { sessionStorage.setItem('bodhi_pending_inject', habit.name); } catch { /* ignore */ }
           const { speakBodhiRaw } = await import('@/lib/bodhiVoice');
           speakBodhiRaw(voiceMessage);

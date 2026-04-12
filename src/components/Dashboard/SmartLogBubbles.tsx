@@ -6,6 +6,34 @@ import { Flame, Sunrise, Sun, Sunset, Moon, Sparkles } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { bodhiSpeakLog, bodhiSpeakAllDone } from '@/lib/bodhiVoice';
 import type { TimeSlot } from '@/lib/bodhiVoice';
+import {
+  findHabitWindow,
+  getTimingStatus as getHabitWindowTimingStatus,
+  getISTTimeStr, getISODateIST, updateLateStreak,
+} from '@/lib/habitWindows';
+import { getMorningMood } from '@/components/MoodGarden/MorningMoodCards';
+
+// ─── Read Ayurvedic context from localStorage ────────────────────────────────
+function getLocalContext(habitId: string): { prakriti: string; vikriti: string; habitStreak: number } {
+  try {
+    const dosha = JSON.parse(localStorage.getItem('onesutra_dosha_v1') ?? '{}');
+    const prakriti: string =
+      dosha?.prakritiAssessment?.prakriti?.combo ??
+      dosha?.prakritiAssessment?.prakriti?.primary ?? '';
+    const vikriti: string = dosha?.vikritiiAssessment?.vikriti?.primary ?? '';
+    const lifestyle = JSON.parse(localStorage.getItem('onesutra_lifestyle_v2') ?? '{}');
+    const habitStreak: number = lifestyle?.streaks?.[habitId]?.currentStreak ?? 0;
+    return { prakriti, vikriti, habitStreak };
+  } catch { return { prakriti: '', vikriti: '', habitStreak: 0 }; }
+}
+
+function getLocalUserName(): string {
+  try {
+    const auth = JSON.parse(localStorage.getItem('onesutra_auth_v1') ?? '{}');
+    if (auth?.name && auth.name !== 'Traveller') return auth.name.split(' ')[0];
+  } catch { /* */ }
+  return (typeof localStorage !== 'undefined' ? localStorage.getItem('vedic_user_name') : null) ?? 'friend';
+}
 
 // ─── Order Enforcement ────────────────────────────────────────────────────────
 const MORNING_ORDER = ['wake', 'warm_water', 'tongue_scrape', 'breathwork', 'bath', 'morning_light', 'breakfast'];
@@ -659,28 +687,42 @@ export default function SmartLogBubbles() {
         const slot = getCurrentTimeSlot();
         const onTime = isOnTimeForSlot(bubble.id, slot);
 
-        // Try to get the full 4-part AI-generated message from habit-voice-feedback
-        const siteLang = (typeof localStorage !== 'undefined' ? localStorage.getItem('site-lang') : null) ?? 'hi';
+        // ── Bodhi contextual habit-log response (new Master Prompt) ──────────
         try {
-            const res = await fetch('/api/bodhi/habit-voice-feedback', {
+            const loggedAtMs = Date.now();
+            const logTime = getISTTimeStr(loggedAtMs);
+            const todayISO = getISODateIST(loggedAtMs);
+            const win = findHabitWindow(bubble.id) ?? findHabitWindow(bubble.label);
+            const timingStatus = win ? getHabitWindowTimingStatus(win, loggedAtMs) : 'ideal';
+            const lateStreak = win ? updateLateStreak(bubble.id, timingStatus, todayISO) : 0;
+            const morningMood = getMorningMood();
+            const { prakriti, vikriti, habitStreak } = getLocalContext(bubble.id);
+
+            const res = await fetch('/api/bodhi/habit-log', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    habitName: bubble.label,
-                    habitIcon: bubble.icon,
-                    habitCategory: bubble.isDynamic ? 'anytime' : slot,
-                    habitLifeArea: 'physical',
-                    completedCount: loggedToday.size + 1,
-                    totalHabits: Math.max(timedBubbles.length + anytimeBubbles.length, 1),
-                    currentTimeOfDay: slot,
-                    isFirstHabitToday: loggedToday.size === 0,
-                    language: siteLang,
+                    user_name: getLocalUserName(),
+                    prakriti,
+                    vikruti: vikriti,
+                    mood: morningMood?.mood ?? '',
+                    habit_name: bubble.label,
+                    log_time: logTime,
+                    ideal_start: win?.idealStart ?? '',
+                    ideal_end: win?.idealEnd ?? '',
+                    timing_status: timingStatus,
+                    late_streak: lateStreak,
+                    habit_streak: habitStreak,
+                    dosha_effect: win?.doshaEffect ?? '',
+                    habit_benefit: win?.benefit ?? '',
+                    duration_minutes: 0,
+                    time_section: win?.timeSection ?? (bubble.isDynamic ? 'flexible' : slot),
                 }),
             });
             if (res.ok) {
-                const { voiceMessage } = await res.json();
-                if (voiceMessage && voiceMessage.length > 10) {
-                    // Speak using Gemini Live with the AI-generated rich message
+                const data = await res.json();
+                const voiceMessage: string = data.response ?? '';
+                if (voiceMessage.length > 10) {
                     try { sessionStorage.setItem('bodhi_pending_inject', bubble.label); } catch { /* ignore */ }
                     const { speakBodhiRaw } = await import('@/lib/bodhiVoice');
                     speakBodhiRaw(voiceMessage);

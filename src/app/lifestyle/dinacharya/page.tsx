@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import {
   CheckCircle2, Circle, ChevronDown, ChevronRight, Sparkles,
-  ArrowLeft, RefreshCw, Info, Sun, Moon, Wind, Flame, Leaf,
+  ArrowLeft, RefreshCw, Info, Sun, Moon, Wind, Flame, Leaf, X,
 } from 'lucide-react';
 import { useDoshaEngine } from '@/hooks/useDoshaEngine';
 import {
@@ -13,6 +13,12 @@ import {
   type Dosha, type DoshaPhase, type RitucharayaSeason,
 } from '@/lib/doshaService';
 import { useDoshaStore } from '@/stores/doshaStore';
+import {
+  findHabitWindow, getTimingStatus, getISTTimeStr, getISODateIST,
+  updateLateStreak,
+  type TimingStatus,
+} from '@/lib/habitWindows';
+import { getMorningMood } from '@/components/MoodGarden/MorningMoodCards';
 
 // ─── Dinacharya Ritual Types ──────────────────────────────────────────────────
 
@@ -453,6 +459,72 @@ const PHASE_ORDER: DoshaPhase[] = [
   'brahma-muhurta', 'kapha-morning', 'pitta-midday', 'vata-afternoon', 'kapha-evening', 'pitta-night',
 ];
 
+// ─── Ritual streak helper ─────────────────────────────────────────────────────
+
+function computeRitualStreak(ritualId: string, log: Record<string, Record<string, boolean>>): number {
+  const today = new Date().toISOString().split('T')[0];
+  let streak = 0;
+  let date = new Date(today);
+  for (let i = 0; i < 90; i++) {
+    const key = date.toISOString().split('T')[0];
+    if (log[key]?.[ritualId]) {
+      streak++;
+      date.setDate(date.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+// ─── Bodhi Habit Toast ─────────────────────────────────────────────────────────
+
+function BodhiHabitToast({ message, onClose }: { message: string; onClose: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onClose, 7000);
+    return () => clearTimeout(t);
+  }, [onClose]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 64, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 64, scale: 0.96 }}
+      transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+      style={{
+        position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+        zIndex: 9990, width: 'calc(100% - 2.4rem)', maxWidth: 420,
+        padding: '0.95rem 1.1rem',
+        borderRadius: 20,
+        background: 'linear-gradient(135deg, rgba(16,12,38,0.98), rgba(10,8,28,0.98))',
+        border: '1px solid rgba(167,139,250,0.28)',
+        boxShadow: '0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(167,139,250,0.08)',
+        backdropFilter: 'blur(20px)',
+        fontFamily: "'Outfit', sans-serif",
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.7rem' }}>
+        <div style={{
+          width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+          background: 'linear-gradient(135deg, rgba(167,139,250,0.25), rgba(251,146,60,0.15))',
+          border: '1px solid rgba(167,139,250,0.35)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '0.9rem',
+        }}>🌿</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ margin: '0 0 0.15rem', fontSize: '0.6rem', fontWeight: 700, color: 'rgba(167,139,250,0.7)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Bodhi</p>
+          <p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(255,255,255,0.88)', lineHeight: 1.55, fontStyle: 'italic' }}>
+            {message}
+          </p>
+        </div>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.25)', padding: '2px', flexShrink: 0 }}>
+          <X size={14} />
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
 // ─── Local Storage for daily check-offs ───────────────────────────────────────
 
 const DINACHARYA_LOG_KEY = 'onesutra_dinacharya_log_v1';
@@ -761,32 +833,76 @@ function SeasonalBanner({ season }: { season: RitucharayaSeason }) {
 
 export default function DinacharyaPage() {
   const router = useRouter();
-  const { prakriti, currentPhase, currentSeason, doshaOnboardingComplete } = useDoshaEngine();
+  const { prakriti, vikriti, currentPhase, currentSeason, doshaOnboardingComplete } = useDoshaEngine();
   const store = useDoshaStore();
 
   const [completedIds, setCompletedIds] = useState<Record<string, boolean>>({});
+  const [bodhiToast, setBodhiToast] = useState<string | null>(null);
+  const [allLogs, setAllLogs] = useState<Record<string, Record<string, boolean>>>({});
   const today = getTodayKey();
 
   // Load today's log from localStorage
   useEffect(() => {
     const log = getDinacharyaLog();
+    setAllLogs(log);
     setCompletedIds(log[today] ?? {});
   }, [today]);
 
   const toggleRitual = useCallback((id: string) => {
     setCompletedIds(prev => {
-      const updated = { ...prev, [id]: !prev[id] };
-      const allLogs = getDinacharyaLog();
-      allLogs[today] = updated;
-      saveDinacharyaLog(allLogs);
+      const nowCompleted = !prev[id];
+      const updated = { ...prev, [id]: nowCompleted };
+      const freshLogs = getDinacharyaLog();
+      freshLogs[today] = updated;
+      saveDinacharyaLog(freshLogs);
+      setAllLogs({ ...freshLogs });
 
-      // Update dosha store with today's log state
       const completedCount = Object.values(updated).filter(Boolean).length;
       store.updateDailyLog(today, { mealTiming: completedCount > 5 ? 80 : 50 });
 
+      // ── Bodhi contextual response on mark-complete (not uncheck) ──
+      if (nowCompleted) {
+        const ritual = ALL_RITUALS.find(r => r.id === id);
+        if (ritual) {
+          const loggedAtMs = Date.now();
+          const logTime = getISTTimeStr(loggedAtMs);
+          const todayISO = getISODateIST(loggedAtMs);
+          const win = findHabitWindow(id) ?? findHabitWindow(ritual.name);
+          const timingStatus: TimingStatus = win ? getTimingStatus(win, loggedAtMs) : 'ideal';
+          const lateStreak = win ? updateLateStreak(id, timingStatus, todayISO) : 0;
+          const habitStreak = computeRitualStreak(id, freshLogs);
+          const morningMood = getMorningMood();
+
+          fetch('/api/bodhi/habit-log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_name: 'friend',
+              prakriti: prakriti?.combo ?? prakriti?.primary ?? '',
+              vikruti: vikriti?.primary ?? '',
+              mood: morningMood?.mood ?? '',
+              habit_name: ritual.name,
+              log_time: logTime,
+              ideal_start: win?.idealStart ?? '',
+              ideal_end: win?.idealEnd ?? '',
+              timing_status: timingStatus,
+              late_streak: lateStreak,
+              habit_streak: habitStreak,
+              dosha_effect: win?.doshaEffect ?? '',
+              habit_benefit: win?.benefit ?? ritual.description,
+              duration_minutes: ritual.durationMin,
+              time_section: win?.timeSection ?? 'morning',
+            }),
+          })
+            .then(r => r.json())
+            .then(d => { if (d.response) setBodhiToast(d.response); })
+            .catch(() => { /* silent */ });
+        }
+      }
+
       return updated;
     });
-  }, [today, store]);
+  }, [today, store, prakriti, vikriti]);
 
   const completedSet = useMemo(() => new Set(Object.keys(completedIds).filter(k => completedIds[k])), [completedIds]);
 
@@ -899,6 +1015,16 @@ export default function DinacharyaPage() {
           </button>
         </div>
       </div>
+
+      {/* Bodhi habit-log toast */}
+      <AnimatePresence>
+        {bodhiToast && (
+          <BodhiHabitToast
+            message={bodhiToast}
+            onClose={() => setBodhiToast(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

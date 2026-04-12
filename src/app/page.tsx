@@ -42,6 +42,9 @@ import { useBrahmastraState } from '@/hooks/useBrahmastraState';
 import { useRouter } from 'next/navigation';
 import { useDoshaEngine } from '@/hooks/useDoshaEngine';
 import { useLanguage } from '@/context/LanguageContext';
+import { shouldShowMorningCard, getMorningMood } from '@/components/MoodGarden/MorningMoodCards';
+import DailyCheckIn from '@/components/DailyCheckIn/DailyCheckIn';
+import { shouldShowCheckIn } from '@/lib/healthCheckIn';
 import homeStyles from './vedic-home.module.css';
 import dashStyles from './dashboard.module.css';
 import styles from './page.module.css';
@@ -294,6 +297,7 @@ export default function Home() {
   const [showBreakNotice, setShowBreakNotice] = useState(false);
   const [isPortalOpen, setIsPortalOpen] = useState(false);
   const [isStoryOpen, setIsStoryOpen] = useState(false);
+  const [showDailyCheckIn, setShowDailyCheckIn] = useState(false);
 
   const brahmastraState = useBrahmastraState(userId);
   const { prakriti: doshaForTheme, currentPhase: doshaCurrentPhase, inBrahmaMuhurta } = useDoshaEngine();
@@ -459,6 +463,15 @@ export default function Home() {
     });
   }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Gate: show unified check-in once per day (blocks homepage until done) ─────
+  useEffect(() => {
+    if (!hasStarted) return;
+    // Fire immediately — no delay. User must complete/skip before seeing homepage.
+    if (shouldShowMorningCard() || shouldShowCheckIn()) {
+      setShowDailyCheckIn(true);
+    }
+  }, [hasStarted]);
+
   // ── Midnight reset: clear mood picker so it reappears next day ───────────────
   useEffect(() => {
     const now = new Date();
@@ -484,6 +497,7 @@ export default function Home() {
   const SAP_DOSHA_COLORS: Record<string, string> = { vata: '#a78bfa', pitta: '#fb923c', kapha: '#4ade80' };
   const doshaColor = doshaForTheme ? (SAP_DOSHA_COLORS[doshaForTheme.primary] ?? '#a78bfa') : '#a78bfa';
 
+
   // ── Conscious OS Gateway ─────────────────────────────────────────────────────
   if (!hasStarted) return (
     <ConsciousGateway
@@ -492,9 +506,24 @@ export default function Home() {
     />
   );
 
+  // ── Daily Check-in Gate — blocks homepage until complete/skipped ─────────────
+  if (showDailyCheckIn) return (
+    <DailyCheckIn
+      userName={userName ?? undefined}
+      prakriti={doshaForTheme?.combo ?? doshaForTheme?.primary ?? ''}
+      onComplete={() => {
+        const mood = getMorningMood();
+        if (mood?.moodValue) lifestyleEngine.logMood(mood.moodValue, 3, [], undefined);
+        setShowDailyCheckIn(false);
+      }}
+      onSkip={() => setShowDailyCheckIn(false)}
+    />
+  );
+
   // ── Grounding Pad Dashboard ──────────────────────────────────────────────
   return (
     <>
+
       {/* 3-second cinematic entrance overlay — shown only once per user per day */}
       <EphemeralGreeting displayName={displayName} userId={userId} />
 

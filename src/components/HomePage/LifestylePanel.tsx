@@ -14,6 +14,10 @@ import { useLifestyleEngine } from '@/hooks/useLifestyleEngine';
 import { useDoshaEngine } from '@/hooks/useDoshaEngine';
 import { DOSHA_INFO } from '@/lib/doshaService';
 import { getLevelFromXP, getNextLevel, getToday, type HabitItem } from '@/stores/lifestyleStore';
+import {
+  findHabitWindow, getTimingStatus, getISTTimeStr, getISODateIST, updateLateStreak,
+} from '@/lib/habitWindows';
+import { getMorningMood } from '@/components/MoodGarden/MorningMoodCards';
 import { useBodhiChatStore } from '@/stores/bodhiChatStore';
 import { useDailyTasks } from '@/hooks/useDailyTasks';
 import { useLanguage } from '@/context/LanguageContext';
@@ -831,54 +835,51 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
     setBodhiSpeaking(true);
     setBodhiVoiceBubble({ text: '...', isOptimalTime: true, habitName: habit.name, habitIcon: habit.icon });
 
-    // Compute enriched OneSutra context
-    const streakDays = Math.max(...Object.values(engine.streaks).map(s => s.currentStreak ?? 0), 0);
-    const streakTier = getStreakTier(streakDays);
-    const totalHabits = engine.activeHabits.length;
-    const disciplineScoreToday = totalHabits > 0 ? Math.round((completedSoFar / totalHabits) * 100) : 0;
+    // Compute enriched context
+    const streakDays = engine.streaks[habit.id]?.currentStreak ?? 0;
+    const allStreakDays = Math.max(...Object.values(engine.streaks).map(s => s.currentStreak ?? 0), 0);
     const isFirstHabitToday = completedSoFar === 1;
-    const h2 = new Date().getHours();
-    const currentTimeOfDay = h2 >= 2 && h2 < 6 ? 'pre-dawn'
-      : h2 >= 6 && h2 < 10 ? 'morning'
-        : h2 >= 10 && h2 < 14 ? 'midday'
-          : h2 >= 14 && h2 < 18 ? 'afternoon'
-            : h2 >= 18 && h2 < 22 ? 'evening' : 'night';
-
-    // Derive dosha imbalance label from vikriti
-    const doshaImbalanceLabel = vikriti?.primary && vikriti.imbalanceLevel !== 'balanced'
-      ? `${vikriti.primary.charAt(0).toUpperCase()}${vikriti.primary.slice(1)} ${vikriti.imbalanceLevel}`
-      : undefined;
 
     // Check for streak milestone
-    if (MILESTONE_DAYS.includes(streakDays) && isFirstHabitToday) {
-      const ml = MILESTONE_LABEL[streakDays];
-      if (ml) setMilestoneCelebration({ days: streakDays, label: ml });
+    if (MILESTONE_DAYS.includes(allStreakDays) && isFirstHabitToday) {
+      const ml = MILESTONE_LABEL[allStreakDays];
+      if (ml) setMilestoneCelebration({ days: allStreakDays, label: ml });
     }
 
+    // Timing context from habitWindows
+    const loggedAtMs = Date.now();
+    const logTime = getISTTimeStr(loggedAtMs);
+    const todayISO = getISODateIST(loggedAtMs);
+    const win = findHabitWindow(habit.id) ?? findHabitWindow(habit.name);
+    const timingStatus = win ? getTimingStatus(win, loggedAtMs) : 'ideal';
+    const lateStreak = win ? updateLateStreak(habit.id, timingStatus, todayISO) : 0;
+    const morningMood = getMorningMood();
+
     try {
-      const res = await fetch('/api/bodhi/habit-voice-feedback', {
+      const res = await fetch('/api/bodhi/habit-log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          habitName: habit.name,
-          habitIcon: habit.icon,
-          habitCategory: habit.category ?? 'anytime',
-          habitLifeArea: habit.lifeArea,
-          prakriti: prakriti?.primary ?? 'unknown',
-          currentDoshaImbalance: doshaImbalanceLabel,
-          nextHabitName: nextHabit?.name ?? null,
-          nextHabitIcon: nextHabit?.icon ?? null,
-          completedCount: completedSoFar,
-          totalHabits,
-          streakDays,
-          streakTier,
-          disciplineScoreToday,
-          isFirstHabitToday,
-          currentTimeOfDay,
-          language: lang,
+          user_name: profileName || 'friend',
+          prakriti: prakriti?.combo ?? prakriti?.primary ?? '',
+          vikruti: vikriti?.primary ?? '',
+          mood: morningMood?.mood ?? '',
+          habit_name: habit.name,
+          log_time: logTime,
+          ideal_start: win?.idealStart ?? '',
+          ideal_end: win?.idealEnd ?? '',
+          timing_status: timingStatus,
+          late_streak: lateStreak,
+          habit_streak: streakDays,
+          dosha_effect: win?.doshaEffect ?? '',
+          habit_benefit: win?.benefit ?? habit.description ?? '',
+          duration_minutes: habit.targetValue ?? 0,
+          time_section: win?.timeSection ?? (habit.category ?? 'flexible'),
         }),
       });
-      const { voiceMessage, isOptimalTime } = await res.json();
+      const data = await res.json();
+      const voiceMessage: string = data.response ?? data.voiceMessage ?? '';
+      const isOptimalTime = timingStatus === 'ideal' || timingStatus === 'acceptable';
       setBodhiVoiceBubble({ text: voiceMessage, isOptimalTime, habitName: habit.name, habitIcon: habit.icon });
       // TTS playback
       try {

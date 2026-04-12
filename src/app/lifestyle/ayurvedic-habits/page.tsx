@@ -13,6 +13,12 @@ import { DOSHA_INFO, type Dosha } from '@/lib/doshaService';
 import DoshaBalanceMeter from '@/components/Dashboard/DoshaBalanceMeter';
 import type { HabitItem, LifeArea, HabitCategory, TrackingType } from '@/stores/lifestyleStore';
 import { useLifestyleStore } from '@/stores/lifestyleStore';
+import {
+  findHabitWindow, getTimingStatus, getISTTimeStr, getISODateIST,
+  updateLateStreak,
+  type TimingStatus,
+} from '@/lib/habitWindows';
+import { getMorningMood } from '@/components/MoodGarden/MorningMoodCards';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -309,6 +315,44 @@ function CustomHabitSheet({ onClose, onSave }: { onClose: () => void; onSave: (h
   );
 }
 
+// ─── Bodhi Habit Toast ────────────────────────────────────────────────────────
+
+function BodhiHabitToast({ message, onClose }: { message: string; onClose: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onClose, 7000);
+    return () => clearTimeout(t);
+  }, [onClose]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 64, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 64, scale: 0.96 }}
+      transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+      style={{
+        position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+        zIndex: 9990, width: 'calc(100% - 2.4rem)', maxWidth: 420,
+        padding: '0.95rem 1.1rem', borderRadius: 20,
+        background: 'linear-gradient(135deg, rgba(16,12,38,0.98), rgba(10,8,28,0.98))',
+        border: '1px solid rgba(167,139,250,0.28)',
+        boxShadow: '0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(167,139,250,0.08)',
+        backdropFilter: 'blur(20px)', fontFamily: "'Outfit', sans-serif",
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.7rem' }}>
+        <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, background: 'linear-gradient(135deg, rgba(167,139,250,0.25), rgba(251,146,60,0.15))', border: '1px solid rgba(167,139,250,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem' }}>🌿</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ margin: '0 0 0.15rem', fontSize: '0.6rem', fontWeight: 700, color: 'rgba(167,139,250,0.7)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Bodhi</p>
+          <p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(255,255,255,0.88)', lineHeight: 1.55, fontStyle: 'italic' }}>{message}</p>
+        </div>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.25)', padding: '2px', flexShrink: 0 }}>
+          <X size={14} />
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
 // ─── Category tabs ─────────────────────────────────────────────────────────────
 
 const CATEGORY_TABS = [
@@ -323,7 +367,7 @@ const CATEGORY_TABS = [
 
 export default function AyurvedicHabitsPage() {
   const router = useRouter();
-  const { prakriti, doshaOnboardingComplete } = useDoshaEngine();
+  const { prakriti, vikriti, doshaOnboardingComplete } = useDoshaEngine();
   const engine = useLifestyleEngine();
   const store = useLifestyleStore();
 
@@ -338,6 +382,7 @@ export default function AyurvedicHabitsPage() {
   const [search, setSearch] = useState('');
   const [showCustomSheet, setShowCustomSheet] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [bodhiToast, setBodhiToast] = useState<string | null>(null);
 
   useEffect(() => { setLogs(loadHabitLogs()); }, []);
 
@@ -348,17 +393,73 @@ export default function AyurvedicHabitsPage() {
   const toggleHabit = useCallback((habitId: string) => {
     setLogs(prev => {
       const existing = prev.find(l => l.date === today);
+      const wasCompleted = existing?.completedIds.includes(habitId) ?? false;
+      const nowCompleted = !wasCompleted;
       let updated: HabitLogEntry[];
       if (existing) {
-        const wasCompleted = existing.completedIds.includes(habitId);
         updated = prev.map(l => l.date === today ? { ...l, completedIds: wasCompleted ? l.completedIds.filter(id => id !== habitId) : [...l.completedIds, habitId] } : l);
       } else {
         updated = [{ date: today, completedIds: [habitId] }, ...prev];
       }
       saveHabitLogs(updated);
+
+      // ── Bodhi contextual response on mark-complete (not uncheck) ──
+      if (nowCompleted) {
+        const habit = AYURVEDIC_HABITS.find(h => h.id === habitId);
+        if (habit) {
+          const loggedAtMs = Date.now();
+          const logTime = getISTTimeStr(loggedAtMs);
+          const todayISO = getISODateIST(loggedAtMs);
+          const win = findHabitWindow(habitId) ?? findHabitWindow(habit.name);
+          const timingStatus: TimingStatus = win ? getTimingStatus(win, loggedAtMs) : 'ideal';
+          const lateStreak = win ? updateLateStreak(habitId, timingStatus, todayISO) : 0;
+          // Compute streak from logs
+          const habitStreak = (() => {
+            let s = 0;
+            const d = new Date(todayISO);
+            for (let i = 0; i < 90; i++) {
+              const k = d.toISOString().split('T')[0];
+              const dayLog = updated.find(l => l.date === k);
+              if (dayLog?.completedIds.includes(habitId)) { s++; d.setDate(d.getDate() - 1); }
+              else break;
+            }
+            return s;
+          })();
+          const morningMood = getMorningMood();
+          const doshaEffectStr = (['vata', 'pitta', 'kapha'] as const)
+            .map(d => `${d.charAt(0).toUpperCase() + d.slice(1)} ${habit.doshaEffect[d] < 0 ? '↓' : habit.doshaEffect[d] > 0 ? '↑' : '●'}`)
+            .join(', ');
+
+          fetch('/api/bodhi/habit-log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_name: 'friend',
+              prakriti: prakriti?.combo ?? prakriti?.primary ?? '',
+              vikruti: vikriti?.primary ?? '',
+              mood: morningMood?.mood ?? '',
+              habit_name: habit.name,
+              log_time: logTime,
+              ideal_start: win?.idealStart ?? '',
+              ideal_end: win?.idealEnd ?? '',
+              timing_status: timingStatus,
+              late_streak: lateStreak,
+              habit_streak: habitStreak,
+              dosha_effect: win?.doshaEffect ?? doshaEffectStr,
+              habit_benefit: win?.benefit ?? habit.description,
+              duration_minutes: habit.targetMin,
+              time_section: win?.timeSection ?? habit.category,
+            }),
+          })
+            .then(r => r.json())
+            .then(d => { if (d.response) setBodhiToast(d.response); })
+            .catch(() => { /* silent */ });
+        }
+      }
+
       return updated;
     });
-  }, [today]);
+  }, [today, prakriti, vikriti]);
 
   const streaks = useMemo(() => {
     const result: Record<string, number> = {};
@@ -585,14 +686,24 @@ export default function AyurvedicHabitsPage() {
         {showCustomSheet && <CustomHabitSheet onClose={() => setShowCustomSheet(false)} onSave={saveCustomHabit} />}
       </AnimatePresence>
 
-      {/* Floating toast */}
+      {/* Floating action toast (add to routine, etc.) */}
       <AnimatePresence>
         {toast && (
           <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}
-            style={{ position: 'fixed', bottom: 28, left: '50%', transform: 'translateX(-50%)', zIndex: 9999,
+            style={{ position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)', zIndex: 9999,
               padding: '0.65rem 1.2rem', borderRadius: 99, background: 'rgba(16,185,129,0.92)', border: '1px solid rgba(16,185,129,0.4)', boxShadow: '0 4px 16px rgba(16,185,129,0.25)' }}>
             <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#fff', fontFamily: "'Outfit', sans-serif" }}>{toast}</span>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Bodhi habit-log toast */}
+      <AnimatePresence>
+        {bodhiToast && (
+          <BodhiHabitToast
+            message={bodhiToast}
+            onClose={() => setBodhiToast(null)}
+          />
         )}
       </AnimatePresence>
     </div>
