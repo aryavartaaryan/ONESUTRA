@@ -21,6 +21,9 @@ import {
     type LifestyleProfile,
 } from '@/stores/lifestyleStore';
 import { useOneSutraAuth } from './useOneSutraAuth';
+import { setAyurHabitCompleted, H_ID_TO_AYUR, AYURVEDIC_HABITS } from '@/lib/ayurvedicHabitsData';
+
+const _AYUR_IDS = new Set(AYURVEDIC_HABITS.map(h => h.id));
 
 // ─── Standalone habit-log writer (no hook needed) ──────────────────────────────────
 // Writes to habit_logs Firestore (single source of truth) + updates local
@@ -138,12 +141,27 @@ export function useLifestyleEngine() {
                     // Use getState() to always read CURRENT store — not a stale closure snapshot
                     const { habitLogs, logHabit } = useLifestyleStore.getState();
                     const localIds = new Set(habitLogs.filter(l => l.date === today).map(l => l.habitId));
+                    let anyNew = false;
                     snap.forEach(docSnap => {
                         const log = docSnap.data() as HabitLog;
                         if (log?.habitId && !localIds.has(log.habitId)) {
                             logHabit(log);
+                            anyNew = true;
+                            // Also write to ayur localStorage so SmartAnalyticsDashboard
+                            // and SmartLogBubbles see it without waiting for Zustand re-render.
+                            // This is the key for cross-device sync on the receiving device.
+                            const ayurId = H_ID_TO_AYUR[log.habitId]
+                                ?? (_AYUR_IDS.has(log.habitId) ? log.habitId : null);
+                            if (ayurId) {
+                                try { setAyurHabitCompleted(ayurId); } catch { /* ignore */ }
+                            }
                         }
                     });
+                    // Notify all components (SmartAnalyticsDashboard, SmartLogBubbles)
+                    // so their event-based refresh functions re-read from localStorage.
+                    if (anyNew) {
+                        try { window.dispatchEvent(new CustomEvent('habit-logged')); } catch { /* ignore */ }
+                    }
                 });
             } catch { /* offline */ }
         })();
