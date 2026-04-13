@@ -10,7 +10,8 @@ import {
   ChevronDown, Target, Layers, X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { useLifestyleEngine } from '@/hooks/useLifestyleEngine';
+import { useLifestyleEngine, logHabitAndSync } from '@/hooks/useLifestyleEngine';
+import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { useDoshaEngine } from '@/hooks/useDoshaEngine';
 import { DOSHA_INFO } from '@/lib/doshaService';
 import { getLevelFromXP, getNextLevel, getToday, type HabitItem } from '@/stores/lifestyleStore';
@@ -668,6 +669,7 @@ function MoodLogPanel({ onClose, onLog, bgImage }: {
 export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { globalBg?: string; hideGreetingRow?: boolean }) {
   const router = useRouter();
   const engine = useLifestyleEngine();
+  const { user } = useOneSutraAuth();
   const { prakriti, vikriti, currentPhase, doshaOnboardingComplete, inBrahmaMuhurta } = useDoshaEngine();
   const { lang } = useLanguage();
 
@@ -693,8 +695,17 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
   useEffect(() => {
     const refresh = () => setSmartLogDoneIds(readSmartLogDoneHabitIds());
     window.addEventListener('focus', refresh);
+    // Refresh immediately when SmartLogBubbles logs a habit (same device, same tab)
+    window.addEventListener('daily-log-story-updated', refresh);
+    // Also listen for our own cross-component event
+    window.addEventListener('habit-logged', refresh);
     const timer = setInterval(refresh, 30_000);
-    return () => { window.removeEventListener('focus', refresh); clearInterval(timer); };
+    return () => {
+      window.removeEventListener('focus', refresh);
+      window.removeEventListener('daily-log-story-updated', refresh);
+      window.removeEventListener('habit-logged', refresh);
+      clearInterval(timer);
+    };
   }, []);
 
   // Midnight reset — re-compute all "today" stats when the date rolls over
@@ -944,6 +955,10 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
   const handleComplete = useCallback((id: string) => {
     const habit = engine.activeHabits.find(h => h.id === id);
     engine.completeHabit(id);
+    // Guaranteed cross-device Firestore write with non-stale user.uid
+    logHabitAndSync(user?.uid, id);
+    // Notify sibling components on this device (e.g. SmartAnalyticsDashboard)
+    try { window.dispatchEvent(new CustomEvent('habit-logged')); } catch { }
     setCompletedFlash(id);
     if (habit) {
       saveToUnifiedLog(habit.icon, habit.name);
