@@ -19,6 +19,7 @@ import {
   findHabitWindow, getTimingStatus, getISTTimeStr, getISODateIST, updateLateStreak,
 } from '@/lib/habitWindows';
 import { getMorningMood } from '@/components/MoodGarden/MorningMoodCards';
+import { saveToDailyLogStory } from '@/components/Dashboard/SmartLogBubbles';
 import { useBodhiChatStore } from '@/stores/bodhiChatStore';
 import { useDailyTasks } from '@/hooks/useDailyTasks';
 import { useLanguage } from '@/context/LanguageContext';
@@ -120,6 +121,20 @@ function saveToUnifiedLog(habitIcon: string, habitName: string): void {
     }
     raw[today] = todayLogs;
     localStorage.setItem(UNIFIED_LOG_KEY, JSON.stringify(raw));
+  } catch { }
+}
+
+// ─── Write to shared smartlog key (same key used by SmartAnalyticsDashboard) ──
+const SHARED_SMARTLOG_KEY = 'onesutra_smartlog_v2';
+function writeToSharedSmartLog(habitId: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const raw = JSON.parse(localStorage.getItem(SHARED_SMARTLOG_KEY) ?? '{}');
+    const ids: Set<string> = new Set(raw[today] ?? []);
+    ids.add(habitId);
+    raw[today] = [...ids];
+    localStorage.setItem(SHARED_SMARTLOG_KEY, JSON.stringify(raw));
   } catch { }
 }
 
@@ -957,7 +972,10 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
     engine.completeHabit(id);
     // Guaranteed cross-device Firestore write with non-stale user.uid
     logHabitAndSync(user?.uid, id);
-    // Notify sibling components on this device (e.g. SmartAnalyticsDashboard)
+    // Write to shared localStorage keys so SmartAnalyticsDashboard + SmartLogBubbles stay in sync
+    writeToSharedSmartLog(id);
+    if (habit) saveToDailyLogStory(id, habit.icon, habit.name, LIFE_AREA_COLORS[habit.lifeArea] ?? '#a78bfa');
+    // Notify sibling components on this device — fire BOTH events for full coverage
     try { window.dispatchEvent(new CustomEvent('habit-logged')); } catch { }
     setCompletedFlash(id);
     if (habit) {

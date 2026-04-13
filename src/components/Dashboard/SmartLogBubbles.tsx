@@ -616,8 +616,19 @@ export default function SmartLogBubbles() {
     const [completedHabitIds, setCompletedHabitIds] = useState<Set<string>>(() => getCompletedHabitIds());
     const [orderToast, setOrderToast] = useState<string | null>(null);
 
-    const staticBubbles = useMemo(() => getTimedBubbles(), []);
-    const timeLabel = useMemo(() => getTimeLabel(), []);
+    const [currentHour, setCurrentHour] = useState(() => new Date().getHours());
+
+    // Re-check the hour every 60 s so the slot + label update live
+    useEffect(() => {
+        const tick = setInterval(() => {
+            const h = new Date().getHours();
+            setCurrentHour(prev => (prev !== h ? h : prev));
+        }, 60_000);
+        return () => clearInterval(tick);
+    }, []);
+
+    const staticBubbles = useMemo(() => getTimedBubbles(), [currentHour]);
+    const timeLabel = useMemo(() => getTimeLabel(), [currentHour]);
     const TimeLabelIcon = timeLabel.Icon;
 
     // Refresh on mount, periodically, and when any log event fires
@@ -665,7 +676,7 @@ export default function SmartLogBubbles() {
     const { timed: dynamicTimed, anytime: dynamicAnytime } = useMemo(
         () => buildDynamicHabitBubbles(loggedToday, completedHabitIds),
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [loggedToday.size, completedHabitIds.size]
+        [loggedToday.size, completedHabitIds.size, currentHour]
     );
 
     // Pending static bubbles for this time slot

@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation';
 import { Sunrise, Sun, Sunset, Moon, Sparkles, Plus, CheckCircle2, Bell, Zap, Flame } from 'lucide-react';
 import { getTodayLogStory, saveToDailyLogStory, type DailyLogEntry } from '@/components/Dashboard/SmartLogBubbles';
 import { bodhiSpeakLog } from '@/lib/bodhiVoice';
-import { useLifestyleEngine } from '@/hooks/useLifestyleEngine';
+import { useLifestyleEngine, logHabitAndSync } from '@/hooks/useLifestyleEngine';
+import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { getLevelFromXP, getNextLevel, getToday, type HabitItem, type HabitCategory } from '@/stores/lifestyleStore';
 import {
   findHabitWindow,
@@ -368,6 +369,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const [celebrateId, setCelebrateId] = useState<string | null>(null);
   const [smartLoggedToday, setSmartLoggedToday] = useState<Set<string>>(new Set());
   const engine = useLifestyleEngine();
+  const { user } = useOneSutraAuth();
   const router = useRouter();
   const goAddHabit = useCallback(() => router.push('/lifestyle/ayurvedic-habits'), [router]);
 
@@ -378,11 +380,13 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
     const refresh = () => { setLogStory(getTodayLogStory()); setSmartLoggedToday(getSmartLoggedToday()); };
     window.addEventListener('focus', refresh);
     window.addEventListener('daily-log-story-updated', refresh);
+    window.addEventListener('habit-logged', refresh);
     window.addEventListener('storage', refresh);
     const t = setInterval(refresh, 15_000);
     return () => {
       window.removeEventListener('focus', refresh);
       window.removeEventListener('daily-log-story-updated', refresh);
+      window.removeEventListener('habit-logged', refresh);
       window.removeEventListener('storage', refresh);
       clearInterval(t);
     };
@@ -404,8 +408,10 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const handleComplete = useCallback(async (id: string) => {
     const habit = engine.activeHabits.find(h => h.id === id);
     engine.completeHabit(id);
+    logHabitAndSync(user?.uid, id);
     saveToSmartLog(id);
     if (habit) saveToDailyLogStory(id, habit.icon, habit.name, LIFE_AREA_COLORS[habit.lifeArea] ?? '#a78bfa');
+    try { window.dispatchEvent(new CustomEvent('habit-logged')); } catch { }
     setSmartLoggedToday(getSmartLoggedToday());
     setCelebrateId(id);
     setTimeout(() => setCelebrateId(null), 1800);
