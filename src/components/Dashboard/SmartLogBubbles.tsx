@@ -700,6 +700,23 @@ export default function SmartLogBubbles() {
 
     const staticBubbles = useMemo(() => getTimedBubbles(), [currentHour]);
     const timeLabel = useMemo(() => getTimeLabel(), [currentHour]);
+
+    // Effective ayurvedic done IDs — union of:
+    //   1. onesutra_ayur_habits_v1 localStorage (same-device logging)
+    //   2. Firestore-synced lifestyleStore.habitLogs (cross-device sync via onSnapshot)
+    // Without (2), habits logged on Device A never appear as done on Device B.
+    const effectiveAyurDoneIds = useMemo(() => {
+        const today = getTodayStr();
+        const ids = new Set(ayurCompletedIds);
+        lifestyleStore.habitLogs
+            .filter(l => l.date === today && l.completed)
+            .forEach(l => {
+                const aId = H_ID_TO_AYUR[l.habitId];
+                if (aId) ids.add(aId);
+                if (AYUR_IDS.has(l.habitId)) ids.add(l.habitId);
+            });
+        return ids;
+    }, [ayurCompletedIds, lifestyleStore.habitLogs]);
     const TimeLabelIcon = timeLabel.Icon;
 
     // Refresh on mount, periodically, and when any log event fires
@@ -764,9 +781,9 @@ export default function SmartLogBubbles() {
         );
         return staticBubbles.filter(b => {
             if (AYUR_IDS.has(b.id)) {
-                // For Ayurvedic habits: use ONLY ayurCompletedIds as source of truth.
-                // loggedToday may have stale data from old code that never wrote to ayurCompletedIds.
-                return !ayurCompletedIds.has(b.id);
+                // Use effectiveAyurDoneIds (localStorage + Firestore) — not loggedToday
+                // which may be stale or missing on other devices.
+                return !effectiveAyurDoneIds.has(b.id);
             }
             // Legacy static bubbles: check loggedToday + lifestyle store
             if (loggedToday.has(b.id)) return false;
@@ -775,7 +792,7 @@ export default function SmartLogBubbles() {
             return true;
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [staticBubbles, loggedToday.size, ayurCompletedIds.size, lifestyleStore.habitLogs]);
+    }, [staticBubbles, loggedToday.size, effectiveAyurDoneIds, lifestyleStore.habitLogs]);
 
     // Timed section: static + user lifestyle habits for the current time slot
     const timedBubbles = useMemo(() => {
@@ -991,10 +1008,10 @@ export default function SmartLogBubbles() {
     // ── Render a single bubble ───────────────────────────────────────────────
     const renderBubble = (bubble: LogBubble, i: number) => {
         const isActive = activeBubble === bubble.id;
-        // Ayurvedic habits: trust ayurCompletedIds (loggedToday may be stale).
+        // Ayurvedic habits: use effectiveAyurDoneIds (localStorage + Firestore-synced).
         // Legacy/dynamic habits: use loggedToday.
         const isDone = AYUR_IDS.has(bubble.id)
-            ? ayurCompletedIds.has(bubble.id)
+            ? effectiveAyurDoneIds.has(bubble.id)
             : loggedToday.has(bubble.id);
         if (isDone) return null;
         const isLocked = !isDone && getBlockReason(bubble.id) !== null;

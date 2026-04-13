@@ -371,18 +371,25 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
 
   // ── Merged completion: localStorage ayur + Firestore habit_logs ──
   const todayStr = new Date().toISOString().split('T')[0];
-  const firestoreAyurDone = new Set(
-    engine.habitLogs
-      .filter(l => l.date === todayStr && l.completed)
-      .map(l => H_ID_TO_AYUR[l.habitId])
-      .filter(Boolean)
-  );
+  // firestoreAyurDone covers two cases so cross-device sync works for all habits:
+  //   1. h_* alias logged → map via H_ID_TO_AYUR (e.g. h_walk → shatapavali)
+  //   2. Direct ayurvedic ID logged (e.g. main_meal_noon — has no h_* alias)
+  const ayurvedic_ids_set = new Set(AYURVEDIC_HABITS.map(h => h.id));
+  const firestoreAyurDone = new Set<string>();
+  engine.habitLogs
+    .filter(l => l.date === todayStr && l.completed)
+    .forEach(l => {
+      const aId = H_ID_TO_AYUR[l.habitId];
+      if (aId) firestoreAyurDone.add(aId);
+      if (ayurvedic_ids_set.has(l.habitId)) firestoreAyurDone.add(l.habitId);
+    });
   // SmartLog bubbles also count (e.g. 'lunch' bubble → 'main_meal_noon')
   const smartLogAyurDone = new Set<string>();
   smartLoggedToday.forEach(slId => {
     const hId = SMARTLOG_TO_H_ID_SAD[slId] ?? slId;
     const aId = H_ID_TO_AYUR[hId];
     if (aId) smartLogAyurDone.add(aId);
+    if (ayurvedic_ids_set.has(slId)) smartLogAyurDone.add(slId);
   });
   const mergedAyurDone = new Set([...ayurCompletedIds, ...firestoreAyurDone, ...smartLogAyurDone]);
 
