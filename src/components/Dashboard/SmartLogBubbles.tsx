@@ -7,56 +7,57 @@ import type { LucideIcon } from 'lucide-react';
 import { bodhiSpeakLog, bodhiSpeakAllDone } from '@/lib/bodhiVoice';
 import type { TimeSlot } from '@/lib/bodhiVoice';
 import {
-  findHabitWindow,
-  getTimingStatus as getHabitWindowTimingStatus,
-  getISTTimeStr, getISODateIST, updateLateStreak,
+    findHabitWindow,
+    getTimingStatus as getHabitWindowTimingStatus,
+    getISTTimeStr, getISODateIST, updateLateStreak,
 } from '@/lib/habitWindows';
 import { getMorningMood } from '@/components/MoodGarden/MorningMoodCards';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { useLifestyleStore } from '@/stores/lifestyleStore';
 import { logHabitAndSync } from '@/hooks/useLifestyleEngine';
+import { H_ID_TO_AYUR, setAyurHabitCompleted } from '@/lib/ayurvedicHabitsData';
 
 // ─── Read Ayurvedic context from localStorage ────────────────────────────────
 function getLocalContext(habitId: string): { prakriti: string; vikriti: string; habitStreak: number } {
-  try {
-    const dosha = JSON.parse(localStorage.getItem('onesutra_dosha_v1') ?? '{}');
-    const prakriti: string =
-      dosha?.prakritiAssessment?.prakriti?.combo ??
-      dosha?.prakritiAssessment?.prakriti?.primary ?? '';
-    const vikriti: string = dosha?.vikritiiAssessment?.vikriti?.primary ?? '';
-    const lifestyle = JSON.parse(localStorage.getItem('onesutra_lifestyle_v2') ?? '{}');
-    const habitStreak: number = lifestyle?.streaks?.[habitId]?.currentStreak ?? 0;
-    return { prakriti, vikriti, habitStreak };
-  } catch { return { prakriti: '', vikriti: '', habitStreak: 0 }; }
+    try {
+        const dosha = JSON.parse(localStorage.getItem('onesutra_dosha_v1') ?? '{}');
+        const prakriti: string =
+            dosha?.prakritiAssessment?.prakriti?.combo ??
+            dosha?.prakritiAssessment?.prakriti?.primary ?? '';
+        const vikriti: string = dosha?.vikritiiAssessment?.vikriti?.primary ?? '';
+        const lifestyle = JSON.parse(localStorage.getItem('onesutra_lifestyle_v2') ?? '{}');
+        const habitStreak: number = lifestyle?.streaks?.[habitId]?.currentStreak ?? 0;
+        return { prakriti, vikriti, habitStreak };
+    } catch { return { prakriti: '', vikriti: '', habitStreak: 0 }; }
 }
 
 function getLocalUserName(): string {
-  try {
-    const auth = JSON.parse(localStorage.getItem('onesutra_auth_v1') ?? '{}');
-    if (auth?.name && auth.name !== 'Traveller') return auth.name.split(' ')[0];
-  } catch { /* */ }
-  return (typeof localStorage !== 'undefined' ? localStorage.getItem('vedic_user_name') : null) ?? 'friend';
+    try {
+        const auth = JSON.parse(localStorage.getItem('onesutra_auth_v1') ?? '{}');
+        if (auth?.name && auth.name !== 'Traveller') return auth.name.split(' ')[0];
+    } catch { /* */ }
+    return (typeof localStorage !== 'undefined' ? localStorage.getItem('vedic_user_name') : null) ?? 'friend';
 }
 
 // ─── Static bubble ID → lifestyle-store h_* habit ID ────────────────────────
 // Used bidirectionally: hide bubble when h_* is done; write h_* when bubble tapped
 const SMARTLOG_TO_H_ID: Record<string, string> = {
-    wake:                 'h_wake_early',
-    warm_water:           'h_warm_water',
-    tongue_scrape:        'h_tongue_scraping',
-    breathwork:           'h_pranayama',
-    bath:                 'h_bathing',
-    morning_light:        'h_morning_sunlight',
-    breakfast:            'h_breakfast',
-    sleep:                'h_sleep_early',
-    gratitude:            'h_gratitude',
-    hydration:            'h_water',
-    h_walk:               'h_walk',
+    wake: 'h_wake_early',
+    warm_water: 'h_warm_water',
+    tongue_scrape: 'h_tongue_scraping',
+    breathwork: 'h_pranayama',
+    bath: 'h_bathing',
+    morning_light: 'h_morning_sunlight',
+    breakfast: 'h_breakfast',
+    sleep: 'h_sleep_early',
+    gratitude: 'h_gratitude',
+    hydration: 'h_water',
+    h_walk: 'h_walk',
     h_evening_meditation: 'h_evening_meditation',
-    h_digital_sunset:     'h_digital_sunset',
-    h_brain_dump:         'h_brain_dump',
-    dinner:               'h_sleep_early',
-    lunch:                'h_breakfast',
+    h_digital_sunset: 'h_digital_sunset',
+    h_brain_dump: 'h_brain_dump',
+    dinner: 'h_sleep_early',
+    lunch: 'h_breakfast',
 };
 // Reverse map: lifestyle-store h_* ID → static bubble ID
 // Used to sync loggedToday when the store is updated from Firestore
@@ -669,7 +670,7 @@ export default function SmartLogBubbles() {
             });
             return combined;
         });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lifestyleStore.habitLogs]);
 
     // Dynamic habit bubbles
@@ -694,7 +695,7 @@ export default function SmartLogBubbles() {
             if (hId && lifestyleDone.has(hId)) return false;
             return true;
         });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [staticBubbles, loggedToday.size, lifestyleStore.habitLogs]);
 
     // Timed section: static + user lifestyle habits for the current time slot
@@ -791,7 +792,15 @@ export default function SmartLogBubbles() {
             // habit_logs Firestore. onSnapshot on all logged-in devices picks this
             // up in milliseconds without any additional listener in this component.
             logHabitAndSync(user?.uid, targetId, sub?.detail);
+            // Also mark in the Ayurvedic local log so ayurvedic page + LifestylePanel Niyama section sync
+            const ayurId = H_ID_TO_AYUR[targetId];
+            if (ayurId) setAyurHabitCompleted(ayurId);
         }
+        // Also mark by static bubble ID → ayur map (for bubbles without an h_* mapping)
+        const directAyurId = H_ID_TO_AYUR[bubble.id];
+        if (directAyurId) setAyurHabitCompleted(directAyurId);
+        // Dispatch event so LifestylePanel's Niyama section refreshes
+        try { window.dispatchEvent(new CustomEvent('habit-logged')); } catch { }
 
         const slot = getCurrentTimeSlot();
         const onTime = isOnTimeForSlot(bubble.id, slot);
