@@ -304,7 +304,7 @@ const LIFE_AREA_COLORS: Record<string, string> = {
 };
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type SubOption = { icon: string; label: string; detail: string };
+export type SubOption = { icon: string; label: string; detail: string };
 type LogBubble = {
     id: string;
     icon: string;
@@ -544,7 +544,7 @@ const SLOT_COLORS: Record<string, string> = {
 };
 
 // ─── Rich sub-options by habit category (shown when bubble is tapped) ─────────
-function getSubOptionsForHabit(id: string, name: string): SubOption[] {
+export function getSubOptionsForHabit(id: string, name: string): SubOption[] {
     // Meal habits — full food-picker (matches old MealLoggingSection)
     if (id === 'morning_meal') return [
         { icon: '🥣', label: 'Oats & fruits', detail: 'had oats and fruits for breakfast' },

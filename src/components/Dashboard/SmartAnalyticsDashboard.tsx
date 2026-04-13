@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Sunrise, Sun, Sunset, Moon, Sparkles, Plus, CheckCircle2, Bell, Zap, Flame } from 'lucide-react';
-import { getTodayLogStory, saveToDailyLogStory, type DailyLogEntry } from '@/components/Dashboard/SmartLogBubbles';
+import { getTodayLogStory, saveToDailyLogStory, getSubOptionsForHabit, type DailyLogEntry, type SubOption } from '@/components/Dashboard/SmartLogBubbles';
 import { bodhiSpeakLog } from '@/lib/bodhiVoice';
 import { useLifestyleEngine, logHabitAndSync } from '@/hooks/useLifestyleEngine';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
@@ -247,6 +247,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const [activeTab, setActiveTab] = useState<'pending' | 'done' | 'activity'>('pending');
   const [celebrateId, setCelebrateId] = useState<string | null>(null);
   const [smartLoggedToday, setSmartLoggedToday] = useState<Set<string>>(new Set());
+  const [activeSubHabitId, setActiveSubHabitId] = useState<string | null>(null);
   // Ayurvedic completion state: shared localStorage + Firestore
   const [ayurCompletedIds, setAyurCompletedIds] = useState<Set<string>>(() => getTodayAyurCompletedIds());
   const engine = useLifestyleEngine();
@@ -291,17 +292,20 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
     return days;
   }, [engine.habitLogs, engine.activeHabits.length]);
 
-  const handleComplete = useCallback(async (id: string) => {
-    // id is an Ayurvedic habit ID (e.g. 'main_meal_noon')
-    // Map to the lifestyle-store h_* ID for Firestore / engine
+  const handleComplete = useCallback(async (id: string, sub?: SubOption) => {
+    // id is an Ayurvedic habit ID (e.g. 'evening_walk', 'main_meal_noon')
+    // Map to the lifestyle-store h_* ID for streak tracking / engine
     const hId = AYUR_TO_H_ID[id] ?? id;
     const ayurHabit = AYURVEDIC_HABITS.find(h => h.id === id);
-    // 1. Mark in shared Ayurvedic localStorage so all screens sync
+    // 1. Close sub-option sheet + mark local state immediately
+    setActiveSubHabitId(null);
     setAyurHabitCompleted(id);
     setAyurCompletedIds(prev => new Set([...prev, id]));
-    // 2. Write to Firestore + lifestyle store
-    engine.completeHabit(hId);
-    logHabitAndSync(user?.uid, hId);
+    // 2. Write to Firestore — same pattern as SmartLogBubbles logAndNavigate:
+    //    Write the h_* alias (for streak/engine data) and ALSO the raw ayurvedic ID
+    //    if it differs, so onSnapshot can restore it exactly after logout+login.
+    logHabitAndSync(user?.uid, hId, sub?.detail);
+    if (id !== hId) logHabitAndSync(user?.uid, id, sub?.detail);
     saveToSmartLog(id);
     saveToSmartLog(hId);
     if (ayurHabit) saveToDailyLogStory(id, ayurHabit.emoji, ayurHabit.name, slotCfgColor);
@@ -356,7 +360,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
     } catch { /* fallback */ }
     bodhiSpeakLog({ habitIcon: ayurHabit.emoji, habitName: ayurHabit.name, isLocked: false, timeSlot: 'morning' });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [engine, user]);
+  }, [user]);
 
   if (!mounted) return null;
 
@@ -587,7 +591,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
                       <p style={{ margin: 0, fontSize: '0.64rem', color: 'rgba(255,255,255,0.42)', fontFamily: "'Outfit',sans-serif", lineHeight: 1.3 }}><span style={{ color: '#fbbf24', fontWeight: 800 }}>Tap to log</span> — Bodhi speaks on every activity</p>
                     </motion.div>
                   )}
-                  {pendingHabits.map(h => <MiniHabitCard key={h.id} habit={h} isCompleted={false} streak={engine.getHabitStreak(h.id)} onComplete={handleComplete} />)}
+                  {pendingHabits.map(h => <MiniHabitCard key={h.id} habit={h} isCompleted={false} streak={engine.getHabitStreak(h.id)} onComplete={setActiveSubHabitId} />)}
                 </>
               )}
             </motion.div>
@@ -665,6 +669,59 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
           </motion.button>
         </div>
       </div>
+
+      {/* Sub-option bottom sheet — same picker as SmartLogBubbles */}
+      <AnimatePresence>
+        {activeSubHabitId && (() => {
+          const habit = AYURVEDIC_HABITS.find(h => h.id === activeSubHabitId);
+          const subs = getSubOptionsForHabit(activeSubHabitId, habit?.name ?? '');
+          return (
+            <motion.div
+              key="sub-sheet-backdrop"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setActiveSubHabitId(null)}
+              style={{ position: 'fixed', inset: 0, zIndex: 1200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(5px)', WebkitBackdropFilter: 'blur(5px)' }}
+            >
+              <motion.div
+                key="sub-sheet"
+                initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                transition={{ type: 'spring', stiffness: 340, damping: 32 }}
+                onClick={e => e.stopPropagation()}
+                style={{ width: '100%', maxWidth: 480, background: 'linear-gradient(180deg,rgba(14,9,46,0.99) 0%,rgba(6,4,22,1) 100%)', borderRadius: '22px 22px 0 0', border: '1px solid rgba(139,92,246,0.22)', borderBottom: 'none', padding: '1rem 1rem 2.2rem', boxShadow: '0 -8px 40px rgba(0,0,0,0.6)' }}
+              >
+                <div style={{ width: 36, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.14)', margin: '0 auto 0.9rem' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.9rem' }}>
+                  <span style={{ fontSize: '1.7rem', lineHeight: 1 }}>{habit?.emoji ?? '\u2726'}</span>
+                  <div>
+                    <p style={{ margin: 0, fontSize: '0.88rem', fontWeight: 800, color: 'rgba(255,255,255,0.9)', fontFamily: "'Outfit',sans-serif" }}>{habit?.name ?? activeSubHabitId}</p>
+                    <p style={{ margin: 0, fontSize: '0.62rem', color: 'rgba(255,255,255,0.36)', fontFamily: "'Outfit',sans-serif" }}>How did you do it?</p>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.42rem' }}>
+                  {subs.map(sub => (
+                    <motion.button
+                      key={sub.label}
+                      whileTap={{ scale: 0.96 }}
+                      onClick={() => handleComplete(activeSubHabitId, sub)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', width: '100%', padding: '0.62rem 0.8rem', borderRadius: 14, background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.18)', cursor: 'pointer', textAlign: 'left' }}
+                    >
+                      <span style={{ fontSize: '1.15rem', flexShrink: 0 }}>{sub.icon}</span>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'rgba(255,255,255,0.82)', fontFamily: "'Outfit',sans-serif" }}>{sub.label}</span>
+                    </motion.button>
+                  ))}
+                  <motion.button
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() => handleComplete(activeSubHabitId)}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '0.62rem', borderRadius: 14, background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.2)', cursor: 'pointer', marginTop: '0.18rem' }}
+                  >
+                    <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#4ade80', fontFamily: "'Outfit',sans-serif" }}>&#10003; Quick Log</span>
+                  </motion.button>
+                </div>
+              </motion.div>
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
     </motion.div>
   );
 }
