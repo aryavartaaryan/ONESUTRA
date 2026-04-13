@@ -687,35 +687,41 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
                 initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
                 transition={{ type: 'spring', stiffness: 340, damping: 32 }}
                 onClick={e => e.stopPropagation()}
-                style={{ width: '100%', maxWidth: 480, background: 'linear-gradient(180deg,rgba(14,9,46,0.99) 0%,rgba(6,4,22,1) 100%)', borderRadius: '22px 22px 0 0', border: '1px solid rgba(139,92,246,0.22)', borderBottom: 'none', padding: '1rem 1rem 2.2rem', boxShadow: '0 -8px 40px rgba(0,0,0,0.6)' }}
+                style={{ width: '100%', maxWidth: 480, maxHeight: '72vh', display: 'flex', flexDirection: 'column', background: 'linear-gradient(180deg,rgba(14,9,46,0.99) 0%,rgba(6,4,22,1) 100%)', borderRadius: '22px 22px 0 0', border: '1px solid rgba(139,92,246,0.22)', borderBottom: 'none', boxShadow: '0 -8px 40px rgba(0,0,0,0.6)' }}
               >
-                <div style={{ width: 36, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.14)', margin: '0 auto 0.9rem' }} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.9rem' }}>
-                  <span style={{ fontSize: '1.7rem', lineHeight: 1 }}>{habit?.emoji ?? '\u2726'}</span>
-                  <div>
-                    <p style={{ margin: 0, fontSize: '0.88rem', fontWeight: 800, color: 'rgba(255,255,255,0.9)', fontFamily: "'Outfit',sans-serif" }}>{habit?.name ?? activeSubHabitId}</p>
-                    <p style={{ margin: 0, fontSize: '0.62rem', color: 'rgba(255,255,255,0.36)', fontFamily: "'Outfit',sans-serif" }}>How did you do it?</p>
+                {/* Drag handle */}
+                <div style={{ flexShrink: 0, padding: '0.7rem 1rem 0' }}>
+                  <div style={{ width: 36, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.14)', margin: '0 auto 0.7rem' }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', marginBottom: '0.65rem' }}>
+                    <span style={{ fontSize: '1.55rem', lineHeight: 1 }}>{habit?.emoji ?? '\u2726'}</span>
+                    <div>
+                      <p style={{ margin: 0, fontSize: '0.86rem', fontWeight: 800, color: 'rgba(255,255,255,0.92)', fontFamily: "'Outfit',sans-serif" }}>{habit?.name ?? activeSubHabitId}</p>
+                      <p style={{ margin: 0, fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit',sans-serif" }}>How did you do it?</p>
+                    </div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.42rem' }}>
-                  {subs.map(sub => (
+                {/* Scrollable options list */}
+                <div style={{ flex: 1, overflowY: 'auto', padding: '0 1rem', paddingBottom: 'env(safe-area-inset-bottom, 1.4rem)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.36rem', paddingBottom: '0.5rem' }}>
+                    {subs.map(sub => (
+                      <motion.button
+                        key={sub.label}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => handleComplete(activeSubHabitId, sub)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', width: '100%', padding: '0.55rem 0.75rem', borderRadius: 13, background: 'rgba(139,92,246,0.09)', border: '1px solid rgba(139,92,246,0.2)', cursor: 'pointer', textAlign: 'left' }}
+                      >
+                        <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>{sub.icon}</span>
+                        <span style={{ fontSize: '0.77rem', fontWeight: 700, color: 'rgba(255,255,255,0.84)', fontFamily: "'Outfit',sans-serif" }}>{sub.label}</span>
+                      </motion.button>
+                    ))}
                     <motion.button
-                      key={sub.label}
-                      whileTap={{ scale: 0.96 }}
-                      onClick={() => handleComplete(activeSubHabitId, sub)}
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', width: '100%', padding: '0.62rem 0.8rem', borderRadius: 14, background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.18)', cursor: 'pointer', textAlign: 'left' }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => handleComplete(activeSubHabitId)}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '0.55rem', borderRadius: 13, background: 'rgba(74,222,128,0.07)', border: '1px solid rgba(74,222,128,0.22)', cursor: 'pointer', marginTop: '0.18rem' }}
                     >
-                      <span style={{ fontSize: '1.15rem', flexShrink: 0 }}>{sub.icon}</span>
-                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'rgba(255,255,255,0.82)', fontFamily: "'Outfit',sans-serif" }}>{sub.label}</span>
+                      <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#4ade80', fontFamily: "'Outfit',sans-serif" }}>&#10003; Quick Log</span>
                     </motion.button>
-                  ))}
-                  <motion.button
-                    whileTap={{ scale: 0.96 }}
-                    onClick={() => handleComplete(activeSubHabitId)}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '0.62rem', borderRadius: 14, background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.2)', cursor: 'pointer', marginTop: '0.18rem' }}
-                  >
-                    <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#4ade80', fontFamily: "'Outfit',sans-serif" }}>&#10003; Quick Log</span>
-                  </motion.button>
+                  </div>
                 </div>
               </motion.div>
             </motion.div>
