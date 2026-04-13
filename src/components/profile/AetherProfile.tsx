@@ -1179,7 +1179,7 @@ const SANGHA_TAGS = ['#Mindfulness', '#PlantBased', '#EarlyRiser', '#Pranayama',
 const SANGHA_ACCENTS = ['#A78BFA', '#34D399', '#F59E0B', '#22D3EE', '#F472B6', '#60A5FA', '#FB923C'];
 
 export default function AetherProfile({ viewedUid, autoEnquire }: { viewedUid?: string; autoEnquire?: boolean } = {}) {
-  const { user, loading: authLoading } = useOneSutraAuth();
+  const { user, loading: authLoading, signOut } = useOneSutraAuth();
   const router = useRouter();
   const { lang, setLang } = useLanguage();
 
@@ -1356,8 +1356,7 @@ export default function AetherProfile({ viewedUid, autoEnquire }: { viewedUid?: 
               aria-label="Sign Out"
               onClick={async () => {
                 try {
-                  const { getAuth, signOut } = await import('firebase/auth');
-                  await signOut(getAuth());
+                  await signOut();
                   router.push('/');
                 } catch { /* offline */ }
               }}

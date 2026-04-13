@@ -7,6 +7,7 @@
  */
 import { useState, useEffect } from 'react';
 import type { User } from 'firebase/auth';
+import { useLifestyleStore } from '@/stores/lifestyleStore';
 
 export interface OneSutraUser {
     uid: string;
@@ -22,6 +23,7 @@ const CACHE_KEY = 'onesutra_auth_v1';
 const USER_DATA_KEYS = [
     'onesutra_lifestyle_v2',
     'onesutra_smartlog_v2',
+    'onesutra_ayur_habits_v1',
     'onesutra_daily_checkin_v1',
     'onesutra_morning_mood_v2',
     'onesutra_checkin_skip_v1',
@@ -34,6 +36,10 @@ function clearUserData() {
     USER_DATA_KEYS.forEach(key => {
         try { localStorage.removeItem(key); } catch { /* ignore */ }
     });
+    // Reset Zustand store in-memory state — localStorage removal alone is not
+    // enough because the old user's habitLogs/habits/streaks stay in memory
+    // until the page is refreshed, making the new user see stale data.
+    try { useLifestyleStore.getState().resetAll(); } catch { /* ignore */ }
 }
 
 function readCachedUser(): OneSutraUser | null {
