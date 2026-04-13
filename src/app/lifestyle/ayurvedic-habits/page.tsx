@@ -8,7 +8,8 @@ import {
   ToggleLeft, ToggleRight, Search
 } from 'lucide-react';
 import { useDoshaEngine } from '@/hooks/useDoshaEngine';
-import { useLifestyleEngine } from '@/hooks/useLifestyleEngine';
+import { useLifestyleEngine, logHabitAndSync } from '@/hooks/useLifestyleEngine';
+import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { DOSHA_INFO, type Dosha } from '@/lib/doshaService';
 import DoshaBalanceMeter from '@/components/Dashboard/DoshaBalanceMeter';
 import type { HabitItem, LifeArea, HabitCategory, TrackingType } from '@/stores/lifestyleStore';
@@ -19,6 +20,7 @@ import {
   type TimingStatus,
 } from '@/lib/habitWindows';
 import { getMorningMood } from '@/components/MoodGarden/MorningMoodCards';
+import { saveToDailyLogStory } from '@/components/Dashboard/SmartLogBubbles';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -57,6 +59,7 @@ const AYURVEDIC_HABITS: AyurvedicHabit[] = [
   { id: 'meditation', name: 'Silent Meditation', nameHi: 'ध्यान', emoji: '🧘', category: 'morning', targetMin: 15, description: 'Morning meditation — ideally in Brahma Muhurta — reduces all three doshas and builds Ojas.', doshaEffect: { vata: -1, pitta: -1, kapha: -1 }, bestFor: ['vata', 'pitta', 'kapha'], tags: ['ojas', 'sattva', 'morning'] },
   { id: 'sunlight_morning', name: 'Morning Sunlight', nameHi: 'सूर्य दर्शन', emoji: '🌅', category: 'morning', targetMin: 5, description: 'Natural morning light synchronises your circadian rhythm with the Ayurvedic clock.', doshaEffect: { vata: -1, pitta: 0, kapha: -1 }, bestFor: ['vata', 'kapha'], tags: ['circadian', 'kapha', 'morning'] },
   { id: 'main_meal_noon', name: 'Eat Main Meal at Noon', nameHi: 'मध्याह्न भोजन', emoji: '🍛', category: 'midday', targetMin: 30, description: 'Largest meal between 12–1 PM when Agni is strongest. The foundation of Ayurvedic diet.', doshaEffect: { vata: -1, pitta: -2, kapha: 0 }, bestFor: ['pitta', 'vata'], tags: ['ahara', 'agni', 'timing'] },
+  { id: 'deep_work_afternoon', name: 'Deep Work', nameHi: 'गहन कार्य', emoji: '🎯', category: 'midday', targetMin: 90, description: 'Focused, undistracted work during the Pitta peak — when mental clarity and concentration are highest. Channel the fire.', doshaEffect: { vata: 0, pitta: -1, kapha: -2 }, bestFor: ['kapha', 'pitta'], tags: ['productivity', 'focus', 'pitta'] },
   { id: 'shatapavali', name: 'Post-Meal Walk (100 steps)', nameHi: 'शतपावली', emoji: '🚶', category: 'midday', targetMin: 10, description: '100 gentle steps after the main meal — aids digestion without straining Agni.', doshaEffect: { vata: 0, pitta: -1, kapha: -1 }, bestFor: ['pitta', 'kapha'], tags: ['digestion', 'movement', 'pitta'] },
   { id: 'herbal_tea', name: 'CCF Herbal Tea', nameHi: 'त्रिकटु चाय', emoji: '🍵', category: 'anytime', targetMin: 5, description: 'Cumin-Coriander-Fennel tea — tri-doshic digestive, reduces Ama and supports all three doshas.', doshaEffect: { vata: -1, pitta: -1, kapha: -1 }, bestFor: ['vata', 'pitta', 'kapha'], tags: ['herbs', 'digestion', 'tridoshic'] },
   { id: 'light_dinner_early', name: 'Light Early Dinner', nameHi: 'सायं भोजन', emoji: '🥣', category: 'evening', targetMin: 20, description: 'Light dinner by 7 PM gives the body 12+ hours rest before breakfast — crucial for Ojas.', doshaEffect: { vata: -1, pitta: 0, kapha: -2 }, bestFor: ['kapha', 'vata'], tags: ['ahara', 'ojas', 'timing'] },
@@ -109,19 +112,38 @@ const LIFE_AREA_COLORS: Record<string, string> = {
 // ─── Ayurvedic habit ID → lifestyle-store h_* habit ID (shared source bridge) ───────
 const AYUR_TO_H_ID: Record<string, string> = {
   warm_water_morning: 'h_warm_water',
-  tongue_scraping:    'h_tongue_scraping',
-  abhyanga:           'h_bathing',
-  anulom_vilom:       'h_pranayama',
-  kapalabhati:        'h_pranayama',
-  meditation:         'h_morning_meditation',
-  sunlight_morning:   'h_morning_sunlight',
-  main_meal_noon:     'h_breakfast',
-  shatapavali:        'h_walk',
-  herbal_tea:         'h_water',
-  evening_walk:       'h_walk',
-  screen_free_hour:   'h_digital_sunset',
-  sleep_by_10:        'h_sleep_early',
-  journaling:         'h_brain_dump',
+  tongue_scraping: 'h_tongue_scraping',
+  abhyanga: 'h_bathing',
+  anulom_vilom: 'h_pranayama',
+  kapalabhati: 'h_pranayama',
+  meditation: 'h_morning_meditation',
+  sunlight_morning: 'h_morning_sunlight',
+  main_meal_noon: 'h_breakfast',
+  deep_work_afternoon: 't_deep_work',
+  shatapavali: 'h_walk',
+  herbal_tea: 'h_water',
+  evening_walk: 'h_walk',
+  screen_free_hour: 'h_digital_sunset',
+  sleep_by_10: 'h_sleep_early',
+  journaling: 'h_brain_dump',
+};
+
+// ─── Reverse: lifestyle-store h_* ID → Ayurvedic habit ID ───────────────────
+// Used to mark ayurvedic habits as done when logged from SmartLogBubbles / LifestylePanel
+const H_ID_TO_AYUR: Record<string, string> = {
+  h_warm_water: 'warm_water_morning',
+  h_tongue_scraping: 'tongue_scraping',
+  h_bathing: 'abhyanga',
+  h_pranayama: 'anulom_vilom',
+  h_morning_meditation: 'meditation',
+  h_morning_sunlight: 'sunlight_morning',
+  h_breakfast: 'main_meal_noon',
+  t_deep_work: 'deep_work_afternoon',
+  h_walk: 'shatapavali',
+  h_water: 'herbal_tea',
+  h_digital_sunset: 'screen_free_hour',
+  h_sleep_early: 'sleep_by_10',
+  h_brain_dump: 'journaling',
 };
 
 // ─── Storage helpers (for Ayurvedic tab) ─────────────────────────────────────────────────
@@ -192,8 +214,8 @@ function AyurvedicHabitCard({ habit, isCompleted, streak, prakritiDosha, onToggl
     }}>
       {isBestFor && !isCompleted && (
         <div style={{ position: 'absolute', top: 0, right: 0, padding: '0.2rem 0.5rem', borderRadius: '0 16px 0 10px', background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)' }}>
-        <span style={{ fontSize: '0.58rem', color: 'rgba(251,191,36,0.75)', fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>Rec.</span>
-      </div>
+          <span style={{ fontSize: '0.58rem', color: 'rgba(251,191,36,0.75)', fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>Rec.</span>
+        </div>
       )}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
         <div style={{ flexShrink: 0, marginTop: 2 }}>
@@ -379,6 +401,7 @@ const CATEGORY_TABS = [
 
 export default function AyurvedicHabitsPage() {
   const router = useRouter();
+  const { user } = useOneSutraAuth();
   const { prakriti, vikriti, doshaOnboardingComplete } = useDoshaEngine();
   const engine = useLifestyleEngine();
   const store = useLifestyleStore();
@@ -400,7 +423,19 @@ export default function AyurvedicHabitsPage() {
 
   // Ayurvedic habits logic
   const todayLog = useMemo(() => logs.find(l => l.date === today), [logs, today]);
-  const completedToday = useMemo(() => new Set(todayLog?.completedIds ?? []), [todayLog]);
+
+  // Merge local ayurvedic log IDs with lifestyle-store completed IDs (from Firestore onSnapshot)
+  // This ensures habits logged from SmartLogBubbles or LifestylePanel also appear as done here
+  const completedToday = useMemo(() => {
+    const localIds = new Set(todayLog?.completedIds ?? []);
+    const storeIds = new Set(
+      engine.habitLogs
+        .filter(l => l.date === today && l.completed)
+        .map(l => H_ID_TO_AYUR[l.habitId])
+        .filter(Boolean)
+    );
+    return new Set([...localIds, ...storeIds]);
+  }, [todayLog, engine.habitLogs, today]);
 
   const toggleHabit = useCallback((habitId: string) => {
     // Auto-add to lifestyle routine on first toggle if not already there
@@ -420,12 +455,19 @@ export default function AyurvedicHabitsPage() {
       const existing = prev.find(l => l.date === today);
       const wasCompleted = existing?.completedIds.includes(habitId) ?? false;
       const nowCompleted = !wasCompleted;
-      // Mirror completion into lifestyle store so SmartLogBubbles + LifestylePanel sync
+      // Mirror completion into lifestyle store AND Firestore for full cross-device sync
+      const hId = AYUR_TO_H_ID[habitId];
       if (nowCompleted) {
-        const hId = AYUR_TO_H_ID[habitId];
+        const targetId = hId ?? habitId;
+        // Write to Firestore habit_logs (single source of truth for persistence + real-time sync)
+        logHabitAndSync(user?.uid, targetId, undefined);
+        // Also update local Zustand store instantly (optimistic)
         if (hId) {
           store.logHabit({ habitId: hId, date: today, completed: true, loggedAt: Date.now() });
         }
+        // Save to daily log story for the home page story strip
+        const habit = AYURVEDIC_HABITS.find(h => h.id === habitId);
+        if (habit) saveToDailyLogStory(habitId, habit.emoji, habit.name, '#c084fc');
       }
       let updated: HabitLogEntry[];
       if (existing) {
@@ -646,8 +688,8 @@ export default function AyurvedicHabitsPage() {
               {unifiedList.map(item =>
                 item.type === 'ayurvedic'
                   ? <AyurvedicHabitCard key={item.data.id} habit={item.data} isCompleted={completedToday.has(item.data.id)}
-                      streak={streaks[item.data.id] ?? 0} prakritiDosha={prakriti?.primary ?? null}
-                      onToggle={() => toggleHabit(item.data.id)} isInRoutine={inRoutineIds.has(item.data.id)} />
+                    streak={streaks[item.data.id] ?? 0} prakritiDosha={prakriti?.primary ?? null}
+                    onToggle={() => toggleHabit(item.data.id)} isInRoutine={inRoutineIds.has(item.data.id)} />
                   : <LibraryHabitCard key={item.data.id} habit={item.data} onAdd={() => addFromLibrary(item.data)} />
               )}
             </AnimatePresence>
@@ -721,8 +763,10 @@ export default function AyurvedicHabitsPage() {
       <AnimatePresence>
         {toast && (
           <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}
-            style={{ position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)', zIndex: 9999,
-              padding: '0.65rem 1.2rem', borderRadius: 99, background: 'rgba(16,185,129,0.92)', border: '1px solid rgba(16,185,129,0.4)', boxShadow: '0 4px 16px rgba(16,185,129,0.25)' }}>
+            style={{
+              position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)', zIndex: 9999,
+              padding: '0.65rem 1.2rem', borderRadius: 99, background: 'rgba(16,185,129,0.92)', border: '1px solid rgba(16,185,129,0.4)', boxShadow: '0 4px 16px rgba(16,185,129,0.25)'
+            }}>
             <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#fff', fontFamily: "'Outfit', sans-serif" }}>{toast}</span>
           </motion.div>
         )}
