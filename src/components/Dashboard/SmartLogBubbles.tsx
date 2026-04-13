@@ -14,6 +14,7 @@ import {
 import { getMorningMood } from '@/components/MoodGarden/MorningMoodCards';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { useLifestyleStore } from '@/stores/lifestyleStore';
+import { useLifestyleEngine } from '@/hooks/useLifestyleEngine';
 
 // ─── Read Ayurvedic context from localStorage ────────────────────────────────
 function getLocalContext(habitId: string): { prakriti: string; vikriti: string; habitStreak: number } {
@@ -56,6 +57,15 @@ const SMARTLOG_TO_H_ID: Record<string, string> = {
     h_brain_dump:         'h_brain_dump',
     dinner:               'h_sleep_early',
     lunch:                'h_breakfast',
+};
+// Reverse map: lifestyle-store h_* ID → static bubble ID
+// Used to sync loggedToday when the store is updated from Firestore
+const H_ID_TO_SMARTLOG: Record<string, string> = {
+    h_wake_early: 'wake', h_warm_water: 'warm_water', h_tongue_scraping: 'tongue_scrape',
+    h_pranayama: 'breathwork', h_bathing: 'bath', h_morning_sunlight: 'morning_light',
+    h_breakfast: 'breakfast', h_sleep_early: 'sleep', h_gratitude: 'gratitude',
+    h_water: 'hydration', h_walk: 'h_walk', h_evening_meditation: 'h_evening_meditation',
+    h_digital_sunset: 'h_digital_sunset', h_brain_dump: 'h_brain_dump',
 };
 
 // ─── Order Enforcement ────────────────────────────────────────────────────────
@@ -600,6 +610,7 @@ function buildDynamicHabitBubbles(
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function SmartLogBubbles() {
     const { user } = useOneSutraAuth();
+    const engine = useLifestyleEngine();
     const lifestyleStore = useLifestyleStore();
     const [activeBubble, setActiveBubble] = useState<string | null>(null);
     const [loggedToday, setLoggedToday] = useState<Set<string>>(() => getLoggedToday());
@@ -629,32 +640,27 @@ export default function SmartLogBubbles() {
         };
     }, []);
 
-    // Firestore real-time listener — syncs today's logs across devices
+    // Sync loggedToday from lifestyle store — kept fresh by useLifestyleEngine's onSnapshot
+    // on habit_logs collection. Covers re-login persistence and cross-device real-time sync.
     useEffect(() => {
-        if (!user?.uid) return;
-        const uid = user.uid;
         const today = getTodayStr();
-        let unsub: (() => void) | null = null;
-        (async () => {
-            try {
-                const { getFirebaseFirestore } = await import('@/lib/firebase');
-                const { doc, onSnapshot } = await import('firebase/firestore');
-                const db = await getFirebaseFirestore();
-                unsub = onSnapshot(doc(db, 'users', uid, 'daily_logs', today), (snap) => {
-                    if (!snap.exists()) return;
-                    const remoteIds = Object.keys(snap.data()?.habits ?? {});
-                    if (remoteIds.length === 0) return;
-                    setLoggedToday(prev => {
-                        const merged = new Set([...prev, ...remoteIds]);
-                        saveLoggedToday(merged);
-                        return merged;
-                    });
-                });
-            } catch { /* offline */ }
-        })();
-        return () => { unsub?.(); };
+        const storeIds = new Set(
+            lifestyleStore.habitLogs
+                .filter(l => l.date === today && l.completed)
+                .map(l => l.habitId)
+        );
+        if (storeIds.size === 0) return;
+        setLoggedToday(prev => {
+            const combined = new Set(prev);
+            storeIds.forEach(hId => {
+                combined.add(hId); // dynamic h_* IDs
+                const staticId = H_ID_TO_SMARTLOG[hId];
+                if (staticId) combined.add(staticId); // static bubble IDs
+            });
+            return combined;
+        });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user?.uid]);
+    }, [lifestyleStore.habitLogs]);
 
     // Dynamic habit bubbles
     const { timed: dynamicTimed, anytime: dynamicAnytime } = useMemo(
@@ -701,7 +707,7 @@ export default function SmartLogBubbles() {
         if (orderIdx <= 0) return null;
         const prereq = MORNING_ORDER[orderIdx - 1];
         if (!loggedToday.has(prereq)) {
-            const names: Record<string, string> = { wake: 'Rise & Shine', warm_water: 'Warm Water', tongue_scrape: 'Tongue Clean', breathwork: 'Pranayama', bath: 'Bath', morning_light: 'Morning Sun', breakfast: 'Breakfast' };
+            const names: Record<string, string> = { wake: 'Wake Before 6am', warm_water: 'Warm Water Ritual', tongue_scrape: 'Tongue Scraping', breathwork: 'Pranayama', bath: 'Morning Bath', morning_light: 'Morning Sunlight', breakfast: 'Mindful Breakfast' };
             return `Log "${names[prereq] ?? prereq}" first ✦`;
         }
         return null;
@@ -763,33 +769,15 @@ export default function SmartLogBubbles() {
         saveLoggedToday(updated);
         saveToDailyLogStory(bubble.id, bubble.icon, bubble.label, bubble.color);
         setActiveBubble(null);
-        // ── Write to lifestyle store so LifestylePanel reflects this as done ──
+        // ── Route through engine.completeHabit() → writes to habit_logs Firestore ──
+        // This is the single source of truth. Powers:
+        //   • re-login persistence (onSnapshot reloads habit_logs on next login)
+        //   • same-user cross-device real-time sync via onSnapshot listener in useLifestyleEngine
+        //   • LifestylePanel + SmartAnalyticsDashboard both read from the same store
         const hId = SMARTLOG_TO_H_ID[bubble.id];
-        if (hId) {
-            lifestyleStore.logHabit({
-                habitId: hId,
-                date: getTodayStr(),
-                completed: true,
-                loggedAt: Date.now(),
-                note: sub?.detail,
-            });
-        }
-        // Firestore write for cross-device sync
-        if (user?.uid) {
-            const uid = user.uid;
-            const today = getTodayStr();
-            (async () => {
-                try {
-                    const { getFirebaseFirestore } = await import('@/lib/firebase');
-                    const { doc, setDoc } = await import('firebase/firestore');
-                    const db = await getFirebaseFirestore();
-                    await setDoc(
-                        doc(db, 'users', uid, 'daily_logs', today),
-                        { habits: { [bubble.id]: { label: bubble.label, icon: bubble.icon, color: bubble.color, loggedAt: Date.now() } } },
-                        { merge: true }
-                    );
-                } catch { /* offline */ }
-            })();
+        const targetId = hId ?? (bubble.isDynamic ? bubble.id : null);
+        if (targetId) {
+            engine.completeHabit(targetId);
         }
 
         const slot = getCurrentTimeSlot();
