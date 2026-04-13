@@ -47,6 +47,20 @@ const CAT_CFG: Record<HabitCategory, { emoji: string; label: string; color: stri
   anytime: { emoji: '✦',  label: 'Anytime', color: '#4ade80' },
   sacred:  { emoji: '🔱', label: 'Sacred', color: '#c084fc' },
 };
+// ─── Ayurvedic canonical order ──────────────────────────────────────────────
+const MORNING_PRACTICE_ORDER_SAD: Record<string, number> = {
+  h_wake_early: 0, h_warm_water: 1, h_tongue_scraping: 2,
+  h_pranayama: 3, h_morning_meditation: 4, h_bathing: 5,
+  h_morning_sunlight: 6, h_gratitude: 7, h_breakfast: 8,
+};
+// SmartLog bubble ID → lifestyle-store h_* ID (for cross-section sync)
+const SMARTLOG_TO_H_ID_SAD: Record<string, string> = {
+  wake: 'h_wake_early', warm_water: 'h_warm_water',
+  tongue_scrape: 'h_tongue_scraping', breathwork: 'h_pranayama',
+  bath: 'h_bathing', morning_light: 'h_morning_sunlight',
+  breakfast: 'h_breakfast', sleep: 'h_sleep_early',
+  gratitude: 'h_gratitude', hydration: 'h_water',
+};
 const SANSKRIT_SLOTS: Record<string, string> = {
   'Brahma Muhurta': 'ब्रह्म मुहूर्त',
   'Morning Focus': 'प्रातःकाल',
@@ -447,11 +461,24 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const slotCfg = getTimeSlotConfig();
   const SlotIcon = slotCfg.Icon;
   const { completedIds, skippedIds } = engine.getTodayStatus();
-  const allCompletedIds = new Set([...completedIds, ...smartLoggedToday]);
+  // Translate SmartLog bubble IDs to h_* IDs so cross-section completions match
+  const smartLogMappedIds = new Set<string>();
+  smartLoggedToday.forEach(id => {
+    smartLogMappedIds.add(id);
+    const hId = SMARTLOG_TO_H_ID_SAD[id];
+    if (hId) smartLogMappedIds.add(hId);
+  });
+  const allCompletedIds = new Set([...completedIds, ...smartLogMappedIds]);
   const slotsNow = slotCfg.slotKey === 'morning' ? ['morning','sacred','anytime'] : slotCfg.slotKey === 'midday' ? ['midday','anytime'] : slotCfg.slotKey === 'evening' ? ['evening','anytime'] : ['night','anytime'];
   const relevantHabits = engine.activeHabits.filter(h => slotsNow.includes(h.category ?? 'anytime'));
-  const pendingHabits = relevantHabits.filter(h => !allCompletedIds.has(h.id) && !skippedIds.has(h.id));
-  const doneHabits = engine.activeHabits.filter(h => allCompletedIds.has(h.id));
+  const pendingHabitsRaw = relevantHabits.filter(h => !allCompletedIds.has(h.id) && !skippedIds.has(h.id));
+  const doneHabitsRaw = engine.activeHabits.filter(h => allCompletedIds.has(h.id));
+  const sortByOrder = (arr: typeof pendingHabitsRaw) =>
+    slotCfg.slotKey === 'morning'
+      ? [...arr].sort((a, b) => (MORNING_PRACTICE_ORDER_SAD[a.id] ?? 99) - (MORNING_PRACTICE_ORDER_SAD[b.id] ?? 99))
+      : arr;
+  const pendingHabits = sortByOrder(pendingHabitsRaw);
+  const doneHabits = sortByOrder(doneHabitsRaw);
   const completedCount = engine.activeHabits.filter(h => allCompletedIds.has(h.id)).length;
   const totalHabits = engine.activeHabits.length;
   const completionRate = totalHabits > 0 ? Math.round((completedCount / totalHabits) * 100) : 0;

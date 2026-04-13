@@ -309,7 +309,7 @@ type LogBubble = {
 // ─── Time-contextual bubble data ──────────────────────────────────────────────
 const MORNING_BUBBLES: LogBubble[] = [
     {
-        id: 'wake', icon: '🌅', label: 'Rise & Shine', sublabel: 'Wake-up ritual', color: '#fbbf24',
+        id: 'wake', icon: '🌅', label: 'Wake Before 6am', sublabel: 'Wake-up ritual', color: '#fbbf24',
         logMessage: 'I woke up this morning [UI_EVENT: MORNING_LOGS_CLICKED]',
         subOptions: [
             { icon: '⚡', label: 'Energized & fresh', detail: 'woke up feeling energized and completely fresh' },
@@ -319,7 +319,7 @@ const MORNING_BUBBLES: LogBubble[] = [
         ],
     },
     {
-        id: 'warm_water', icon: '🫗', label: 'Warm Water', sublabel: 'Ushapana · First sip', color: '#7dd3fc',
+        id: 'warm_water', icon: '🫗', label: 'Warm Water Ritual', sublabel: 'Ushapana · First sip', color: '#7dd3fc',
         logMessage: 'I drank warm water first thing this morning [UI_EVENT: MORNING_LOGS_CLICKED]',
         subOptions: [
             { icon: '🍋', label: 'Warm lemon water', detail: 'had warm lemon water to activate digestion' },
@@ -329,7 +329,7 @@ const MORNING_BUBBLES: LogBubble[] = [
         ],
     },
     {
-        id: 'tongue_scrape', icon: '✨', label: 'Tongue Clean', sublabel: 'Jihwa prakshalana', color: '#86efac',
+        id: 'tongue_scrape', icon: '✨', label: 'Tongue Scraping', sublabel: 'Jihwa prakshalana', color: '#86efac',
         logMessage: 'I did tongue scraping this morning [UI_EVENT: MORNING_LOGS_CLICKED]',
         subOptions: [
             { icon: '🥈', label: 'Silver scraper', detail: 'used a silver tongue scraper this morning' },
@@ -349,7 +349,7 @@ const MORNING_BUBBLES: LogBubble[] = [
         ],
     },
     {
-        id: 'bath', icon: '🚿', label: 'Bath & Recharge', sublabel: 'Snana · Cleanse ritual', color: '#38bdf8',
+        id: 'bath', icon: '🚿', label: 'Morning Bath', sublabel: 'Snana · Cleanse ritual', color: '#38bdf8',
         logMessage: 'I took a bath and recharged this morning [UI_EVENT: MORNING_LOGS_CLICKED]',
         subOptions: [
             { icon: '�', label: 'Cold shower', detail: 'took an invigorating cold shower' },
@@ -359,7 +359,7 @@ const MORNING_BUBBLES: LogBubble[] = [
         ],
     },
     {
-        id: 'morning_light', icon: '☀️', label: 'Morning Sun', sublabel: 'Surya darshana', color: '#fb923c',
+        id: 'morning_light', icon: '☀️', label: 'Morning Sunlight', sublabel: 'Surya darshana', color: '#fb923c',
         logMessage: 'I got morning sunlight exposure [UI_EVENT: MORNING_LOGS_CLICKED]',
         subOptions: [
             { icon: '👁️', label: 'Sun gazing', detail: 'did morning sun gazing ritual' },
@@ -369,7 +369,7 @@ const MORNING_BUBBLES: LogBubble[] = [
         ],
     },
     {
-        id: 'breakfast', icon: '🥣', label: 'Breakfast', sublabel: 'Ahara · First meal', color: '#34d399',
+        id: 'breakfast', icon: '🥣', label: 'Mindful Breakfast', sublabel: 'Ahara · First meal', color: '#34d399',
         logMessage: 'I had breakfast today [UI_EVENT: MORNING_LOGS_CLICKED]',
         subOptions: [
             { icon: '🥣', label: 'Oats & fruits', detail: 'had oats with fruits' },

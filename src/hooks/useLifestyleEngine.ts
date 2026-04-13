@@ -91,32 +91,35 @@ export function useLifestyleEngine() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user?.uid]);
 
-    // ── Sync today's habit completions from Firestore (cross-device) ───────────────
+    // ── Real-time sync of today's habit completions from Firestore (cross-device) ──
     useEffect(() => {
         if (!user?.uid) return;
         const uid = user.uid;
         const today = getToday();
+        let unsubscribe: (() => void) | undefined;
         (async () => {
             try {
                 const { getFirebaseFirestore } = await import('@/lib/firebase');
-                const { collection, query, where, getDocs } = await import('firebase/firestore');
+                const { collection, query, where, onSnapshot } = await import('firebase/firestore');
                 const db = await getFirebaseFirestore();
                 const q = query(
                     collection(db, 'users', uid, 'habit_logs'),
                     where('date', '==', today)
                 );
-                const snap = await getDocs(q);
-                const localIds = new Set(
-                    store.habitLogs.filter(l => l.date === today).map(l => l.habitId)
-                );
-                snap.forEach(docSnap => {
-                    const log = docSnap.data() as HabitLog;
-                    if (log?.habitId && !localIds.has(log.habitId)) {
-                        store.logHabit(log);
-                    }
+                unsubscribe = onSnapshot(q, (snap) => {
+                    const localIds = new Set(
+                        store.habitLogs.filter(l => l.date === today).map(l => l.habitId)
+                    );
+                    snap.forEach(docSnap => {
+                        const log = docSnap.data() as HabitLog;
+                        if (log?.habitId && !localIds.has(log.habitId)) {
+                            store.logHabit(log);
+                        }
+                    });
                 });
             } catch { /* offline */ }
         })();
+        return () => { if (unsubscribe) unsubscribe(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user?.uid]);
 
