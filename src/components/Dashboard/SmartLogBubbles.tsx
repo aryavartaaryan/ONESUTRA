@@ -14,7 +14,7 @@ import {
 import { getMorningMood } from '@/components/MoodGarden/MorningMoodCards';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { useLifestyleStore } from '@/stores/lifestyleStore';
-import { useLifestyleEngine } from '@/hooks/useLifestyleEngine';
+import { logHabitAndSync } from '@/hooks/useLifestyleEngine';
 
 // ─── Read Ayurvedic context from localStorage ────────────────────────────────
 function getLocalContext(habitId: string): { prakriti: string; vikriti: string; habitStreak: number } {
@@ -610,7 +610,6 @@ function buildDynamicHabitBubbles(
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function SmartLogBubbles() {
     const { user } = useOneSutraAuth();
-    const engine = useLifestyleEngine();
     const lifestyleStore = useLifestyleStore();
     const [activeBubble, setActiveBubble] = useState<string | null>(null);
     const [loggedToday, setLoggedToday] = useState<Set<string>>(() => getLoggedToday());
@@ -777,7 +776,10 @@ export default function SmartLogBubbles() {
         const hId = SMARTLOG_TO_H_ID[bubble.id];
         const targetId = hId ?? (bubble.isDynamic ? bubble.id : null);
         if (targetId) {
-            engine.completeHabit(targetId);
+            // Fire-and-forget: updates local Zustand store instantly + writes to
+            // habit_logs Firestore. onSnapshot on all logged-in devices picks this
+            // up in milliseconds without any additional listener in this component.
+            logHabitAndSync(user?.uid, targetId, sub?.detail);
         }
 
         const slot = getCurrentTimeSlot();

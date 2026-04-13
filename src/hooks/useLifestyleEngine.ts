@@ -22,6 +22,34 @@ import {
 } from '@/stores/lifestyleStore';
 import { useOneSutraAuth } from './useOneSutraAuth';
 
+// ─── Standalone habit-log writer (no hook needed) ──────────────────────────────────
+// Writes to habit_logs Firestore (single source of truth) + updates local
+// Zustand store immediately. onSnapshot listeners on all logged-in devices
+// will pick this up within milliseconds.
+export async function logHabitAndSync(
+    uid: string | null | undefined,
+    habitId: string,
+    note?: string
+): Promise<void> {
+    const today = getToday();
+    const log: HabitLog = { habitId, date: today, completed: true, loggedAt: Date.now(), note };
+    // Instant local update — so UI responds without waiting for Firestore
+    useLifestyleStore.getState().logHabit(log);
+    // Persist to Firestore so other devices and re-login see it
+    if (uid) {
+        try {
+            const { getFirebaseFirestore } = await import('@/lib/firebase');
+            const { doc, setDoc } = await import('firebase/firestore');
+            const db = await getFirebaseFirestore();
+            await setDoc(
+                doc(db, 'users', uid, 'habit_logs', `${habitId}_${today}`),
+                { ...log, uid },
+                { merge: true }
+            );
+        } catch { /* offline — local state already updated */ }
+    }
+}
+
 // ─── XP values per action ──────────────────────────────────────────────────────
 const XP_TABLE: Record<string, number> = {
     habit_complete: 10,
@@ -107,13 +135,13 @@ export function useLifestyleEngine() {
                     where('date', '==', today)
                 );
                 unsubscribe = onSnapshot(q, (snap) => {
-                    const localIds = new Set(
-                        store.habitLogs.filter(l => l.date === today).map(l => l.habitId)
-                    );
+                    // Use getState() to always read CURRENT store — not a stale closure snapshot
+                    const { habitLogs, logHabit } = useLifestyleStore.getState();
+                    const localIds = new Set(habitLogs.filter(l => l.date === today).map(l => l.habitId));
                     snap.forEach(docSnap => {
                         const log = docSnap.data() as HabitLog;
                         if (log?.habitId && !localIds.has(log.habitId)) {
-                            store.logHabit(log);
+                            logHabit(log);
                         }
                     });
                 });
