@@ -37,6 +37,8 @@ export const AYURVEDIC_HABITS: AyurvedicHabit[] = [
     { id: 'meditation', name: 'Silent Meditation', nameHi: 'ध्यान', emoji: '🧘', category: 'morning', targetMin: 15, description: 'Morning meditation — ideally in Brahma Muhurta — reduces all three doshas and builds Ojas.', doshaEffect: { vata: -1, pitta: -1, kapha: -1 }, bestFor: ['vata', 'pitta', 'kapha'], tags: ['ojas', 'sattva', 'morning'] },
     { id: 'sunlight_morning', name: 'Morning Sunlight', nameHi: 'सूर्य दर्शन', emoji: '🌅', category: 'morning', targetMin: 5, description: 'Natural morning light synchronises your circadian rhythm with the Ayurvedic clock.', doshaEffect: { vata: -1, pitta: 0, kapha: -1 }, bestFor: ['vata', 'kapha'], tags: ['circadian', 'kapha', 'morning'] },
 
+    { id: 'morning_meal', name: 'Mindful Breakfast', nameHi: 'प्रातः भोजन', emoji: '🥣', category: 'morning', targetMin: 20, description: 'Warm, nourishing breakfast 1–2 hours after waking. Kindle Agni gently before the Pitta peak.', doshaEffect: { vata: -1, pitta: -1, kapha: 0 }, bestFor: ['vata', 'pitta'], tags: ['ahara', 'agni', 'morning'] },
+
     // ── Midday ────────────────────────────────────────────────────────────────
     { id: 'main_meal_noon', name: 'Lunch (Main Meal)', nameHi: 'मध्याह्न भोजन', emoji: '🍛', category: 'midday', targetMin: 30, description: 'Largest meal between 12–1 PM when Agni is strongest. The foundation of Ayurvedic diet.', doshaEffect: { vata: -1, pitta: -2, kapha: 0 }, bestFor: ['pitta', 'vata'], tags: ['ahara', 'agni', 'timing'] },
     { id: 'deep_work_afternoon', name: 'Deep Work', nameHi: 'गहन कार्य', emoji: '🎯', category: 'midday', targetMin: 90, description: 'Focused, undistracted work during the Pitta peak — when mental clarity and concentration are highest. Channel the fire.', doshaEffect: { vata: 0, pitta: -1, kapha: -2 }, bestFor: ['kapha', 'pitta'], tags: ['productivity', 'focus', 'pitta'] },
@@ -58,6 +60,7 @@ export const AYURVEDIC_HABITS: AyurvedicHabit[] = [
 
 // ─── Ayurvedic ID → Lifestyle store h_* ID (for logHabitAndSync) ─────────────
 export const AYUR_TO_H_ID: Record<string, string> = {
+    morning_meal: 'h_breakfast',
     warm_water_morning: 'h_warm_water',
     tongue_scraping: 'h_tongue_scraping',
     abhyanga: 'h_bathing',
@@ -65,7 +68,6 @@ export const AYUR_TO_H_ID: Record<string, string> = {
     kapalabhati: 'h_pranayama',
     meditation: 'h_morning_meditation',
     sunlight_morning: 'h_morning_sunlight',
-    main_meal_noon: 'h_breakfast',
     deep_work_afternoon: 't_deep_work',
     shatapavali: 'h_walk',
     herbal_tea: 'h_water',
@@ -84,7 +86,7 @@ export const H_ID_TO_AYUR: Record<string, string> = {
     h_pranayama: 'anulom_vilom',
     h_morning_meditation: 'meditation',
     h_morning_sunlight: 'sunlight_morning',
-    h_breakfast: 'main_meal_noon',
+    h_breakfast: 'morning_meal',
     t_deep_work: 'deep_work_afternoon',
     h_walk: 'shatapavali',
     h_water: 'herbal_tea',

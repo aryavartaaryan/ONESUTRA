@@ -15,7 +15,10 @@ import { getMorningMood } from '@/components/MoodGarden/MorningMoodCards';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { useLifestyleStore } from '@/stores/lifestyleStore';
 import { logHabitAndSync } from '@/hooks/useLifestyleEngine';
-import { H_ID_TO_AYUR, setAyurHabitCompleted } from '@/lib/ayurvedicHabitsData';
+import { AYURVEDIC_HABITS, AYUR_TO_H_ID, H_ID_TO_AYUR, setAyurHabitCompleted, getHabitsForSlot, getTodayAyurCompletedIds } from '@/lib/ayurvedicHabitsData';
+
+// ─── Set of canonical Ayurvedic habit IDs (used for done-status routing) ─────
+const AYUR_IDS = new Set(AYURVEDIC_HABITS.map(h => h.id));
 
 // ─── Read Ayurvedic context from localStorage ────────────────────────────────
 function getLocalContext(habitId: string): { prakriti: string; vikriti: string; habitStreak: number } {
@@ -48,7 +51,6 @@ const SMARTLOG_TO_H_ID: Record<string, string> = {
     breathwork: 'h_pranayama',
     bath: 'h_bathing',
     morning_light: 'h_morning_sunlight',
-    breakfast: 'h_breakfast',
     sleep: 'h_sleep_early',
     gratitude: 'h_gratitude',
     hydration: 'h_water',
@@ -56,21 +58,19 @@ const SMARTLOG_TO_H_ID: Record<string, string> = {
     h_evening_meditation: 'h_evening_meditation',
     h_digital_sunset: 'h_digital_sunset',
     h_brain_dump: 'h_brain_dump',
-    dinner: 'h_sleep_early',
-    lunch: 'h_breakfast',
 };
 // Reverse map: lifestyle-store h_* ID → static bubble ID
 // Used to sync loggedToday when the store is updated from Firestore
 const H_ID_TO_SMARTLOG: Record<string, string> = {
     h_wake_early: 'wake', h_warm_water: 'warm_water', h_tongue_scraping: 'tongue_scrape',
     h_pranayama: 'breathwork', h_bathing: 'bath', h_morning_sunlight: 'morning_light',
-    h_breakfast: 'breakfast', h_sleep_early: 'sleep', h_gratitude: 'gratitude',
+    h_sleep_early: 'sleep', h_gratitude: 'gratitude',
     h_water: 'hydration', h_walk: 'h_walk', h_evening_meditation: 'h_evening_meditation',
     h_digital_sunset: 'h_digital_sunset', h_brain_dump: 'h_brain_dump',
 };
 
 // ─── Order Enforcement ────────────────────────────────────────────────────────
-const MORNING_ORDER = ['wake', 'warm_water', 'tongue_scrape', 'breathwork', 'bath', 'morning_light', 'breakfast'];
+const MORNING_ORDER = ['wake', 'warm_water', 'tongue_scrape', 'breathwork', 'bath', 'morning_light'];
 const LOG_STORE_KEY = 'onesutra_smartlog_v2';
 const LIFESTYLE_STORE_KEY = 'onesutra_lifestyle_v2';
 
@@ -164,10 +164,10 @@ function getCurrentTimeSlot(): TimeSlot {
 
 // ─── Check if log is in its ideal time slot ───────────────────────────────────
 function isOnTimeForSlot(bubbleId: string, slot: TimeSlot): boolean {
-    const morningIds = new Set(['wake', 'warm_water', 'tongue_scrape', 'bath', 'breakfast', 'breathwork', 'morning_light']);
-    const middayIds = new Set(['lunch', 'deep_work', 'screen_break', 'hydration']);
-    const eveningIds = new Set(['h_walk', 'h_evening_meditation', 'dinner', 'h_digital_sunset', 'h_brain_dump']);
-    const nightIds = new Set(['sleep', 'gratitude', 'dinner_night', 'read']);
+    const morningIds = new Set(['wake', 'warm_water', 'tongue_scrape', 'bath', 'breathwork', 'morning_light', 'warm_water_morning', 'tongue_scraping', 'abhyanga', 'anulom_vilom', 'kapalabhati', 'meditation', 'sunlight_morning', 'gratitude_practice']);
+    const middayIds = new Set(['deep_work', 'screen_break', 'hydration', 'main_meal_noon', 'deep_work_afternoon', 'shatapavali', 'herbal_tea']);
+    const eveningIds = new Set(['h_walk', 'h_evening_meditation', 'h_digital_sunset', 'h_brain_dump', 'evening_walk', 'light_dinner_early', 'screen_free_hour', 'journaling']);
+    const nightIds = new Set(['sleep', 'gratitude', 'read', 'sleep_by_10']);
     if (slot === 'morning' || slot === 'pre-dawn') return morningIds.has(bubbleId);
     if (slot === 'midday') return middayIds.has(bubbleId);
     if (slot === 'evening' || slot === 'afternoon') return eveningIds.has(bubbleId);
@@ -184,12 +184,10 @@ const TIMING_WINDOWS: Record<string, { ideal: [number, number]; late: [number, n
     breathwork: { ideal: [4, 8], late: [8, 10] },
     bath: { ideal: [4, 8], late: [8, 10] },
     morning_light: { ideal: [6, 8], late: [8, 10] },
-    breakfast: { ideal: [7, 9], late: [9, 11] },
-    lunch: { ideal: [12, 13], late: [13, 15] },
+    main_meal_noon: { ideal: [12, 13], late: [13, 15] },
+    light_dinner_early: { ideal: [18, 20], late: [20, 22] },
     h_walk: { ideal: [17, 19], late: [19, 21] },
     h_evening_meditation: { ideal: [18, 20], late: [20, 22] },
-    dinner: { ideal: [18, 20], late: [20, 22] },
-    dinner_night: { ideal: [18, 20], late: [20, 22] },
     h_digital_sunset: { ideal: [20, 21], late: [21, 23] },
     h_brain_dump: { ideal: [19, 21], late: [21, 23] },
     sleep: { ideal: [21, 22], late: [22, 24] },
@@ -219,15 +217,13 @@ export const INSIGHT_SNIPPETS: Record<string, string> = {
     breathwork: 'Prana calibrated. Nervous system got its morning reset.',
     bath: 'Tamas lifted before the world asks anything of you.',
     morning_light: 'Surya Shakti absorbed — circadian rhythm anchored.',
-    breakfast: 'Agni fed at the right time — energy has a foundation.',
-    lunch: 'Pitta peak honoured — food converts to Ojas now.',
+    main_meal_noon: 'Pitta peak honoured — food converts to Ojas now.',
+    light_dinner_early: 'Light evening meal — Ojas protected for deep sleep.',
     deep_work: 'Pitta intellect harnessed — sharpest focus window.',
     screen_break: 'Alochaka Pitta rested — eye prana restored.',
     hydration: 'Prana flows with water — every cell grateful.',
     h_walk: 'Sandhya walk done — Vata grounded, digestion aided, Ojas building.',
     h_evening_meditation: 'Sandhya complete — day released into stillness, mind prepared for rest.',
-    dinner: 'Light evening meal — Ojas protected for deep sleep.',
-    dinner_night: 'Sattvic dinner — final act of self-love tonight.',
     h_digital_sunset: 'Melatonin protected — sleep architecture intact.',
     h_brain_dump: 'Svadhyaya complete — mind emptied, tomorrow clearer.',
     sleep: 'Pitta gets its full repair window. Cellular clock grateful.',
@@ -241,9 +237,8 @@ const TIMING_NUDGES: Record<string, string> = {
     breathwork: 'Before 8 AM tomorrow — Prana sets the whole day.',
     bath: 'Earlier tomorrow shifts the whole morning. 🙏',
     morning_light: 'Within 1 hr of sunrise tomorrow — circadian magic.',
-    breakfast: '7–9 AM tomorrow — Agni peak honoured.',
+    main_meal_noon: '12–1 PM tomorrow — Pitta peak for best digestion.',
     sleep: 'Before 10 PM tonight — Pitta repair window open. 🙏',
-    lunch: '12–1 PM tomorrow — Pitta peak for best digestion.',
 };
 
 function getTimingAck(status: TimingStatus, label: string): string {
@@ -265,25 +260,30 @@ function getNudge(id: string): string | null {
 // Includes both the static bubble IDs AND the matching lifestyle-store habit IDs
 // so that dynamic habit bubbles never repeat what static bubbles already show.
 const STATIC_BUBBLE_IDS = new Set([
-    // Static bubble IDs
-    'wake', 'warm_water', 'tongue_scrape', 'bath', 'breakfast', 'breathwork', 'morning_light',
-    'lunch', 'deep_work', 'screen_break', 'hydration',
-    'h_walk', 'h_evening_meditation', 'dinner', 'h_digital_sunset', 'h_brain_dump',
-    'sleep', 'gratitude', 'dinner_night', 'read',
-    // Lifestyle-store habit IDs that duplicate the above static bubbles
-    'h_wake_early',          // = 'wake'       Rise & Shine
-    'h_warm_water',          // = 'warm_water'  Warm Water Ritual
-    'h_tongue_scraping',     // = 'tongue_scrape' Tongue Clean
-    'h_pranayama',           // = 'breathwork'  Pranayama
-    'h_morning_meditation',  // = 'breathwork'  Morning Meditation
-    'h_bathing',             // = 'bath'        Morning Bath / Bath & Recharge
-    'h_morning_sunlight',    // = 'morning_light' Morning Sun
-    'h_breakfast',           // = 'breakfast'   Mindful Breakfast
-    'h_sleep_early',         // = 'sleep'       Sleep by 10 PM
-    'h_digital_detox',       // = 'h_digital_sunset' Screen Detox
-    'h_water',               // = 'hydration'   Hydration
-    'h_gratitude',           // = 'gratitude'   Gratitude Log
-    'h_noon_checkin',        // = 'screen_break' Noon Mindfulness
+    // Legacy static bubble IDs
+    'wake', 'warm_water', 'tongue_scrape', 'bath', 'breathwork', 'morning_light',
+    'deep_work', 'screen_break', 'hydration',
+    'h_walk', 'h_evening_meditation', 'h_digital_sunset', 'h_brain_dump',
+    'sleep', 'gratitude', 'read',
+    // Ayurvedic habit IDs (now the canonical source shown in bubbles)
+    'morning_meal',
+    'warm_water_morning', 'tongue_scraping', 'abhyanga', 'anulom_vilom', 'kapalabhati',
+    'meditation', 'sunlight_morning', 'gratitude_practice',
+    'main_meal_noon', 'deep_work_afternoon', 'shatapavali', 'herbal_tea',
+    'evening_walk', 'light_dinner_early', 'screen_free_hour', 'journaling', 'sleep_by_10',
+    // Lifestyle-store habit IDs that duplicate the above
+    'h_wake_early',          // = 'wake'
+    'h_warm_water',          // = 'warm_water_morning'
+    'h_tongue_scraping',     // = 'tongue_scraping'
+    'h_pranayama',           // = 'anulom_vilom' / 'kapalabhati'
+    'h_morning_meditation',  // = 'meditation'
+    'h_bathing',             // = 'abhyanga'
+    'h_morning_sunlight',    // = 'sunlight_morning'
+    'h_sleep_early',         // = 'sleep_by_10'
+    'h_digital_detox',       // = 'screen_free_hour'
+    'h_water',               // = 'herbal_tea'
+    'h_gratitude',           // = 'gratitude_practice'
+    'h_noon_checkin',        // = 'screen_break'
 ]);
 
 // ─── Map lifestyle category → time slot ──────────────────────────────────────
@@ -317,7 +317,13 @@ type LogBubble = {
     isAnytime?: boolean;
 };
 
-// ─── Time-contextual bubble data ──────────────────────────────────────────────
+// ─── Legacy static bubble data (unused — kept for reference only) ────────────
+// Meals are now sourced from AYURVEDIC_HABITS via getTimedBubbles().
+// The arrays below are intentionally empty; all timed bubbles come from
+// the Ayurvedic habits library so there is no duplication with the
+// "Your Logging Progress Today" panel on the left.
+// ─────────────────────────────────────────────────────────────────────────────
+
 const MORNING_BUBBLES: LogBubble[] = [
     {
         id: 'wake', icon: '🌅', label: 'Wake Before 6am', sublabel: 'Wake-up ritual', color: '#fbbf24',
@@ -532,14 +538,77 @@ const NIGHT_BUBBLES: LogBubble[] = [
     },
 ];
 
+// ─── Slot color palette ───────────────────────────────────────────────────────
+const SLOT_COLORS: Record<string, string> = {
+    morning: '#fbbf24', midday: '#fb923c', evening: '#a78bfa', night: '#60a5fa', anytime: '#4ade80',
+};
+
+// ─── Rich sub-options by habit category (shown when bubble is tapped) ─────────
+function getSubOptionsForHabit(id: string, name: string): SubOption[] {
+    // Meal habits — full food-picker (matches old MealLoggingSection)
+    if (id === 'morning_meal') return [
+        { icon: '🥣', label: 'Oats & fruits', detail: 'had oats and fruits for breakfast' },
+        { icon: '🫓', label: 'Parathas', detail: 'had parathas for breakfast' },
+        { icon: '🍳', label: 'Eggs', detail: 'had eggs for breakfast' },
+        { icon: '🍵', label: 'Just chai', detail: 'had just chai for breakfast' },
+        { icon: '🥛', label: 'Smoothie', detail: 'had a smoothie for breakfast' },
+        { icon: '⏭️', label: 'Skipped', detail: 'skipped breakfast today' },
+    ];
+    if (id === 'main_meal_noon') return [
+        { icon: '🍚', label: 'Dal rice', detail: 'had dal rice for lunch' },
+        { icon: '🫓', label: 'Roti sabzi', detail: 'had roti sabzi for lunch' },
+        { icon: '🥗', label: 'Light salad', detail: 'had a light salad lunch' },
+        { icon: '🍕', label: 'Outside food', detail: 'had outside food for lunch' },
+        { icon: '🍲', label: 'Thali', detail: 'had a full thali for lunch' },
+        { icon: '⏭️', label: 'Skipped', detail: 'skipped lunch today' },
+    ];
+    if (id === 'light_dinner_early') return [
+        { icon: '🥗', label: 'Light & clean', detail: 'had a light clean dinner' },
+        { icon: '🍚', label: 'Full meal', detail: 'had a full dinner' },
+        { icon: '🫓', label: 'Roti sabzi', detail: 'had roti sabzi for dinner' },
+        { icon: '🍕', label: 'Cheat meal', detail: 'had a cheat meal for dinner' },
+        { icon: '🍲', label: 'Khichdi', detail: 'had khichdi — ideal Ayurvedic dinner' },
+        { icon: '⏭️', label: 'Skipping', detail: 'skipping dinner tonight' },
+    ];
+    // Breathwork / movement
+    if (id === 'anulom_vilom' || id === 'kapalabhati') return [{ icon: '⏱️', label: '5 minutes', detail: `5-min ${name}` }, { icon: '🌬️', label: '15 minutes', detail: `15-min ${name}` }, { icon: '✅', label: 'Full set', detail: `completed full ${name} set` }];
+    if (id === 'meditation') return [{ icon: '⏱️', label: '5 minutes', detail: '5-min morning meditation' }, { icon: '🧘', label: '15 minutes', detail: '15-min morning meditation' }, { icon: '✨', label: '30 minutes', detail: '30-min deep meditation' }];
+    if (id === 'shatapavali') return [{ icon: '100', label: '100 steps', detail: '100-step Shatapavali walk after lunch' }, { icon: '🚶', label: '10 min', detail: '10-min post-meal walk' }, { icon: '🌳', label: '20 min', detail: '20-min nature walk after meal' }];
+    if (id === 'deep_work_afternoon') return [{ icon: '🎯', label: 'Flow session', detail: 'entered flow state — deep work done' }, { icon: '⏱️', label: '90 min', detail: '90-minute deep work block' }, { icon: '📵', label: 'Phone-free', detail: 'phone-free deep work session' }];
+    if (id === 'evening_walk') return [{ icon: '🌆', label: '20 min walk', detail: '20-min evening walk done' }, { icon: '🌳', label: 'Nature walk', detail: 'nature walk in the evening' }];
+    if (id === 'screen_free_hour') return [{ icon: '📵', label: 'No screens', detail: 'no screens for an hour before bed' }, { icon: '📚', label: 'Read instead', detail: 'read a book instead of screens' }];
+    if (id === 'journaling') return [{ icon: '📓', label: 'Wrote today', detail: 'wrote in journal today' }, { icon: '✍️', label: 'Gratitude', detail: 'gratitude journaling done' }];
+    if (id === 'sleep_by_10') return [{ icon: '😴', label: 'By 10 PM', detail: 'in bed by 10 PM' }, { icon: '🌙', label: 'By 11 PM', detail: 'in bed by 11 PM' }];
+    // Default
+    return [
+        { icon: '✅', label: 'Done fully', detail: `completed ${name} fully today` },
+        { icon: '⚡', label: 'Done quickly', detail: `did a quick ${name}` },
+        { icon: '🌱', label: 'Partial', detail: `partially done ${name} — still counts` },
+    ];
+}
+
+/**
+ * Build static timed bubbles FROM the shared Ayurvedic habits lib.
+ * This is the single source of truth — both SmartLogBubbles and
+ * SmartAnalyticsDashboard (Your Logging Progress Today) show the same habits.
+ */
 export function getTimedBubbles(): LogBubble[] {
     const h = new Date().getHours();
-    if (h >= 2 && h < 11) return MORNING_BUBBLES;
-    if (h >= 11 && h < 15) return NOON_BUBBLES;
-    if (h >= 15 && h < 22) return h < 18
-        ? EVENING_BUBBLES.filter(b => b.id !== 'dinner')
-        : EVENING_BUBBLES;
-    return NIGHT_BUBBLES;
+    const slot: import('@/lib/ayurvedicHabitsData').TimeSlot =
+        (h >= 3 && h < 11) ? 'morning' :
+            (h >= 11 && h < 15) ? 'midday' :
+                (h >= 15 && h < 21) ? 'evening' : 'night';
+
+    const habits = getHabitsForSlot(slot).filter(habit => habit.category !== 'anytime');
+    return habits.map(habit => ({
+        id: habit.id,
+        icon: habit.emoji,
+        label: habit.name,
+        sublabel: habit.description.slice(0, 52) + (habit.description.length > 52 ? '…' : ''),
+        color: SLOT_COLORS[habit.category] ?? '#a78bfa',
+        logMessage: `I completed ${habit.name} [UI_EVENT: AYUR_LOG]`,
+        subOptions: getSubOptionsForHabit(habit.id, habit.name),
+    }));
 }
 
 export function getTimeLabel(): { label: string; color: string; Icon: LucideIcon; sublabel: string } {
@@ -615,6 +684,7 @@ export default function SmartLogBubbles() {
     const [activeBubble, setActiveBubble] = useState<string | null>(null);
     const [loggedToday, setLoggedToday] = useState<Set<string>>(() => getLoggedToday());
     const [completedHabitIds, setCompletedHabitIds] = useState<Set<string>>(() => getCompletedHabitIds());
+    const [ayurCompletedIds, setAyurCompletedIds] = useState<Set<string>>(() => getTodayAyurCompletedIds());
     const [orderToast, setOrderToast] = useState<string | null>(null);
 
     const [currentHour, setCurrentHour] = useState(() => new Date().getHours());
@@ -637,15 +707,18 @@ export default function SmartLogBubbles() {
         const refresh = () => {
             setLoggedToday(getLoggedToday());
             setCompletedHabitIds(getCompletedHabitIds());
+            setAyurCompletedIds(getTodayAyurCompletedIds());
         };
         refresh();
         window.addEventListener('focus', refresh);
         window.addEventListener('daily-log-story-updated', refresh);
+        window.addEventListener('habit-logged', refresh);
         window.addEventListener('storage', refresh);
         const timer = setInterval(refresh, 20_000);
         return () => {
             window.removeEventListener('focus', refresh);
             window.removeEventListener('daily-log-story-updated', refresh);
+            window.removeEventListener('habit-logged', refresh);
             window.removeEventListener('storage', refresh);
             clearInterval(timer);
         };
@@ -690,13 +763,19 @@ export default function SmartLogBubbles() {
                 .map(l => l.habitId)
         );
         return staticBubbles.filter(b => {
+            if (AYUR_IDS.has(b.id)) {
+                // For Ayurvedic habits: use ONLY ayurCompletedIds as source of truth.
+                // loggedToday may have stale data from old code that never wrote to ayurCompletedIds.
+                return !ayurCompletedIds.has(b.id);
+            }
+            // Legacy static bubbles: check loggedToday + lifestyle store
             if (loggedToday.has(b.id)) return false;
             const hId = SMARTLOG_TO_H_ID[b.id];
             if (hId && lifestyleDone.has(hId)) return false;
             return true;
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [staticBubbles, loggedToday.size, lifestyleStore.habitLogs]);
+    }, [staticBubbles, loggedToday.size, ayurCompletedIds.size, lifestyleStore.habitLogs]);
 
     // Timed section: static + user lifestyle habits for the current time slot
     const timedBubbles = useMemo(() => {
@@ -778,6 +857,7 @@ export default function SmartLogBubbles() {
         const updated = new Set(loggedToday).add(bubble.id);
         setLoggedToday(updated);
         saveLoggedToday(updated);
+        setAyurCompletedIds(prev => new Set([...prev, bubble.id]));
         saveToDailyLogStory(bubble.id, bubble.icon, bubble.label, bubble.color);
         setActiveBubble(null);
         // ── Route through engine.completeHabit() → writes to habit_logs Firestore ──
@@ -785,22 +865,24 @@ export default function SmartLogBubbles() {
         //   • re-login persistence (onSnapshot reloads habit_logs on next login)
         //   • same-user cross-device real-time sync via onSnapshot listener in useLifestyleEngine
         //   • LifestylePanel + SmartAnalyticsDashboard both read from the same store
-        const hId = SMARTLOG_TO_H_ID[bubble.id];
-        const targetId = hId ?? (bubble.isDynamic ? bubble.id : null);
-        if (targetId) {
-            // Fire-and-forget: updates local Zustand store instantly + writes to
-            // habit_logs Firestore. onSnapshot on all logged-in devices picks this
-            // up in milliseconds without any additional listener in this component.
-            logHabitAndSync(user?.uid, targetId, sub?.detail);
-            // Also mark in the Ayurvedic local log so ayurvedic page + LifestylePanel Niyama section sync
-            const ayurId = H_ID_TO_AYUR[targetId];
-            if (ayurId) setAyurHabitCompleted(ayurId);
-        }
-        // Also mark by static bubble ID → ayur map (for bubbles without an h_* mapping)
-        const directAyurId = H_ID_TO_AYUR[bubble.id];
-        if (directAyurId) setAyurHabitCompleted(directAyurId);
-        // Dispatch event so LifestylePanel's Niyama section refreshes
+        // Bubble IDs are now Ayurvedic IDs (e.g. 'main_meal_noon') — map via AYUR_TO_H_ID first,
+        // then fall back to legacy SMARTLOG_TO_H_ID for any remaining static bubbles
+        // For ayurvedic bubbles, prefer a matching h_* ID only if the mapping is
+        // meaningful (same habit category). Fall back to the ayurvedic ID itself
+        // so Firebase always receives a write even without an h_* alias.
+        const hId = SMARTLOG_TO_H_ID[bubble.id] ?? (bubble.isDynamic ? null : AYUR_TO_H_ID[bubble.id]);
+        const targetId = hId ?? bubble.id;
+        // Fire-and-forget: updates local Zustand store instantly + writes to
+        // habit_logs Firestore. onSnapshot on all logged-in devices picks this
+        // up in milliseconds without any additional listener in this component.
+        logHabitAndSync(user?.uid, targetId, sub?.detail);
+        // Mark in the Ayurvedic local log so ayurvedic page + dashboard sync
+        const ayurId = H_ID_TO_AYUR[targetId] ?? bubble.id;
+        setAyurHabitCompleted(ayurId);
+        // Dispatch event so SmartAnalyticsDashboard and LifestylePanel both refresh
         try { window.dispatchEvent(new CustomEvent('habit-logged')); } catch { }
+        try { window.dispatchEvent(new CustomEvent('daily-log-story-updated')); } catch { }
+
 
         const slot = getCurrentTimeSlot();
         const onTime = isOnTimeForSlot(bubble.id, slot);
@@ -909,7 +991,11 @@ export default function SmartLogBubbles() {
     // ── Render a single bubble ───────────────────────────────────────────────
     const renderBubble = (bubble: LogBubble, i: number) => {
         const isActive = activeBubble === bubble.id;
-        const isDone = loggedToday.has(bubble.id);
+        // Ayurvedic habits: trust ayurCompletedIds (loggedToday may be stale).
+        // Legacy/dynamic habits: use loggedToday.
+        const isDone = AYUR_IDS.has(bubble.id)
+            ? ayurCompletedIds.has(bubble.id)
+            : loggedToday.has(bubble.id);
         if (isDone) return null;
         const isLocked = !isDone && getBlockReason(bubble.id) !== null;
         const isDynamic = !!bubble.isDynamic;

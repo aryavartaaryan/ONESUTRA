@@ -703,8 +703,6 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
   const [showGunaTracker, setShowGunaTracker] = useState(false);
   const [activeGunaTab, setActiveGunaTab] = useState<'guna' | 'dosha'>('guna');
   const [smartLogDoneIds, setSmartLogDoneIds] = useState<Set<string>>(readSmartLogDoneHabitIds);
-  // Ayurvedic Niyama section: completed IDs from shared localStorage + Firestore
-  const [ayurCompletedIds, setAyurCompletedIds] = useState<Set<string>>(() => getTodayAyurCompletedIds());
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [bodhiVoiceBubble, setBodhiVoiceBubble] = useState<{ text: string; isOptimalTime: boolean; habitName: string; habitIcon: string } | null>(null);
   const [bodhiSpeaking, setBodhiSpeaking] = useState(false);
@@ -718,7 +716,6 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
   useEffect(() => {
     const refreshAll = () => {
       setSmartLogDoneIds(readSmartLogDoneHabitIds());
-      setAyurCompletedIds(getTodayAyurCompletedIds());
     };
     window.addEventListener('focus', refreshAll);
     window.addEventListener('daily-log-story-updated', refreshAll);
@@ -1536,136 +1533,6 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
             );
           })()}
 
-          {/* ── AYURVEDIC NIYAMA LOG ── Shared source with SmartLogBubbles ────
-               All habits come from /lifestyle/ayurvedic-habits via shared lib.
-               Logging here writes to Firestore habit_logs (same as SmartLogBubbles)
-               → both screens + Ayurvedic page stay in sync, cross-device real-time.
-          ──────────────────────────────────────────────────────────────────── */}
-          {(() => {
-            const slot = getAyurTimeSlot();
-            const slotHabits = getHabitsForSlot(slot);
-
-            // Merge: local ayurvedic localStorage + Firestore store (via H_ID_TO_AYUR)
-            const today = new Date().toISOString().split('T')[0];
-            const firestoreDoneAyurIds = new Set(
-              engine.habitLogs
-                .filter(l => l.date === today && l.completed)
-                .map(l => H_ID_TO_AYUR[l.habitId])
-                .filter(Boolean)
-            );
-            const mergedDone = new Set([...ayurCompletedIds, ...firestoreDoneAyurIds]);
-
-            const pending = slotHabits.filter(h => !mergedDone.has(h.id));
-            const done = slotHabits.filter(h => mergedDone.has(h.id));
-
-            const slotEmoji = slot === 'morning' ? '🌅' : slot === 'midday' ? '☀️' : slot === 'evening' ? '🌆' : '🌙';
-            const slotLabel = slot === 'morning' ? 'Morning' : slot === 'midday' ? 'Midday' : slot === 'evening' ? 'Evening' : 'Night';
-            const slotColor = slot === 'morning' ? '#fbbf24' : slot === 'midday' ? '#fb923c' : slot === 'evening' ? '#a78bfa' : '#60a5fa';
-
-            return (
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 }}
-                style={{ marginBottom: '1rem', borderRadius: 18, overflow: 'hidden', border: `1px solid ${slotColor}30`, background: 'rgba(0,0,0,0.32)', backdropFilter: 'blur(14px)' }}>
-
-                {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.72rem 0.9rem 0.5rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                    <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 2.5, repeat: Infinity }}
-                      style={{ width: 7, height: 7, borderRadius: '50%', background: slotColor, boxShadow: `0 0 8px ${slotColor}` }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 800, color: slotColor, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                      {slotEmoji} {slotLabel} Niyama Log
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    {done.length > 0 && (
-                      <span style={{ fontSize: '0.55rem', padding: '0.12rem 0.44rem', borderRadius: 99, background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.35)', color: '#4ade80', fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>
-                        {done.length}/{slotHabits.length} done
-                      </span>
-                    )}
-                    <span onClick={() => router.push('/lifestyle/ayurvedic-habits')}
-                      style={{ fontSize: '0.52rem', color: slotColor, fontFamily: "'Outfit', sans-serif", fontWeight: 700, cursor: 'pointer', opacity: 0.72 }}>
-                      View all →
-                    </span>
-                  </div>
-                </div>
-
-                {/* Pending habits */}
-                <div style={{ padding: '0 0.6rem 0.7rem' }}>
-                  {pending.length === 0 && done.length > 0 && (
-                    <div style={{ textAlign: 'center', padding: '0.9rem 0', opacity: 0.6 }}>
-                      <span style={{ fontSize: '1.25rem' }}>🏆</span>
-                      <p style={{ margin: '0.25rem 0 0', fontSize: '0.72rem', color: 'rgba(255,255,255,0.55)', fontFamily: "'Outfit', sans-serif" }}>
-                        All {slotLabel.toLowerCase()} niyamas complete!
-                      </p>
-                    </div>
-                  )}
-                  {pending.map((habit, i) => (
-                    <motion.div key={habit.id}
-                      initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.52rem 0.45rem', borderRadius: 13, marginBottom: '0.35rem', background: `radial-gradient(ellipse at 20% 30%, ${slotColor}15 0%, rgba(0,0,0,0.3) 80%)`, border: `1px solid ${slotColor}28`, cursor: 'pointer' }}
-                      whileTap={{ scale: 0.97 }}
-                      onClick={() => {
-                        // 1. Mark in Ayurvedic localStorage
-                        setAyurHabitCompleted(habit.id);
-                        setAyurCompletedIds(prev => new Set([...prev, habit.id]));
-                        // 2. Write to Firestore via lifestyle store (same as SmartLogBubbles + LifestylePanel handleComplete)
-                        const hId = AYUR_TO_H_ID[habit.id];
-                        const targetId = hId ?? habit.id;
-                        logHabitAndSync(user?.uid, targetId, undefined);
-                        // 3. Save to daily log story strip on home page
-                        saveToDailyLogStory(habit.id, habit.emoji, habit.name, slotColor);
-                        // 4. Notify all sibling components
-                        try { window.dispatchEvent(new CustomEvent('habit-logged')); } catch { }
-                        try { window.dispatchEvent(new CustomEvent('daily-log-story-updated')); } catch { }
-                        setCompletedFlash(habit.id);
-                        setTimeout(() => setCompletedFlash(null), 800);
-                      }}>
-                      {/* Icon */}
-                      <div style={{ width: 38, height: 38, borderRadius: 12, flexShrink: 0, background: `${slotColor}18`, border: `1.5px solid ${slotColor}35`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', position: 'relative' }}>
-                        {habit.emoji}
-                        <motion.div animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }} transition={{ duration: 2.5, repeat: Infinity }}
-                          style={{ position: 'absolute', inset: -2, borderRadius: 14, border: `1.5px solid ${slotColor}45`, pointerEvents: 'none' }} />
-                      </div>
-                      {/* Name + tag */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: 'rgba(255,255,255,0.9)', fontFamily: "'Outfit', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {habit.name}
-                        </p>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginTop: 2 }}>
-                          <span style={{ fontSize: '0.56rem', padding: '0.08rem 0.36rem', borderRadius: 99, background: `${slotColor}18`, border: `1px solid ${slotColor}30`, color: slotColor, fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>
-                            {slotEmoji} {slotLabel}
-                          </span>
-                          {habit.targetMin > 0 && (
-                            <span style={{ fontSize: '0.54rem', color: 'rgba(255,255,255,0.28)', fontFamily: "'Outfit', sans-serif" }}>
-                              {habit.targetMin} min
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      {/* Tap to log */}
-                      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                        <span style={{ fontSize: '0.52rem', color: 'rgba(255,255,255,0.25)', fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>Tap to log</span>
-                        <div style={{ width: 22, height: 22, borderRadius: '50%', border: `1.5px solid ${slotColor}50`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <div style={{ width: 8, height: 8, borderRadius: '50%', background: `${slotColor}40` }} />
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-
-                  {/* Done habits (collapsed row) */}
-                  {done.length > 0 && (
-                    <div style={{ display: 'flex', gap: '0.32rem', flexWrap: 'wrap', marginTop: '0.2rem' }}>
-                      {done.map(habit => (
-                        <div key={habit.id} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.22rem 0.52rem', borderRadius: 99, background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.28)' }}>
-                          <span style={{ fontSize: '0.85rem' }}>{habit.emoji}</span>
-                          <span style={{ fontSize: '0.56rem', color: '#4ade80', fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>✓ {habit.name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            );
-          })()}
 
           {/* ── ONESUTRA 2.0 Widget Strip ─────────────────────────────────── */}
 
