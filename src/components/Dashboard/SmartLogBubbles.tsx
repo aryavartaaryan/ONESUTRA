@@ -13,6 +13,7 @@ import {
 } from '@/lib/habitWindows';
 import { getMorningMood } from '@/components/MoodGarden/MorningMoodCards';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
+import { useLifestyleStore } from '@/stores/lifestyleStore';
 
 // ─── Read Ayurvedic context from localStorage ────────────────────────────────
 function getLocalContext(habitId: string): { prakriti: string; vikriti: string; habitStreak: number } {
@@ -35,6 +36,27 @@ function getLocalUserName(): string {
   } catch { /* */ }
   return (typeof localStorage !== 'undefined' ? localStorage.getItem('vedic_user_name') : null) ?? 'friend';
 }
+
+// ─── Static bubble ID → lifestyle-store h_* habit ID ────────────────────────
+// Used bidirectionally: hide bubble when h_* is done; write h_* when bubble tapped
+const SMARTLOG_TO_H_ID: Record<string, string> = {
+    wake:                 'h_wake_early',
+    warm_water:           'h_warm_water',
+    tongue_scrape:        'h_tongue_scraping',
+    breathwork:           'h_pranayama',
+    bath:                 'h_bathing',
+    morning_light:        'h_morning_sunlight',
+    breakfast:            'h_breakfast',
+    sleep:                'h_sleep_early',
+    gratitude:            'h_gratitude',
+    hydration:            'h_water',
+    h_walk:               'h_walk',
+    h_evening_meditation: 'h_evening_meditation',
+    h_digital_sunset:     'h_digital_sunset',
+    h_brain_dump:         'h_brain_dump',
+    dinner:               'h_sleep_early',
+    lunch:                'h_breakfast',
+};
 
 // ─── Order Enforcement ────────────────────────────────────────────────────────
 const MORNING_ORDER = ['wake', 'warm_water', 'tongue_scrape', 'breathwork', 'bath', 'morning_light', 'breakfast'];
@@ -229,11 +251,28 @@ function getNudge(id: string): string | null {
 }
 
 // ─── IDs that are already in the static bubble lists (don't duplicate) ───────
+// Includes both the static bubble IDs AND the matching lifestyle-store habit IDs
+// so that dynamic habit bubbles never repeat what static bubbles already show.
 const STATIC_BUBBLE_IDS = new Set([
+    // Static bubble IDs
     'wake', 'warm_water', 'tongue_scrape', 'bath', 'breakfast', 'breathwork', 'morning_light',
     'lunch', 'deep_work', 'screen_break', 'hydration',
     'h_walk', 'h_evening_meditation', 'dinner', 'h_digital_sunset', 'h_brain_dump',
     'sleep', 'gratitude', 'dinner_night', 'read',
+    // Lifestyle-store habit IDs that duplicate the above static bubbles
+    'h_wake_early',          // = 'wake'       Rise & Shine
+    'h_warm_water',          // = 'warm_water'  Warm Water Ritual
+    'h_tongue_scraping',     // = 'tongue_scrape' Tongue Clean
+    'h_pranayama',           // = 'breathwork'  Pranayama
+    'h_morning_meditation',  // = 'breathwork'  Morning Meditation
+    'h_bathing',             // = 'bath'        Morning Bath / Bath & Recharge
+    'h_morning_sunlight',    // = 'morning_light' Morning Sun
+    'h_breakfast',           // = 'breakfast'   Mindful Breakfast
+    'h_sleep_early',         // = 'sleep'       Sleep by 10 PM
+    'h_digital_detox',       // = 'h_digital_sunset' Screen Detox
+    'h_water',               // = 'hydration'   Hydration
+    'h_gratitude',           // = 'gratitude'   Gratitude Log
+    'h_noon_checkin',        // = 'screen_break' Noon Mindfulness
 ]);
 
 // ─── Map lifestyle category → time slot ──────────────────────────────────────
@@ -561,6 +600,7 @@ function buildDynamicHabitBubbles(
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function SmartLogBubbles() {
     const { user } = useOneSutraAuth();
+    const lifestyleStore = useLifestyleStore();
     const [activeBubble, setActiveBubble] = useState<string | null>(null);
     const [loggedToday, setLoggedToday] = useState<Set<string>>(() => getLoggedToday());
     const [completedHabitIds, setCompletedHabitIds] = useState<Set<string>>(() => getCompletedHabitIds());
@@ -624,11 +664,22 @@ export default function SmartLogBubbles() {
     );
 
     // Pending static bubbles for this time slot
-    const pendingStaticBubbles = useMemo(
-        () => staticBubbles.filter(b => !loggedToday.has(b.id)),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [staticBubbles, loggedToday.size]
-    );
+    // Hide if already logged via SmartLog OR already marked done in lifestyle store
+    const pendingStaticBubbles = useMemo(() => {
+        const today = getTodayStr();
+        const lifestyleDone = new Set(
+            lifestyleStore.habitLogs
+                .filter(l => l.date === today && l.completed)
+                .map(l => l.habitId)
+        );
+        return staticBubbles.filter(b => {
+            if (loggedToday.has(b.id)) return false;
+            const hId = SMARTLOG_TO_H_ID[b.id];
+            if (hId && lifestyleDone.has(hId)) return false;
+            return true;
+        });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [staticBubbles, loggedToday.size, lifestyleStore.habitLogs]);
 
     // Timed section: static + user lifestyle habits for the current time slot
     const timedBubbles = useMemo(() => {
@@ -712,6 +763,17 @@ export default function SmartLogBubbles() {
         saveLoggedToday(updated);
         saveToDailyLogStory(bubble.id, bubble.icon, bubble.label, bubble.color);
         setActiveBubble(null);
+        // ── Write to lifestyle store so LifestylePanel reflects this as done ──
+        const hId = SMARTLOG_TO_H_ID[bubble.id];
+        if (hId) {
+            lifestyleStore.logHabit({
+                habitId: hId,
+                date: getTodayStr(),
+                completed: true,
+                loggedAt: Date.now(),
+                note: sub?.detail,
+            });
+        }
         // Firestore write for cross-device sync
         if (user?.uid) {
             const uid = user.uid;

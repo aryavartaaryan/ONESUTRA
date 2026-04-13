@@ -125,9 +125,16 @@ function saveToUnifiedLog(habitIcon: string, habitName: string): void {
 // ─── SmartLog sync: Morning Logs → Practices ────────────────────────────────────────────
 const SMART_LOG_KEY = 'onesutra_smartlog_v2';
 const SMART_LOG_TO_HABIT: Record<string, string[]> = {
-  breathwork: ['h_pranayama', 'h_morning_meditation'],
+  wake:          ['h_wake_early'],
+  warm_water:    ['h_warm_water'],
+  tongue_scrape: ['h_tongue_scraping'],
+  breathwork:    ['h_pranayama', 'h_morning_meditation'],
+  bath:          ['h_bathing'],
   morning_light: ['h_morning_sunlight'],
-  wake: ['h_warm_water'],
+  breakfast:     ['h_breakfast'],
+  sleep:         ['h_sleep_early'],
+  gratitude:     ['h_gratitude'],
+  hydration:     ['h_water'],
 };
 function readSmartLogDoneHabitIds(): Set<string> {
   try {
@@ -143,14 +150,15 @@ function readSmartLogDoneHabitIds(): Set<string> {
 
 // ─── Ayurvedic morning practice sequence ─────────────────────────────────────
 const MORNING_PRACTICE_ORDER: Record<string, number> = {
-  h_warm_water: 1,           // Warm water — first on waking
-  h_tongue_scraping: 2,      // Oral hygiene
-  h_bathing: 3,              // Ayurvedic snana — after oral hygiene
-  h_morning_sunlight: 4,     // Morning light
-  h_pranayama: 5,            // Breathing before meditation
-  h_morning_meditation: 6,
-  h_gratitude: 7,
-  h_breakfast: 8,            // Mindful breakfast after sadhana
+  h_wake_early: 0,           // Rise before sunrise — first act
+  h_warm_water: 1,           // Warm water (Ushapana) — before anything else
+  h_tongue_scraping: 2,      // Oral hygiene — MUST come before bath
+  h_pranayama: 3,            // Pranayama / breathwork after oral hygiene
+  h_morning_meditation: 4,   // Meditation after pranayama
+  h_bathing: 5,              // Snana — bath after meditation
+  h_morning_sunlight: 6,     // Surya darshana — after bath
+  h_gratitude: 7,            // Gratitude log
+  h_breakfast: 8,            // Mindful breakfast — ONLY after sadhana
 };
 
 // ─── OneSutra Streak Tier Helper ────────────────────────────────────────────

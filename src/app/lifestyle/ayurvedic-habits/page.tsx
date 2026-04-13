@@ -76,7 +76,7 @@ interface HabitTemplate {
 }
 
 const HABIT_LIBRARY: HabitTemplate[] = [
-  { id: 't_wake_early', name: 'Wake Before 6am', icon: '🌅', category: 'morning', lifeArea: 'mental', trackingType: 'checkbox', color: '#fbbf24', description: 'Start the day with Brahma muhurta', frequency: 'daily' },
+  { id: 'h_wake_early', name: 'Wake Before 6am', icon: '🌅', category: 'morning', lifeArea: 'mental', trackingType: 'checkbox', color: '#fbbf24', description: 'Rise in Brahma Muhurta — the sacred window of clarity before sunrise', frequency: 'daily' },
   { id: 't_oil_pull', name: 'Oil Pulling', icon: '💛', category: 'morning', lifeArea: 'physical', trackingType: 'duration', targetValue: 15, color: '#fde68a', description: '15 min Ayurvedic oral detox with sesame oil', frequency: 'daily' },
   { id: 't_cold_shower', name: 'Cold Shower', icon: '🚿', category: 'morning', lifeArea: 'physical', trackingType: 'checkbox', color: '#22d3ee', description: 'Activate the nervous system with cold water', frequency: 'daily' },
   { id: 't_lemon_water', name: 'Warm Lemon Water', icon: '🍋', category: 'morning', lifeArea: 'physical', trackingType: 'checkbox', color: '#fde68a', description: 'Alkalise and hydrate upon waking', frequency: 'daily' },
@@ -106,7 +106,25 @@ const LIFE_AREA_COLORS: Record<string, string> = {
   spiritual: '#c084fc', creative: '#f472b6', sacred: '#fde68a',
 };
 
-// ─── Storage helpers (for Ayurvedic tab) ──────────────────────────────────────
+// ─── Ayurvedic habit ID → lifestyle-store h_* habit ID (shared source bridge) ───────
+const AYUR_TO_H_ID: Record<string, string> = {
+  warm_water_morning: 'h_warm_water',
+  tongue_scraping:    'h_tongue_scraping',
+  abhyanga:           'h_bathing',
+  anulom_vilom:       'h_pranayama',
+  kapalabhati:        'h_pranayama',
+  meditation:         'h_morning_meditation',
+  sunlight_morning:   'h_morning_sunlight',
+  main_meal_noon:     'h_breakfast',
+  shatapavali:        'h_walk',
+  herbal_tea:         'h_water',
+  evening_walk:       'h_walk',
+  screen_free_hour:   'h_digital_sunset',
+  sleep_by_10:        'h_sleep_early',
+  journaling:         'h_brain_dump',
+};
+
+// ─── Storage helpers (for Ayurvedic tab) ─────────────────────────────────────────────────
 
 const HABIT_LOG_KEY = 'onesutra_ayur_habits_v1';
 function loadHabitLogs(): HabitLogEntry[] {
@@ -158,10 +176,10 @@ function DoshaEffectTag({ dosha, value }: { dosha: Dosha; value: number }) {
 
 // ─── AyurvedicHabitCard ────────────────────────────────────────────────────────
 
-function AyurvedicHabitCard({ habit, isCompleted, streak, prakritiDosha, onToggle, isInRoutine, onAddToRoutine }: {
+function AyurvedicHabitCard({ habit, isCompleted, streak, prakritiDosha, onToggle, isInRoutine }: {
   habit: AyurvedicHabit; isCompleted: boolean; streak: number;
   prakritiDosha: Dosha | null; onToggle: () => void;
-  isInRoutine: boolean; onAddToRoutine: () => void;
+  isInRoutine: boolean;
 }) {
   const isBestFor = prakritiDosha && habit.bestFor.includes(prakritiDosha);
   return (
@@ -174,8 +192,8 @@ function AyurvedicHabitCard({ habit, isCompleted, streak, prakritiDosha, onToggl
     }}>
       {isBestFor && !isCompleted && (
         <div style={{ position: 'absolute', top: 0, right: 0, padding: '0.2rem 0.5rem', borderRadius: '0 16px 0 10px', background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)' }}>
-          <span style={{ fontSize: '0.58rem', color: 'rgba(251,191,36,0.75)', fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>Rec.</span>
-        </div>
+        <span style={{ fontSize: '0.58rem', color: 'rgba(251,191,36,0.75)', fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>Rec.</span>
+      </div>
       )}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
         <div style={{ flexShrink: 0, marginTop: 2 }}>
@@ -196,19 +214,13 @@ function AyurvedicHabitCard({ habit, isCompleted, streak, prakritiDosha, onToggl
             {(['vata', 'pitta', 'kapha'] as Dosha[]).map(d => <DoshaEffectTag key={d} dosha={d} value={habit.doshaEffect[d]} />)}
             {habit.targetMin > 0 && <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.28)', fontFamily: "'Outfit', sans-serif" }}>{habit.targetMin} min</span>}
           </div>
-          {/* Add to Routine row */}
-          <div style={{ marginTop: '0.45rem' }} onClick={e => e.stopPropagation()}>
-            {isInRoutine ? (
+          {isInRoutine && (
+            <div style={{ marginTop: '0.35rem' }}>
               <span style={{ fontSize: '0.6rem', color: 'rgba(74,222,128,0.75)', fontFamily: "'Outfit', sans-serif", fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
                 <CheckCircle2 size={10} style={{ color: '#4ade80' }} /> In My Routine
               </span>
-            ) : (
-              <motion.button whileTap={{ scale: 0.9 }} onClick={onAddToRoutine}
-                style={{ padding: '0.18rem 0.55rem', borderRadius: 8, background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.3)', color: '#c084fc', fontSize: '0.6rem', fontWeight: 700, cursor: 'pointer', fontFamily: "'Outfit', sans-serif", display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                <Plus size={9} /> Add to Routine
-              </motion.button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
         {streak > 0 && (
           <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.1rem' }}>
@@ -307,7 +319,7 @@ function CustomHabitSheet({ onClose, onSave }: { onClose: () => void; onSave: (h
           ))}
         </div>
         <motion.button whileTap={{ scale: 0.97 }} onClick={handleSave} disabled={!form.name.trim()}
-          style={{ width: '100%', padding: '0.9rem', borderRadius: 14, border: 'none', cursor: form.name.trim() ? 'pointer' : 'not-allowed', background: form.name.trim() ? 'linear-gradient(135deg, #7c3aed, #a78bfa)' : 'rgba(255,255,255,0.08)', color: '#fff', fontSize: '0.9rem', fontWeight: 800, fontFamily: "'Outfit', sans-serif", opacity: form.name.trim() ? 1 : 0.4 }}>
+          style={{ width: '100%', padding: '0.9rem', borderRadius: 14, border: 'none', cursor: 'pointer', background: form.name.trim() ? 'linear-gradient(135deg, #7c3aed, #a78bfa)' : 'rgba(255,255,255,0.08)', color: '#fff', fontSize: '0.9rem', fontWeight: 800, fontFamily: "'Outfit', sans-serif", opacity: form.name.trim() ? 1 : 0.4 }}>
           + Add Habit
         </motion.button>
       </motion.div>
@@ -391,10 +403,30 @@ export default function AyurvedicHabitsPage() {
   const completedToday = useMemo(() => new Set(todayLog?.completedIds ?? []), [todayLog]);
 
   const toggleHabit = useCallback((habitId: string) => {
+    // Auto-add to lifestyle routine on first toggle if not already there
+    const alreadyInRoutine = store.habits.some(h => h.id === habitId);
+    if (!alreadyInRoutine) {
+      const habit = AYURVEDIC_HABITS.find(h => h.id === habitId);
+      if (habit) {
+        store.addHabit({
+          id: habit.id, name: habit.name, icon: habit.emoji, category: habit.category,
+          lifeArea: 'spiritual', trackingType: 'duration', targetValue: habit.targetMin,
+          color: '#c084fc', frequency: 'daily', isActive: true,
+          createdAt: Date.now(), description: habit.description,
+        });
+      }
+    }
     setLogs(prev => {
       const existing = prev.find(l => l.date === today);
       const wasCompleted = existing?.completedIds.includes(habitId) ?? false;
       const nowCompleted = !wasCompleted;
+      // Mirror completion into lifestyle store so SmartLogBubbles + LifestylePanel sync
+      if (nowCompleted) {
+        const hId = AYUR_TO_H_ID[habitId];
+        if (hId) {
+          store.logHabit({ habitId: hId, date: today, completed: true, loggedAt: Date.now() });
+        }
+      }
       let updated: HabitLogEntry[];
       if (existing) {
         updated = prev.map(l => l.date === today ? { ...l, completedIds: wasCompleted ? l.completedIds.filter(id => id !== habitId) : [...l.completedIds, habitId] } : l);
@@ -615,8 +647,7 @@ export default function AyurvedicHabitsPage() {
                 item.type === 'ayurvedic'
                   ? <AyurvedicHabitCard key={item.data.id} habit={item.data} isCompleted={completedToday.has(item.data.id)}
                       streak={streaks[item.data.id] ?? 0} prakritiDosha={prakriti?.primary ?? null}
-                      onToggle={() => toggleHabit(item.data.id)} isInRoutine={inRoutineIds.has(item.data.id)}
-                      onAddToRoutine={() => addAyurvedicToRoutine(item.data)} />
+                      onToggle={() => toggleHabit(item.data.id)} isInRoutine={inRoutineIds.has(item.data.id)} />
                   : <LibraryHabitCard key={item.data.id} habit={item.data} onAdd={() => addFromLibrary(item.data)} />
               )}
             </AnimatePresence>
