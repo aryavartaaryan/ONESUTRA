@@ -114,11 +114,15 @@ const DAILY_INTENTIONS = [
 ];
 
 // ─── Unified Log Bridge (keeps Practice section & Bodhi story strip in sync) ───
+function getISTDate(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+}
+
 const UNIFIED_LOG_KEY = 'onesutra_unified_log_v1';
 function saveToUnifiedLog(habitIcon: string, habitName: string): void {
   if (typeof window === 'undefined') return;
   try {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getISTDate();
     const raw = JSON.parse(localStorage.getItem(UNIFIED_LOG_KEY) ?? '{}');
     const todayLogs: Array<{ activity: string; verdict: string; timestamp: number }> = raw[today] ?? [];
     const activityName = `${habitIcon} ${habitName}`;
@@ -135,7 +139,7 @@ const SHARED_SMARTLOG_KEY = 'onesutra_smartlog_v2';
 function writeToSharedSmartLog(habitId: string): void {
   if (typeof window === 'undefined') return;
   try {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getISTDate();
     const raw = JSON.parse(localStorage.getItem(SHARED_SMARTLOG_KEY) ?? '{}');
     const ids: Set<string> = new Set(raw[today] ?? []);
     ids.add(habitId);
@@ -161,7 +165,7 @@ const SMART_LOG_TO_HABIT: Record<string, string[]> = {
 function readSmartLogDoneHabitIds(): Set<string> {
   try {
     if (typeof window === 'undefined') return new Set();
-    const today = new Date().toISOString().split('T')[0];
+    const today = getISTDate();
     const raw = JSON.parse(localStorage.getItem(SMART_LOG_KEY) ?? '{}');
     const todayIds: string[] = raw[today] ?? [];
     const ids = new Set<string>();
@@ -711,7 +715,7 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
   const [milestoneCelebration, setMilestoneCelebration] = useState<{ days: number; label: typeof MILESTONE_LABEL[number] } | null>(null);
   const rhythmNudgeSentRef = useRef<Set<string>>(new Set());
   // todayDateKey forces full re-render at midnight so all "today" stats reset for the new day
-  const [todayDateKey, setTodayDateKey] = useState(() => new Date().toISOString().split('T')[0]);
+  const [todayDateKey, setTodayDateKey] = useState(() => getISTDate());
 
   useEffect(() => {
     const refreshAll = () => {
@@ -739,7 +743,7 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
     midnight.setHours(0, 0, 1, 0); // 1 second past midnight to ensure date has changed
     const ms = midnight.getTime() - now.getTime();
     const timer = setTimeout(() => {
-      setTodayDateKey(new Date().toISOString().split('T')[0]);
+      setTodayDateKey(getISTDate());
       setSmartLogDoneIds(readSmartLogDoneHabitIds());
     }, ms);
     return () => clearTimeout(timer);
@@ -749,7 +753,7 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
   // ── Rhythm Nudge useEffect: morning / midday / evening proactive nudges ────────────────────
   useEffect(() => {
     if (!engine.profile?.onboardingComplete) return;
-    const todayKey = new Date().toISOString().split('T')[0];
+    const todayKey = getISTDate();
     const h = new Date().getHours();
     const score = engine.todayCompletionRate;
     const streakDays = Math.max(...Object.values(engine.streaks).map(s => s.currentStreak ?? 0), 0);
