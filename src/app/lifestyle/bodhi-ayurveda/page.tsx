@@ -7,6 +7,8 @@ import { ArrowLeft, Send, Loader2, Sparkles, Wind, Flame, Leaf } from 'lucide-re
 import { useDoshaEngine } from '@/hooks/useDoshaEngine';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { DOSHA_INFO, type Dosha } from '@/lib/doshaService';
+import { getTodayRecord, computeRollingVikruti, getElevatedDosha, QUESTION_BANK } from '@/lib/healthCheckIn';
+import { useLanguage } from '@/context/LanguageContext';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -117,15 +119,35 @@ export default function BodhiAyurvedaPage() {
     inBrahmaMuhurta, todayLog, doshaOnboardingComplete,
   } = useDoshaEngine();
 
+  const { lang } = useLanguage();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [chipsUsed, setChipsUsed] = useState(false);
+  const [checkInSummary, setCheckInSummary] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const doshaColor = prakriti ? DOSHA_THEME[prakriti.primary].color : '#a78bfa';
   const doshaTheme = prakriti ? DOSHA_THEME[prakriti.primary] : DOSHA_THEME.vata;
+
+  // Read today's daily check-in from localStorage
+  useEffect(() => {
+    const record = getTodayRecord();
+    if (!record || record.skipped || record.answers.length === 0) return;
+    const rolling = computeRollingVikruti(7);
+    const dominant = getElevatedDosha(rolling);
+    const answerLines = record.answers.map(a => {
+      const q = QUESTION_BANK.find(q => q.id === a.questionId);
+      const opt = q?.options.find(o => o.id === a.optionId);
+      return `${q?.category ?? a.questionId}: ${opt?.label ?? a.optionId}`;
+    }).join('; ');
+    setCheckInSummary(
+      `TODAY'S HEALTH CHECK-IN (completed this morning):\n` +
+      `Elevated dosha: ${dominant} | Vata ${rolling.vata}% · Pitta ${rolling.pitta}% · Kapha ${rolling.kapha}%\n` +
+      `Answers: ${answerLines}`
+    );
+  }, []);
 
   // Opening message from Bodhi
   useEffect(() => {
@@ -191,6 +213,8 @@ export default function BodhiAyurvedaPage() {
           sleepQuality: todayLog?.sleepQuality ?? null,
           isBrahmaMuhurta: inBrahmaMuhurta,
           conversationHistory: buildConversationHistory(),
+          checkInSummary,
+          preferredLanguage: lang,
         }),
       });
 

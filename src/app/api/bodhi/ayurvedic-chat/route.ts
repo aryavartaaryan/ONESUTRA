@@ -32,6 +32,7 @@ function buildAyurvedicSystemPrompt(context: {
   isBrahmaMuhurta: boolean;
   conversationHistory: string;
   preferredLanguage?: string;
+  checkInSummary?: string;
 }): string {
   const {
     userName, prakriti, prakritiCombo, vikriti, vikritiLevel,
@@ -39,14 +40,16 @@ function buildAyurvedicSystemPrompt(context: {
     tongueCoating, energyLevel, emotionalState, sleepQuality,
     isBrahmaMuhurta, conversationHistory,
     preferredLanguage = 'hi',
+    checkInSummary = '',
   } = context;
 
   const firstName = userName?.split(' ')[0] || 'friend';
 
   const now = new Date();
-  const currentHour = now.getHours();
-  const currentTimeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-  const currentDateStr = now.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const istHourStr = now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', hour12: false });
+  const currentHour = parseInt(istHourStr, 10) % 24;
+  const currentTimeStr = now.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true });
+  const currentDateStr = now.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   const phase = currentHour < 12 ? 'morning' : currentHour < 17 ? 'midday' : currentHour < 21 ? 'evening' : 'night';
   const phaseLabel = phase.toUpperCase();
@@ -68,6 +71,10 @@ function buildAyurvedicSystemPrompt(context: {
     `Dosha phase: ${currentPhaseLabel} (${currentDoshaPhase})`,
     `Season: ${season} — ${seasonFocus}`,
   ].filter(Boolean).join('\n');
+
+  const checkInBlock = checkInSummary
+    ? `\n⚕️ DAILY HEALTH CHECK-IN DATA (from this morning — USE THIS to personalise advice):\n${checkInSummary}\n→ Reference these findings naturally when relevant. DO NOT repeat them robotically.`
+    : '';
 
   const brahmaNote = isBrahmaMuhurta
     ? `\n⚠️ BRAHMA MUHURTA ACTIVE (2–6 AM): Tone must be meditative, contemplative, whisper-soft. Guide toward meditation, mantra, pranayama. Do not discuss mundane matters unless user raises them.`
@@ -147,6 +154,7 @@ Scan 4 things instantly on every input:
 
 TODAY'S READINGS:
 ${logBlock}
+${checkInBlock}
 ${brahmaNote}
 
 ════════════════════════════════════════════════════════════════════
@@ -304,6 +312,8 @@ export async function POST(req: NextRequest) {
       sleepQuality = null,
       isBrahmaMuhurta = false,
       conversationHistory = '',
+      checkInSummary = '',
+      preferredLanguage = 'hi',
     } = body;
 
     if (!message?.trim()) {
@@ -330,6 +340,8 @@ export async function POST(req: NextRequest) {
       currentDoshaPhase, currentPhaseLabel, season, seasonFocus,
       tongueCoating, energyLevel, emotionalState, sleepQuality,
       isBrahmaMuhurta, conversationHistory,
+      checkInSummary,
+      preferredLanguage,
     });
 
     const fullPrompt = `${systemPrompt}\n\n[${userName?.split(' ')[0] ?? 'User'}]: ${message}`;

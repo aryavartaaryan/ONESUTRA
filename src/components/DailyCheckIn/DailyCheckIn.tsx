@@ -373,10 +373,13 @@ export default function DailyCheckIn({ userName = 'friend', prakriti = '', onCom
   // Speak question when step changes
   useEffect(() => {
     if (phase !== 'questions' || !questions[step]) return;
-    const t = setTimeout(() => speak(questions[step].question), 350);
+    const spokenQ = lang === 'hi'
+      ? (Q_HI[questions[step].id]?.question ?? questions[step].question)
+      : questions[step].question;
+    const t = setTimeout(() => speak(spokenQ), 350);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, phase]);
+  }, [step, phase, lang]);
 
   // ── Mood selection ──────────────────────────────────────────────────────────
   const handleMoodSelect = useCallback((card: MoodCard) => {
@@ -456,6 +459,7 @@ export default function DailyCheckIn({ userName = 'friend', prakriti = '', onCom
           userName, elevatedDosha: dominant,
           vikrutiVata: rolling.vata, vikrutiPitta: rolling.pitta, vikrutiKapha: rolling.kapha,
           keySymptoms, prakriti, mood: todayMood?.mood ?? '',
+          lang,
         }),
       });
       const data = await res.json();
@@ -463,13 +467,22 @@ export default function DailyCheckIn({ userName = 'friend', prakriti = '', onCom
       setInsight(msg);
       if (msg) setTimeout(() => speak(msg), 400);
     } catch {
-      const fallbacks: Record<string, string> = {
-        vata:    `Your Vata is asking for warmth today, ${firstName}. Move gently and eat something nourishing.`,
-        pitta:   `Some heat in the system today — let your practices cool things down, ${firstName}.`,
-        kapha:   `The body wants to move, ${firstName}. Even one brisk action will shift the heaviness.`,
-        balanced:`You're in good balance today, ${firstName}. Keep this rhythm alive.`,
+      const fallbacks: Record<string, Record<string, string>> = {
+        en: {
+          vata:    `Your Vata is asking for warmth today, ${firstName}. Move gently and eat something nourishing.`,
+          pitta:   `Some heat in the system today — let your practices cool things down, ${firstName}.`,
+          kapha:   `The body wants to move, ${firstName}. Even one brisk action will shift the heaviness.`,
+          balanced:`You're in good balance today, ${firstName}. Keep this rhythm alive.`,
+        },
+        hi: {
+          vata:    `${firstName}, आज वात शांति मांग रहा है। गर्म और पोषक भोजन लें, धीरे चलें।`,
+          pitta:   `${firstName}, आज थोड़ी गर्मी है तंत्र में — ठंडे पानी से चेहरा धोएं और गहरी सांस लें।`,
+          kapha:   `${firstName}, शरीर हिलना चाहता है — एक छोटा सा कदम भी भारीपन को हटा देगा।`,
+          balanced:`${firstName}, आज आप संतुलित हैं। इस लय को बनाए रखें — यही आपकी ताकत है।`,
+        },
       };
-      const fb = fallbacks[dominant] ?? fallbacks.balanced;
+      const langFallbacks = fallbacks[lang] ?? fallbacks.en;
+      const fb = langFallbacks[dominant] ?? langFallbacks.balanced;
       setInsight(fb);
       setTimeout(() => speak(fb), 400);
     } finally {
@@ -486,7 +499,7 @@ export default function DailyCheckIn({ userName = 'friend', prakriti = '', onCom
     if (shouldNudge) {
       fetch('/api/bodhi/daily-checkin', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userName, skipNudge: true }),
+        body: JSON.stringify({ userName, skipNudge: true, lang }),
       }).then(r => r.json()).then(data => { if (data.insight) speak(data.insight); }).catch(() => {});
     }
     onSkip();
