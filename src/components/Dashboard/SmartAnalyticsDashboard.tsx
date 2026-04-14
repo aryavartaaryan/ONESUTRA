@@ -435,8 +435,8 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const firestoreDoneIdsForExtra = new Set(
     engine.habitLogs.filter(l => l.date === todayStr && l.completed).map(l => l.habitId)
   );
-  const extraPending = extraHabits.filter(h => !firestoreDoneIdsForExtra.has(h.id));
-  const extraDone = extraHabits.filter(h => firestoreDoneIdsForExtra.has(h.id));
+  const extraPending = extraHabits.filter(h => !firestoreDoneIdsForExtra.has(h.id) && !ayurCompletedIds.has(h.id));
+  const extraDone = extraHabits.filter(h => firestoreDoneIdsForExtra.has(h.id) || ayurCompletedIds.has(h.id));
 
   const pendingHabits = slotCfg.slotKey === 'morning'
     ? [...pendingAyurItems, ...extraPending].sort((a, b) => (MORNING_PRACTICE_ORDER_SAD[AYUR_TO_H_ID[a.id] ?? a.id] ?? 99) - (MORNING_PRACTICE_ORDER_SAD[AYUR_TO_H_ID[b.id] ?? b.id] ?? 99))
