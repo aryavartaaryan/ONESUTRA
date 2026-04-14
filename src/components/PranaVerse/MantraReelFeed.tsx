@@ -56,7 +56,7 @@ export const MANTRA_REELS: MantraReel[] = [
         color: '#f472b6',
         secondColor: '#a21caf',
         audioSrc: 'https://ik.imagekit.io/rcsesr4xf/Lalitha-Sahasranamam.mp3',
-        imageBg: '/images/mata lalitha.jpg',
+        imageBg: '/images/mata%20lalitha.jpg',
         durationLabel: '~45 min',
         isLong: true,
         category: 'Stotra',
