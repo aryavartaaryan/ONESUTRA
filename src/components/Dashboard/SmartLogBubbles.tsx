@@ -276,7 +276,6 @@ const STATIC_BUBBLE_IDS = new Set([
     'evening_walk', 'light_dinner_early', 'screen_free_hour', 'journaling', 'sleep_by_10',
     // Lifestyle-store h_* IDs that are aliases for AYURVEDIC_HABITS above —
     // kept here so buildDynamicHabitBubbles doesn't duplicate what getTimedBubbles already shows.
-    'h_wake_early',          // = static 'wake' bubble (Rise and Shine) — prevents duplicate
     'h_warm_water',          // = 'warm_water_morning'
     'h_tongue_scraping',     // = 'tongue_scraping'
     'h_pranayama',           // = 'anulom_vilom' / 'kapalabhati'
@@ -603,7 +602,6 @@ export function getTimedBubbles(): LogBubble[] {
 
     // Only show Ayurvedic habits the user has added to My Habits
     const storeHabits = getActiveHabits();
-    const storeIds = new Set(storeHabits.map(sh => sh.id));
     // Build the set of Ayurvedic IDs present in the user's store
     // (either added directly as Ayurvedic IDs, or via h_* aliases like h_pranayama → anulom_vilom)
     const userAyurIds = new Set<string>();
@@ -616,7 +614,9 @@ export function getTimedBubbles(): LogBubble[] {
     const habits = getHabitsForSlot(slot).filter(
         habit => habit.category !== 'anytime' && userAyurIds.has(habit.id)
     );
-    const ayurBubbles = habits.map(habit => ({
+    // Pure Ayurvedic bubbles from My Habits — no static injection
+    // h_wake_early (Rise and Shine) appears via buildDynamicHabitBubbles if in My Habits
+    return habits.map(habit => ({
         id: habit.id,
         icon: habit.emoji,
         label: HABIT_DISPLAY_OVERRIDES[habit.id] ?? habit.name,
@@ -625,12 +625,6 @@ export function getTimedBubbles(): LogBubble[] {
         logMessage: `I completed ${habit.name} [UI_EVENT: AYUR_LOG]`,
         subOptions: getSubOptionsForHabit(habit.id, habit.name),
     }));
-    // Inject Rise and Shine (wake) first for morning — only if user has h_wake_early in My Habits
-    if (slot === 'morning' && storeIds.has('h_wake_early')) {
-        const wakeBubble = MORNING_BUBBLES.find(b => b.id === 'wake');
-        if (wakeBubble) return [wakeBubble, ...ayurBubbles];
-    }
-    return ayurBubbles;
 }
 
 export function getTimeLabel(): { label: string; color: string; Icon: LucideIcon; sublabel: string } {
