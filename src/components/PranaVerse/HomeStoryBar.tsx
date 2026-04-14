@@ -1782,45 +1782,100 @@ function MantraStoryViewer({
 
                 {/* Player glass card */}
                 <div style={{
-                    background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(20px)', border: `1px solid ${reel.color}30`,
-                    borderRadius: 18, padding: '0.7rem 1rem',
-                    boxShadow: `0 0 24px ${reel.color}22, 0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)`,
+                    background: 'rgba(10,8,20,0.72)',
+                    backdropFilter: 'blur(32px) saturate(180%)',
+                    WebkitBackdropFilter: 'blur(32px) saturate(180%)',
+                    border: `1px solid ${reel.color}40`,
+                    borderRadius: 24,
+                    padding: '0.85rem 1.1rem 0.9rem',
+                    boxShadow: `0 0 0 1px rgba(255,255,255,0.06) inset, 0 0 40px ${reel.color}18, 0 12px 40px rgba(0,0,0,0.7)`,
                 }}>
                     {/* Progress bar */}
-                    <div style={{ height: 3, borderRadius: 99, background: 'rgba(255,255,255,0.1)', marginBottom: '0.7rem', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${progress}%`, background: `linear-gradient(90deg, ${reel.color}, ${reel.secondColor})`, borderRadius: 99, boxShadow: `0 0 8px ${reel.color}`, transition: 'width 0.5s linear' }} />
+                    <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.08)', marginBottom: '0.85rem', overflow: 'hidden', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.5)' }}>
+                        <div style={{ height: '100%', width: `${progress}%`, background: `linear-gradient(90deg, ${reel.color}, ${reel.secondColor})`, borderRadius: 99, boxShadow: `0 0 10px ${reel.color}cc, 0 0 4px ${reel.secondColor}88`, transition: 'width 0.5s linear' }} />
                     </div>
 
                     {/* Controls */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                         {/* Prev */}
-                        <motion.button whileTap={{ scale: 0.88 }} onClick={() => setIdx(i => Math.max(0, i - 1))}
-                            style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '50%', width: 36, height: 36, color: '#fff', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            ⏮
+                        <motion.button
+                            whileTap={{ scale: 0.84 }}
+                            whileHover={{ scale: 1.08 }}
+                            onClick={() => setIdx(i => Math.max(0, i - 1))}
+                            style={{
+                                background: 'rgba(255,255,255,0.08)',
+                                backdropFilter: 'blur(12px)',
+                                WebkitBackdropFilter: 'blur(12px)',
+                                border: '1px solid rgba(255,255,255,0.18)',
+                                borderRadius: '50%', width: 42, height: 42,
+                                color: '#fff', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                boxShadow: '0 2px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15)',
+                                fontSize: '1rem',
+                            }}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
                         </motion.button>
 
                         {/* Play/Pause */}
-                        <motion.button whileTap={{ scale: 0.88 }} onClick={togglePlay}
-                            style={{ background: `linear-gradient(135deg, ${reel.color}dd, ${reel.secondColor}cc)`, border: `1.5px solid ${reel.color}55`, borderRadius: '50%', width: 52, height: 52, color: '#fff', cursor: 'pointer', fontSize: '1.3rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 20px ${reel.color}55` }}>
-                            {playing ? '⏸' : '▶'}
+                        <motion.button
+                            whileTap={{ scale: 0.84 }}
+                            whileHover={{ scale: 1.06 }}
+                            onClick={togglePlay}
+                            style={{
+                                background: `linear-gradient(145deg, ${reel.color}ee, ${reel.secondColor}cc)`,
+                                border: `1.5px solid ${reel.color}88`,
+                                borderRadius: '50%', width: 60, height: 60,
+                                color: '#fff', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                boxShadow: `0 0 28px ${reel.color}66, 0 0 60px ${reel.color}22, 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.3)`,
+                                position: 'relative', overflow: 'hidden',
+                            }}>
+                            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg, rgba(255,255,255,0.22) 0%, transparent 55%)', borderRadius: '50%', pointerEvents: 'none' }} />
+                            {playing
+                                ? <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                                : <svg width="22" height="22" viewBox="0 0 24 24" fill="white" style={{ marginLeft: 3 }}><path d="M8 5v14l11-7z"/></svg>
+                            }
                         </motion.button>
 
                         {/* Next */}
-                        <motion.button whileTap={{ scale: 0.88 }} onClick={() => setIdx(i => Math.min(mantras.length - 1, i + 1))}
-                            style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '50%', width: 36, height: 36, color: '#fff', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            ⏭
+                        <motion.button
+                            whileTap={{ scale: 0.84 }}
+                            whileHover={{ scale: 1.08 }}
+                            onClick={() => setIdx(i => Math.min(mantras.length - 1, i + 1))}
+                            style={{
+                                background: 'rgba(255,255,255,0.08)',
+                                backdropFilter: 'blur(12px)',
+                                WebkitBackdropFilter: 'blur(12px)',
+                                border: '1px solid rgba(255,255,255,0.18)',
+                                borderRadius: '50%', width: 42, height: 42,
+                                color: '#fff', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                boxShadow: '0 2px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15)',
+                                fontSize: '1rem',
+                            }}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M6 18l8.5-6L6 6v12zm2-8.14 4.97 2.14L8 14.14V9.86zm8.5 8.14h2V6h-2v12z"/></svg>
                         </motion.button>
 
-                        {/* Open in Dhyan Kendra */}
-                        <Link href="/dhyan-kshetra" onClick={onClose} style={{ textDecoration: 'none' }}>
-                            <motion.div whileTap={{ scale: 0.93 }} style={{
-                                padding: '0.35rem 0.7rem', background: `${reel.color}18`,
-                                border: `1px solid ${reel.color}44`, borderRadius: 99,
-                                fontSize: '0.44rem', color: reel.color, fontWeight: 700,
-                                fontFamily: "'Inter',sans-serif", whiteSpace: 'nowrap',
-                                letterSpacing: '0.06em',
-                            }}>
-                                🧘 Open Full
+                        {/* Open Full */}
+                        <Link href="/dhyan-kshetra" onClick={onClose} style={{ textDecoration: 'none', flexShrink: 0 }}>
+                            <motion.div
+                                whileTap={{ scale: 0.91 }}
+                                whileHover={{ scale: 1.05 }}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: 5,
+                                    padding: '0.5rem 0.85rem',
+                                    background: `linear-gradient(135deg, ${reel.color}28, ${reel.secondColor}18)`,
+                                    backdropFilter: 'blur(16px)',
+                                    WebkitBackdropFilter: 'blur(16px)',
+                                    border: `1px solid ${reel.color}60`,
+                                    borderRadius: 99,
+                                    boxShadow: `0 0 14px ${reel.color}30, inset 0 1px 0 rgba(255,255,255,0.18)`,
+                                    fontSize: '0.58rem', color: '#fff', fontWeight: 700,
+                                    fontFamily: "'Inter',sans-serif", whiteSpace: 'nowrap',
+                                    letterSpacing: '0.05em',
+                                }}>
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill={reel.color}><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm-2 13.5v-9l6 4.5-6 4.5z"/></svg>
+                                <span style={{ color: reel.color }}>Open Full</span>
                             </motion.div>
                         </Link>
                     </div>
@@ -1842,7 +1897,10 @@ function MantraStoryViewer({
             <button onClick={() => setIdx(i => Math.max(0, i - 1))} style={{ position: 'absolute', top: '20%', left: 0, width: '30%', height: '60%', background: 'none', border: 'none', cursor: 'pointer', zIndex: 5 }} />
             <button onClick={() => setIdx(i => Math.min(mantras.length - 1, i + 1))} style={{ position: 'absolute', top: '20%', right: 0, width: '30%', height: '60%', background: 'none', border: 'none', cursor: 'pointer', zIndex: 5 }} />
 
-            <style>{`@keyframes reelBgScale { 0% { transform: scale(1.0); } 100% { transform: scale(1.06); } }`}</style>
+            <style>{`
+                @keyframes reelBgScale { 0% { transform: scale(1.0); } 100% { transform: scale(1.06); } }
+                @keyframes mantraGlow { 0%,100% { box-shadow: 0 0 28px var(--mc,#fbbf24)66, 0 6px 20px rgba(0,0,0,0.5); } 50% { box-shadow: 0 0 48px var(--mc,#fbbf24)aa, 0 6px 24px rgba(0,0,0,0.5); } }
+            `}</style>
         </motion.div>
     );
 }
