@@ -271,8 +271,10 @@ const STATIC_BUBBLE_IDS = new Set([
     'meditation', 'sunlight_morning', 'gratitude_practice',
     'main_meal_noon', 'deep_work_afternoon', 'shatapavali', 'herbal_tea',
     'evening_walk', 'light_dinner_early', 'screen_free_hour', 'journaling', 'sleep_by_10',
-    // Lifestyle-store habit IDs that duplicate the above
-    'h_wake_early',          // = 'wake'
+    // Lifestyle-store h_* IDs that are aliases for AYURVEDIC_HABITS above —
+    // kept here so buildDynamicHabitBubbles doesn't duplicate what getTimedBubbles already shows.
+    // NOTE: h_wake_early is intentionally NOT listed — it is a HABIT_LIBRARY entry
+    // (not an Ayurvedic habit) so it must appear as a dynamic bubble when selected.
     'h_warm_water',          // = 'warm_water_morning'
     'h_tongue_scraping',     // = 'tongue_scraping'
     'h_pranayama',           // = 'anulom_vilom' / 'kapalabhati'
@@ -280,10 +282,8 @@ const STATIC_BUBBLE_IDS = new Set([
     'h_bathing',             // = 'abhyanga'
     'h_morning_sunlight',    // = 'sunlight_morning'
     'h_sleep_early',         // = 'sleep_by_10'
-    'h_digital_detox',       // = 'screen_free_hour'
     'h_water',               // = 'herbal_tea'
     'h_gratitude',           // = 'gratitude_practice'
-    'h_noon_checkin',        // = 'screen_break'
 ]);
 
 // ─── Map lifestyle category → time slot ──────────────────────────────────────

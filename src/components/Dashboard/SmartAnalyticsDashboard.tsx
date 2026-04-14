@@ -417,13 +417,34 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const pendingAyurItems = slotAyurHabits.filter(h => !mergedAyurDone.has(h.id)).map(toHabitItem);
   const doneAyurItems = AYURVEDIC_HABITS.filter(h => mergedAyurDone.has(h.id)).map(toHabitItem);
 
-  const pendingHabits = slotCfg.slotKey === 'morning'
-    ? [...pendingAyurItems].sort((a, b) => (MORNING_PRACTICE_ORDER_SAD[AYUR_TO_H_ID[a.id] ?? a.id] ?? 99) - (MORNING_PRACTICE_ORDER_SAD[AYUR_TO_H_ID[b.id] ?? b.id] ?? 99))
-    : pendingAyurItems;
-  const doneHabits = doneAyurItems;
+  // Include HABIT_LIBRARY habits from lifestyle store that aren't already in AYURVEDIC_HABITS
+  // e.g. h_wake_early (Wake Before 6am), t_yoga, t_stretch, t_deep_work, etc.
+  const extraHabits = engine.activeHabits.filter(h => {
+    if (ayurvedic_ids_set.has(h.id)) return false; // already shown via Ayurvedic list
+    const aId = H_ID_TO_AYUR[h.id];
+    if (aId && ayurvedic_ids_set.has(aId)) return false; // h_* alias of an Ayurvedic habit
+    // Time-slot filter: anytime always shows; others must match current slot
+    const cat = h.category ?? 'anytime';
+    if (cat === 'anytime' || cat === null) return true;
+    const slotForCat = (cat === 'morning' || cat === 'sacred') ? 'morning'
+      : cat === 'midday' ? 'midday'
+      : cat === 'evening' ? 'evening'
+      : cat === 'night' ? 'night' : 'anytime';
+    return slotForCat === ayurSlot || slotForCat === 'anytime';
+  });
+  const firestoreDoneIdsForExtra = new Set(
+    engine.habitLogs.filter(l => l.date === todayStr && l.completed).map(l => l.habitId)
+  );
+  const extraPending = extraHabits.filter(h => !firestoreDoneIdsForExtra.has(h.id));
+  const extraDone = extraHabits.filter(h => firestoreDoneIdsForExtra.has(h.id));
 
-  const completedCount = slotAyurHabits.filter(h => mergedAyurDone.has(h.id)).length;
-  const totalHabits = slotAyurHabits.length;
+  const pendingHabits = slotCfg.slotKey === 'morning'
+    ? [...pendingAyurItems, ...extraPending].sort((a, b) => (MORNING_PRACTICE_ORDER_SAD[AYUR_TO_H_ID[a.id] ?? a.id] ?? 99) - (MORNING_PRACTICE_ORDER_SAD[AYUR_TO_H_ID[b.id] ?? b.id] ?? 99))
+    : [...pendingAyurItems, ...extraPending];
+  const doneHabits = [...doneAyurItems, ...extraDone];
+
+  const completedCount = slotAyurHabits.filter(h => mergedAyurDone.has(h.id)).length + extraDone.length;
+  const totalHabits = slotAyurHabits.length + extraHabits.length;
   const completionRate = AYURVEDIC_HABITS.length > 0 ? Math.round((AYURVEDIC_HABITS.filter(h => mergedAyurDone.has(h.id)).length / AYURVEDIC_HABITS.length) * 100) : 0;
   const levelInfo = getLevelFromXP(engine.xp.total);
   const nextLevel = getNextLevel(engine.xp.total);
