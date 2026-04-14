@@ -73,11 +73,12 @@ function getCurrentTimeStr(ctx: BodhiMemoryContext): string {
 }
 
 function getCurrentDateStr(): string {
-    return new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    return new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 }
 
 function getCurrentHour(): number {
-    return new Date().getHours();
+    const istStr = new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', hour12: false });
+    return parseInt(istStr, 10) % 24;
 }
 
 function isLateNight(hour: number): boolean {

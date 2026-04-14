@@ -18,7 +18,8 @@ export async function POST(req: Request) {
         });
 
         const now = new Date();
-        const hour = now.getHours();
+        const istHourStr = now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', hour12: false });
+        const hour = parseInt(istHourStr, 10) % 24;
         const month = now.getMonth(); // 0-11
         const randomSeed = Math.floor(Math.random() * 1000);
 
