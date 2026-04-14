@@ -277,6 +277,21 @@ function loadFromStorage(): Partial<LifestyleState> {
             data._starterHabitsV6 = true;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
+        // ── Starter habits v7: force h_wake_early isActive:true + rename to Rise and Shine ──
+        if (!data._starterHabitsV7 && Array.isArray(data.habits)) {
+            data.habits = data.habits.map((h: HabitItem) =>
+                h.id === 'h_wake_early'
+                    ? { ...h, isActive: true, name: 'Rise and Shine' }
+                    : h
+            );
+            // Also add it if completely missing
+            if (!data.habits.some((h: HabitItem) => h.id === 'h_wake_early')) {
+                const wakeHabit = DEFAULT_STARTER_HABITS.find(h => h.id === 'h_wake_early');
+                if (wakeHabit) data.habits = [{ ...wakeHabit, createdAt: Date.now() }, ...data.habits];
+            }
+            data._starterHabitsV7 = true;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
         // ── Starter habits v5: digital sunset + brain dump as evening habits ──
         if (!data._starterHabitsV5 && Array.isArray(data.habits)) {
             const V5_NEW_IDS = ['h_digital_sunset', 'h_brain_dump'];
@@ -387,7 +402,7 @@ export function computeNewStreak(existing: StreakData | undefined, today: string
 }
 
 export function getToday(): string {
-    return new Date().toISOString().split('T')[0];
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
 }
 
 // ─── Default onboarding habits by life area ────────────────────────────────────
@@ -395,7 +410,7 @@ export function getToday(): string {
 export const MORNING_MEDITATION_HABIT: HabitItem = { id: 'h_morning_meditation', name: 'Morning Meditation', icon: '🧘', category: 'morning', lifeArea: 'spiritual', trackingType: 'duration', targetValue: 20, color: '#a78bfa', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Breathing · Mantra · Dhyan — your sacred morning trinity' };
 
 export const DEFAULT_STARTER_HABITS: HabitItem[] = [
-    { id: 'h_wake_early', name: 'Wake Before 6am', icon: '🌅', category: 'morning', lifeArea: 'mental', trackingType: 'checkbox', color: '#fbbf24', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Rise in Brahma Muhurta — the sacred window of clarity, 2 hours before sunrise' },
+    { id: 'h_wake_early', name: 'Rise and Shine', icon: '🌅', category: 'morning', lifeArea: 'mental', trackingType: 'checkbox', color: '#fbbf24', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Rise in Brahma Muhurta — the sacred window of clarity, 2 hours before sunrise' },
     MORNING_MEDITATION_HABIT,
     { id: 'h_pranayama', name: 'Pranayama', icon: '🌬️', category: 'morning', lifeArea: 'spiritual', trackingType: 'duration', targetValue: 10, color: '#22d3ee', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Alternate nostril breathing — calms Vata, balances prana, clears nadis' },
     { id: 'h_tongue_scraping', name: 'Tongue Scraping', icon: '✨', category: 'morning', lifeArea: 'physical', trackingType: 'checkbox', color: '#4ade80', frequency: 'daily', isActive: true, createdAt: Date.now(), description: 'Ayurvedic oral detox — 7–14 copper scraper strokes removes overnight Ama' },

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, CheckCircle2, Circle, Plus, Sparkles, X, Trash2,
-  ToggleLeft, ToggleRight, Search
+  Search
 } from 'lucide-react';
 import { useDoshaEngine } from '@/hooks/useDoshaEngine';
 import { useLifestyleEngine, logHabitAndSync } from '@/hooks/useLifestyleEngine';
@@ -79,7 +79,7 @@ interface HabitTemplate {
 }
 
 const HABIT_LIBRARY: HabitTemplate[] = [
-  { id: 'h_wake_early', name: 'Wake Before 6am', icon: '🌅', category: 'morning', lifeArea: 'mental', trackingType: 'checkbox', color: '#fbbf24', description: 'Rise in Brahma Muhurta — the sacred window of clarity before sunrise', frequency: 'daily' },
+  { id: 'h_wake_early', name: 'Rise and Shine', icon: '🌅', category: 'morning', lifeArea: 'mental', trackingType: 'checkbox', color: '#fbbf24', description: 'Rise in Brahma Muhurta — the sacred window of clarity before sunrise', frequency: 'daily' },
   { id: 't_oil_pull', name: 'Oil Pulling', icon: '💛', category: 'morning', lifeArea: 'physical', trackingType: 'duration', targetValue: 15, color: '#fde68a', description: '15 min Ayurvedic oral detox with sesame oil', frequency: 'daily' },
   { id: 't_cold_shower', name: 'Cold Shower', icon: '🚿', category: 'morning', lifeArea: 'physical', trackingType: 'checkbox', color: '#22d3ee', description: 'Activate the nervous system with cold water', frequency: 'daily' },
   { id: 't_lemon_water', name: 'Warm Lemon Water', icon: '🍋', category: 'morning', lifeArea: 'physical', trackingType: 'checkbox', color: '#fde68a', description: 'Alkalise and hydrate upon waking', frequency: 'daily' },
@@ -157,7 +157,7 @@ function saveHabitLogs(logs: HabitLogEntry[]) {
   if (typeof window === 'undefined') return;
   try { localStorage.setItem(HABIT_LOG_KEY, JSON.stringify(logs.slice(0, 90))); } catch { /* */ }
 }
-function getToday(): string { return new Date().toISOString().split('T')[0]; }
+function getToday(): string { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date()); }
 function computeStreaks(habitId: string, logs: HabitLogEntry[]): number {
   const today = getToday();
   let streak = 0;
@@ -198,14 +198,14 @@ function DoshaEffectTag({ dosha, value }: { dosha: Dosha; value: number }) {
 
 // ─── AyurvedicHabitCard ────────────────────────────────────────────────────────
 
-function AyurvedicHabitCard({ habit, isCompleted, streak, prakritiDosha, onToggle, isInRoutine }: {
+function AyurvedicHabitCard({ habit, isCompleted, streak, prakritiDosha, onToggle, onAdd, isInRoutine }: {
   habit: AyurvedicHabit; isCompleted: boolean; streak: number;
-  prakritiDosha: Dosha | null; onToggle: () => void;
+  prakritiDosha: Dosha | null; onToggle: () => void; onAdd?: () => void;
   isInRoutine: boolean;
 }) {
   const isBestFor = prakritiDosha && habit.bestFor.includes(prakritiDosha);
   return (
-    <motion.div layout whileTap={{ scale: 0.98 }} onClick={onToggle} style={{
+    <motion.div layout whileTap={{ scale: 0.98 }} onClick={!isInRoutine ? (onAdd ?? onToggle) : onToggle} style={{
       padding: '0.9rem', borderRadius: 16, marginBottom: '0.55rem', cursor: 'pointer',
       background: isCompleted ? 'rgba(251,191,36,0.08)' : 'rgba(255,255,255,0.04)',
       border: `1px solid ${isCompleted ? 'rgba(251,191,36,0.35)' : isBestFor ? 'rgba(255,255,255,0.13)' : 'rgba(255,255,255,0.07)'}`,
@@ -219,11 +219,11 @@ function AyurvedicHabitCard({ habit, isCompleted, streak, prakritiDosha, onToggl
       )}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
         <div style={{ flexShrink: 0, marginTop: 2 }}>
-          {isCompleted ? (
-            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 400 }}>
-              <CheckCircle2 size={20} style={{ color: '#fbbf24' }} />
-            </motion.div>
-          ) : <Circle size={20} style={{ color: 'rgba(255,255,255,0.22)' }} />}
+          {!isInRoutine
+            ? <Plus size={20} style={{ color: '#c084fc' }} />
+            : isCompleted
+              ? <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 400 }}><CheckCircle2 size={20} style={{ color: '#fbbf24' }} /></motion.div>
+              : <Circle size={20} style={{ color: 'rgba(255,255,255,0.22)' }} />}
         </div>
         <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{habit.emoji}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -267,7 +267,7 @@ function LibraryHabitCard({ habit, onAdd }: { habit: HabitTemplate; onAdd: () =>
     }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
         <div style={{ flexShrink: 0, marginTop: 2 }}>
-          <Plus size={20} style={{ color: 'rgba(255,255,255,0.18)' }} />
+          <Plus size={20} style={{ color: '#c084fc' }} />
         </div>
         <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{habit.icon}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -544,12 +544,12 @@ export default function AyurvedicHabitsPage() {
   const inRoutineIds = useMemo(() => new Set(store.habits.map(h => h.id)), [store.habits]);
 
   const filteredAyurvedicHabits = useMemo(() => {
-    let habits = AYURVEDIC_HABITS;
+    let habits = AYURVEDIC_HABITS.filter(h => !inRoutineIds.has(h.id));
     if (activeTab !== 'all') habits = habits.filter(h => h.category === activeTab);
     if (search.trim()) habits = habits.filter(h => h.name.toLowerCase().includes(search.toLowerCase()) || (h.nameHi && h.nameHi.includes(search)));
     if (prakriti) return [...habits].sort((a, b) => (a.bestFor.includes(prakriti.primary) ? -1 : 0) - (b.bestFor.includes(prakriti.primary) ? -1 : 0));
     return habits;
-  }, [activeTab, prakriti, search]);
+  }, [activeTab, prakriti, search, inRoutineIds]);
 
   const completionPct = Math.round((completedToday.size / AYURVEDIC_HABITS.length) * 100);
 
@@ -574,12 +574,15 @@ export default function AyurvedicHabitsPage() {
       color: '#c084fc', frequency: 'daily', isActive: true,
       createdAt: Date.now(), description: h.description,
     });
+    try { window.dispatchEvent(new CustomEvent('habit-logged')); } catch { }
+    setMainTab('myhabits');
     setToast('✅ Added to your routine!');
     setTimeout(() => setToast(null), 2500);
   };
 
   const addFromLibrary = (t: HabitTemplate) => {
     store.addHabit({ id: t.id, name: t.name, icon: t.icon, category: t.category, lifeArea: t.lifeArea, trackingType: t.trackingType, targetValue: t.targetValue, color: t.color, frequency: t.frequency, isActive: true, createdAt: Date.now() });
+    try { window.dispatchEvent(new CustomEvent('habit-logged')); } catch { }
     setToast('✅ Habit added!');
     setTimeout(() => setToast(null), 2500);
     setMainTab('myhabits');
@@ -689,7 +692,9 @@ export default function AyurvedicHabitsPage() {
                 item.type === 'ayurvedic'
                   ? <AyurvedicHabitCard key={item.data.id} habit={item.data} isCompleted={completedToday.has(item.data.id)}
                     streak={streaks[item.data.id] ?? 0} prakritiDosha={prakriti?.primary ?? null}
-                    onToggle={() => toggleHabit(item.data.id)} isInRoutine={inRoutineIds.has(item.data.id)} />
+                    onToggle={() => toggleHabit(item.data.id)}
+                    onAdd={() => addAyurvedicToRoutine(item.data)}
+                    isInRoutine={inRoutineIds.has(item.data.id)} />
                   : <LibraryHabitCard key={item.data.id} habit={item.data} onAdd={() => addFromLibrary(item.data)} />
               )}
             </AnimatePresence>
@@ -722,22 +727,16 @@ export default function AyurvedicHabitsPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
               {store.habits.map(habit => (
                 <motion.div key={habit.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  style={{ padding: '0.8rem 1rem', borderRadius: 14, background: habit.isActive ? `${habit.color}0a` : 'rgba(255,255,255,0.03)', border: `1px solid ${habit.isActive ? habit.color + '28' : 'rgba(255,255,255,0.07)'}`, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <span style={{ fontSize: '1.3rem', flexShrink: 0, opacity: habit.isActive ? 1 : 0.4 }}>{habit.icon}</span>
+                  style={{ padding: '0.8rem 1rem', borderRadius: 14, background: `${habit.color}0a`, border: `1px solid ${habit.color}28`, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{habit.icon}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: '0.87rem', fontWeight: 700, color: habit.isActive ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.35)', ...s }}>{habit.name}</p>
+                    <p style={{ margin: 0, fontSize: '0.87rem', fontWeight: 700, color: 'rgba(255,255,255,0.85)', ...s }}>{habit.name}</p>
                     <p style={{ margin: '1px 0 0', fontSize: '0.62rem', color: habit.color, opacity: 0.7, ...s }}>{habit.lifeArea} · {habit.frequency}</p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', flexShrink: 0 }}>
-                    <motion.button whileTap={{ scale: 0.9 }} onClick={() => store.updateHabit(habit.id, { isActive: !habit.isActive })}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
-                      {habit.isActive
-                        ? <ToggleRight size={22} style={{ color: habit.color }} />
-                        : <ToggleLeft size={22} style={{ color: 'rgba(255,255,255,0.2)' }} />}
-                    </motion.button>
                     <motion.button whileTap={{ scale: 0.9 }} onClick={() => store.removeHabit(habit.id)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
-                      <Trash2 size={15} style={{ color: 'rgba(255,100,100,0.45)' }} />
+                      style={{ background: 'rgba(255,80,80,0.08)', border: '1px solid rgba(255,80,80,0.18)', cursor: 'pointer', padding: '0.28rem 0.6rem', borderRadius: 8 }}>
+                      <Trash2 size={14} style={{ color: 'rgba(255,100,100,0.65)' }} />
                     </motion.button>
                   </div>
                 </motion.div>

@@ -137,15 +137,25 @@ export function saveAyurHabitLogs(logs: AyurHabitLogEntry[]): void {
     try { localStorage.setItem(AYUR_LOG_STORAGE_KEY, JSON.stringify(logs)); } catch { }
 }
 
+// ─── IST date string (YYYY-MM-DD) ─────────────────────────────────────────
+function getISTToday(): string {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+}
+
+// ─── Display name overrides (centralised rename map) ─────────────────────────
+export const HABIT_DISPLAY_OVERRIDES: Record<string, string> = {
+    h_wake_early: 'Rise and Shine',
+};
+
 export function getTodayAyurCompletedIds(): Set<string> {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getISTToday();
     const logs = loadAyurHabitLogs();
     const todayLog = logs.find(l => l.date === today);
     return new Set(todayLog?.completedIds ?? []);
 }
 
 export function setAyurHabitCompleted(habitId: string): void {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getISTToday();
     const logs = loadAyurHabitLogs();
     const existing = logs.find(l => l.date === today);
     if (existing) {

@@ -18,6 +18,7 @@ import { getMorningMood } from '@/components/MoodGarden/MorningMoodCards';
 import {
   AYURVEDIC_HABITS, AYUR_TO_H_ID, H_ID_TO_AYUR,
   getHabitsForSlot, getTodayAyurCompletedIds, setAyurHabitCompleted,
+  HABIT_DISPLAY_OVERRIDES,
   type TimeSlot as AyurTimeSlot,
 } from '@/lib/ayurvedicHabitsData';
 
@@ -85,14 +86,14 @@ const AYUR_STAT_LABELS = [
 function getSmartLoggedToday(): Set<string> {
   try {
     const raw = JSON.parse(localStorage.getItem('onesutra_smartlog_v2') ?? '{}');
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
     return new Set(raw[today] ?? []);
   } catch { return new Set(); }
 }
 function saveToSmartLog(id: string) {
   try {
     const raw = JSON.parse(localStorage.getItem('onesutra_smartlog_v2') ?? '{}');
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
     const s = new Set(raw[today] ?? []);
     s.add(id);
     raw[today] = [...s];
@@ -374,7 +375,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const slotAyurHabits = getHabitsForSlot(ayurSlot);
 
   // ── Merged completion: localStorage ayur + Firestore habit_logs ──
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
   // firestoreAyurDone covers two cases so cross-device sync works for all habits:
   //   1. h_* alias logged → map via H_ID_TO_AYUR (e.g. h_walk → shatapavali)
   //   2. Direct ayurvedic ID logged (e.g. main_meal_noon — has no h_* alias)
@@ -419,7 +420,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
 
   // Include HABIT_LIBRARY habits from lifestyle store that aren't already in AYURVEDIC_HABITS
   // e.g. h_wake_early (Wake Before 6am), t_yoga, t_stretch, t_deep_work, etc.
-  const extraHabits = engine.activeHabits.filter(h => {
+  const extraHabits = engine.activeHabits.map(h => ({ ...h, name: HABIT_DISPLAY_OVERRIDES[h.id] ?? h.name })).filter(h => {
     if (ayurvedic_ids_set.has(h.id)) return false; // already shown via Ayurvedic list
     const aId = H_ID_TO_AYUR[h.id];
     if (aId && ayurvedic_ids_set.has(aId)) return false; // h_* alias of an Ayurvedic habit

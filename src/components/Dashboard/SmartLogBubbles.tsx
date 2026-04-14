@@ -15,7 +15,7 @@ import { getMorningMood } from '@/components/MoodGarden/MorningMoodCards';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
 import { useLifestyleStore } from '@/stores/lifestyleStore';
 import { logHabitAndSync } from '@/hooks/useLifestyleEngine';
-import { AYURVEDIC_HABITS, AYUR_TO_H_ID, H_ID_TO_AYUR, setAyurHabitCompleted, getHabitsForSlot, getTodayAyurCompletedIds } from '@/lib/ayurvedicHabitsData';
+import { AYURVEDIC_HABITS, AYUR_TO_H_ID, H_ID_TO_AYUR, setAyurHabitCompleted, getHabitsForSlot, getTodayAyurCompletedIds, HABIT_DISPLAY_OVERRIDES } from '@/lib/ayurvedicHabitsData';
 
 // ─── Set of canonical Ayurvedic habit IDs (used for done-status routing) ─────
 const AYUR_IDS = new Set(AYURVEDIC_HABITS.map(h => h.id));
@@ -74,7 +74,7 @@ const MORNING_ORDER = ['wake', 'warm_water', 'tongue_scrape', 'breathwork', 'bat
 const LOG_STORE_KEY = 'onesutra_smartlog_v2';
 const LIFESTYLE_STORE_KEY = 'onesutra_lifestyle_v2';
 
-function getTodayStr() { return new Date().toISOString().split('T')[0]; }
+function getTodayStr() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date()); }
 
 function getLoggedToday(): Set<string> {
     try {
@@ -326,7 +326,7 @@ type LogBubble = {
 
 const MORNING_BUBBLES: LogBubble[] = [
     {
-        id: 'wake', icon: '🌅', label: 'Wake Before 6am', sublabel: 'Wake-up ritual', color: '#fbbf24',
+        id: 'wake', icon: '🌅', label: 'Rise and Shine', sublabel: 'Brahma Muhurta wake-up', color: '#fbbf24',
         logMessage: 'I woke up this morning [UI_EVENT: MORNING_LOGS_CLICKED]',
         subOptions: [
             { icon: '⚡', label: 'Energized & fresh', detail: 'woke up feeling energized and completely fresh' },
@@ -600,7 +600,7 @@ export function getTimedBubbles(): LogBubble[] {
                 (h >= 15 && h < 21) ? 'evening' : 'night';
 
     const habits = getHabitsForSlot(slot).filter(habit => habit.category !== 'anytime');
-    return habits.map(habit => ({
+    const ayurBubbles = habits.map(habit => ({
         id: habit.id,
         icon: habit.emoji,
         label: habit.name,
@@ -609,6 +609,13 @@ export function getTimedBubbles(): LogBubble[] {
         logMessage: `I completed ${habit.name} [UI_EVENT: AYUR_LOG]`,
         subOptions: getSubOptionsForHabit(habit.id, habit.name),
     }));
+    // Inject the Rise and Shine (wake) bubble first for morning — not an Ayurvedic
+    // habit so it doesn't come from getHabitsForSlot, but essential for Brahma Muhurta.
+    if (slot === 'morning') {
+        const wakeBubble = MORNING_BUBBLES.find(b => b.id === 'wake');
+        if (wakeBubble) return [wakeBubble, ...ayurBubbles];
+    }
+    return ayurBubbles;
 }
 
 export function getTimeLabel(): { label: string; color: string; Icon: LucideIcon; sublabel: string } {
@@ -654,7 +661,7 @@ function buildDynamicHabitBubbles(
         const bubble: LogBubble = {
             id: habit.id,
             icon: habit.icon,
-            label: habit.name,
+            label: HABIT_DISPLAY_OVERRIDES[habit.id] ?? habit.name,
             sublabel: habit.scheduledTime ? `Due ${habit.scheduledTime}` : 'Tap to log',
             color,
             logMessage: `I completed my habit: ${habit.icon} ${habit.name} [UI_EVENT: HABIT_AS_LOG]`,
@@ -763,11 +770,11 @@ export default function SmartLogBubbles() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lifestyleStore.habitLogs]);
 
-    // Dynamic habit bubbles
+    // Dynamic habit bubbles — also re-run when habits are added/removed from the store
     const { timed: dynamicTimed, anytime: dynamicAnytime } = useMemo(
         () => buildDynamicHabitBubbles(loggedToday, completedHabitIds),
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [loggedToday.size, completedHabitIds.size, currentHour]
+        [loggedToday.size, completedHabitIds.size, currentHour, lifestyleStore.habits.length]
     );
 
     // Pending static bubbles for this time slot
@@ -814,7 +821,7 @@ export default function SmartLogBubbles() {
         if (orderIdx <= 0) return null;
         const prereq = MORNING_ORDER[orderIdx - 1];
         if (!loggedToday.has(prereq)) {
-            const names: Record<string, string> = { wake: 'Wake Before 6am', warm_water: 'Warm Water Ritual', tongue_scrape: 'Tongue Scraping', breathwork: 'Pranayama', bath: 'Morning Bath', morning_light: 'Morning Sunlight', breakfast: 'Mindful Breakfast' };
+            const names: Record<string, string> = { wake: 'Rise and Shine', warm_water: 'Warm Water Ritual', tongue_scrape: 'Tongue Scraping', breathwork: 'Pranayama', bath: 'Morning Bath', morning_light: 'Morning Sunlight', breakfast: 'Mindful Breakfast' };
             return `Log "${names[prereq] ?? prereq}" first ✦`;
         }
         return null;
