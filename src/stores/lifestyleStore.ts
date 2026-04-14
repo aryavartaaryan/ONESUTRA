@@ -277,6 +277,14 @@ function loadFromStorage(): Partial<LifestyleState> {
             data._starterHabitsV6 = true;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
+        // ── Starter habits v8: remove anulom_vilom and kapalabhati ──────────
+        if (!data._starterHabitsV8 && Array.isArray(data.habits)) {
+            data.habits = data.habits.filter((h: HabitItem) =>
+                h.id !== 'anulom_vilom' && h.id !== 'kapalabhati'
+            );
+            data._starterHabitsV8 = true;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
         // ── Starter habits v7: force h_wake_early isActive:true + rename to Rise and Shine ──
         if (!data._starterHabitsV7 && Array.isArray(data.habits)) {
             data.habits = data.habits.map((h: HabitItem) =>
