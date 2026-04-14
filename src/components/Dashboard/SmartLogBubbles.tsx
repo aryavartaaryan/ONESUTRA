@@ -256,6 +256,27 @@ function getNudge(id: string): string | null {
     return TIMING_NUDGES[id] ?? null;
 }
 
+// ─── Confirmation chime (Tibetan bowl harmonics) ───────────────────────────────
+function playConfirmChime() {
+    if (typeof window === 'undefined') return;
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
+        if (!Ctx) return;
+        const ctx = new Ctx() as AudioContext;
+        void ctx.resume().then(() => {
+            ([[528, 0.2], [792, 0.1], [1056, 0.05]] as [number, number][]).forEach(([freq, vol], i) => {
+                const osc = ctx.createOscillator(); const g = ctx.createGain();
+                osc.type = 'sine'; osc.frequency.value = freq;
+                const t = ctx.currentTime + i * 0.018;
+                g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.5);
+                osc.connect(g); g.connect(ctx.destination);
+                osc.start(t); osc.stop(t + 1.5);
+            });
+        });
+    } catch { /* ignore */ }
+}
+
 // ─── Ayurvedic habit ID set (module-level, for getTimedBubbles filter) ─────────
 const AYUR_ID_SET = new Set(AYURVEDIC_HABITS.map(h => h.id));
 
@@ -887,6 +908,7 @@ export default function SmartLogBubbles() {
 
     const logAndNavigate = async (bubble: LogBubble, sub?: SubOption) => {
         unlockAudio();
+        playConfirmChime();
         const updated = new Set(loggedToday).add(bubble.id);
         setLoggedToday(updated);
         saveLoggedToday(updated);

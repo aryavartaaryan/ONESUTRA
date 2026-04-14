@@ -277,14 +277,6 @@ function loadFromStorage(): Partial<LifestyleState> {
             data._starterHabitsV6 = true;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
-        // ── Starter habits v8: remove anulom_vilom and kapalabhati ──────────
-        if (!data._starterHabitsV8 && Array.isArray(data.habits)) {
-            data.habits = data.habits.filter((h: HabitItem) =>
-                h.id !== 'anulom_vilom' && h.id !== 'kapalabhati'
-            );
-            data._starterHabitsV8 = true;
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        }
         // ── Starter habits v7: force h_wake_early isActive:true + rename to Rise and Shine ──
         if (!data._starterHabitsV7 && Array.isArray(data.habits)) {
             data.habits = data.habits.map((h: HabitItem) =>
@@ -298,6 +290,13 @@ function loadFromStorage(): Partial<LifestyleState> {
                 if (wakeHabit) data.habits = [{ ...wakeHabit, createdAt: Date.now() }, ...data.habits];
             }
             data._starterHabitsV7 = true;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+        // ── Starter habits v8: remove anulom_vilom, kapalabhati, h_pranayama ──
+        if (!data._starterHabitsV8 && Array.isArray(data.habits)) {
+            const REMOVE_IDS = new Set(['anulom_vilom', 'kapalabhati', 'h_pranayama']);
+            data.habits = data.habits.filter((h: HabitItem) => !REMOVE_IDS.has(h.id));
+            data._starterHabitsV8 = true;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
         // ── Starter habits v5: digital sunset + brain dump as evening habits ──
