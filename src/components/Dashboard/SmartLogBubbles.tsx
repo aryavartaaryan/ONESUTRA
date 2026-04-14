@@ -256,6 +256,9 @@ function getNudge(id: string): string | null {
     return TIMING_NUDGES[id] ?? null;
 }
 
+// ─── Ayurvedic habit ID set (module-level, for getTimedBubbles filter) ─────────
+const AYUR_ID_SET = new Set(AYURVEDIC_HABITS.map(h => h.id));
+
 // ─── IDs that are already in the static bubble lists (don't duplicate) ───────
 // Includes both the static bubble IDs AND the matching lifestyle-store habit IDs
 // so that dynamic habit bubbles never repeat what static bubbles already show.
@@ -273,8 +276,7 @@ const STATIC_BUBBLE_IDS = new Set([
     'evening_walk', 'light_dinner_early', 'screen_free_hour', 'journaling', 'sleep_by_10',
     // Lifestyle-store h_* IDs that are aliases for AYURVEDIC_HABITS above —
     // kept here so buildDynamicHabitBubbles doesn't duplicate what getTimedBubbles already shows.
-    // NOTE: h_wake_early is intentionally NOT listed — it is a HABIT_LIBRARY entry
-    // (not an Ayurvedic habit) so it must appear as a dynamic bubble when selected.
+    'h_wake_early',          // = static 'wake' bubble (Rise and Shine) — prevents duplicate
     'h_warm_water',          // = 'warm_water_morning'
     'h_tongue_scraping',     // = 'tongue_scraping'
     'h_pranayama',           // = 'anulom_vilom' / 'kapalabhati'
@@ -599,19 +601,32 @@ export function getTimedBubbles(): LogBubble[] {
             (h >= 11 && h < 15) ? 'midday' :
                 (h >= 15 && h < 21) ? 'evening' : 'night';
 
-    const habits = getHabitsForSlot(slot).filter(habit => habit.category !== 'anytime');
+    // Only show Ayurvedic habits the user has added to My Habits
+    const storeHabits = getActiveHabits();
+    const storeIds = new Set(storeHabits.map(sh => sh.id));
+    // Build the set of Ayurvedic IDs present in the user's store
+    // (either added directly as Ayurvedic IDs, or via h_* aliases like h_pranayama → anulom_vilom)
+    const userAyurIds = new Set<string>();
+    for (const sh of storeHabits) {
+        if (AYUR_ID_SET.has(sh.id)) userAyurIds.add(sh.id);
+        const aId = H_ID_TO_AYUR[sh.id];
+        if (aId) userAyurIds.add(aId);
+    }
+
+    const habits = getHabitsForSlot(slot).filter(
+        habit => habit.category !== 'anytime' && userAyurIds.has(habit.id)
+    );
     const ayurBubbles = habits.map(habit => ({
         id: habit.id,
         icon: habit.emoji,
-        label: habit.name,
+        label: HABIT_DISPLAY_OVERRIDES[habit.id] ?? habit.name,
         sublabel: habit.description.slice(0, 52) + (habit.description.length > 52 ? '…' : ''),
         color: SLOT_COLORS[habit.category] ?? '#a78bfa',
         logMessage: `I completed ${habit.name} [UI_EVENT: AYUR_LOG]`,
         subOptions: getSubOptionsForHabit(habit.id, habit.name),
     }));
-    // Inject the Rise and Shine (wake) bubble first for morning — not an Ayurvedic
-    // habit so it doesn't come from getHabitsForSlot, but essential for Brahma Muhurta.
-    if (slot === 'morning') {
+    // Inject Rise and Shine (wake) first for morning — only if user has h_wake_early in My Habits
+    if (slot === 'morning' && storeIds.has('h_wake_early')) {
         const wakeBubble = MORNING_BUBBLES.find(b => b.id === 'wake');
         if (wakeBubble) return [wakeBubble, ...ayurBubbles];
     }
