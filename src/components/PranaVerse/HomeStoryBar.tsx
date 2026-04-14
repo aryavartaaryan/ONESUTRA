@@ -1677,7 +1677,7 @@ function MantraStoryViewer({
             exit={{ opacity: 0, scale: 0.94 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             style={{
-                position: 'fixed', inset: 0, zIndex: 2000,
+                position: 'fixed', inset: 0, zIndex: 10003,
                 background: '#000', overflow: 'hidden',
             }}
         >
@@ -2046,6 +2046,7 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
     const openUserTask = (idx: number) => {
         setActiveUserTaskIdx(idx);
         setViewedIds(v => new Set([...v, userTaskStories[idx].id]));
+        window.history.pushState({ pvStory: true }, '');
     };
     const closeUserTask = () => setActiveUserTaskIdx(null);
     const nextUserTask = () => {
@@ -2059,11 +2060,18 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
     };
 
     useEffect(() => {
-        if (activeGroupIdx === null && activeVideoIdx === null && activeUserTaskIdx === null) return;
-        const handler = () => { setActiveGroupIdx(null); setActiveVideoIdx(null); setActiveUserTaskIdx(null); };
+        const isAnyOpen = activeGroupIdx !== null || activeVideoIdx !== null || activeUserTaskIdx !== null || activeMantraIdx !== null || activeLogIdx !== null;
+        if (!isAnyOpen) return;
+        const handler = () => {
+            setActiveGroupIdx(null);
+            setActiveVideoIdx(null);
+            setActiveUserTaskIdx(null);
+            setActiveMantraIdx(null);
+            setActiveLogIdx(null);
+        };
         window.addEventListener('popstate', handler);
         return () => window.removeEventListener('popstate', handler);
-    }, [activeGroupIdx, activeVideoIdx, activeUserTaskIdx]);
+    }, [activeGroupIdx, activeVideoIdx, activeUserTaskIdx, activeMantraIdx, activeLogIdx]);
 
     const isAnyViewerOpen = activeGroupIdx !== null || activeVideoIdx !== null || activeUserTaskIdx !== null || activeMantraIdx !== null || activeLogIdx !== null;
     const [isMounted, setIsMounted] = useState(false);
@@ -2140,12 +2148,12 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
                 {/* ── LOG STORIES: completed habits today ── */}
                 {logStories.length > 0 && (
                     rectangular ? (
-                        <RectStoryCard icon="📓" label={`${logStories.length} Logged`} sublabel="Today's Log" color="#4ade80" ring="conic-gradient(#4ade80,#fbbf24,#4ade80)" thumbBg="https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=300&h=450&fit=crop&q=80" index={99} isViewed={logStories.every(s => viewedIds.has(s.id))} onClick={() => { setActiveLogIdx(0); setViewedIds(v => new Set([...v, logStories[0]?.id ?? ''])); }} />
+                        <RectStoryCard icon="📓" label={`${logStories.length} Logged`} sublabel="Today's Log" color="#4ade80" ring="conic-gradient(#4ade80,#fbbf24,#4ade80)" thumbBg="https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=300&h=450&fit=crop&q=80" index={99} isViewed={logStories.every(s => viewedIds.has(s.id))} onClick={() => { setActiveLogIdx(0); setViewedIds(v => new Set([...v, logStories[0]?.id ?? ''])); window.history.pushState({ pvStory: true }, ''); }} />
                     ) : (
                         <>
                             {userTaskStories.length > 0 && <div style={{ width: 1, height: 48, background: 'rgba(96,165,250,0.2)', flexShrink: 0, alignSelf: 'center' }} />}
                             <div style={{ scrollSnapAlign: 'start', flexShrink: 0 }}>
-                                <UserCategoryGroupBubble category="log" stories={logStories} onOpen={() => { setActiveLogIdx(0); setViewedIds(v => new Set([...v, logStories[0]?.id ?? ''])); }} isViewed={logStories.every(s => viewedIds.has(s.id))} idx={99} />
+                                <UserCategoryGroupBubble category="log" stories={logStories} onOpen={() => { setActiveLogIdx(0); setViewedIds(v => new Set([...v, logStories[0]?.id ?? ''])); window.history.pushState({ pvStory: true }, ''); }} isViewed={logStories.every(s => viewedIds.has(s.id))} idx={99} />
                             </div>
                         </>
                     )
@@ -2194,7 +2202,7 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
                 {MANTRA_REELS.map((reel, idx) => {
                     const isViewed = viewedIds.has(`mantra-${reel.id}`);
                     return rectangular ? (
-                        <RectStoryCard key={reel.id} icon={reel.emoji} label={reel.name.split(' ').slice(0, 3).join(' ')} sublabel="Mantra" color={reel.color} ring={`conic-gradient(${reel.color},${reel.secondColor},${reel.color})`} thumbBg={reel.imageBg} index={idx} isViewed={isViewed} onClick={() => setActiveMantraIdx(idx)} />
+                        <RectStoryCard key={reel.id} icon={reel.emoji} label={reel.name.split(' ').slice(0, 3).join(' ')} sublabel="Mantra" color={reel.color} ring={`conic-gradient(${reel.color},${reel.secondColor},${reel.color})`} thumbBg={reel.imageBg} index={idx} isViewed={isViewed} onClick={() => { setActiveMantraIdx(idx); window.history.pushState({ pvStory: true }, ''); }} />
                     ) : (
                         <motion.div
                             key={reel.id}
@@ -2202,7 +2210,7 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             transition={{ delay: idx * 0.035, type: 'spring', stiffness: 280, damping: 20 }}
                             whileTap={{ scale: 0.91 }}
-                            onClick={() => setActiveMantraIdx(idx)}
+                            onClick={() => { setActiveMantraIdx(idx); window.history.pushState({ pvStory: true }, ''); }}
                             style={{
                                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem',
                                 flexShrink: 0, cursor: 'pointer', scrollSnapAlign: 'start', scrollSnapStop: 'always',
