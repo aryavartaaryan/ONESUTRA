@@ -285,6 +285,9 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
     setLogStory(getTodayLogStory());
     setSmartLoggedToday(getSmartLoggedToday());
     setAyurCompletedIds(getTodayAyurCompletedIds());
+    // Sync expanded slots with current time on mount (fixes stale state from earlier sessions)
+    const h = new Date().getHours();
+    setExpandedSlots({ morning: h >= 4 && h < 12, noon: h >= 12 && h < 17, evening: h >= 17 });
     const refresh = () => {
       setLogStory(getTodayLogStory());
       setSmartLoggedToday(getSmartLoggedToday());
@@ -437,6 +440,16 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
     const _aId = H_ID_TO_AYUR[sh.id]; if (_aId) _storeAyurIds.add(_aId);
   }
   const slotAyurHabits = getHabitsForSlot(ayurSlot).filter(h => _storeAyurIds.has(h.id));
+  // Always surface core meal habits for their slot — even if not in user’s habit store
+  const MEAL_DEFAULTS: Partial<Record<typeof ayurSlot, string[]>> = {
+    midday: ['main_meal_noon'],
+    evening: ['light_dinner_early'],
+  };
+  const mealDefaultIds = MEAL_DEFAULTS[ayurSlot] ?? [];
+  const slotAyurHabitsAll = [
+    ...slotAyurHabits,
+    ...AYURVEDIC_HABITS.filter(h => mealDefaultIds.includes(h.id) && !slotAyurHabits.some(s => s.id === h.id)),
+  ];
 
   // ── Merged completion: localStorage ayur + Firestore habit_logs ──
   const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
@@ -478,7 +491,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
     scheduledTime: '',
   });
 
-  const pendingAyurItems = slotAyurHabits.filter(h => !mergedAyurDone.has(h.id)).map(toHabitItem);
+  const pendingAyurItems = slotAyurHabitsAll.filter(h => !mergedAyurDone.has(h.id)).map(toHabitItem);
   const doneAyurItems = AYURVEDIC_HABITS.filter(h => mergedAyurDone.has(h.id)).map(toHabitItem);
 
   // Include HABIT_LIBRARY habits from lifestyle store that aren't already in AYURVEDIC_HABITS
@@ -507,8 +520,8 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
     : [...pendingAyurItems, ...extraPending];
   const doneHabits = [...doneAyurItems, ...extraDone];
 
-  const completedCount = slotAyurHabits.filter(h => mergedAyurDone.has(h.id)).length + extraDone.length;
-  const totalHabits = slotAyurHabits.length + extraHabits.length;
+  const completedCount = slotAyurHabitsAll.filter(h => mergedAyurDone.has(h.id)).length + extraDone.length;
+  const totalHabits = slotAyurHabitsAll.length + extraHabits.length;
   const completionRate = AYURVEDIC_HABITS.length > 0 ? Math.round((AYURVEDIC_HABITS.filter(h => mergedAyurDone.has(h.id)).length / AYURVEDIC_HABITS.length) * 100) : 0;
   const levelInfo = getLevelFromXP(engine.xp.total);
   const nextLevel = getNextLevel(engine.xp.total);
@@ -527,9 +540,9 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   ];
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.55 }}
-      style={{ margin: '0 0.5rem 1rem', borderRadius: 24, overflow: 'hidden', position: 'relative', border: `1.5px solid ${slotCfg.color}28`, boxShadow: `0 16px 48px rgba(0,0,0,0.45),inset 0 1px 0 rgba(255,255,255,0.07),0 0 40px ${slotCfg.color}08` }}>
-      {globalBg && <div style={{ position: 'absolute', inset: 0, backgroundImage: `url('${globalBg}')`, backgroundSize: 'cover', backgroundPosition: 'center', transform: 'scale(1.08)', filter: 'blur(3px) brightness(0.35) saturate(1.2)', zIndex: 0 }} />}
-      <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at 10% 0%,${slotCfg.color}18 0%,transparent 55%),radial-gradient(ellipse at 90% 100%,rgba(139,92,246,0.14) 0%,transparent 55%),linear-gradient(180deg,rgba(4,2,18,0.15) 0%,rgba(4,2,18,0.9) 100%)`, zIndex: 1 }} />
+      style={{ margin: '0 0.5rem 1rem', borderRadius: 26, overflow: 'hidden', position: 'relative', border: '1px solid rgba(255,255,255,0.10)', boxShadow: '0 24px 72px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)' }}>
+      {globalBg && <div style={{ position: 'absolute', inset: 0, backgroundImage: `url('${globalBg}')`, backgroundSize: 'cover', backgroundPosition: 'center', transform: 'scale(1.08)', filter: 'blur(2px) brightness(0.55) saturate(1.2)', zIndex: 0 }} />}
+      <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at 10% 0%,${slotCfg.color}22 0%,transparent 55%),radial-gradient(ellipse at 90% 100%,rgba(139,92,246,0.14) 0%,transparent 55%),linear-gradient(180deg,rgba(4,2,18,0.04) 0%,rgba(4,2,18,0.68) 100%)`, zIndex: 1 }} />
       <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: '16rem', opacity: 0.016, zIndex: 1, pointerEvents: 'none', lineHeight: 1, color: slotCfg.color }}>ॐ</div>
       <div style={{ position: 'relative', zIndex: 2, padding: '0.85rem 0.9rem 0.8rem' }}>
         {/* Header — compact & sleek */}
@@ -711,9 +724,36 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
                                 </motion.div>
                               );
                             })}
-                            {slotLogs.length === 0 && !isCurrent && (
-                              <p style={{ margin: 0, padding: '0.34rem 0.54rem', fontSize: '0.58rem', color: 'rgba(255,255,255,0.18)', fontFamily: "'Outfit',sans-serif", fontStyle: 'italic' }}>No activities logged in this slot</p>
-                            )}
+                            {/* Missed habits for past slots */}
+                            {!isCurrent && (() => {
+                              const pastSlotKey = slotKey === 'morning' ? 'morning' : slotKey === 'noon' ? 'midday' : 'evening';
+                              const pastHabits = getHabitsForSlot(pastSlotKey as AyurTimeSlot).filter(h => _storeAyurIds.has(h.id));
+                              const extraPastIds = (MEAL_DEFAULTS as Record<string,string[]>)[pastSlotKey] ?? [];
+                              const allPastHabits = [
+                                ...pastHabits,
+                                ...AYURVEDIC_HABITS.filter(h => extraPastIds.includes(h.id) && !pastHabits.some(p => p.id === h.id)),
+                              ];
+                              const missedHabits = allPastHabits.filter(h => !mergedAyurDone.has(h.id));
+                              return (
+                                <>
+                                  {slotLogs.length === 0 && missedHabits.length === 0 && (
+                                    <p style={{ margin: 0, padding: '0.34rem 0.54rem', fontSize: '0.58rem', color: 'rgba(255,255,255,0.18)', fontFamily: "'Outfit',sans-serif", fontStyle: 'italic' }}>No activities logged in this slot</p>
+                                  )}
+                                  {missedHabits.length > 0 && (
+                                    <div style={{ marginTop: slotLogs.length > 0 ? '0.3rem' : 0 }}>
+                                      <p style={{ margin: '0 0 0.18rem 0.1rem', fontSize: '0.52rem', color: 'rgba(255,180,0,0.45)', fontFamily: "'Outfit',sans-serif", letterSpacing: '0.07em', fontStyle: 'italic' }}>📌 Not logged</p>
+                                      {missedHabits.map(h => (
+                                        <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.3rem 0.55rem', borderRadius: 11, background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.10)', marginBottom: '0.14rem', opacity: 0.52 }}>
+                                          <span style={{ fontSize: '0.84rem', flexShrink: 0 }}>{h.emoji}</span>
+                                          <span style={{ flex: 1, fontSize: '0.7rem', color: 'rgba(255,255,255,0.42)', fontFamily: "'Outfit',sans-serif", fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.name}</span>
+                                          <span style={{ fontSize: '0.46rem', color: 'rgba(255,180,0,0.35)', fontFamily: "'Outfit',sans-serif", flexShrink: 0 }}>missed</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </>
+                              );
+                            })()}
                             {isCurrent && pendingHabits.length > 0 && (
                               <div style={{ marginTop: '0.12rem' }}>
                                 <motion.div

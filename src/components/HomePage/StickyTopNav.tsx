@@ -1769,6 +1769,22 @@ export default function StickyTopNav() {
     const [isMounted, setIsMounted] = useState(false);
     useEffect(() => { setIsMounted(true); }, []);
 
+    // Reactive story heading — re-evaluates every minute
+    const getStoryHeadingLabel = () => {
+        const h = new Date().getHours();
+        if (h >= 4 && h < 12) return '\u{1F305}\u2728 Morning Pr\u0101\u1E47a Feeds \u2014 Rise, Glow & Radiate';
+        if (h >= 12 && h < 17) return '\u2600\uFE0F\u26A1 Midday Power Feeds \u2014 Fuel Your Brilliance';
+        if (h >= 17 && h < 22) return '\u{1FA94}\u{1F319} Evening Rasa Feeds \u2014 Restore & Bloom';
+        return '\u{1F31F}\u{1F4AB} Night Wisdom Feeds \u2014 Dream Deep, Rise Aligned';
+    };
+    const [storyHeading, setStoryHeading] = useState(getStoryHeadingLabel);
+    useEffect(() => {
+        setStoryHeading(getStoryHeadingLabel());
+        const t = setInterval(() => setStoryHeading(getStoryHeadingLabel()), 60_000);
+        return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     // Groups: one entry per category that has items
     const CATS = ['log', 'task', 'challenge', 'idea', 'issue', 'wellness'] as const;
     const groupedCategories = useMemo(() =>
@@ -2054,7 +2070,7 @@ export default function StickyTopNav() {
                     color: 'rgba(255,255,255,0.95)',
                     fontFamily: "'Playfair Display', Georgia, serif",
                     letterSpacing: '-0.01em', textShadow: '0 2px 8px rgba(0,0,0,0.4)',
-                }}>{(() => { const h = new Date().getHours(); if (h >= 4 && h < 12) return '🌅✨ Morning Prāṇa Feeds — Rise, Glow & Radiate'; if (h >= 12 && h < 17) return '☀️⚡ Midday Power Feeds — Fuel Your Brilliance'; if (h >= 17 && h < 22) return '🪔🌙 Evening Rasa Feeds — Restore & Bloom'; return '🌟💫 Night Wisdom Feeds — Dream Deep, Rise Aligned'; })()}</h2>
+                }}>{storyHeading}</h2>
             </div>
             <HomeStoryBar rectangular />
 
