@@ -584,26 +584,35 @@ function UserStoryViewer({
 
     return (
         <motion.div
-            initial={{ x: direction > 0 ? '100%' : '-100%', opacity: 0.7 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: direction > 0 ? '-100%' : '100%', opacity: 0 }}
-            transition={{ x: { type: 'spring', stiffness: 420, damping: 38 }, opacity: { duration: 0.14 } }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22 }}
             onClick={e => e.stopPropagation()}
             style={{
                 position: 'relative',
                 width: '100%', height: '100dvh',
                 maxWidth: '100vw', overflow: 'hidden',
-                background: 'transparent',
+                background: '#000',
             }}
         >
-            {/* ── Full-screen nature image background ── */}
-            <div style={{
-                position: 'absolute', inset: 0,
-                backgroundImage: `url(${getCategoryImage(story.category, globalIndex)})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                filter: 'brightness(0.85)',
-            }} />
+            {/* ── Full-screen nature image background — crossfade on story change ── */}
+            <AnimatePresence initial={false}>
+                <motion.div
+                    key={story.id + '-bg'}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.38 }}
+                    style={{
+                        position: 'absolute', inset: 0,
+                        backgroundImage: `url(${getCategoryImage(story.category, globalIndex)})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        filter: 'brightness(0.85)',
+                    }}
+                />
+            </AnimatePresence>
             {/* ── Color mood overlay ── */}
             <div style={{
                 position: 'absolute', inset: 0,
@@ -665,14 +674,22 @@ function UserStoryViewer({
                 }} />
             </div>
 
-            {/* Content */}
-            <div style={{
-                position: 'absolute', inset: 0,
-                display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center',
-                padding: '5rem 2rem 7rem', textAlign: 'center',
-                zIndex: 1,
-            }}>
+            {/* Content — slides on story change */}
+            <AnimatePresence mode="wait">
+            <motion.div
+                key={story.id}
+                initial={{ x: direction > 0 ? 55 : -55, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: direction > 0 ? -55 : 55, opacity: 0 }}
+                transition={{ x: { type: 'spring', stiffness: 380, damping: 32 }, opacity: { duration: 0.18 } }}
+                style={{
+                    position: 'absolute', inset: 0,
+                    display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', justifyContent: 'center',
+                    padding: '5rem 2rem 7rem', textAlign: 'center',
+                    zIndex: 1,
+                }}
+            >
                 {/* Category badge */}
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
@@ -800,7 +817,8 @@ function UserStoryViewer({
                         {story.category === 'challenge' ? '⚡ Overcame It — Remove' : '✓ Done — Remove'}
                     </motion.button>
                 )}
-            </div>
+            </motion.div>
+            </AnimatePresence>
 
             {/* ── Emoji Reaction Bar ── */}
             <FloatingReactionBar />
@@ -2087,7 +2105,7 @@ export default function StickyTopNav() {
                                 )}
                                 {!cosmicOpen && !prakritiOpen && activeUserIdx !== null && userStories[activeUserIdx] && (
                                     <UserStoryViewer
-                                        key={`user-${activeUserIdx}`}
+                                        key="user-story"
                                         story={userStories[activeUserIdx]}
                                         totalStoryCount={totalCount}
                                         globalIndex={1 + prakritiOffset + activeUserIdx}
