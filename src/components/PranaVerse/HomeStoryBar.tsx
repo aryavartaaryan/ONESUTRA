@@ -1749,9 +1749,9 @@ function MantraStoryViewer({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.6 }}
                 style={{
-                    position: 'absolute', top: '50%', left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    textAlign: 'center', padding: '0 1.8rem', width: '100%',
+                    position: 'absolute', top: '50%', left: 0, right: 0,
+                    transform: 'translateY(-50%)',
+                    textAlign: 'center', padding: '0 2rem', boxSizing: 'border-box',
                     pointerEvents: 'none',
                 }}
             >
@@ -1769,29 +1769,38 @@ function MantraStoryViewer({
                 }}>{reel.transliteration}</p>
             </motion.div>
 
-            {/* Bottom info — meaning text + reel name */}
+            {/* Bottom — meaning + progress bar + glassy controls */}
             <div style={{
-                position: 'absolute', bottom: 0, left: 0, right: 0,
-                padding: '0 1.4rem calc(2.2rem + env(safe-area-inset-bottom))',
-                background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.6) 55%, transparent 100%)',
-                pointerEvents: 'none',
+                position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 6,
+                padding: '0 1.4rem calc(1.2rem + env(safe-area-inset-bottom)) 1.4rem',
+                background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 55%, transparent 100%)',
             }}>
-                <p style={{ fontFamily: "'Inter',sans-serif", fontSize: '0.6rem', color: 'rgba(255,255,255,0.62)', fontStyle: 'italic', lineHeight: 1.65, marginBottom: '0.55rem', textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>
+                {/* Meaning */}
+                <p style={{ fontFamily: "'Inter',sans-serif", fontSize: '0.6rem', color: 'rgba(255,255,255,0.62)', fontStyle: 'italic', lineHeight: 1.65, marginBottom: '0.72rem', textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>
                     ✦ {reel.meaning}
                 </p>
-            </div>
-
-            {/* Full-screen tap to play/pause */}
-            <button onClick={togglePlay} style={{
-                position: 'absolute', inset: 0, background: 'none', border: 'none', cursor: 'pointer', zIndex: 4,
-            }} />
-
-            {/* Reel progress bar — pinned to very bottom */}
-            <div style={{
-                position: 'absolute', bottom: 0, left: 0, right: 0,
-                height: 3, background: 'rgba(255,255,255,0.12)', zIndex: 8,
-            }}>
-                <div style={{ height: '100%', width: `${progress}%`, background: `linear-gradient(90deg, ${reel.color}, ${reel.secondColor})`, boxShadow: `0 0 8px ${reel.color}cc`, transition: 'width 0.5s linear' }} />
+                {/* Progress bar */}
+                <div style={{ height: 2.5, borderRadius: 99, background: 'rgba(255,255,255,0.14)', marginBottom: '0.8rem', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${progress}%`, background: `linear-gradient(90deg, ${reel.color}, ${reel.secondColor})`, borderRadius: 99, boxShadow: `0 0 10px ${reel.color}bb`, transition: 'width 0.5s linear' }} />
+                </div>
+                {/* Glassy controls */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.4rem' }}>
+                    <motion.button whileTap={{ scale: 0.84 }} onClick={() => setIdx(i => Math.max(0, i - 1))}
+                        style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '50%', width: 46, height: 46, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+                    </motion.button>
+                    <motion.button whileTap={{ scale: 0.88 }} onClick={togglePlay}
+                        style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: `1.5px solid rgba(255,255,255,0.22)`, borderRadius: '50%', width: 64, height: 64, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 28px ${reel.color}44`, flexShrink: 0 }}>
+                        {playing
+                            ? <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                            : <svg width="24" height="24" viewBox="0 0 24 24" fill="white" style={{ marginLeft: 3 }}><path d="M8 5v14l11-7z"/></svg>
+                        }
+                    </motion.button>
+                    <motion.button whileTap={{ scale: 0.84 }} onClick={() => setIdx(i => Math.min(mantras.length - 1, i + 1))}
+                        style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '50%', width: 46, height: 46, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M6 18l8.5-6L6 6v12zm2-8.14 4.97 2.14L8 14.14V9.86zm8.5 8.14h2V6h-2v12z"/></svg>
+                    </motion.button>
+                </div>
             </div>
 
             {/* Hidden audio */}

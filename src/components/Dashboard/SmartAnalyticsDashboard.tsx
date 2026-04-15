@@ -535,7 +535,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
         {/* Header — compact & sleek */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.44rem' }}>
           <div>
-            <p style={{ margin: '0 0 2px', fontSize: '0.46rem', fontWeight: 700, color: 'rgba(255,255,255,0.26)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: "'Outfit',sans-serif" }}>Sadhana · दिनचर्या</p>
+            <p style={{ margin: '0 0 2px', fontSize: '0.46rem', fontWeight: 700, color: 'rgba(255,255,255,0.26)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: "'Outfit',sans-serif" }}>Daily Wins · दिनचर्या</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.24rem' }}>
               <motion.span animate={{ opacity: [0.45, 1, 0.45] }} transition={{ duration: 3.5, repeat: Infinity }} style={{ fontSize: '0.62rem', color: slotCfg.color }}>✦</motion.span>
               <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#fff', fontFamily: "'Outfit',sans-serif", letterSpacing: '-0.01em' }}>Today&#39;s Progress</span>
@@ -615,7 +615,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
         </div>
         {/* Sadhana Section Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.38rem', marginBottom: '0.52rem', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.82rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit',sans-serif" }}>{slotCfg.emoji} {slotCfg.label} Sadhana</span>
+          <span style={{ fontSize: '0.82rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit',sans-serif" }}>{slotCfg.emoji} {slotCfg.label} Focus Activities</span>
           {pendingHabits.length > 0 && (
             <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 2, repeat: Infinity }}
               style={{ fontSize: '0.57rem', padding: '0.06rem 0.4rem', borderRadius: 99, background: 'rgba(251,191,36,0.14)', border: '1px solid rgba(251,191,36,0.32)', color: '#fbbf24', fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>
@@ -646,7 +646,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
                 <motion.div whileTap={{ scale: 0.97 }} onClick={goAddHabit}
                   style={{ textAlign: 'center', padding: '1.5rem 1rem', border: '1.5px dashed rgba(167,139,250,0.24)', borderRadius: 18, cursor: 'pointer', background: 'rgba(167,139,250,0.04)' }}>
                   <p style={{ margin: '0 0 0.4rem', fontSize: '2rem' }}>🌱</p>
-                  <p style={{ margin: '0 0 0.65rem', color: 'rgba(255,255,255,0.38)', fontSize: '0.84rem', fontFamily: "'Outfit',sans-serif" }}>No sadhana yet — begin your Ayurvedic practice</p>
+                  <p style={{ margin: '0 0 0.65rem', color: 'rgba(255,255,255,0.38)', fontSize: '0.84rem', fontFamily: "'Outfit',sans-serif" }}>Nothing tracked yet — start your first daily habit!</p>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '0.36rem 1rem', borderRadius: 99, background: 'rgba(139,92,246,0.22)', border: '1px solid rgba(167,139,250,0.38)', color: '#c4b5fd', fontSize: '0.74rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}><Plus size={11} /> Add Ayurvedic Habits</span>
                 </motion.div>
               ) : (
@@ -756,7 +756,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
         <motion.button whileTap={{ scale: 0.95 }} whileHover={{ scale: 1.02 }} onClick={goAddHabit}
           style={{ width: '100%', marginTop: '0.85rem', padding: '0.62rem 1rem', borderRadius: 16, background: 'linear-gradient(135deg,rgba(124,58,237,0.2),rgba(168,85,247,0.12),rgba(236,72,153,0.1))', border: '1px solid rgba(167,139,250,0.3)', color: '#c4b5fd', fontSize: '0.68rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 4px 20px rgba(124,58,237,0.18)' }}>
           <Plus size={12} />
-          <span>Add Ayurvedic Habit — Grow Your Sadhana</span>
+          <span>Add a Habit — Level Up Your Daily Routine</span>
           <motion.span animate={{ x: [0, 3, 0] }} transition={{ duration: 1.6, repeat: Infinity }}>→</motion.span>
         </motion.button>
       </div>
