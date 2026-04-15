@@ -623,15 +623,19 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
             style={{
-              margin: '0 0.55rem 0.4rem',
-              padding: '0.55rem 0.85rem 0.55rem',
-              borderRadius: 22,
-              background: 'rgba(5,3,18,0.40)',
-              backdropFilter: 'blur(28px) saturate(160%)',
-              WebkitBackdropFilter: 'blur(28px) saturate(160%)',
-              border: '1px solid rgba(251,191,36,0.15)',
-              boxShadow: '0 2px 40px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.06)',
+              margin: '0 0 0.4rem',
+              padding: `calc(env(safe-area-inset-top, 0.55rem) + 0.55rem) 0.9rem 0.6rem`,
+              borderRadius: '0 0 26px 26px',
+              background: 'rgba(5,3,18,0.52)',
+              backdropFilter: 'blur(32px) saturate(170%)',
+              WebkitBackdropFilter: 'blur(32px) saturate(170%)',
+              border: '0 solid transparent',
+              borderBottom: '1px solid rgba(251,191,36,0.18)',
+              borderLeft: '1px solid rgba(255,255,255,0.06)',
+              borderRight: '1px solid rgba(255,255,255,0.06)',
+              boxShadow: '0 8px 48px rgba(0,0,0,0.45), inset 0 -1px 0 rgba(255,255,255,0.04)',
               zIndex: 100,
+              position: 'relative',
             }}
           >
             {/* ── Fused single header row: logo · OneSUTRA · ✦ Smart Ayur Planner ── */}
