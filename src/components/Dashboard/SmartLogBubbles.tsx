@@ -17,6 +17,28 @@ import { useLifestyleStore } from '@/stores/lifestyleStore';
 import { logHabitAndSync } from '@/hooks/useLifestyleEngine';
 import { AYURVEDIC_HABITS, AYUR_TO_H_ID, H_ID_TO_AYUR, setAyurHabitCompleted, getHabitsForSlot, getTodayAyurCompletedIds, HABIT_DISPLAY_OVERRIDES } from '@/lib/ayurvedicHabitsData';
 
+// ── Click sound effect (same as Smart Analytics) ─────────────────────────────
+function playConfirmChime() {
+  if (typeof window === 'undefined') return;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx() as AudioContext;
+    void ctx.resume().then(() => {
+      ([[528, 0.2], [792, 0.1], [1056, 0.05]] as [number, number][]).forEach(([freq, vol], i) => {
+        const osc = ctx.createOscillator(); const g = ctx.createGain();
+        osc.type = 'sine'; osc.frequency.value = freq;
+        const t = ctx.currentTime + i * 0.018;
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+        osc.connect(g); g.connect(ctx.destination);
+        osc.start(t); osc.stop(t + 0.08);
+      });
+      void ctx.close();
+    });
+  } catch { /* ignore */ }
+}
+
 // ─── Set of canonical Ayurvedic habit IDs (used for done-status routing) ─────
 const AYUR_IDS = new Set(AYURVEDIC_HABITS.map(h => h.id));
 
@@ -398,7 +420,7 @@ type LogBubble = {
 const MORNING_BUBBLES: LogBubble[] = [
     {
         id: 'wake', icon: '🌅', label: 'Rise and Shine', sublabel: 'Brahma Muhurta wake-up', color: '#fbbf24',
-        logMessage: 'I woke up this morning [UI_EVENT: MORNING_LOGS_CLICKED]',
+        logMessage: 'make your morning logs continue [UI_EVENT: MORNING_LOGS_CLICKED]',
         subOptions: [
             { icon: '⚡', label: 'Energized & fresh', detail: 'woke up feeling energized and completely fresh' },
             { icon: '😌', label: 'Calm & rested', detail: 'woke up calm and well-rested today' },
@@ -408,7 +430,7 @@ const MORNING_BUBBLES: LogBubble[] = [
     },
     {
         id: 'warm_water', icon: '🫗', label: 'Warm Water Ritual', sublabel: 'Ushapana · First sip', color: '#7dd3fc',
-        logMessage: 'I drank warm water first thing this morning [UI_EVENT: MORNING_LOGS_CLICKED]',
+        logMessage: 'make your morning logs continue [UI_EVENT: MORNING_LOGS_CLICKED]',
         subOptions: [
             { icon: '🍋', label: 'Warm lemon water', detail: 'had warm lemon water to activate digestion' },
             { icon: '💧', label: 'Plain warm water', detail: 'drank a glass of plain warm water' },
@@ -418,7 +440,7 @@ const MORNING_BUBBLES: LogBubble[] = [
     },
     {
         id: 'tongue_scrape', icon: '✨', label: 'Tongue Scraping', sublabel: 'Jihwa prakshalana', color: '#86efac',
-        logMessage: 'I did tongue scraping this morning [UI_EVENT: MORNING_LOGS_CLICKED]',
+        logMessage: 'make your morning logs continue [UI_EVENT: MORNING_LOGS_CLICKED]',
         subOptions: [
             { icon: '🥈', label: 'Silver scraper', detail: 'used a silver tongue scraper this morning' },
             { icon: '🥇', label: 'Copper scraper', detail: 'used a copper tongue scraper as Ayurveda recommends' },
@@ -428,7 +450,7 @@ const MORNING_BUBBLES: LogBubble[] = [
     },
     {
         id: 'breathwork', icon: '🧘', label: 'Pranayama', sublabel: 'Breathing reset', color: '#818cf8',
-        logMessage: 'I did morning breathwork today [UI_EVENT: MORNING_LOGS_CLICKED]',
+        logMessage: 'make your morning logs continue [UI_EVENT: MORNING_LOGS_CLICKED]',
         subOptions: [
             { icon: '⏱️', label: '5 min reset', detail: '5 minute breathing reset done' },
             { icon: '🕐', label: '10 min flow', detail: '10 minute pranayama flow done' },
@@ -438,7 +460,7 @@ const MORNING_BUBBLES: LogBubble[] = [
     },
     {
         id: 'bath', icon: '🚿', label: 'Morning Bath', sublabel: 'Snana · Cleanse ritual', color: '#38bdf8',
-        logMessage: 'I took a bath and recharged this morning [UI_EVENT: MORNING_LOGS_CLICKED]',
+        logMessage: 'make your morning logs continue [UI_EVENT: MORNING_LOGS_CLICKED]',
         subOptions: [
             { icon: '�', label: 'Cold shower', detail: 'took an invigorating cold shower' },
             { icon: '♨️', label: 'Warm bath', detail: 'had a warm, relaxing bath' },
@@ -448,7 +470,7 @@ const MORNING_BUBBLES: LogBubble[] = [
     },
     {
         id: 'morning_light', icon: '☀️', label: 'Morning Sunlight', sublabel: 'Surya darshana', color: '#fb923c',
-        logMessage: 'I got morning sunlight exposure [UI_EVENT: MORNING_LOGS_CLICKED]',
+        logMessage: 'make your morning logs continue [UI_EVENT: MORNING_LOGS_CLICKED]',
         subOptions: [
             { icon: '👁️', label: 'Sun gazing', detail: 'did morning sun gazing ritual' },
             { icon: '🚶', label: 'Morning walk', detail: 'took a morning walk in sunlight' },
@@ -458,7 +480,7 @@ const MORNING_BUBBLES: LogBubble[] = [
     },
     {
         id: 'breakfast', icon: '🥣', label: 'Mindful Breakfast', sublabel: 'Ahara · First meal', color: '#34d399',
-        logMessage: 'I had breakfast today [UI_EVENT: MORNING_LOGS_CLICKED]',
+        logMessage: 'make your morning logs continue [UI_EVENT: MORNING_LOGS_CLICKED]',
         subOptions: [
             { icon: '🥣', label: 'Oats & fruits', detail: 'had oats with fruits' },
             { icon: '🫓', label: 'Parathas', detail: 'had parathas this morning' },
@@ -471,7 +493,7 @@ const MORNING_BUBBLES: LogBubble[] = [
 const NOON_BUBBLES: LogBubble[] = [
     {
         id: 'lunch', icon: '🍱', label: 'Lunch', sublabel: 'Midday nourishment', color: '#f59e0b',
-        logMessage: 'I had lunch today [UI_EVENT: NOON_LOGS_CLICKED]',
+        logMessage: 'make your noon logs continue [UI_EVENT: NOON_LOGS_CLICKED]',
         subOptions: [
             { icon: '🍚', label: 'Dal rice', detail: 'had dal rice for lunch' },
             { icon: '🫓', label: 'Roti sabzi', detail: 'had roti and sabzi' },
@@ -482,7 +504,7 @@ const NOON_BUBBLES: LogBubble[] = [
     },
     {
         id: 'deep_work', icon: '🎯', label: 'Deep Work', sublabel: 'Flow session', color: '#4ade80',
-        logMessage: 'I completed a deep work session [UI_EVENT: NOON_LOGS_CLICKED]',
+        logMessage: 'make your noon logs continue [UI_EVENT: NOON_LOGS_CLICKED]',
         subOptions: [
             { icon: '⏰', label: '1 hour sprint', detail: '1 hour focused deep work sprint' },
             { icon: '🕑', label: '2 hour block', detail: '2 hour deep work block done' },
@@ -492,7 +514,7 @@ const NOON_BUBBLES: LogBubble[] = [
     },
     {
         id: 'screen_break', icon: '👁️', label: 'Eye Reset', sublabel: 'Sense restoration', color: '#22d3ee',
-        logMessage: 'I took a screen break [UI_EVENT: NOON_LOGS_CLICKED]',
+        logMessage: 'make your noon logs continue [UI_EVENT: NOON_LOGS_CLICKED]',
         subOptions: [
             { icon: '🚶', label: '5 min walk', detail: '5 minute screen-free walk taken' },
             { icon: '😌', label: 'Eyes closed', detail: 'closed eyes and rested them' },
@@ -502,7 +524,7 @@ const NOON_BUBBLES: LogBubble[] = [
     },
     {
         id: 'hydration', icon: '💧', label: 'Hydration', sublabel: 'Water intake', color: '#60a5fa',
-        logMessage: 'I drank water and stayed hydrated [UI_EVENT: NOON_LOGS_CLICKED]',
+        logMessage: 'make your noon logs continue [UI_EVENT: NOON_LOGS_CLICKED]',
         subOptions: [
             { icon: '🥛', label: '2+ glasses', detail: 'had 2 or more glasses of water' },
             { icon: '🍵', label: 'Chai & water', detail: 'chai and water through the day' },
@@ -515,7 +537,7 @@ const NOON_BUBBLES: LogBubble[] = [
 const EVENING_BUBBLES: LogBubble[] = [
     {
         id: 'h_walk', icon: '🚶', label: 'Evening Walk', sublabel: 'Sandhya bhramaṇa', color: '#4ade80',
-        logMessage: 'I went for an evening walk — Sandhya Bhramana [UI_EVENT: EVENING_LOGS_CLICKED]',
+        logMessage: 'make your evening logs continue [UI_EVENT: EVENING_LOGS_CLICKED]',
         subOptions: [
             { icon: '🚶', label: '20 min walk', detail: 'took a 20 minute mindful evening walk' },
             { icon: '🏃', label: 'Brisk walk', detail: 'went for a brisk evening walk' },
@@ -526,7 +548,7 @@ const EVENING_BUBBLES: LogBubble[] = [
     },
     {
         id: 'dinner', icon: '🌙', label: 'Dinner', sublabel: 'Evening nourishment', color: '#a78bfa',
-        logMessage: 'I had dinner tonight [UI_EVENT: EVENING_LOGS_CLICKED]',
+        logMessage: 'make your evening logs continue [UI_EVENT: EVENING_LOGS_CLICKED]',
         subOptions: [
             { icon: '🥗', label: 'Light & clean', detail: 'had a light, clean dinner' },
             { icon: '🍚', label: 'Full meal', detail: 'had a full dinner meal' },
@@ -537,7 +559,7 @@ const EVENING_BUBBLES: LogBubble[] = [
     },
     {
         id: 'h_evening_meditation', icon: '🕯️', label: 'Eve. Meditation', sublabel: 'Sandhya · Stillness', color: '#a78bfa',
-        logMessage: 'I did evening meditation — Sandhya Vandana [UI_EVENT: EVENING_LOGS_CLICKED]',
+        logMessage: 'make your evening logs continue [UI_EVENT: EVENING_LOGS_CLICKED]',
         subOptions: [
             { icon: '⏱️', label: '5 min stillness', detail: '5 minute evening stillness done' },
             { icon: '🕐', label: '10 min dhyan', detail: '10 minute evening dhyan complete' },
@@ -547,7 +569,7 @@ const EVENING_BUBBLES: LogBubble[] = [
     },
     {
         id: 'h_digital_sunset', icon: '📵', label: 'Digital Sunset', sublabel: 'Screens off', color: '#fb923c',
-        logMessage: 'Setting digital sunset — screens going off for the night [UI_EVENT: EVENING_LOGS_CLICKED]',
+        logMessage: 'make your evening logs continue [UI_EVENT: EVENING_LOGS_CLICKED]',
         subOptions: [
             { icon: '✅', label: 'Done! Screens off', detail: 'put all screens away for the night' },
             { icon: '📵', label: 'Almost there', detail: 'winding down screens gradually' },
@@ -557,7 +579,7 @@ const EVENING_BUBBLES: LogBubble[] = [
     },
     {
         id: 'h_brain_dump', icon: '📓', label: 'Brain Dump', sublabel: 'Evening reflection', color: '#2dd4bf',
-        logMessage: 'I did an evening brain dump and reflection [UI_EVENT: EVENING_LOGS_CLICKED]',
+        logMessage: 'make your evening logs continue [UI_EVENT: EVENING_LOGS_CLICKED]',
         subOptions: [
             { icon: '📝', label: 'Thoughts dump', detail: 'dumped all thoughts on paper' },
             { icon: '📅', label: 'Planned tomorrow', detail: 'planned tasks for tomorrow' },
@@ -570,7 +592,7 @@ const EVENING_BUBBLES: LogBubble[] = [
 const NIGHT_BUBBLES: LogBubble[] = [
     {
         id: 'sleep', icon: '💤', label: 'Sleep Ritual', sublabel: 'Rest mode', color: '#818cf8',
-        logMessage: 'Going to sleep now, goodnight [UI_EVENT: NIGHT_LOGS]',
+        logMessage: 'make your night logs continue [UI_EVENT: NIGHT_LOGS]',
         subOptions: [
             { icon: '🌙', label: 'Before 10 PM', detail: 'early sleep — before 10 PM tonight' },
             { icon: '🕙', label: '10–11 PM', detail: 'sleeping around 10–11 PM' },
@@ -580,7 +602,7 @@ const NIGHT_BUBBLES: LogBubble[] = [
     },
     {
         id: 'gratitude', icon: '🙏', label: 'Gratitude', sublabel: 'Count your wins', color: '#fbbf24',
-        logMessage: 'I am feeling grateful today [UI_EVENT: NIGHT_LOGS]',
+        logMessage: 'make your night logs continue [UI_EVENT: NIGHT_LOGS]',
         subOptions: [
             { icon: '✨', label: '3 good things', detail: 'named 3 things I am grateful for today' },
             { icon: '🙏', label: 'Short prayer', detail: 'said a short prayer of gratitude' },
@@ -590,7 +612,7 @@ const NIGHT_BUBBLES: LogBubble[] = [
     },
     {
         id: 'dinner_night', icon: '🌙', label: 'Dinner', sublabel: 'Light dinner', color: '#a78bfa',
-        logMessage: 'I had dinner tonight [UI_EVENT: NIGHT_LOGS]',
+        logMessage: 'make your night logs continue [UI_EVENT: NIGHT_LOGS]',
         subOptions: [
             { icon: '🥗', label: 'Light meal', detail: 'had a light dinner tonight' },
             { icon: '🍚', label: 'Full dinner', detail: 'had a full dinner meal' },
@@ -599,7 +621,7 @@ const NIGHT_BUBBLES: LogBubble[] = [
     },
     {
         id: 'read', icon: '📚', label: 'Bedtime Read', sublabel: 'Screen-free wind down', color: '#34d399',
-        logMessage: 'I read before bed tonight [UI_EVENT: NIGHT_LOGS]',
+        logMessage: 'make your night logs continue [UI_EVENT: NIGHT_LOGS]',
         subOptions: [
             { icon: '⏱️', label: '10 minutes', detail: '10 minute read before sleep' },
             { icon: '📖', label: '30 minutes', detail: '30 minute reading session tonight' },
@@ -966,6 +988,8 @@ export default function SmartLogBubbles() {
             });
             return;
         }
+        // Play confirmation chime when opening bubble options
+        playConfirmChime();
         setActiveBubble(prev => prev === bubble.id ? null : bubble.id);
     };
 
@@ -1062,9 +1086,10 @@ export default function SmartLogBubbles() {
 
     const active = [...timedBubbles, ...anytimeBubbles].find(b => b.id === activeBubble) ?? null;
 
-    // ── Elegant RTL auto-scroll: bubbles slide right→left (opposite of stories) ────────
+    // ── Smooth bidirectional auto-scroll: bubbles slide back and forth without breaking ────────
     const bubbleRowRef = useRef<HTMLDivElement>(null);
     const slidePaused = useRef(false);
+    const scrollDirection = useRef<'left' | 'right'>('left'); // Start scrolling left
     const pauseAutoSlide = useCallback(() => { slidePaused.current = true; }, []);
     const resumeAutoSlide = useCallback(() => { setTimeout(() => { slidePaused.current = false; }, 2000); }, []);
     
@@ -1080,7 +1105,7 @@ export default function SmartLogBubbles() {
         
         let rafId: number;
         let lastTime = 0;
-        const SPEED = 40; // px/s — elegant pace (slightly slower than stories for contrast)
+        const SPEED = 35; // px/s — smooth elegant pace
         
         const step = (now: number) => {
             if (lastTime === 0) lastTime = now;
@@ -1088,12 +1113,26 @@ export default function SmartLogBubbles() {
                 const dt = (now - lastTime) / 1000;
                 const max = el.scrollWidth - el.clientWidth;
                 if (max > 0) {
-                    if (el.scrollLeft <= 1) {
-                        // Reached left end, smoothly jump to right end
-                        el.scrollLeft = max;
+                    const currentScroll = el.scrollLeft;
+                    
+                    if (scrollDirection.current === 'left') {
+                        // Scrolling left
+                        const newScroll = Math.max(currentScroll - SPEED * dt, 0);
+                        el.scrollLeft = newScroll;
+                        
+                        // Reached left end, reverse direction
+                        if (newScroll <= 1) {
+                            scrollDirection.current = 'right';
+                        }
                     } else {
-                        // Smooth scroll left
-                        el.scrollLeft = Math.max(el.scrollLeft - SPEED * dt, 0);
+                        // Scrolling right
+                        const newScroll = Math.min(currentScroll + SPEED * dt, max);
+                        el.scrollLeft = newScroll;
+                        
+                        // Reached right end, reverse direction
+                        if (newScroll >= max - 1) {
+                            scrollDirection.current = 'left';
+                        }
                     }
                 }
             }
@@ -1101,8 +1140,9 @@ export default function SmartLogBubbles() {
             rafId = requestAnimationFrame(step);
         };
         
-        // Start at rightmost end
+        // Start at rightmost end and begin scrolling left
         el.scrollLeft = el.scrollWidth;
+        scrollDirection.current = 'left';
         rafId = requestAnimationFrame(step);
         
         return () => {
