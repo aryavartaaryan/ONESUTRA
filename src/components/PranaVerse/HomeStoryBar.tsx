@@ -2053,6 +2053,46 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
     }, [activeGroupIdx, activeVideoIdx, activeUserTaskIdx, activeMantraIdx, activeLogIdx]);
 
     const isAnyViewerOpen = activeGroupIdx !== null || activeVideoIdx !== null || activeUserTaskIdx !== null || activeMantraIdx !== null || activeLogIdx !== null;
+    // ── Auto-slide for rectangular (homepage) mode ──────────────────────────
+    const scrollBarRef = useRef<HTMLDivElement>(null);
+    const slidePaused = useRef(false);
+    const pauseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const pauseAutoSlide = useCallback(() => {
+        slidePaused.current = true;
+        if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
+        pauseTimerRef.current = setTimeout(() => { slidePaused.current = false; }, 4000);
+    }, []);
+
+    useEffect(() => {
+        if (!rectangular) return;
+        let rafId: number;
+        let lastTime = 0;
+        const SPEED = 44; // px/s — medium elegant pace
+        const step = (now: number) => {
+            if (lastTime === 0) lastTime = now;
+            if (!slidePaused.current && !isAnyViewerOpen) {
+                const dt = (now - lastTime) / 1000;
+                const el = scrollBarRef.current;
+                if (el) {
+                    const max = el.scrollWidth - el.clientWidth;
+                    if (max > 0) {
+                        if (el.scrollLeft >= max - 1) {
+                            el.scrollLeft = 0;
+                        } else {
+                            el.scrollLeft = Math.min(el.scrollLeft + SPEED * dt, max);
+                        }
+                    }
+                }
+            }
+            lastTime = now;
+            rafId = requestAnimationFrame(step);
+        };
+        rafId = requestAnimationFrame(step);
+        return () => cancelAnimationFrame(rafId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [rectangular, isAnyViewerOpen]);
+
     const [isMounted, setIsMounted] = useState(false);
     useEffect(() => { setIsMounted(true); }, []);
 
@@ -2076,12 +2116,17 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
                 .pvVideoRingWrapper:active{transform:scale(0.91)!important;}
             `}</style>
 
-            <div className="pvStoryBarScroll" style={{
+            <div
+                ref={scrollBarRef}
+                className="pvStoryBarScroll"
+                onTouchStart={rectangular ? pauseAutoSlide : undefined}
+                onMouseDown={rectangular ? pauseAutoSlide : undefined}
+                style={{
                 display: 'flex', gap: rectangular ? '8px' : '0.65rem',
                 padding: rectangular ? '4px 0.85rem 6px' : '0.75rem 0.85rem 0.65rem',
                 overflowX: 'auto', scrollbarWidth: 'none',
                 WebkitOverflowScrolling: 'touch',
-                scrollSnapType: 'x mandatory',
+                scrollSnapType: rectangular ? 'none' : 'x mandatory',
                 transform: 'translateZ(0)',
                 willChange: 'scroll-position',
                 touchAction: 'pan-x',
@@ -2093,7 +2138,7 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
                 flexShrink: 0, alignItems: 'flex-start',
                 visibility: 'visible',
                 pointerEvents: isAnyViewerOpen ? 'none' : 'auto',
-                scrollBehavior: 'smooth',
+                scrollBehavior: 'auto',
             }}>
                 {/* "Add Story" button — only shown in circular mode */}
                 {!rectangular && (

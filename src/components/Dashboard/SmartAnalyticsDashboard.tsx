@@ -169,11 +169,11 @@ function MiniHabitCard({ habit, isCompleted, streak, onComplete }: {
     <motion.div layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
       whileTap={!isCompleted ? { scale: 0.965 } : {}} onClick={handleTap}
       style={{
-        display: 'flex', alignItems: 'center', gap: 0, borderRadius: 14, marginBottom: '0.28rem', position: 'relative', overflow: 'hidden',
+        display: 'flex', alignItems: 'center', gap: 0, borderRadius: 16, marginBottom: '0.36rem', position: 'relative', overflow: 'hidden',
         background: isCompleted
           ? `linear-gradient(135deg, ${color}28 0%, rgba(0,0,0,0.55) 100%)`
           : `linear-gradient(135deg, ${color}16 0%, rgba(6,4,22,0.7) 100%)`,
-        border: `1.5px solid ${isCompleted ? color + '55' : color + '32'}`,
+        border: `2px solid ${isCompleted ? color + '66' : color + '40'}`,
         boxShadow: isCompleted
           ? `0 6px 28px ${color}22, inset 0 1px 0 rgba(255,255,255,0.07)`
           : `0 3px 18px ${color}12, inset 0 1px 0 rgba(255,255,255,0.04)`,
@@ -186,13 +186,13 @@ function MiniHabitCard({ habit, isCompleted, streak, onComplete }: {
       </AnimatePresence>
       {/* Vivid left accent */}
       <div style={{
-        width: 3, alignSelf: 'stretch', flexShrink: 0,
+        width: 4, alignSelf: 'stretch', flexShrink: 0,
         background: isCompleted ? `linear-gradient(180deg, ${color}, ${color}88)` : `linear-gradient(180deg, ${color}cc, ${color}44)`,
-        borderRadius: '18px 0 0 18px', boxShadow: isCompleted ? `2px 0 12px ${color}60` : `2px 0 8px ${color}30`
+        borderRadius: '18px 0 0 18px', boxShadow: isCompleted ? `2px 0 14px ${color}70` : `2px 0 10px ${color}40`
       }} />
       {/* Icon badge */}
       <div style={{
-        margin: '0.48rem 0.44rem 0.48rem 0.58rem', width: 34, height: 34, borderRadius: 11, flexShrink: 0,
+        margin: '0.52rem 0.48rem 0.52rem 0.62rem', width: 38, height: 38, borderRadius: 12, flexShrink: 0,
         background: `linear-gradient(135deg, ${color}28, ${color}10)`,
         border: `1.5px solid ${color}38`,
         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.05rem', position: 'relative',
@@ -213,21 +213,21 @@ function MiniHabitCard({ habit, isCompleted, streak, onComplete }: {
       {/* Name + tags */}
       <div style={{ flex: 1, minWidth: 0, paddingRight: '0.3rem' }}>
         <p style={{
-          margin: 0, fontSize: '0.74rem', fontWeight: 700, fontFamily: "'Outfit', sans-serif",
+          margin: 0, fontSize: '0.84rem', fontWeight: 700, fontFamily: "'Outfit', sans-serif",
           color: isCompleted ? color : 'rgba(255,255,255,0.92)',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           textShadow: isCompleted ? `0 0 16px ${color}60` : 'none'
         }}>{habit.name}</p>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.28rem', marginTop: 3 }}>
           <span style={{
-            fontSize: '0.55rem', padding: '0.07rem 0.35rem', borderRadius: 99,
-            background: `linear-gradient(90deg, ${cat.color}18, ${cat.color}08)`,
-            border: `1px solid ${cat.color}30`, color: cat.color,
+            fontSize: '0.63rem', padding: '0.09rem 0.4rem', borderRadius: 99,
+            background: `linear-gradient(90deg, ${cat.color}22, ${cat.color}0c)`,
+            border: `1px solid ${cat.color}40`, color: cat.color,
             fontFamily: "'Outfit', sans-serif", fontWeight: 800, letterSpacing: '0.04em'
           }}>{cat.emoji} {cat.label}</span>
           {streak > 0 && (
             <span style={{
-              fontSize: '0.55rem', color: streak >= 7 ? '#fbbf24' : '#fb923c', fontWeight: 800,
+              fontSize: '0.63rem', color: streak >= 7 ? '#fbbf24' : '#fb923c', fontWeight: 800,
               fontFamily: "'Outfit', sans-serif", display: 'flex', alignItems: 'center', gap: 2
             }}>
               {streak >= 21 ? '🔱' : '🔥'}{streak}
@@ -610,15 +610,15 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
         {/* OM Divider */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.88rem' }}>
           <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg,transparent,${slotCfg.color}40)` }} />
-          <span style={{ fontSize: '0.8rem', color: `${slotCfg.color}80`, fontFamily: 'serif' }}>✦ ॐ ✦</span>
+          <span style={{ fontSize: '0.9rem', color: `${slotCfg.color}80`, fontFamily: 'serif' }}>✦ ॐ ✦</span>
           <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg,${slotCfg.color}40,transparent)` }} />
         </div>
         {/* Sadhana Section Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.38rem', marginBottom: '0.52rem', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.82rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit',sans-serif" }}>{slotCfg.emoji} {slotCfg.label} Focus Activities</span>
+          <span style={{ fontSize: '1rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit',sans-serif" }}>{slotCfg.emoji} {slotCfg.label} Focus Activities</span>
           {pendingHabits.length > 0 && (
             <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 2, repeat: Infinity }}
-              style={{ fontSize: '0.57rem', padding: '0.06rem 0.4rem', borderRadius: 99, background: 'rgba(251,191,36,0.14)', border: '1px solid rgba(251,191,36,0.32)', color: '#fbbf24', fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>
+              style={{ fontSize: '0.62rem', padding: '0.08rem 0.45rem', borderRadius: 99, background: 'rgba(251,191,36,0.14)', border: '1px solid rgba(251,191,36,0.32)', color: '#fbbf24', fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>
               {pendingHabits.length} awaiting ✨
             </motion.span>
           )}
@@ -632,10 +632,10 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
         {/* Sacred Activity Logs header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.55rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.38rem' }}>
-            <span style={{ fontSize: '0.82rem' }}>🌿</span>
-            <span style={{ fontSize: '0.66rem', fontWeight: 900, color: 'rgba(255,255,255,0.92)', fontFamily: "'Outfit',sans-serif", letterSpacing: '-0.01em' }}>Your Sacred Activity Log</span>
+            <span style={{ fontSize: '0.92rem' }}>🌿</span>
+            <span style={{ fontSize: '0.76rem', fontWeight: 900, color: 'rgba(255,255,255,0.92)', fontFamily: "'Outfit',sans-serif", letterSpacing: '-0.01em' }}>Your Sacred Activity Log</span>
             {logStory.length > 0 && <motion.span animate={{ scale: [1, 1.18, 1] }} transition={{ duration: 2.5, repeat: Infinity }}
-              style={{ fontSize: '0.44rem', padding: '0.04rem 0.32rem', borderRadius: 99, background: 'rgba(74,222,128,0.14)', border: '1px solid rgba(74,222,128,0.28)', color: '#4ade80', fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}>{logStory.length} logged ✦</motion.span>}
+              style={{ fontSize: '0.52rem', padding: '0.06rem 0.38rem', borderRadius: 99, background: 'rgba(74,222,128,0.18)', border: '1.5px solid rgba(74,222,128,0.35)', color: '#4ade80', fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}>{logStory.length} logged ✦</motion.span>}
           </div>
         </div>
         {/* Tab Content */}
@@ -671,22 +671,23 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
                           onClick={() => setExpandedSlots(prev => ({ ...prev, [slotKey]: !prev[slotKey] }))}
                           style={{
                             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                            padding: '0.38rem 0.6rem', borderRadius: 12, marginBottom: isExp ? '0.22rem' : 0,
-                            background: isCurrent ? `${cfg.color}14` : 'rgba(255,255,255,0.03)',
-                            border: `1px solid ${isCurrent ? cfg.color + '30' : 'rgba(255,255,255,0.07)'}`,
+                            padding: '0.46rem 0.72rem', borderRadius: 14, marginBottom: isExp ? '0.26rem' : 0,
+                            background: isCurrent ? `${cfg.color}18` : 'rgba(255,255,255,0.04)',
+                            border: `1.5px solid ${isCurrent ? cfg.color + '40' : 'rgba(255,255,255,0.10)'}`,
+                            boxShadow: isCurrent ? `0 2px 12px ${cfg.color}18` : 'none',
                             cursor: 'pointer',
                           }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.34rem' }}>
-                            <span style={{ fontSize: '0.72rem' }}>{cfg.emoji}</span>
-                            <span style={{ fontSize: '0.6rem', fontWeight: 800, color: cfg.color, fontFamily: "'Outfit',sans-serif" }}>{cfg.label}</span>
+                            <span style={{ fontSize: '0.82rem' }}>{cfg.emoji}</span>
+                            <span style={{ fontSize: '0.7rem', fontWeight: 800, color: cfg.color, fontFamily: "'Outfit',sans-serif" }}>{cfg.label}</span>
                             {isCurrent && <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.5, repeat: Infinity }}
-                              style={{ fontSize: '0.42rem', padding: '0.04rem 0.26rem', borderRadius: 99, background: `${cfg.color}22`, color: cfg.color, fontWeight: 800, letterSpacing: '0.05em', fontFamily: "'Outfit',sans-serif" }}>● LIVE</motion.span>}
+                              style={{ fontSize: '0.5rem', padding: '0.05rem 0.3rem', borderRadius: 99, background: `${cfg.color}28`, color: cfg.color, fontWeight: 800, letterSpacing: '0.05em', fontFamily: "'Outfit',sans-serif" }}>● LIVE</motion.span>}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.44rem' }}>
-                            <span style={{ fontSize: '0.5rem', color: slotLogs.length > 0 ? cfg.color : 'rgba(255,255,255,0.2)', fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>
+                            <span style={{ fontSize: '0.58rem', color: slotLogs.length > 0 ? cfg.color : 'rgba(255,255,255,0.2)', fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>
                               {slotLogs.length > 0 ? `${slotLogs.length} logged` : 'none'}
                             </span>
-                            <span style={{ fontSize: '0.56rem', color: 'rgba(255,255,255,0.28)' }}>{isExp ? '▲' : '▼'}</span>
+                            <span style={{ fontSize: '0.64rem', color: 'rgba(255,255,255,0.35)' }}>{isExp ? '▲' : '▼'}</span>
                           </div>
                         </button>
                         {isExp && (
@@ -700,11 +701,11 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
                               const onTime = expCat === logCat || (expCat as string) === 'anytime';
                               return (
                                 <motion.div key={`${entry.id}_${i}`} initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}
-                                  style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.32rem 0.54rem', borderRadius: 11, background: `${entry.color}0c`, border: `1px solid ${entry.color}1c` }}>
+                                  style={{ display: 'flex', alignItems: 'center', gap: '0.44rem', padding: '0.42rem 0.62rem', borderRadius: 13, background: `${entry.color}10`, border: `1.5px solid ${entry.color}28`, boxShadow: `0 2px 10px ${entry.color}10` }}>
                                   <span style={{ fontSize: '0.88rem', flexShrink: 0 }}>{entry.icon}</span>
-                                  <p style={{ flex: 1, margin: 0, fontSize: '0.68rem', fontWeight: 700, color: 'rgba(255,255,255,0.82)', fontFamily: "'Outfit',sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.label}</p>
-                                  <span style={{ fontSize: '0.48rem', color: 'rgba(255,255,255,0.26)', fontFamily: "'Outfit',sans-serif", flexShrink: 0 }}>{t}</span>
-                                  <span style={{ fontSize: '0.44rem', padding: '0.03rem 0.22rem', borderRadius: 99, background: onTime ? 'rgba(74,222,128,0.12)' : 'rgba(251,191,36,0.12)', color: onTime ? '#4ade80' : '#fbbf24', fontFamily: "'Outfit',sans-serif", fontWeight: 800, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                                  <p style={{ flex: 1, margin: 0, fontSize: '0.78rem', fontWeight: 700, color: 'rgba(255,255,255,0.88)', fontFamily: "'Outfit',sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.label}</p>
+                                  <span style={{ fontSize: '0.56rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit',sans-serif", flexShrink: 0 }}>{t}</span>
+                                  <span style={{ fontSize: '0.52rem', padding: '0.05rem 0.28rem', borderRadius: 99, background: onTime ? 'rgba(74,222,128,0.16)' : 'rgba(251,191,36,0.16)', color: onTime ? '#4ade80' : '#fbbf24', fontFamily: "'Outfit',sans-serif", fontWeight: 800, flexShrink: 0, whiteSpace: 'nowrap', border: onTime ? '1px solid rgba(74,222,128,0.3)' : '1px solid rgba(251,191,36,0.3)' }}>
                                     {onTime ? '✅ On Time' : '⏰ Late'}
                                   </span>
                                 </motion.div>
