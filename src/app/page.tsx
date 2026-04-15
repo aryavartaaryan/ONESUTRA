@@ -623,56 +623,47 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
             style={{
-              margin: '0.3rem 0.65rem 0.4rem',
-              padding: '0.6rem 0.88rem 0.55rem',
-              borderRadius: 24,
-              background: 'rgba(5,3,18,0.38)',
+              margin: '0 0.55rem 0.4rem',
+              padding: '0.55rem 0.85rem 0.55rem',
+              borderRadius: 22,
+              background: 'rgba(5,3,18,0.40)',
               backdropFilter: 'blur(28px) saturate(160%)',
               WebkitBackdropFilter: 'blur(28px) saturate(160%)',
-              border: '1px solid rgba(251,191,36,0.14)',
+              border: '1px solid rgba(251,191,36,0.15)',
               boxShadow: '0 2px 40px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.06)',
               zIndex: 100,
             }}
           >
-            {/* ── OneSUTRA brand row (fused top) ── */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.48rem', paddingBottom: '0.42rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-              {/* Logo + wordmark */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(145deg, #080d1f, #111827)', border: '1.5px solid rgba(251,191,36,0.62)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 0 10px rgba(251,191,36,0.22)' }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" stroke="rgba(251,191,36,0.50)" strokeWidth="0.8" />
-                    <circle cx="12" cy="12" r="6.5" stroke="rgba(251,191,36,0.30)" strokeWidth="0.7" />
-                    <path d="M12 3 L12 21 M3 12 L21 12 M5.6 5.6 L18.4 18.4 M18.4 5.6 L5.6 18.4" stroke="rgba(251,191,36,0.18)" strokeWidth="0.6" />
-                    <path d="M 8 9.5 Q 12 7, 16 9.5 T 16 14 Q 13 16.5, 10 15 T 8 12 Q 9.5 11, 12 11" stroke="rgba(255,255,255,0.90)" strokeWidth="1.3" strokeLinecap="round" fill="none" />
-                    <circle cx="12" cy="12" r="1.4" fill="#fbbf24" />
-                  </svg>
+            {/* ── Fused single header row: logo · OneSUTRA · ✦ Smart Ayur Planner ── */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: '0.38rem' }}>
+              {/* OS Logo orb */}
+              <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(145deg, #080d1f, #111827)', border: '1.5px solid rgba(251,191,36,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 0 12px rgba(251,191,36,0.24)' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="rgba(251,191,36,0.50)" strokeWidth="0.8" />
+                  <circle cx="12" cy="12" r="6.5" stroke="rgba(251,191,36,0.30)" strokeWidth="0.7" />
+                  <path d="M12 3 L12 21 M3 12 L21 12 M5.6 5.6 L18.4 18.4 M18.4 5.6 L5.6 18.4" stroke="rgba(251,191,36,0.18)" strokeWidth="0.6" />
+                  <path d="M 8 9.5 Q 12 7, 16 9.5 T 16 14 Q 13 16.5, 10 15 T 8 12 Q 9.5 11, 12 11" stroke="rgba(255,255,255,0.92)" strokeWidth="1.3" strokeLinecap="round" fill="none" />
+                  <circle cx="12" cy="12" r="1.4" fill="#fbbf24" />
+                </svg>
+              </div>
+              {/* Brand · Title block */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'nowrap' }}>
+                  <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.07em', background: 'linear-gradient(120deg, #fff 0%, #fde68a 45%, #bae6fd 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', lineHeight: 1, flexShrink: 0 }}>OneSUTRA</span>
+                  <span style={{ color: 'rgba(255,255,255,0.18)', fontSize: '0.65rem', lineHeight: 1, flexShrink: 0 }}>·</span>
+                  <motion.span animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.08, 1] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                    style={{ fontSize: '0.8rem', filter: 'drop-shadow(0 0 8px rgba(251,191,36,0.7))', flexShrink: 0, lineHeight: 1 }}>✦</motion.span>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.01em', lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Smart Ayur Planner</span>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.08em', background: 'linear-gradient(120deg, #ffffff 0%, #fde68a 45%, #bae6fd 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', lineHeight: 1 }}>OneSUTRA</span>
-                  <span style={{ fontSize: '0.43rem', fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(251,191,36,0.48)', fontFamily: "'Inter', system-ui, sans-serif", lineHeight: 1 }}>Conscious OS</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 3 }}>
+                  <span style={{ fontSize: '0.42rem', fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(251,191,36,0.45)', fontFamily: "'Inter', sans-serif", lineHeight: 1 }}>Conscious OS</span>
+                  <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: '0.42rem' }}>·</span>
+                  <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.28)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.04em', lineHeight: 1 }}>No-Cal AI · Habits · Dosha</span>
                 </div>
               </div>
-              {/* Quick-launch icons + LIVE pill */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                {[{ href: '/project-leela', emoji: '🎵', label: 'Raag' }, { href: '/vedic-games', emoji: '🎲', label: 'Games' }].map(({ href, emoji, label }) => (
-                  <Link key={href} href={href} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-                    <motion.div whileTap={{ scale: 0.88 }} style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.78rem' }}>{emoji}</motion.div>
-                    <span style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.28)', letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: "'Inter', sans-serif" }}>{label}</span>
-                  </Link>
-                ))}
-                <motion.span animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 3, repeat: Infinity }}
-                  style={{ fontSize: '0.48rem', padding: '0.18rem 0.5rem', borderRadius: 99, background: 'rgba(251,191,36,0.10)', border: '1px solid rgba(251,191,36,0.28)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 800, letterSpacing: '0.12em' }}>LIVE</motion.span>
-              </div>
-            </div>
-
-            {/* ── Title row: sparkle + name ── */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.38rem' }}>
-              <motion.div animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.07, 1] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-                style={{ fontSize: '1.1rem', filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.6))' }}>✦</motion.div>
-              <div style={{ flex: 1 }}>
-                <p style={{ margin: 0, fontSize: '0.98rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.01em', lineHeight: 1 }}>Smart Ayur Planner</p>
-                <p style={{ margin: '2px 0 0', fontSize: '0.56rem', color: 'rgba(255,255,255,0.30)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.05em' }}>No-Cal AI · Habits · Dosha</p>
-              </div>
+              {/* LIVE badge */}
+              <motion.span animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 3, repeat: Infinity }}
+                style={{ fontSize: '0.46rem', padding: '0.18rem 0.5rem', borderRadius: 99, background: 'rgba(251,191,36,0.10)', border: '1px solid rgba(251,191,36,0.28)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 800, letterSpacing: '0.12em', flexShrink: 0 }}>LIVE</motion.span>
             </div>
 
             {/* ── Date + controls row ── */}
@@ -718,20 +709,29 @@ export default function Home() {
                  <RealMoonSVG size={40} />}
               </motion.div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'nowrap' }}>
                   <motion.div animate={{ opacity: [1, 0.25, 1] }} transition={{ duration: 2.2, repeat: Infinity }}
                     style={{ width: 7, height: 7, borderRadius: '50%', background: doshaColor, flexShrink: 0, boxShadow: `0 0 6px ${doshaColor}` }} />
                   <span style={{ fontSize: '0.94rem', fontWeight: 800, color: 'rgba(255,255,255,0.92)', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.01em' }}>
                     {doshaCurrentPhase.label}
                   </span>
-                  <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.22)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.03em' }}>
+                  <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.22)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.03em', flexShrink: 0 }}>
                     {doshaCurrentPhase.timeRange}
                   </span>
                   {inBrahmaMuhurta && (
                     <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 2, repeat: Infinity }}
-                      style={{ fontSize: '0.58rem', padding: '0.12rem 0.44rem', borderRadius: 99, background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.38)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>✦ Brahma
+                      style={{ fontSize: '0.55rem', padding: '0.1rem 0.4rem', borderRadius: 99, background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.38)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 700, flexShrink: 0 }}>✦ Brahma
                     </motion.span>
                   )}
+                  {/* Raag + Games quick-launch — inline with dosha phase */}
+                  <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+                    {([{ href: '/project-leela', emoji: '🎵', label: 'Raag', col: '#fbbf24' }, { href: '/vedic-games', emoji: '🎲', label: 'Games', col: '#4ade80' }] as const).map(({ href, emoji, label, col }) => (
+                      <Link key={href} href={href} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                        <motion.div whileTap={{ scale: 0.85 }} style={{ width: 28, height: 28, borderRadius: '50%', background: `${col}12`, border: `1px solid ${col}2a`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.82rem', boxShadow: `0 0 8px ${col}22` }}>{emoji}</motion.div>
+                        <span style={{ fontSize: '0.38rem', color: `${col}70`, letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: "'Inter', sans-serif", lineHeight: 1 }}>{label}</span>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
                 {/* Prana Time badge */}
                 {(() => {
