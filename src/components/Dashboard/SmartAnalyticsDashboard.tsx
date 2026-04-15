@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Sunrise, Sun, Sunset, Moon, Sparkles, Plus, CheckCircle2, Bell, Zap, Flame } from 'lucide-react';
@@ -539,6 +540,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
     { ...AYUR_STAT_LABELS[2], val: `+${todayXP}`, bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.22)', col: '#fbbf24' },
   ];
   return (
+    <>
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.55 }}
       style={{ margin: '0 0.5rem 1rem', borderRadius: 26, overflow: 'hidden', position: 'relative', border: '1px solid rgba(255,255,255,0.10)', boxShadow: '0 24px 72px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)' }}>
       {globalBg && <div style={{ position: 'absolute', inset: 0, backgroundImage: `url('${globalBg}')`, backgroundSize: 'cover', backgroundPosition: 'center', transform: 'scale(1.08)', filter: 'blur(2px) brightness(0.55) saturate(1.2)', zIndex: 0 }} />}
@@ -620,238 +622,205 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
             </div>
           </div>
         </div>
-        {/* OM Divider */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.88rem' }}>
+        {/* ── Divider ── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.7rem' }}>
           <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg,transparent,${slotCfg.color}40)` }} />
-          <span style={{ fontSize: '0.9rem', color: `${slotCfg.color}80`, fontFamily: 'serif' }}>✦ ॐ ✦</span>
+          <span style={{ fontSize: '0.88rem', color: `${slotCfg.color}80`, fontFamily: 'serif' }}>✦ ॐ ✦</span>
           <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg,${slotCfg.color}40,transparent)` }} />
         </div>
-        {/* Sadhana Section Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.38rem', marginBottom: '0.52rem', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '1rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit',sans-serif" }}>{slotCfg.emoji} {slotCfg.label} Focus Activities</span>
-          {pendingHabits.length > 0 && (
-            <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 2, repeat: Infinity }}
-              style={{ fontSize: '0.62rem', padding: '0.08rem 0.45rem', borderRadius: 99, background: 'rgba(251,191,36,0.14)', border: '1px solid rgba(251,191,36,0.32)', color: '#fbbf24', fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>
-              {pendingHabits.length} awaiting ✨
-            </motion.span>
-          )}
-          {pendingHabits.length === 0 && totalHabits > 0 && (
-            <motion.span animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }}
-              style={{ fontSize: '0.57rem', padding: '0.06rem 0.4rem', borderRadius: 99, background: 'rgba(74,222,128,0.14)', border: '1px solid rgba(74,222,128,0.28)', color: '#4ade80', fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>
-              All Complete 🪔
-            </motion.span>
-          )}
-        </div>
-        {/* Sacred Activity Logs header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.55rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.38rem' }}>
-            <span style={{ fontSize: '0.92rem' }}>🌿</span>
-            <span style={{ fontSize: '0.76rem', fontWeight: 900, color: 'rgba(255,255,255,0.92)', fontFamily: "'Outfit',sans-serif", letterSpacing: '-0.01em' }}>Your Sacred Activity Log</span>
-            {logStory.length > 0 && <motion.span animate={{ scale: [1, 1.18, 1] }} transition={{ duration: 2.5, repeat: Infinity }}
-              style={{ fontSize: '0.52rem', padding: '0.06rem 0.38rem', borderRadius: 99, background: 'rgba(74,222,128,0.18)', border: '1.5px solid rgba(74,222,128,0.35)', color: '#4ade80', fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}>{logStory.length} logged ✦</motion.span>}
+
+        {/* ═══ SECTION A — TO DO ═══════════════════════════════════════════ */}
+        <div style={{ marginBottom: '0.9rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.48rem' }}>
+            <span style={{ fontSize: '0.85rem' }}>{slotCfg.emoji}</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit',sans-serif", letterSpacing: '-0.01em' }}>
+              {slotCfg.label}&nbsp;·&nbsp;<span style={{ color: slotCfg.color }}>To Do</span>
+            </span>
+            {pendingHabits.length > 0 ? (
+              <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 2, repeat: Infinity }}
+                style={{ fontSize: '0.56rem', padding: '0.05rem 0.38rem', borderRadius: 99, background: `${slotCfg.color}18`, border: `1px solid ${slotCfg.color}38`, color: slotCfg.color, fontFamily: "'Outfit',sans-serif", fontWeight: 800 }}>
+                {pendingHabits.length} pending ✦
+              </motion.span>
+            ) : totalHabits > 0 ? (
+              <motion.span animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }}
+                style={{ fontSize: '0.54rem', padding: '0.05rem 0.36rem', borderRadius: 99, background: 'rgba(74,222,128,0.14)', border: '1px solid rgba(74,222,128,0.28)', color: '#4ade80', fontFamily: "'Outfit',sans-serif", fontWeight: 800 }}>
+                All done 🪔
+              </motion.span>
+            ) : null}
           </div>
-        </div>
-        {/* Tab Content */}
-        <AnimatePresence mode="wait">
-          {activeTab === 'pending' && (
-            <motion.div key="pending" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }}>
-              {totalHabits === 0 && logStory.length === 0 ? (
-                <motion.div whileTap={{ scale: 0.97 }} onClick={goAddHabit}
-                  style={{ textAlign: 'center', padding: '1.5rem 1rem', border: '1.5px dashed rgba(167,139,250,0.24)', borderRadius: 18, cursor: 'pointer', background: 'rgba(167,139,250,0.04)' }}>
-                  <p style={{ margin: '0 0 0.4rem', fontSize: '2rem' }}>🌱</p>
-                  <p style={{ margin: '0 0 0.65rem', color: 'rgba(255,255,255,0.38)', fontSize: '0.84rem', fontFamily: "'Outfit',sans-serif" }}>Nothing tracked yet — start your first daily habit!</p>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '0.36rem 1rem', borderRadius: 99, background: 'rgba(139,92,246,0.22)', border: '1px solid rgba(167,139,250,0.38)', color: '#c4b5fd', fontSize: '0.74rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}><Plus size={11} /> Add Ayurvedic Habits</span>
-                </motion.div>
-              ) : (
-                <>
-                  {(['morning', 'noon', 'evening'] as const).map((slotKey) => {
-                    const cfg = {
-                      morning: { label: 'Morning', emoji: '🌅', color: '#fbbf24', startH: 4,  endH: 12 },
-                      noon:    { label: 'Noon',    emoji: '☀️', color: '#fb923c', startH: 12, endH: 17 },
-                      evening: { label: 'Evening', emoji: '🪔', color: '#a78bfa', startH: 17, endH: 24 },
-                    }[slotKey];
-                    const curH = new Date().getHours();
-                    const isCurrent = curH >= cfg.startH && curH < cfg.endH;
-                    if (curH < cfg.startH) return null;
-                    const slotLogs = logStory.filter(e => {
-                      const h = new Date(e.loggedAt).getHours();
-                      return h >= cfg.startH && h < cfg.endH;
-                    });
-                    const isExp = expandedSlots[slotKey];
-                    return (
-                      <div key={slotKey} style={{ marginBottom: '0.36rem' }}>
-                        <button
-                          onClick={() => setExpandedSlots(prev => ({ ...prev, [slotKey]: !prev[slotKey] }))}
-                          style={{
-                            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                            padding: '0.46rem 0.72rem', borderRadius: 14, marginBottom: isExp ? '0.26rem' : 0,
-                            background: isCurrent ? `${cfg.color}18` : 'rgba(255,255,255,0.04)',
-                            border: `1.5px solid ${isCurrent ? cfg.color + '40' : 'rgba(255,255,255,0.10)'}`,
-                            boxShadow: isCurrent ? `0 2px 12px ${cfg.color}18` : 'none',
-                            cursor: 'pointer',
-                          }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.34rem' }}>
-                            <span style={{ fontSize: '0.82rem' }}>{cfg.emoji}</span>
-                            <span style={{ fontSize: '0.7rem', fontWeight: 800, color: cfg.color, fontFamily: "'Outfit',sans-serif" }}>{cfg.label}</span>
-                            {isCurrent && <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.5, repeat: Infinity }}
-                              style={{ fontSize: '0.5rem', padding: '0.05rem 0.3rem', borderRadius: 99, background: `${cfg.color}28`, color: cfg.color, fontWeight: 800, letterSpacing: '0.05em', fontFamily: "'Outfit',sans-serif" }}>● LIVE</motion.span>}
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.44rem' }}>
-                            <span style={{ fontSize: '0.58rem', color: slotLogs.length > 0 ? cfg.color : 'rgba(255,255,255,0.2)', fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>
-                              {slotLogs.length > 0 ? `${slotLogs.length} logged` : 'none'}
-                            </span>
-                            <span style={{ fontSize: '0.64rem', color: 'rgba(255,255,255,0.35)' }}>{isExp ? '▲' : '▼'}</span>
-                          </div>
-                        </button>
-                        {isExp && (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.18rem' }}>
-                            {slotLogs.map((entry, i) => {
-                              const t = new Date(entry.loggedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-                              const loggedH = new Date(entry.loggedAt).getHours();
-                              const ayurHabit = AYURVEDIC_HABITS.find(h => h.id === entry.id);
-                              const expCat = ayurHabit?.category ?? slotKey;
-                              const logCat = loggedH >= 4 && loggedH < 12 ? 'morning' : loggedH >= 12 && loggedH < 17 ? 'midday' : 'evening';
-                              const onTime = expCat === logCat || (expCat as string) === 'anytime';
-                              return (
-                                <motion.div key={`${entry.id}_${i}`} initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}
-                                  style={{ display: 'flex', alignItems: 'center', gap: '0.44rem', padding: '0.42rem 0.62rem', borderRadius: 13, background: `${entry.color}10`, border: `1.5px solid ${entry.color}28`, boxShadow: `0 2px 10px ${entry.color}10` }}>
-                                  <span style={{ fontSize: '0.88rem', flexShrink: 0 }}>{entry.icon}</span>
-                                  <p style={{ flex: 1, margin: 0, fontSize: '0.78rem', fontWeight: 700, color: 'rgba(255,255,255,0.88)', fontFamily: "'Outfit',sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.label}</p>
-                                  <span style={{ fontSize: '0.56rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit',sans-serif", flexShrink: 0 }}>{t}</span>
-                                  <span style={{ fontSize: '0.52rem', padding: '0.05rem 0.28rem', borderRadius: 99, background: onTime ? 'rgba(74,222,128,0.16)' : 'rgba(251,191,36,0.16)', color: onTime ? '#4ade80' : '#fbbf24', fontFamily: "'Outfit',sans-serif", fontWeight: 800, flexShrink: 0, whiteSpace: 'nowrap', border: onTime ? '1px solid rgba(74,222,128,0.3)' : '1px solid rgba(251,191,36,0.3)' }}>
-                                    {onTime ? '✅ On Time' : '⏰ Late'}
-                                  </span>
-                                </motion.div>
-                              );
-                            })}
-                            {/* Missed habits for past slots */}
-                            {!isCurrent && (() => {
-                              const pastSlotKey = slotKey === 'morning' ? 'morning' : slotKey === 'noon' ? 'midday' : 'evening';
-                              const pastHabits = getHabitsForSlot(pastSlotKey as AyurTimeSlot).filter(h => _storeAyurIds.has(h.id));
-                              const extraPastIds = (MEAL_DEFAULTS as Record<string,string[]>)[pastSlotKey] ?? [];
-                              const allPastHabits = [
-                                ...pastHabits,
-                                ...AYURVEDIC_HABITS.filter(h => extraPastIds.includes(h.id) && !pastHabits.some(p => p.id === h.id)),
-                              ];
-                              const missedHabits = allPastHabits.filter(h => !mergedAyurDone.has(h.id));
-                              return (
-                                <>
-                                  {slotLogs.length === 0 && missedHabits.length === 0 && (
-                                    <p style={{ margin: 0, padding: '0.34rem 0.54rem', fontSize: '0.58rem', color: 'rgba(255,255,255,0.18)', fontFamily: "'Outfit',sans-serif", fontStyle: 'italic' }}>No activities logged in this slot</p>
-                                  )}
-                                  {missedHabits.length > 0 && (
-                                    <div style={{ marginTop: slotLogs.length > 0 ? '0.3rem' : 0 }}>
-                                      <p style={{ margin: '0 0 0.18rem 0.1rem', fontSize: '0.52rem', color: 'rgba(255,180,0,0.45)', fontFamily: "'Outfit',sans-serif", letterSpacing: '0.07em', fontStyle: 'italic' }}>📌 Not logged</p>
-                                      {missedHabits.map(h => (
-                                        <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.3rem 0.55rem', borderRadius: 11, background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.10)', marginBottom: '0.14rem', opacity: 0.52 }}>
-                                          <span style={{ fontSize: '0.84rem', flexShrink: 0 }}>{h.emoji}</span>
-                                          <span style={{ flex: 1, fontSize: '0.7rem', color: 'rgba(255,255,255,0.42)', fontFamily: "'Outfit',sans-serif", fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.name}</span>
-                                          <span style={{ fontSize: '0.46rem', color: 'rgba(255,180,0,0.35)', fontFamily: "'Outfit',sans-serif", flexShrink: 0 }}>missed</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                </>
-                              );
-                            })()}
-                            {isCurrent && pendingHabits.length > 0 && (
-                              <div style={{ marginTop: '0.12rem' }}>
-                                <motion.div
-                                  initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-                                  style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '0.42rem 0.68rem', borderRadius: 13, marginBottom: '0.32rem', background: `linear-gradient(135deg,${cfg.color}14,rgba(139,92,246,0.08))`, border: `1.5px solid ${cfg.color}38`, boxShadow: `0 0 18px ${cfg.color}18` }}>
-                                  <motion.span animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 2.2, repeat: Infinity }} style={{ fontSize: '1rem' }}>✨</motion.span>
-                                  <div>
-                                    <p style={{ margin: 0, fontSize: '0.64rem', fontWeight: 900, color: cfg.color, fontFamily: "'Outfit',sans-serif", letterSpacing: '-0.01em' }}>Your {cfg.label} practices await — tap &amp; glow!</p>
-                                    <p style={{ margin: '0.08rem 0 0', fontSize: '0.5rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit',sans-serif" }}>Each log is a step toward your highest self ✦</p>
-                                  </div>
-                                </motion.div>
-                                {pendingHabits.map(h => <MiniHabitCard key={h.id} habit={h} isCompleted={false} streak={engine.getHabitStreak(h.id)} onComplete={setActiveSubHabitId} />)}
-                              </div>
-                            )}
-                            {isCurrent && pendingHabits.length === 0 && totalHabits > 0 && (
-                              <div style={{ textAlign: 'center', padding: '0.5rem', border: '1px solid rgba(74,222,128,0.2)', borderRadius: 11, background: 'rgba(74,222,128,0.04)' }}>
-                                <motion.p animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }} style={{ margin: '0 0 0.1rem', fontSize: '1.1rem' }}>🪔</motion.p>
-                                <p style={{ margin: 0, color: '#4ade80', fontSize: '0.74rem', fontWeight: 700, fontFamily: "'Outfit',sans-serif" }}>All practices complete!</p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </>
-              )}
+          {totalHabits === 0 && logStory.length === 0 ? (
+            <motion.div whileTap={{ scale: 0.97 }} onClick={goAddHabit}
+              style={{ textAlign: 'center', padding: '1.2rem 1rem', border: '1.5px dashed rgba(167,139,250,0.24)', borderRadius: 16, cursor: 'pointer', background: 'rgba(167,139,250,0.04)' }}>
+              <p style={{ margin: '0 0 0.3rem', fontSize: '1.8rem' }}>🌱</p>
+              <p style={{ margin: '0 0 0.5rem', color: 'rgba(255,255,255,0.38)', fontSize: '0.78rem', fontFamily: "'Outfit',sans-serif" }}>No habits yet — start your Ayurvedic journey!</p>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '0.3rem 0.9rem', borderRadius: 99, background: 'rgba(139,92,246,0.22)', border: '1px solid rgba(167,139,250,0.38)', color: '#c4b5fd', fontSize: '0.7rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}><Plus size={10} /> Add Habits</span>
             </motion.div>
-          )}
-        </AnimatePresence>
+          ) : pendingHabits.length > 0 ? (
+            <>
+              <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+                style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '0.38rem 0.62rem', borderRadius: 12, marginBottom: '0.38rem', background: `linear-gradient(135deg,${slotCfg.color}12,rgba(139,92,246,0.07))`, border: `1px solid ${slotCfg.color}28` }}>
+                <motion.span animate={{ rotate: [0, 12, -12, 0] }} transition={{ duration: 2.4, repeat: Infinity }} style={{ fontSize: '0.9rem' }}>✨</motion.span>
+                <p style={{ margin: 0, fontSize: '0.58rem', fontWeight: 800, color: slotCfg.color, fontFamily: "'Outfit',sans-serif" }}>Tap any card to log — Bodhi celebrates with you!</p>
+              </motion.div>
+              {pendingHabits.map((h, i) => (
+                <motion.div key={h.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+                  <MiniHabitCard habit={h} isCompleted={false} streak={engine.getHabitStreak(h.id)} onComplete={setActiveSubHabitId} />
+                </motion.div>
+              ))}
+            </>
+          ) : totalHabits > 0 ? (
+            <div style={{ textAlign: 'center', padding: '0.55rem', border: '1px solid rgba(74,222,128,0.2)', borderRadius: 12, background: 'rgba(74,222,128,0.04)' }}>
+              <motion.p animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }} style={{ margin: '0 0 0.1rem', fontSize: '1.1rem' }}>🪔</motion.p>
+              <p style={{ margin: 0, color: '#4ade80', fontSize: '0.72rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}>All {slotCfg.label} practices complete!</p>
+            </div>
+          ) : null}
+        </div>
+
+        {/* ═══ SECTION B — LOGGED TODAY ════════════════════════════════════ */}
+        <div style={{ marginBottom: '0.65rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.44rem' }}>
+            <span style={{ fontSize: '0.85rem' }}>🌿</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 900, color: 'rgba(255,255,255,0.92)', fontFamily: "'Outfit',sans-serif", letterSpacing: '-0.01em' }}>Logged Today</span>
+            {logStory.length > 0 && (
+              <motion.span animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 2.5, repeat: Infinity }}
+                style={{ fontSize: '0.5rem', padding: '0.05rem 0.36rem', borderRadius: 99, background: 'rgba(74,222,128,0.18)', border: '1.5px solid rgba(74,222,128,0.35)', color: '#4ade80', fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}>
+                {logStory.length} logged ✦
+              </motion.span>
+            )}
+          </div>
+          {/* Per-slot accordion — logged + missed only */}
+          {(['morning', 'noon', 'evening'] as const).map((slotKey) => {
+            const sCfg = {
+              morning: { label: 'Morning', emoji: '🌅', color: '#fbbf24', startH: 4,  endH: 12 },
+              noon:    { label: 'Noon',    emoji: '☀️', color: '#fb923c', startH: 12, endH: 17 },
+              evening: { label: 'Evening', emoji: '🪔', color: '#a78bfa', startH: 17, endH: 24 },
+            }[slotKey];
+            const curH = new Date().getHours();
+            const isCurrent = curH >= sCfg.startH && curH < sCfg.endH;
+            if (curH < sCfg.startH) return null;
+            const sLogs = logStory.filter(e => {
+              const h = new Date(e.loggedAt).getHours();
+              return h >= sCfg.startH && h < sCfg.endH;
+            });
+            const pastAyurKey = slotKey === 'morning' ? 'morning' : slotKey === 'noon' ? 'midday' : 'evening';
+            const pastBase = getHabitsForSlot(pastAyurKey as AyurTimeSlot).filter(h => _storeAyurIds.has(h.id));
+            const extraIds = (MEAL_DEFAULTS as Record<string, string[]>)[pastAyurKey] ?? [];
+            const allSlotH = [...pastBase, ...AYURVEDIC_HABITS.filter(h => extraIds.includes(h.id) && !pastBase.some(p => p.id === h.id))];
+            const missedH = !isCurrent ? allSlotH.filter(h => !mergedAyurDone.has(h.id)) : [];
+            const isExp = expandedSlots[slotKey];
+            return (
+              <div key={slotKey} style={{ marginBottom: '0.28rem' }}>
+                <button onClick={() => setExpandedSlots(prev => ({ ...prev, [slotKey]: !prev[slotKey] }))}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.42rem 0.68rem', borderRadius: 12, marginBottom: isExp ? '0.2rem' : 0, background: isCurrent ? `${sCfg.color}14` : 'rgba(255,255,255,0.04)', border: `1.5px solid ${isCurrent ? sCfg.color + '35' : 'rgba(255,255,255,0.09)'}`, cursor: 'pointer' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <span style={{ fontSize: '0.78rem' }}>{sCfg.emoji}</span>
+                    <span style={{ fontSize: '0.66rem', fontWeight: 800, color: sCfg.color, fontFamily: "'Outfit',sans-serif" }}>{sCfg.label}</span>
+                    {isCurrent && <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.5, repeat: Infinity }} style={{ fontSize: '0.44rem', padding: '0.04rem 0.26rem', borderRadius: 99, background: `${sCfg.color}28`, color: sCfg.color, fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}>● LIVE</motion.span>}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.32rem' }}>
+                    {sLogs.length > 0 && <span style={{ fontSize: '0.52rem', color: sCfg.color, fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>{sLogs.length} ✓</span>}
+                    {missedH.length > 0 && <span style={{ fontSize: '0.52rem', color: 'rgba(255,180,0,0.55)', fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>{missedH.length} missed</span>}
+                    {sLogs.length === 0 && missedH.length === 0 && <span style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.2)', fontFamily: "'Outfit',sans-serif" }}>none</span>}
+                    <span style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.28)' }}>{isExp ? '▲' : '▼'}</span>
+                  </div>
+                </button>
+                {isExp && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.13rem' }}>
+                    {sLogs.map((entry, i) => {
+                      const t = new Date(entry.loggedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+                      const lH = new Date(entry.loggedAt).getHours();
+                      const ayurH = AYURVEDIC_HABITS.find(h => h.id === entry.id);
+                      const expCat = ayurH?.category ?? slotKey;
+                      const logCat = lH >= 4 && lH < 12 ? 'morning' : lH >= 12 && lH < 17 ? 'midday' : 'evening';
+                      const onTime = expCat === logCat || (expCat as string) === 'anytime';
+                      return (
+                        <motion.div key={`${entry.id}_${i}`} initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}
+                          style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.38rem 0.58rem', borderRadius: 11, background: `${entry.color}0d`, border: `1.5px solid ${entry.color}25`, boxShadow: `0 2px 8px ${entry.color}0a` }}>
+                          <span style={{ fontSize: '0.85rem', flexShrink: 0 }}>{entry.icon}</span>
+                          <p style={{ flex: 1, margin: 0, fontSize: '0.74rem', fontWeight: 700, color: 'rgba(255,255,255,0.88)', fontFamily: "'Outfit',sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.label}</p>
+                          <span style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.3)', fontFamily: "'Outfit',sans-serif", flexShrink: 0 }}>{t}</span>
+                          <span style={{ fontSize: '0.46rem', padding: '0.04rem 0.24rem', borderRadius: 99, background: onTime ? 'rgba(74,222,128,0.14)' : 'rgba(251,191,36,0.14)', color: onTime ? '#4ade80' : '#fbbf24', fontFamily: "'Outfit',sans-serif", fontWeight: 800, flexShrink: 0, border: onTime ? '1px solid rgba(74,222,128,0.28)' : '1px solid rgba(251,191,36,0.28)' }}>
+                            {onTime ? '✅' : '⏰'}
+                          </span>
+                        </motion.div>
+                      );
+                    })}
+                    {missedH.length > 0 && (
+                      <div style={{ marginTop: sLogs.length > 0 ? '0.15rem' : 0 }}>
+                        <p style={{ margin: '0 0 0.12rem 0.08rem', fontSize: '0.48rem', color: 'rgba(255,180,0,0.4)', fontFamily: "'Outfit',sans-serif", letterSpacing: '0.06em' }}>📌 Not logged</p>
+                        {missedH.map(h => (
+                          <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: '0.36rem', padding: '0.26rem 0.5rem', borderRadius: 9, background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.09)', marginBottom: '0.1rem', opacity: 0.5 }}>
+                            <span style={{ fontSize: '0.78rem', flexShrink: 0 }}>{h.emoji}</span>
+                            <span style={{ flex: 1, fontSize: '0.64rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Outfit',sans-serif", fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.name}</span>
+                            <span style={{ fontSize: '0.42rem', color: 'rgba(255,180,0,0.3)', fontFamily: "'Outfit',sans-serif", flexShrink: 0 }}>missed</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {sLogs.length === 0 && missedH.length === 0 && (
+                      <p style={{ margin: 0, padding: '0.28rem 0.48rem', fontSize: '0.52rem', color: 'rgba(255,255,255,0.15)', fontFamily: "'Outfit',sans-serif", fontStyle: 'italic' }}>No activities here yet</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>{/* end SECTION B */}
+
         {/* Celebration toast */}
         <AnimatePresence>
           {celebrateId && (
             <motion.div initial={{ opacity: 0, scale: 0.88, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.88 }}
-              style={{ marginTop: '0.6rem', textAlign: 'center', padding: '0.52rem', borderRadius: 16, background: 'linear-gradient(135deg,rgba(74,222,128,0.1),rgba(34,211,238,0.06))', border: '1px solid rgba(74,222,128,0.22)' }}>
-              <span style={{ fontSize: '0.74rem', color: '#4ade80', fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}>🎉 संकल्प पूर्ण — Bodhi is proud of you!</span>
+              style={{ marginBottom: '0.55rem', textAlign: 'center', padding: '0.48rem', borderRadius: 14, background: 'linear-gradient(135deg,rgba(74,222,128,0.1),rgba(34,211,238,0.06))', border: '1px solid rgba(74,222,128,0.22)' }}>
+              <span style={{ fontSize: '0.72rem', color: '#4ade80', fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}>🎉 संकल्प पूर्ण — Bodhi is proud of you!</span>
             </motion.div>
           )}
         </AnimatePresence>
         {/* Add Habit CTA */}
-        <motion.button whileTap={{ scale: 0.95 }} whileHover={{ scale: 1.02 }} onClick={goAddHabit}
-          style={{ width: '100%', marginTop: '0.85rem', padding: '0.62rem 1rem', borderRadius: 16, background: 'linear-gradient(135deg,rgba(124,58,237,0.2),rgba(168,85,247,0.12),rgba(236,72,153,0.1))', border: '1px solid rgba(167,139,250,0.3)', color: '#c4b5fd', fontSize: '0.68rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 4px 20px rgba(124,58,237,0.18)' }}>
-          <Plus size={12} />
-          <span>Add a Habit — Level Up Your Daily Routine</span>
+        <motion.button whileTap={{ scale: 0.95 }} onClick={goAddHabit}
+          style={{ width: '100%', padding: '0.56rem 1rem', borderRadius: 14, background: 'linear-gradient(135deg,rgba(124,58,237,0.2),rgba(168,85,247,0.12),rgba(236,72,153,0.1))', border: '1px solid rgba(167,139,250,0.28)', color: '#c4b5fd', fontSize: '0.66rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+          <Plus size={11} /><span>Add a Habit — Level Up Your Routine</span>
           <motion.span animate={{ x: [0, 3, 0] }} transition={{ duration: 1.6, repeat: Infinity }}>→</motion.span>
         </motion.button>
       </div>
+    </motion.div>
 
-      {/* Sub-option bottom sheet — same picker as SmartLogBubbles */}
+    {/* ── Sub-option sheet via portal so it escapes overflow:hidden ── */}
+    {mounted && activeSubHabitId && createPortal(
       <AnimatePresence>
         {activeSubHabitId && (() => {
           const habit = AYURVEDIC_HABITS.find(h => h.id === activeSubHabitId);
           const subs = getSubOptionsForHabit(activeSubHabitId, habit?.name ?? '');
           return (
-            <motion.div
-              key="sub-sheet-backdrop"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            <motion.div key="sub-sheet-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setActiveSubHabitId(null)}
-              style={{ position: 'fixed', inset: 0, zIndex: 1200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(5px)', WebkitBackdropFilter: 'blur(5px)' }}
-            >
-              <motion.div
-                key="sub-sheet"
-                initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-                transition={{ type: 'spring', stiffness: 340, damping: 32 }}
+              style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+              <motion.div key="sub-sheet" initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                transition={{ type: 'spring', stiffness: 350, damping: 34 }}
                 onClick={e => e.stopPropagation()}
-                style={{ width: '100%', maxWidth: 480, maxHeight: '72vh', display: 'flex', flexDirection: 'column', background: 'linear-gradient(180deg,rgba(14,9,46,0.99) 0%,rgba(6,4,22,1) 100%)', borderRadius: '22px 22px 0 0', border: '1px solid rgba(139,92,246,0.22)', borderBottom: 'none', boxShadow: '0 -8px 40px rgba(0,0,0,0.6)' }}
-              >
-                {/* Drag handle */}
-                <div style={{ flexShrink: 0, padding: '0.7rem 1rem 0' }}>
-                  <div style={{ width: 36, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.14)', margin: '0 auto 0.7rem' }} />
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', marginBottom: '0.65rem' }}>
-                    <span style={{ fontSize: '1.55rem', lineHeight: 1 }}>{habit?.emoji ?? '\u2726'}</span>
+                style={{ width: '100%', maxWidth: 520, maxHeight: '76vh', display: 'flex', flexDirection: 'column', background: 'linear-gradient(180deg,rgba(10,6,36,0.99) 0%,rgba(4,2,18,1) 100%)', borderRadius: '26px 26px 0 0', border: '1px solid rgba(139,92,246,0.28)', borderBottom: 'none', boxShadow: '0 -12px 60px rgba(0,0,0,0.7), 0 -4px 24px rgba(139,92,246,0.12)' }}>
+                <div style={{ flexShrink: 0, padding: '0.75rem 1.1rem 0' }}>
+                  <div style={{ width: 38, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.16)', margin: '0 auto 0.75rem' }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.7rem' }}>
+                    <span style={{ fontSize: '1.65rem', lineHeight: 1 }}>{habit?.emoji ?? '✦'}</span>
                     <div>
-                      <p style={{ margin: 0, fontSize: '0.86rem', fontWeight: 800, color: 'rgba(255,255,255,0.92)', fontFamily: "'Outfit',sans-serif" }}>{habit?.name ?? activeSubHabitId}</p>
-                      <p style={{ margin: 0, fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit',sans-serif" }}>How did you do it?</p>
+                      <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 800, color: 'rgba(255,255,255,0.94)', fontFamily: "'Outfit',sans-serif" }}>{habit?.name ?? activeSubHabitId}</p>
+                      <p style={{ margin: '1px 0 0', fontSize: '0.58rem', color: 'rgba(255,255,255,0.32)', fontFamily: "'Outfit',sans-serif" }}>How did you do it today?</p>
                     </div>
                   </div>
                 </div>
-                {/* Scrollable options list */}
-                <div style={{ flex: 1, overflowY: 'auto', padding: '0 1rem', paddingBottom: 'env(safe-area-inset-bottom, 1.4rem)' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.36rem', paddingBottom: '0.5rem' }}>
+                <div style={{ flex: 1, overflowY: 'auto', padding: '0 1.1rem', paddingBottom: 'env(safe-area-inset-bottom, 1.6rem)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.38rem', paddingBottom: '0.6rem' }}>
                     {subs.map(sub => (
-                      <motion.button
-                        key={sub.label}
-                        whileTap={{ scale: 0.97 }}
-                        onClick={() => handleComplete(activeSubHabitId, sub)}
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', width: '100%', padding: '0.55rem 0.75rem', borderRadius: 13, background: 'rgba(139,92,246,0.09)', border: '1px solid rgba(139,92,246,0.2)', cursor: 'pointer', textAlign: 'left' }}
-                      >
-                        <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>{sub.icon}</span>
-                        <span style={{ fontSize: '0.77rem', fontWeight: 700, color: 'rgba(255,255,255,0.84)', fontFamily: "'Outfit',sans-serif" }}>{sub.label}</span>
+                      <motion.button key={sub.label} whileTap={{ scale: 0.97 }} onClick={() => handleComplete(activeSubHabitId, sub)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', width: '100%', padding: '0.6rem 0.85rem', borderRadius: 14, background: 'rgba(139,92,246,0.09)', border: '1px solid rgba(139,92,246,0.22)', cursor: 'pointer', textAlign: 'left' }}>
+                        <span style={{ fontSize: '1.15rem', flexShrink: 0 }}>{sub.icon}</span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'rgba(255,255,255,0.86)', fontFamily: "'Outfit',sans-serif" }}>{sub.label}</span>
                       </motion.button>
                     ))}
-                    <motion.button
-                      whileTap={{ scale: 0.97 }}
-                      onClick={() => handleComplete(activeSubHabitId)}
-                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '0.55rem', borderRadius: 13, background: 'rgba(74,222,128,0.07)', border: '1px solid rgba(74,222,128,0.22)', cursor: 'pointer', marginTop: '0.18rem' }}
-                    >
-                      <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#4ade80', fontFamily: "'Outfit',sans-serif" }}>&#10003; Quick Log</span>
+                    <motion.button whileTap={{ scale: 0.97 }} onClick={() => handleComplete(activeSubHabitId)}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '0.6rem', borderRadius: 14, background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.24)', cursor: 'pointer', marginTop: '0.1rem' }}>
+                      <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#4ade80', fontFamily: "'Outfit',sans-serif" }}>✓ Quick Log</span>
                     </motion.button>
                   </div>
                 </div>
@@ -859,7 +828,9 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
             </motion.div>
           );
         })()}
-      </AnimatePresence>
-    </motion.div>
+      </AnimatePresence>,
+      document.body
+    )}
+    </>
   );
 }

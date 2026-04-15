@@ -680,10 +680,21 @@ export function getTimedBubbles(): LogBubble[] {
         if (aId) userAyurIds.add(aId);
     }
 
-    const habits = getHabitsForSlot(slot).filter(
+    const baseHabits = getHabitsForSlot(slot).filter(
         habit => habit.category !== 'anytime' && userAyurIds.has(habit.id)
     );
-    // Pure Ayurvedic bubbles from My Habits — no static injection
+    // Always surface core meal habits for their slot (even if not added to My Habits)
+    const MEAL_ALWAYS: Partial<Record<typeof slot, string[]>> = {
+        midday: ['main_meal_noon'],
+        evening: ['light_dinner_early'],
+    };
+    const alwaysIds = MEAL_ALWAYS[slot] ?? [];
+    const allAyurHabits = AYURVEDIC_HABITS as import('@/lib/ayurvedicHabitsData').AyurvedicHabit[];
+    const habits = [
+        ...baseHabits,
+        ...allAyurHabits.filter(h => alwaysIds.includes(h.id) && !baseHabits.some(b => b.id === h.id)),
+    ];
+    // Pure Ayurvedic bubbles from My Habits + core meals — no other static injection
     // h_wake_early (Rise and Shine) appears via buildDynamicHabitBubbles if in My Habits
     return habits.map(habit => ({
         id: habit.id,
