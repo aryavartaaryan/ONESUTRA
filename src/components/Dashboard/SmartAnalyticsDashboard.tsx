@@ -664,7 +664,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
               </motion.div>
               {pendingHabits.map((h, i) => (
                 <motion.div key={h.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                  <MiniHabitCard habit={h} isCompleted={false} streak={engine.getHabitStreak(h.id)} onComplete={setActiveSubHabitId} />
+                  <MiniHabitCard habit={h} isCompleted={false} streak={engine.getHabitStreak(h.id)} onComplete={(id) => { playConfirmChime(); setActiveSubHabitId(id); }} />
                 </motion.div>
               ))}
             </>

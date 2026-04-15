@@ -668,7 +668,7 @@ export function getTimedBubbles(): LogBubble[] {
     const slot: import('@/lib/ayurvedicHabitsData').TimeSlot =
         (h >= 3 && h < 11) ? 'morning' :
             (h >= 11 && h < 15) ? 'midday' :
-                (h >= 15 && h < 21) ? 'evening' : 'night';
+                (h >= 15 && h < 22) ? 'evening' : 'night';
 
     // Only show Ayurvedic habits the user has added to My Habits
     const storeHabits = getActiveHabits();
@@ -688,6 +688,7 @@ export function getTimedBubbles(): LogBubble[] {
     const MEAL_ALWAYS: Partial<Record<typeof slot, string[]>> = {
         midday: ['main_meal_noon'],
         evening: ['light_dinner_early'],
+        night: ['light_dinner_early'],
     };
     const alwaysIds = MEAL_ALWAYS[slot] ?? [];
     const allAyurHabits = AYURVEDIC_HABITS as import('@/lib/ayurvedicHabitsData').AyurvedicHabit[];
@@ -1064,65 +1065,49 @@ export default function SmartLogBubbles() {
 
     const active = [...timedBubbles, ...anytimeBubbles].find(b => b.id === activeBubble) ?? null;
 
-    // ── Smooth bidirectional auto-scroll: bubbles slide back and forth without breaking ────────
+    // ── Smooth sine-wave auto-scroll: elegant professional left↔right oscillation ────────
     const bubbleRowRef = useRef<HTMLDivElement>(null);
     const slidePaused = useRef(false);
-    const scrollDirection = useRef<'left' | 'right'>('left'); // Start scrolling left
     const pauseAutoSlide = useCallback(() => { slidePaused.current = true; }, []);
-    const resumeAutoSlide = useCallback(() => { setTimeout(() => { slidePaused.current = false; }, 2000); }, []);
-    
+    const resumeAutoSlide = useCallback(() => { setTimeout(() => { slidePaused.current = false; }, 2200); }, []);
+
     useEffect(() => {
         const el = bubbleRowRef.current;
         if (!el || timedBubbles.length + anytimeBubbles.length === 0) return;
-        
-        // Touch/mouse pause handlers
+
         el.addEventListener('touchstart', pauseAutoSlide, { passive: true });
         el.addEventListener('touchend', resumeAutoSlide, { passive: true });
         el.addEventListener('mousedown', pauseAutoSlide, { passive: true });
         el.addEventListener('mouseup', resumeAutoSlide, { passive: true });
-        
+
         let rafId: number;
+        let elapsed = 0;          // accumulated active (non-paused) time in seconds
         let lastTime = 0;
-        const SPEED = 35; // px/s — smooth elegant pace
-        
+        const CYCLE = 18;          // seconds for one full round trip (adjust for speed)
+
         const step = (now: number) => {
             if (lastTime === 0) lastTime = now;
+            const dt = (now - lastTime) / 1000;
+            lastTime = now;
+
             if (!slidePaused.current) {
-                const dt = (now - lastTime) / 1000;
+                elapsed += dt;
                 const max = el.scrollWidth - el.clientWidth;
                 if (max > 0) {
-                    const currentScroll = el.scrollLeft;
-                    
-                    if (scrollDirection.current === 'left') {
-                        // Scrolling left
-                        const newScroll = Math.max(currentScroll - SPEED * dt, 0);
-                        el.scrollLeft = newScroll;
-                        
-                        // Reached left end, reverse direction
-                        if (newScroll <= 1) {
-                            scrollDirection.current = 'right';
-                        }
-                    } else {
-                        // Scrolling right
-                        const newScroll = Math.min(currentScroll + SPEED * dt, max);
-                        el.scrollLeft = newScroll;
-                        
-                        // Reached right end, reverse direction
-                        if (newScroll >= max - 1) {
-                            scrollDirection.current = 'left';
-                        }
-                    }
+                    // Sine oscillates -1 → +1; map to 0 → max with ease-in-out at each end
+                    const phase = (elapsed % CYCLE) / CYCLE; // 0 → 1
+                    // Triangle wave 0→1→0 per cycle
+                    const tri = phase < 0.5 ? phase * 2 : 2 - phase * 2;
+                    // Apply smooth ease-in-out (cosine)
+                    const eased = (1 - Math.cos(tri * Math.PI)) / 2;
+                    el.scrollLeft = eased * max;
                 }
             }
-            lastTime = now;
             rafId = requestAnimationFrame(step);
         };
-        
-        // Start at rightmost end and begin scrolling left
-        el.scrollLeft = el.scrollWidth;
-        scrollDirection.current = 'left';
+
         rafId = requestAnimationFrame(step);
-        
+
         return () => {
             cancelAnimationFrame(rafId);
             el.removeEventListener('touchstart', pauseAutoSlide);
