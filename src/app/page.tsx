@@ -616,47 +616,39 @@ export default function Home() {
           </motion.div>
         )}
 
-        {/* ══ SMART AYUR PLANNER — fused with OneSUTRA brand ══ */}
+        {/* ══ STORIES / NAV ══ */}
+        <div style={{ display: isPortalOpen ? 'none' : 'block' }}>
+          <StickyTopNav />
+        </div>
+
+        {/* ══ SMART AYUR PLANNER ══ */}
         {!isPortalOpen && greeting && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
             style={{
-              margin: '0 0 0.4rem',
-              padding: `calc(env(safe-area-inset-top, 0px) + 0.28rem) 0.9rem 0.55rem`,
-              borderRadius: '0 0 26px 26px',
-              background: 'rgba(3,2,14,0.74)',
-              backdropFilter: 'blur(32px) saturate(170%)',
-              WebkitBackdropFilter: 'blur(32px) saturate(170%)',
-              border: '0 solid transparent',
-              borderBottom: '1px solid rgba(251,191,36,0.18)',
-              borderLeft: '1px solid rgba(255,255,255,0.06)',
-              borderRight: '1px solid rgba(255,255,255,0.06)',
-              boxShadow: '0 8px 48px rgba(0,0,0,0.45), inset 0 -1px 0 rgba(255,255,255,0.04)',
-              zIndex: 100,
-              position: 'relative',
+              margin: '0.2rem 0.65rem 0.4rem',
+              padding: '0.52rem 0.85rem 0.55rem',
+              borderRadius: 20,
+              background: 'rgba(5,3,18,0.18)',
+              backdropFilter: 'blur(22px) saturate(145%)',
+              WebkitBackdropFilter: 'blur(22px) saturate(145%)',
+              border: '1px solid rgba(255,255,255,0.07)',
+              boxShadow: '0 2px 24px rgba(0,0,0,0.18)',
+              zIndex: 10,
             }}
           >
-            {/* ── Clean header: ✦ Smart Ayur Planner + icons row ── */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '0.3rem' }}>
-              <motion.span animate={{ rotate: [0, 8, -8, 0], scale: [1, 1.12, 1] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-                style={{ fontSize: '1.0rem', filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.85))', lineHeight: 1, flexShrink: 0 }}>✦</motion.span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: 0, fontSize: '1.02rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.01em', lineHeight: 1 }}>Smart Ayur Planner</p>
-                <p style={{ margin: '2px 0 0', fontSize: '0.5rem', color: 'rgba(255,255,255,0.3)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.05em' }}>No-Cal AI · Habits · Dosha</p>
+            {/* ── Title row: sparkle + Smart Ayur Planner + LIVE ── */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+              <motion.div animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.07, 1] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                style={{ fontSize: '1.05rem', filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.6))' }}>✦</motion.div>
+              <div style={{ flex: 1 }}>
+                <p style={{ margin: 0, fontSize: '0.98rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.01em', lineHeight: 1 }}>Smart Ayur Planner</p>
+                <p style={{ margin: '2px 0 0', fontSize: '0.55rem', color: 'rgba(255,255,255,0.30)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.05em' }}>No-Cal AI · Habits · Dosha</p>
               </div>
-              {/* Raag + Games + LIVE */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
-                {([{ href: '/project-leela', emoji: '🎵', col: '#fbbf24', lbl: 'Raag' }, { href: '/vedic-games', emoji: '🎲', col: '#4ade80', lbl: 'Games' }] as const).map(({ href, emoji, col, lbl }) => (
-                  <Link key={href} href={href} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-                    <motion.div whileTap={{ scale: 0.82 }} style={{ width: 27, height: 27, borderRadius: '50%', background: `${col}11`, border: `1px solid ${col}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.78rem' }}>{emoji}</motion.div>
-                    <span style={{ fontSize: '0.36rem', color: `${col}60`, letterSpacing: '0.07em', textTransform: 'uppercase', fontFamily: "'Inter', sans-serif", lineHeight: 1 }}>{lbl}</span>
-                  </Link>
-                ))}
-                <motion.span animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 3, repeat: Infinity }}
-                  style={{ fontSize: '0.44rem', padding: '0.16rem 0.48rem', borderRadius: 99, background: 'rgba(251,191,36,0.10)', border: '1px solid rgba(251,191,36,0.28)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 800, letterSpacing: '0.12em' }}>LIVE</motion.span>
-              </div>
+              <motion.span animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 3, repeat: Infinity }}
+                style={{ fontSize: '0.46rem', padding: '0.18rem 0.5rem', borderRadius: 99, background: 'rgba(251,191,36,0.10)', border: '1px solid rgba(251,191,36,0.28)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 800, letterSpacing: '0.12em' }}>LIVE</motion.span>
             </div>
 
             {/* ── Date + controls row ── */}
@@ -732,7 +724,7 @@ export default function Home() {
                 <motion.p
                   key={doshaCurrentPhase.phase}
                   initial={{ opacity: 0, y: 3 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}
-                  style={{ margin: '0.28rem 0 0', fontSize: '0.76rem', fontWeight: 800, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.005em', lineHeight: 1.4, padding: '0.28rem 0.68rem', background: `linear-gradient(135deg, ${doshaColor}28 0%, ${doshaColor}0a 100%)`, border: `1px solid ${doshaColor}45`, borderRadius: 12, boxShadow: `0 0 22px ${doshaColor}18, inset 0 1px 0 rgba(255,255,255,0.06)` }}>
+                  style={{ margin: '0.3rem 0 0', fontSize: '0.72rem', fontWeight: 700, color: doshaColor, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.01em', lineHeight: 1.4, padding: '0.25rem 0.62rem', background: `${doshaColor}14`, border: `1px solid ${doshaColor}2e`, borderRadius: 12 }}>
                   {SAP_PHASE_ESSENCE[doshaCurrentPhase.phase] ?? doshaCurrentPhase.quality}
                 </motion.p>
               </div>
@@ -780,10 +772,6 @@ export default function Home() {
 
 
 
-        {/* ══ STORIES / NAV ══ */}
-        <div style={{ display: isPortalOpen ? 'none' : 'block', marginTop: '0.5rem', marginBottom: '0.4rem' }}>
-          <StickyTopNav />
-        </div>
 
 
 

@@ -1062,41 +1062,31 @@ export default function SmartLogBubbles() {
 
     const active = [...timedBubbles, ...anytimeBubbles].find(b => b.id === activeBubble) ?? null;
 
-    // ── Auto-scroll the bubble row (story-style, right-to-left) ──
-    const scrollRowRef = useRef<HTMLDivElement>(null);
-    const pauseScrollRef = useRef(false);
-    const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
+    // ── RTL auto-scroll: bubbles slide right→left (opposite of stories) ────────
+    const bubbleRowRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
-        const el = scrollRowRef.current;
-        if (!el || allLogged) return;
-
-        const pauseAndResume = () => {
-            pauseScrollRef.current = true;
-            if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
-            resumeTimerRef.current = setTimeout(() => { pauseScrollRef.current = false; }, 5000);
+        const el = bubbleRowRef.current;
+        if (!el || timedBubbles.length + anytimeBubbles.length === 0) return;
+        // Start at the rightmost end
+        el.scrollLeft = el.scrollWidth;
+        let raf: number;
+        let paused = false;
+        const onTouch = () => { paused = true; };
+        const onTouchEnd = () => { setTimeout(() => { paused = false; }, 1800); };
+        el.addEventListener('touchstart', onTouch, { passive: true });
+        el.addEventListener('touchend', onTouchEnd, { passive: true });
+        const step = () => {
+            if (!paused && el.scrollLeft > 0) el.scrollLeft -= 0.8;
+            raf = requestAnimationFrame(step);
         };
-
-        el.addEventListener('touchstart', pauseAndResume, { passive: true });
-        el.addEventListener('mousedown', pauseAndResume, { passive: true });
-
-        const tick = setInterval(() => {
-            if (pauseScrollRef.current || activeBubble) return;
-            const max = el.scrollWidth - el.clientWidth;
-            if (max <= 0) return;
-            // right-to-left: advance scrollLeft by ~90px, loop to 0 at end
-            const next = el.scrollLeft + 90;
-            el.scrollTo({ left: next > max ? 0 : next, behavior: 'smooth' });
-        }, 2800);
-
+        raf = requestAnimationFrame(step);
         return () => {
-            clearInterval(tick);
-            if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
-            el.removeEventListener('touchstart', pauseAndResume);
-            el.removeEventListener('mousedown', pauseAndResume);
+            cancelAnimationFrame(raf);
+            el.removeEventListener('touchstart', onTouch);
+            el.removeEventListener('touchend', onTouchEnd);
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [timedBubbles.length, anytimeBubbles.length, allLogged]);
+    }, [timedBubbles.length, anytimeBubbles.length]);
 
     // Speak when all done (once per session)
     useEffect(() => {
@@ -1395,8 +1385,8 @@ export default function SmartLogBubbles() {
                 <>
                     {/* ── SINGLE UNIFIED SCROLL ROW ───────────────────────── */}
                     <div
-                        ref={scrollRowRef}
                         className="smart-log-row"
+                        ref={bubbleRowRef}
                         style={{
                             display: 'flex',
                             gap: '1rem',
@@ -1404,7 +1394,6 @@ export default function SmartLogBubbles() {
                             scrollbarWidth: 'none',
                             padding: '1.4rem 1rem 1.4rem',
                             alignItems: 'flex-start',
-                            scrollBehavior: 'smooth',
                         }}
                     >
                         <style>{`.smart-log-row::-webkit-scrollbar{display:none}`}</style>
@@ -1422,62 +1411,72 @@ export default function SmartLogBubbles() {
                         {anytimeBubbles.map((bubble, i) => renderBubble(bubble, timedBubbles.length + i))}
                     </div>
 
-                    {/* ── Sub-option pills ────────────────────────────────── */}
+                    {/* ── Sub-option sheet — Smart Analytics style ──────────────── */}
                     <AnimatePresence>
                         {active && (
                             <motion.div
-                                key={active.id + '_sub'}
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                                style={{ overflow: 'hidden' }}
+                                key={active.id + '_sheet'}
+                                initial={{ opacity: 0, y: 14, scale: 0.97 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 10, scale: 0.97 }}
+                                transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+                                style={{
+                                    marginTop: '0.5rem',
+                                    borderRadius: 18,
+                                    background: `linear-gradient(135deg, ${active.color}12 0%, rgba(4,2,20,0.92) 100%)`,
+                                    border: `1px solid ${active.color}30`,
+                                    backdropFilter: 'blur(20px)',
+                                    WebkitBackdropFilter: 'blur(20px)',
+                                    overflow: 'hidden',
+                                    boxShadow: `0 8px 32px rgba(0,0,0,0.45), 0 0 0 1px ${active.color}15`,
+                                }}
                             >
-                                <div style={{ paddingTop: '0.5rem' }}>
-                                    <p style={{ margin: '0 0 0.32rem', fontSize: '0.68rem', color: active.color, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.05em', fontWeight: 700 }}>
-                                        {active.icon} {active.sublabel} →
-                                    </p>
-                                    <div className="sub-option-pills" style={{ display: 'flex', gap: '0.28rem', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 6 }}>
-                                        <style>{`.sub-option-pills::-webkit-scrollbar{display:none}`}</style>
-                                        {active.subOptions.map((sub, i) => (
-                                            <motion.button
-                                                key={sub.label}
-                                                initial={{ opacity: 0, x: -12 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: i * 0.045, type: 'spring', stiffness: 420, damping: 28 }}
-                                                whileTap={{ scale: 0.84 }}
-                                                onClick={() => logAndNavigate(active, sub)}
-                                                style={{
-                                                    flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5,
-                                                    background: `radial-gradient(circle at 28% 28%, ${active.color}22, rgba(8,4,30,0.90))`,
-                                                    border: `1px solid ${active.color}50`, borderRadius: 999,
-                                                    padding: '0.35rem 0.8rem 0.35rem 0.55rem', cursor: 'pointer',
-                                                    backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
-                                                    boxShadow: `0 2px 12px ${active.color}18`,
-                                                }}
-                                            >
-                                                <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>{sub.icon}</span>
-                                                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'rgba(255,255,255,0.82)', letterSpacing: '0.03em', whiteSpace: 'nowrap', fontFamily: "'Outfit', sans-serif" }}>{sub.label}</span>
-                                            </motion.button>
-                                        ))}
-                                        {/* Quick log pill */}
-                                        <motion.button
-                                            initial={{ opacity: 0, x: -12 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: active.subOptions.length * 0.045 + 0.04 }}
-                                            whileTap={{ scale: 0.84 }}
-                                            onClick={() => logAndNavigate(active)}
-                                            style={{
-                                                flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5,
-                                                background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.18)',
-                                                borderRadius: 999, padding: '0.3rem 0.7rem 0.3rem 0.45rem', cursor: 'pointer',
-                                            }}
-                                        >
-                                            <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>✏️</span>
-                                            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'rgba(255,255,255,0.38)', letterSpacing: '0.03em', whiteSpace: 'nowrap', fontFamily: "'Outfit', sans-serif" }}>Tell Bodhi…</span>
-                                        </motion.button>
+                                {/* Sheet header */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.6rem 0.85rem', borderBottom: `1px solid ${active.color}18` }}>
+                                    <div style={{ width: 38, height: 38, borderRadius: 12, background: `${active.color}18`, border: `1px solid ${active.color}35`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', flexShrink: 0 }}>{active.icon}</div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <p style={{ margin: 0, fontSize: '0.84rem', fontWeight: 800, color: 'rgba(255,255,255,0.92)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.2 }}>{active.label}</p>
+                                        <p style={{ margin: '2px 0 0', fontSize: '0.6rem', color: active.color, fontFamily: "'Outfit', sans-serif", fontStyle: 'italic', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{active.sublabel}</p>
                                     </div>
+                                    <motion.button whileTap={{ scale: 0.82 }} onClick={() => setActiveBubble(null)}
+                                        style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', flexShrink: 0 }}>✕</motion.button>
                                 </div>
+                                {/* Option rows (Analytics style) */}
+                                {active.subOptions.map((sub, i) => (
+                                    <motion.div
+                                        key={sub.label}
+                                        initial={{ opacity: 0, x: 14 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: i * 0.055, type: 'spring', stiffness: 400, damping: 26 }}
+                                        onClick={() => logAndNavigate(active, sub)}
+                                        style={{
+                                            display: 'flex', alignItems: 'center', gap: '0.65rem',
+                                            padding: '0.55rem 0.85rem',
+                                            borderBottom: i < active.subOptions.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                                            cursor: 'pointer',
+                                        }}
+                                    >
+                                        <div style={{ width: 34, height: 34, borderRadius: 10, background: `${active.color}16`, border: `1px solid ${active.color}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.05rem', flexShrink: 0 }}>{sub.icon}</div>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700, color: 'rgba(255,255,255,0.88)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.2 }}>{sub.label}</p>
+                                            {'detail' in sub && sub.detail && (
+                                                <p style={{ margin: '1px 0 0', fontSize: '0.58rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.3 }}>{(sub as { label: string; icon: string; detail: string }).detail}</p>
+                                            )}
+                                        </div>
+                                        <span style={{ fontSize: '0.7rem', color: active.color, opacity: 0.65, flexShrink: 0 }}>→</span>
+                                    </motion.div>
+                                ))}
+                                {/* Quick log row */}
+                                <motion.div
+                                    initial={{ opacity: 0, x: 14 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: active.subOptions.length * 0.055 + 0.04 }}
+                                    onClick={() => logAndNavigate(active)}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', padding: '0.52rem 0.85rem', cursor: 'pointer', borderTop: '1px dashed rgba(255,255,255,0.07)' }}
+                                >
+                                    <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.05rem', flexShrink: 0 }}>✏️</div>
+                                    <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'rgba(255,255,255,0.38)', fontFamily: "'Outfit', sans-serif" }}>Tell Bodhi…</span>
+                                </motion.div>
                             </motion.div>
                         )}
                     </AnimatePresence>
