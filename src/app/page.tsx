@@ -616,6 +616,11 @@ export default function Home() {
           </motion.div>
         )}
 
+        {/* ══ STORIES / NAV ══ */}
+        <div style={{ display: isPortalOpen ? 'none' : 'block' }}>
+          <StickyTopNav />
+        </div>
+
         {/* ══ SMART AYUR PLANNER ══ */}
         {!isPortalOpen && greeting && (
           <motion.div
@@ -764,11 +769,6 @@ export default function Home() {
             </AnimatePresence>
           </motion.div>
         )}
-
-        {/* ══ STORIES / NAV ══ */}
-        <div style={{ display: isPortalOpen ? 'none' : 'block' }}>
-          <StickyTopNav />
-        </div>
 
         {/* ══ SMART LOG BUBBLES — same glass style as LifestylePanel ══ */}
         {!isPortalOpen && (
