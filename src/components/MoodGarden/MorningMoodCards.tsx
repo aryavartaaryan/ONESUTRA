@@ -116,6 +116,7 @@ export function setMorningMoodStorage(mood: MorningMoodKey, moodValue: number): 
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(MOOD_KEY, JSON.stringify({ mood, moodValue, date: getTodayIST() }));
+    window.dispatchEvent(new CustomEvent('onesutra-morning-mood-updated'));
   } catch { /* */ }
 }
 

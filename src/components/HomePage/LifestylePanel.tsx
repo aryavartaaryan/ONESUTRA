@@ -724,6 +724,21 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
   const rhythmNudgeSentRef = useRef<Set<string>>(new Set());
   // todayDateKey forces full re-render at midnight so all "today" stats reset for the new day
   const [todayDateKey, setTodayDateKey] = useState(() => getISTDate());
+  // Reactive morning check-in mood — updates when DailyCheckIn completes or storage changes
+  const [checkInMoodState, setCheckInMoodState] = useState<ReturnType<typeof getMorningMood>>(null);
+  useEffect(() => {
+    setCheckInMoodState(getMorningMood());
+    const refresh = () => setCheckInMoodState(getMorningMood());
+    window.addEventListener('storage', refresh);
+    window.addEventListener('onesutra-morning-mood-updated', refresh);
+    const onVis = () => { if (!document.hidden) refresh(); };
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      window.removeEventListener('storage', refresh);
+      window.removeEventListener('onesutra-morning-mood-updated', refresh);
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, []);
 
   useEffect(() => {
     const refreshAll = () => {
@@ -836,7 +851,7 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
   const smartGreeting = firstName ? `${greetingWord}, ${firstName}` : greetingWord;
   const greetingIconColor = hour >= 3 && hour < 7 ? '#fb923c' : hour >= 7 && hour < 17 ? '#fbbf24' : hour >= 17 && hour < 21 ? '#f97316' : '#818cf8';
   const todayLabel = new Date(todayDateKey).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
-  const checkInMood = getMorningMood();
+  const checkInMood = checkInMoodState;
   const checkInCard = checkInMood ? (CHECKIN_MOOD_MAP[checkInMood.mood] ?? null) : null;
   const ciColor = checkInCard?.color ?? '';
   const ciEmoji = checkInCard?.emoji ?? '💚';
