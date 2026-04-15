@@ -39,6 +39,7 @@ import { useDailyTasks } from '@/hooks/useDailyTasks';
 import { useEnergyProtector } from '@/hooks/useEnergyProtector';
 import { useBrahmastraState } from '@/hooks/useBrahmastraState';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useDoshaEngine } from '@/hooks/useDoshaEngine';
 import { useLanguage } from '@/context/LanguageContext';
@@ -271,12 +272,18 @@ function AyurvedaHomeCard() {
 }
 
 const SAP_PHASE_ESSENCE: Record<string, string> = {
-  'brahma-muhurta': 'Vata · sacred stillness · rise before the world wakes',
-  'kapha-morning':  'Kapha is groundedness · move the body · ignite your day',
-  'pitta-midday':   'Pitta is fire · peak Agni · channel your deepest focus',
-  'vata-afternoon': 'Vata is creativity · flow through inspiration · light and free',
-  'kapha-evening':  'Kapha is stability · wind down · ground · gentle nourishment',
-  'pitta-night':    'Pitta · deep repair · inner fire heals while you sleep',
+  'brahma-muhurta': '🌙 Vata rises · sacred silence · wake before the world',
+  'kapha-morning':  '🌿 Kapha rules · move your body · fire up your Agni',
+  'pitta-midday':   '🔥 Pitta peak · max Agni · go deep on your most vital work',
+  'vata-afternoon': '💨 Vata flows · create · communicate · stay light & free',
+  'kapha-evening':  '🌿 Kapha grounds · wind down · eat light · rest deeply',
+  'pitta-night':    '🌙 Pitta repairs · your inner fire heals while you sleep',
+};
+const SAP_PRANA_LABEL: Record<string, { label: string; emoji: string }> = {
+  morning: { label: 'Morning Prana', emoji: '🌅' },
+  noon:    { label: 'Noon Prana',    emoji: '☀️' },
+  evening: { label: 'Evening Prana', emoji: '🌆' },
+  night:   { label: 'Night Prana',   emoji: '🌙' },
 };
 
 export default function Home() {
@@ -609,34 +616,63 @@ export default function Home() {
           </motion.div>
         )}
 
-        {/* ══ SMART AYUR PLANNER HEADER ══ */}
+        {/* ══ SMART AYUR PLANNER — fused with OneSUTRA brand ══ */}
         {!isPortalOpen && greeting && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
             style={{
-              margin: '0.25rem 0.75rem 0.4rem',
-              padding: '0.55rem 0.85rem',
-              borderRadius: 22,
-              background: 'rgba(0,0,0,0.26)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              boxShadow: '0 4px 32px rgba(0,0,0,0.2)',
+              margin: '0.3rem 0.65rem 0.4rem',
+              padding: '0.6rem 0.88rem 0.55rem',
+              borderRadius: 24,
+              background: 'rgba(5,3,18,0.38)',
+              backdropFilter: 'blur(28px) saturate(160%)',
+              WebkitBackdropFilter: 'blur(28px) saturate(160%)',
+              border: '1px solid rgba(251,191,36,0.14)',
+              boxShadow: '0 2px 40px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.06)',
               zIndex: 100,
             }}
           >
-            {/* ── Title row: sparkle + name + LIVE ── */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', marginBottom: '0.45rem' }}>
-              <motion.div animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.07, 1] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-                style={{ fontSize: '1.25rem', filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.6))' }}>✦</motion.div>
-              <div style={{ flex: 1 }}>
-                <p style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.01em', lineHeight: 1 }}>Smart Ayur Planner</p>
-                <p style={{ margin: '2px 0 0', fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.05em' }}>No-Cal AI · Habits · Dosha</p>
+            {/* ── OneSUTRA brand row (fused top) ── */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.48rem', paddingBottom: '0.42rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              {/* Logo + wordmark */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(145deg, #080d1f, #111827)', border: '1.5px solid rgba(251,191,36,0.62)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 0 10px rgba(251,191,36,0.22)' }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="rgba(251,191,36,0.50)" strokeWidth="0.8" />
+                    <circle cx="12" cy="12" r="6.5" stroke="rgba(251,191,36,0.30)" strokeWidth="0.7" />
+                    <path d="M12 3 L12 21 M3 12 L21 12 M5.6 5.6 L18.4 18.4 M18.4 5.6 L5.6 18.4" stroke="rgba(251,191,36,0.18)" strokeWidth="0.6" />
+                    <path d="M 8 9.5 Q 12 7, 16 9.5 T 16 14 Q 13 16.5, 10 15 T 8 12 Q 9.5 11, 12 11" stroke="rgba(255,255,255,0.90)" strokeWidth="1.3" strokeLinecap="round" fill="none" />
+                    <circle cx="12" cy="12" r="1.4" fill="#fbbf24" />
+                  </svg>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.08em', background: 'linear-gradient(120deg, #ffffff 0%, #fde68a 45%, #bae6fd 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', lineHeight: 1 }}>OneSUTRA</span>
+                  <span style={{ fontSize: '0.43rem', fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(251,191,36,0.48)', fontFamily: "'Inter', system-ui, sans-serif", lineHeight: 1 }}>Conscious OS</span>
+                </div>
               </div>
-              <motion.span animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 3, repeat: Infinity }}
-                style={{ fontSize: '0.56rem', padding: '0.2rem 0.6rem', borderRadius: 99, background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 800, letterSpacing: '0.1em' }}>LIVE</motion.span>
+              {/* Quick-launch icons + LIVE pill */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {[{ href: '/project-leela', emoji: '🎵', label: 'Raag' }, { href: '/vedic-games', emoji: '🎲', label: 'Games' }].map(({ href, emoji, label }) => (
+                  <Link key={href} href={href} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                    <motion.div whileTap={{ scale: 0.88 }} style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.78rem' }}>{emoji}</motion.div>
+                    <span style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.28)', letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: "'Inter', sans-serif" }}>{label}</span>
+                  </Link>
+                ))}
+                <motion.span animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 3, repeat: Infinity }}
+                  style={{ fontSize: '0.48rem', padding: '0.18rem 0.5rem', borderRadius: 99, background: 'rgba(251,191,36,0.10)', border: '1px solid rgba(251,191,36,0.28)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 800, letterSpacing: '0.12em' }}>LIVE</motion.span>
+              </div>
+            </div>
+
+            {/* ── Title row: sparkle + name ── */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.38rem' }}>
+              <motion.div animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.07, 1] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                style={{ fontSize: '1.1rem', filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.6))' }}>✦</motion.div>
+              <div style={{ flex: 1 }}>
+                <p style={{ margin: 0, fontSize: '0.98rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.01em', lineHeight: 1 }}>Smart Ayur Planner</p>
+                <p style={{ margin: '2px 0 0', fontSize: '0.56rem', color: 'rgba(255,255,255,0.30)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.05em' }}>No-Cal AI · Habits · Dosha</p>
+              </div>
             </div>
 
             {/* ── Date + controls row ── */}
@@ -697,9 +733,24 @@ export default function Home() {
                     </motion.span>
                   )}
                 </div>
-                <p style={{ margin: '0.22rem 0 0', fontSize: '0.66rem', color: `${doshaColor}99`, fontFamily: "'Outfit', sans-serif", fontStyle: 'italic', letterSpacing: '0.02em', lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {/* Prana Time badge */}
+                {(() => {
+                  const pranaKey = sapHour >= 4 && sapHour < 11 ? 'morning' : sapHour >= 11 && sapHour < 16 ? 'noon' : sapHour >= 16 && sapHour < 22 ? 'evening' : 'night';
+                  const pl = SAP_PRANA_LABEL[pranaKey];
+                  return (
+                    <motion.span animate={{ opacity: [0.7, 1, 0.7] }} transition={{ duration: 3.5, repeat: Infinity }}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 3, marginTop: '0.18rem', fontSize: '0.56rem', fontWeight: 800, color: sapIconColor, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.09em', textTransform: 'uppercase', background: `${sapIconColor}14`, border: `1px solid ${sapIconColor}30`, borderRadius: 99, padding: '0.12rem 0.52rem' }}>
+                      {pl.emoji} {pl.label}
+                    </motion.span>
+                  );
+                })()}
+                {/* Dosha essence — catchy subtitle */}
+                <motion.p
+                  key={doshaCurrentPhase.phase}
+                  initial={{ opacity: 0, y: 3 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}
+                  style={{ margin: '0.3rem 0 0', fontSize: '0.72rem', fontWeight: 700, color: doshaColor, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.01em', lineHeight: 1.4, padding: '0.25rem 0.62rem', background: `${doshaColor}14`, border: `1px solid ${doshaColor}2e`, borderRadius: 12 }}>
                   {SAP_PHASE_ESSENCE[doshaCurrentPhase.phase] ?? doshaCurrentPhase.quality}
-                </p>
+                </motion.p>
               </div>
             </div>
 
@@ -753,9 +804,6 @@ export default function Home() {
 
 
 
-        {/* ══ PANCHAKOSHA MOBILE STRIP ══ */}
-        {!isPortalOpen && <PanchakoshaNav />}
-
         {/* ══ SMART LOG BUBBLES — same glass style as LifestylePanel ══ */}
         {!isPortalOpen && (
           <motion.div
@@ -780,6 +828,9 @@ export default function Home() {
             </div>
           </motion.div>
         )}
+
+        {/* ══ PANCHAKOSHA STRIP — between Smart Bubbles & Smart Analytics ══ */}
+        {!isPortalOpen && <PanchakoshaNav />}
 
         {/* ══ SMART ANALYTICS — below the logging system ══ */}
         {!isPortalOpen && (

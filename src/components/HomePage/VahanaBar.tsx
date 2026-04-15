@@ -77,6 +77,11 @@ export default function VahanaBar() {
             label: 'Chat',
             icon: 'chat' as const,
         },
+        {
+            id: 'profile', href: '/profile',
+            label: 'Profile',
+            icon: 'user' as const,
+        },
     ] as const;
 
     return (
@@ -191,6 +196,9 @@ export default function VahanaBar() {
                                         ) : icon === 'chat' ? (
                                             <MessageCircle size={17} strokeWidth={isActive ? 2.1 : 1.6}
                                                 style={{ color: isActive ? '#a78bfa' : 'rgba(255,255,255,0.38)', transition: 'all 0.25s ease' }} />
+                                        ) : icon === 'user' ? (
+                                            <User size={17} strokeWidth={isActive ? 2.1 : 1.6}
+                                                style={{ color: isActive ? '#c084fc' : 'rgba(255,255,255,0.38)', transition: 'all 0.25s ease' }} />
                                         ) : (
                                             <User size={17} strokeWidth={isActive ? 2.1 : 1.6}
                                                 style={{ color: isActive ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.38)', transition: 'all 0.25s ease' }} />

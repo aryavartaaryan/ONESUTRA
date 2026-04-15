@@ -1923,6 +1923,7 @@ export default function StickyTopNav() {
                 position: 'fixed',
                 top: 0, left: 0, right: 0,
                 zIndex: 1000,
+                display: 'none',
                 background: 'rgba(12, 12, 22, 0.72)',
                 backdropFilter: 'blur(24px) saturate(160%)',
                 WebkitBackdropFilter: 'blur(24px) saturate(160%)',

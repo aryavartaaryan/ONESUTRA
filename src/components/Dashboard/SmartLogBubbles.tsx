@@ -335,7 +335,8 @@ const STATIC_BUBBLE_IDS = new Set([
     // Legacy static bubble IDs
     'wake', 'warm_water', 'tongue_scrape', 'bath', 'breathwork', 'morning_light',
     'deep_work', 'screen_break', 'hydration',
-    'h_walk', 'h_evening_meditation', 'h_digital_sunset', 'h_brain_dump',
+    'h_walk', 'h_digital_sunset', 'h_brain_dump',
+    // h_evening_meditation intentionally NOT listed — shown via buildDynamicHabitBubbles
     'sleep', 'gratitude', 'read',
     // Ayurvedic habit IDs (now the canonical source shown in bubbles)
     'morning_meal',
@@ -694,9 +695,10 @@ export function getTimedBubbles(): LogBubble[] {
         ...baseHabits,
         ...allAyurHabits.filter(h => alwaysIds.includes(h.id) && !baseHabits.some(b => b.id === h.id)),
     ];
-    // Pure Ayurvedic bubbles from My Habits + core meals — no other static injection
-    // h_wake_early (Rise and Shine) appears via buildDynamicHabitBubbles if in My Habits
-    return habits.map(habit => ({
+    // Filter out already-completed habits so logged bubbles vanish immediately
+    const completedToday = getTodayAyurCompletedIds();
+    const logStoryIds = new Set(getTodayLogStory().map(e => e.id));
+    return habits.filter(h => !completedToday.has(h.id) && !logStoryIds.has(h.id)).map(habit => ({
         id: habit.id,
         icon: habit.emoji,
         label: HABIT_DISPLAY_OVERRIDES[habit.id] ?? habit.name,
@@ -743,6 +745,8 @@ function buildDynamicHabitBubbles(
 
     for (const habit of habits) {
         if (STATIC_BUBBLE_IDS.has(habit.id)) continue;
+        // Skip if this h_* ID is an alias for an Ayurvedic habit already shown by getTimedBubbles
+        if (H_ID_TO_AYUR[habit.id]) continue;
         if (loggedToday.has(habit.id) || completedHabitIds.has(habit.id)) continue;
 
         const slot = habitTimeSlot(habit.category);
@@ -794,7 +798,7 @@ export default function SmartLogBubbles() {
         return () => clearInterval(tick);
     }, []);
 
-    const staticBubbles = useMemo(() => getTimedBubbles(), [currentHour]);
+    const staticBubbles = useMemo(() => getTimedBubbles(), [currentHour, ayurCompletedIds, loggedToday]);
     const timeLabel = useMemo(() => getTimeLabel(), [currentHour]);
 
     // Effective ayurvedic done IDs — union of:
