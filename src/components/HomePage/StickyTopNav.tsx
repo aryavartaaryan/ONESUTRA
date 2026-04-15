@@ -2014,28 +2014,6 @@ export default function StickyTopNav() {
                                 <span style={{ fontSize: '6px', fontWeight: 600, color: `${color}99`, letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: "'Inter', system-ui, sans-serif", lineHeight: 1 }}>{label}</span>
                             </Link>
                         ))}
-                        {/* Profile button — navigates to /profile page */}
-                        <Link href="/profile" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, textDecoration: 'none' }}>
-                            <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.90 }}
-                                style={{
-                                    width: 32, height: 32, borderRadius: '50%',
-                                    background: 'radial-gradient(circle at 36% 26%, rgba(255,255,255,0.30) 0%, rgba(167,139,250,0.22) 52%, rgba(167,139,250,0.08) 100%)',
-                                    backdropFilter: 'blur(10px) saturate(180%)',
-                                    WebkitBackdropFilter: 'blur(10px) saturate(180%)',
-                                    border: '1.2px solid rgba(255,255,255,0.24)',
-                                    boxShadow: '0 0 12px rgba(167,139,250,0.44), 0 2px 8px rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.24)',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    position: 'relative', overflow: 'hidden',
-                                }}>
-                                <div style={{
-                                    position: 'absolute', top: '6%', left: '10%', width: '52%', height: '35%',
-                                    background: 'radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0.22) 40%, transparent 100%)',
-                                    borderRadius: '50%', transform: 'rotate(-25deg)', filter: 'blur(2px)',
-                                }} />
-                                <User size={15} style={{ position: 'relative', zIndex: 2, color: '#a78bfa', filter: 'drop-shadow(0 0 5px rgba(167,139,250,0.88))' }} />
-                            </motion.div>
-                            <span style={{ fontSize: '6px', fontWeight: 600, color: 'rgba(167,139,250,0.60)', letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: "'Inter', system-ui, sans-serif", lineHeight: 1 }}>Profile</span>
-                        </Link>
                     </div>
                 </div>
 
