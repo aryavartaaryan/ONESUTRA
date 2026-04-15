@@ -17,28 +17,6 @@ import { useLifestyleStore } from '@/stores/lifestyleStore';
 import { logHabitAndSync } from '@/hooks/useLifestyleEngine';
 import { AYURVEDIC_HABITS, AYUR_TO_H_ID, H_ID_TO_AYUR, setAyurHabitCompleted, getHabitsForSlot, getTodayAyurCompletedIds, HABIT_DISPLAY_OVERRIDES } from '@/lib/ayurvedicHabitsData';
 
-// ── Click sound effect (same as Smart Analytics) ─────────────────────────────
-function playConfirmChime() {
-  if (typeof window === 'undefined') return;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
-    if (!Ctx) return;
-    const ctx = new Ctx() as AudioContext;
-    void ctx.resume().then(() => {
-      ([[528, 0.2], [792, 0.1], [1056, 0.05]] as [number, number][]).forEach(([freq, vol], i) => {
-        const osc = ctx.createOscillator(); const g = ctx.createGain();
-        osc.type = 'sine'; osc.frequency.value = freq;
-        const t = ctx.currentTime + i * 0.018;
-        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
-        osc.connect(g); g.connect(ctx.destination);
-        osc.start(t); osc.stop(t + 0.08);
-      });
-      void ctx.close();
-    });
-  } catch { /* ignore */ }
-}
-
 // ─── Set of canonical Ayurvedic habit IDs (used for done-status routing) ─────
 const AYUR_IDS = new Set(AYURVEDIC_HABITS.map(h => h.id));
 
