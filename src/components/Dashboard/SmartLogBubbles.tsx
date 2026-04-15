@@ -1062,31 +1062,58 @@ export default function SmartLogBubbles() {
 
     const active = [...timedBubbles, ...anytimeBubbles].find(b => b.id === activeBubble) ?? null;
 
-    // ── RTL auto-scroll: bubbles slide right→left (opposite of stories) ────────
+    // ── Elegant RTL auto-scroll: bubbles slide right→left (opposite of stories) ────────
     const bubbleRowRef = useRef<HTMLDivElement>(null);
+    const slidePaused = useRef(false);
+    const pauseAutoSlide = useCallback(() => { slidePaused.current = true; }, []);
+    const resumeAutoSlide = useCallback(() => { setTimeout(() => { slidePaused.current = false; }, 2000); }, []);
+    
     useEffect(() => {
         const el = bubbleRowRef.current;
         if (!el || timedBubbles.length + anytimeBubbles.length === 0) return;
-        // Start at the rightmost end
-        el.scrollLeft = el.scrollWidth;
-        let raf: number;
-        let paused = false;
-        const onTouch = () => { paused = true; };
-        const onTouchEnd = () => { setTimeout(() => { paused = false; }, 1800); };
-        el.addEventListener('touchstart', onTouch, { passive: true });
-        el.addEventListener('touchend', onTouchEnd, { passive: true });
-        const step = () => {
-            if (!paused && el.scrollLeft > 0) el.scrollLeft -= 0.8;
-            raf = requestAnimationFrame(step);
+        
+        // Touch/mouse pause handlers
+        el.addEventListener('touchstart', pauseAutoSlide, { passive: true });
+        el.addEventListener('touchend', resumeAutoSlide, { passive: true });
+        el.addEventListener('mousedown', pauseAutoSlide, { passive: true });
+        el.addEventListener('mouseup', resumeAutoSlide, { passive: true });
+        
+        let rafId: number;
+        let lastTime = 0;
+        const SPEED = 40; // px/s — elegant pace (slightly slower than stories for contrast)
+        
+        const step = (now: number) => {
+            if (lastTime === 0) lastTime = now;
+            if (!slidePaused.current) {
+                const dt = (now - lastTime) / 1000;
+                const max = el.scrollWidth - el.clientWidth;
+                if (max > 0) {
+                    if (el.scrollLeft <= 1) {
+                        // Reached left end, smoothly jump to right end
+                        el.scrollLeft = max;
+                    } else {
+                        // Smooth scroll left
+                        el.scrollLeft = Math.max(el.scrollLeft - SPEED * dt, 0);
+                    }
+                }
+            }
+            lastTime = now;
+            rafId = requestAnimationFrame(step);
         };
-        raf = requestAnimationFrame(step);
+        
+        // Start at rightmost end
+        el.scrollLeft = el.scrollWidth;
+        rafId = requestAnimationFrame(step);
+        
         return () => {
-            cancelAnimationFrame(raf);
-            el.removeEventListener('touchstart', onTouch);
-            el.removeEventListener('touchend', onTouchEnd);
+            cancelAnimationFrame(rafId);
+            el.removeEventListener('touchstart', pauseAutoSlide);
+            el.removeEventListener('touchend', resumeAutoSlide);
+            el.removeEventListener('mousedown', pauseAutoSlide);
+            el.removeEventListener('mouseup', resumeAutoSlide);
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [timedBubbles.length, anytimeBubbles.length]);
+    }, [timedBubbles.length, anytimeBubbles.length, pauseAutoSlide, resumeAutoSlide]);
 
     // Speak when all done (once per session)
     useEffect(() => {
