@@ -614,35 +614,28 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
           <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg,${slotCfg.color}40,transparent)` }} />
         </div>
         {/* Sadhana Section Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.52rem', flexWrap: 'wrap', gap: '0.38rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.38rem', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit',sans-serif" }}>{slotCfg.emoji} {slotCfg.label} Activities</span>
-            {pendingHabits.length > 0 && (
-              <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 2, repeat: Infinity }}
-                style={{ fontSize: '0.57rem', padding: '0.06rem 0.4rem', borderRadius: 99, background: 'rgba(251,191,36,0.14)', border: '1px solid rgba(251,191,36,0.32)', color: '#fbbf24', fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>
-                {pendingHabits.length} pending
-              </motion.span>
-            )}
-          </div>
-          <motion.button whileTap={{ scale: 0.9 }} onClick={goAddHabit}
-            style={{ position: 'relative', background: 'linear-gradient(135deg,#7c3aed,#a855f7,#ec4899)', border: 'none', borderRadius: 999, padding: '0.32rem 0.72rem', color: '#fff', fontSize: '0.68rem', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontFamily: "'Outfit',sans-serif", boxShadow: '0 4px 18px rgba(124,58,237,0.45)', flexShrink: 0 }}>
-            <motion.span style={{ position: 'absolute', top: -3, right: -3, width: 8, height: 8, borderRadius: '50%', background: '#f97316', border: '1.5px solid rgba(0,0,0,0.4)' }} animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }} transition={{ duration: 1.8, repeat: Infinity }} />
-            <Bell size={10} fill="white" /> + Add Habit
-          </motion.button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.38rem', marginBottom: '0.52rem', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.82rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit',sans-serif" }}>{slotCfg.emoji} {slotCfg.label} Sadhana</span>
+          {pendingHabits.length > 0 && (
+            <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 2, repeat: Infinity }}
+              style={{ fontSize: '0.57rem', padding: '0.06rem 0.4rem', borderRadius: 99, background: 'rgba(251,191,36,0.14)', border: '1px solid rgba(251,191,36,0.32)', color: '#fbbf24', fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>
+              {pendingHabits.length} awaiting ✨
+            </motion.span>
+          )}
+          {pendingHabits.length === 0 && totalHabits > 0 && (
+            <motion.span animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }}
+              style={{ fontSize: '0.57rem', padding: '0.06rem 0.4rem', borderRadius: 99, background: 'rgba(74,222,128,0.14)', border: '1px solid rgba(74,222,128,0.28)', color: '#4ade80', fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>
+              All Complete 🪔
+            </motion.span>
+          )}
         </div>
-        {/* Tap hint */}
-        {pendingHabits.length > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.28rem', marginBottom: '0.38rem', padding: '0.28rem 0.6rem', borderRadius: 10, background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.12)' }}>
-            <motion.span animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.8, repeat: Infinity }} style={{ fontSize: '0.68rem' }}>👆</motion.span>
-            <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.36)', fontFamily: "'Outfit',sans-serif", fontStyle: 'italic' }}>Tap to log · Bodhi celebrates with you</span>
-          </div>
-        )}
-        {/* Crystal Tabs */}
-        <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '0.68rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.38rem', padding: '0.3rem 0.5rem', borderRadius: 14, border: `1.5px solid ${slotCfg.color}40`, background: `linear-gradient(135deg,${slotCfg.color}10,${slotCfg.color}05)` }}>
-            <span style={{ fontSize: '0.72rem' }}>📊</span>
-            <span style={{ fontSize: '0.58rem', fontWeight: 800, color: slotCfg.color, fontFamily: "'Outfit',sans-serif", letterSpacing: '0.04em' }}>Activity Logs</span>
-            {(pendingHabits.length + logStory.length) > 0 && <span style={{ fontSize: '0.46rem', padding: '0.03rem 0.28rem', borderRadius: 99, background: `${slotCfg.color}28`, color: slotCfg.color, fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>{pendingHabits.length + logStory.length}</span>}
+        {/* Sacred Activity Logs header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.55rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.38rem' }}>
+            <span style={{ fontSize: '0.82rem' }}>🌿</span>
+            <span style={{ fontSize: '0.66rem', fontWeight: 900, color: 'rgba(255,255,255,0.92)', fontFamily: "'Outfit',sans-serif", letterSpacing: '-0.01em' }}>Your Sacred Activity Log</span>
+            {logStory.length > 0 && <motion.span animate={{ scale: [1, 1.18, 1] }} transition={{ duration: 2.5, repeat: Infinity }}
+              style={{ fontSize: '0.44rem', padding: '0.04rem 0.32rem', borderRadius: 99, background: 'rgba(74,222,128,0.14)', border: '1px solid rgba(74,222,128,0.28)', color: '#4ade80', fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}>{logStory.length} logged ✦</motion.span>}
           </div>
         </div>
         {/* Tab Content */}
@@ -722,10 +715,14 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
                             )}
                             {isCurrent && pendingHabits.length > 0 && (
                               <div style={{ marginTop: '0.12rem' }}>
-                                <motion.div initial={{ opacity: 0, y: -3 }} animate={{ opacity: 1, y: 0 }}
-                                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '0.26rem 0.54rem', borderRadius: 9, marginBottom: '0.28rem', background: 'linear-gradient(135deg,rgba(251,191,36,0.06),rgba(139,92,246,0.04))', border: '1px solid rgba(251,191,36,0.13)' }}>
-                                  <span style={{ fontSize: '0.76rem' }}>🔥</span>
-                                  <p style={{ margin: 0, fontSize: '0.58rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Outfit',sans-serif" }}><span style={{ color: '#fbbf24', fontWeight: 800 }}>Tap to log</span> — Bodhi celebrates with you</p>
+                                <motion.div
+                                  initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+                                  style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '0.42rem 0.68rem', borderRadius: 13, marginBottom: '0.32rem', background: `linear-gradient(135deg,${cfg.color}14,rgba(139,92,246,0.08))`, border: `1.5px solid ${cfg.color}38`, boxShadow: `0 0 18px ${cfg.color}18` }}>
+                                  <motion.span animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 2.2, repeat: Infinity }} style={{ fontSize: '1rem' }}>✨</motion.span>
+                                  <div>
+                                    <p style={{ margin: 0, fontSize: '0.64rem', fontWeight: 900, color: cfg.color, fontFamily: "'Outfit',sans-serif", letterSpacing: '-0.01em' }}>Your {cfg.label} practices await — tap &amp; glow!</p>
+                                    <p style={{ margin: '0.08rem 0 0', fontSize: '0.5rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit',sans-serif" }}>Each log is a step toward your highest self ✦</p>
+                                  </div>
                                 </motion.div>
                                 {pendingHabits.map(h => <MiniHabitCard key={h.id} habit={h} isCompleted={false} streak={engine.getHabitStreak(h.id)} onComplete={setActiveSubHabitId} />)}
                               </div>
@@ -755,19 +752,13 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
             </motion.div>
           )}
         </AnimatePresence>
-        {/* Quick actions */}
-        <div style={{ display: 'flex', gap: '0.42rem', marginTop: '0.85rem' }}>
-          <motion.button whileTap={{ scale: 0.93 }} onClick={goAddHabit}
-            style={{ flex: 1, padding: '0.55rem 0.4rem', borderRadius: 13, background: 'linear-gradient(135deg,rgba(124,58,237,0.18),rgba(168,85,247,0.1))', border: '1px solid rgba(139,92,246,0.32)', color: '#c4b5fd', fontSize: '0.63rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-            <Plus size={11} /> New Habit
-          </motion.button>
-          <div style={{ flex: 1, padding: '0.55rem 0.4rem', borderRadius: 13, background: pendingHabits.length > 0 ? 'rgba(251,191,36,0.08)' : 'rgba(255,255,255,0.03)', border: `1px solid ${pendingHabits.length > 0 ? 'rgba(251,191,36,0.22)' : 'rgba(255,255,255,0.07)'}`, color: pendingHabits.length > 0 ? '#fbbf24' : 'rgba(255,255,255,0.22)', fontSize: '0.63rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-            <Zap size={11} /> {pendingHabits.length > 0 ? `${pendingHabits.length} Pending` : 'All Done ✓'}
-          </div>
-          <div style={{ flex: 1, padding: '0.55rem 0.4rem', borderRadius: 13, background: logStory.length > 0 ? 'rgba(34,211,238,0.08)' : 'rgba(255,255,255,0.03)', border: `1px solid ${logStory.length > 0 ? 'rgba(34,211,238,0.22)' : 'rgba(255,255,255,0.07)'}`, color: logStory.length > 0 ? '#22d3ee' : 'rgba(255,255,255,0.22)', fontSize: '0.63rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-            <Flame size={11} /> {logStory.length > 0 ? `${logStory.length} Logged` : 'Log Now'}
-          </div>
-        </div>
+        {/* Add Habit CTA */}
+        <motion.button whileTap={{ scale: 0.95 }} whileHover={{ scale: 1.02 }} onClick={goAddHabit}
+          style={{ width: '100%', marginTop: '0.85rem', padding: '0.62rem 1rem', borderRadius: 16, background: 'linear-gradient(135deg,rgba(124,58,237,0.2),rgba(168,85,247,0.12),rgba(236,72,153,0.1))', border: '1px solid rgba(167,139,250,0.3)', color: '#c4b5fd', fontSize: '0.68rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 4px 20px rgba(124,58,237,0.18)' }}>
+          <Plus size={12} />
+          <span>Add Ayurvedic Habit — Grow Your Sadhana</span>
+          <motion.span animate={{ x: [0, 3, 0] }} transition={{ duration: 1.6, repeat: Infinity }}>→</motion.span>
+        </motion.button>
       </div>
 
       {/* Sub-option bottom sheet — same picker as SmartLogBubbles */}
