@@ -1062,6 +1062,42 @@ export default function SmartLogBubbles() {
 
     const active = [...timedBubbles, ...anytimeBubbles].find(b => b.id === activeBubble) ?? null;
 
+    // ── Auto-scroll the bubble row (story-style, right-to-left) ──
+    const scrollRowRef = useRef<HTMLDivElement>(null);
+    const pauseScrollRef = useRef(false);
+    const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        const el = scrollRowRef.current;
+        if (!el || allLogged) return;
+
+        const pauseAndResume = () => {
+            pauseScrollRef.current = true;
+            if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+            resumeTimerRef.current = setTimeout(() => { pauseScrollRef.current = false; }, 5000);
+        };
+
+        el.addEventListener('touchstart', pauseAndResume, { passive: true });
+        el.addEventListener('mousedown', pauseAndResume, { passive: true });
+
+        const tick = setInterval(() => {
+            if (pauseScrollRef.current || activeBubble) return;
+            const max = el.scrollWidth - el.clientWidth;
+            if (max <= 0) return;
+            // right-to-left: advance scrollLeft by ~90px, loop to 0 at end
+            const next = el.scrollLeft + 90;
+            el.scrollTo({ left: next > max ? 0 : next, behavior: 'smooth' });
+        }, 2800);
+
+        return () => {
+            clearInterval(tick);
+            if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+            el.removeEventListener('touchstart', pauseAndResume);
+            el.removeEventListener('mousedown', pauseAndResume);
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [timedBubbles.length, anytimeBubbles.length, allLogged]);
+
     // Speak when all done (once per session)
     useEffect(() => {
         if (allLogged) {
@@ -1359,6 +1395,7 @@ export default function SmartLogBubbles() {
                 <>
                     {/* ── SINGLE UNIFIED SCROLL ROW ───────────────────────── */}
                     <div
+                        ref={scrollRowRef}
                         className="smart-log-row"
                         style={{
                             display: 'flex',
@@ -1367,6 +1404,7 @@ export default function SmartLogBubbles() {
                             scrollbarWidth: 'none',
                             padding: '1.4rem 1rem 1.4rem',
                             alignItems: 'flex-start',
+                            scrollBehavior: 'smooth',
                         }}
                     >
                         <style>{`.smart-log-row::-webkit-scrollbar{display:none}`}</style>
