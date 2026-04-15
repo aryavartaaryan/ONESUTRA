@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Sunrise, Sun, Sunset, Moon, Sparkles, Plus, CheckCircle2, Bell, Zap, Flame } from 'lucide-react';
-import { getTodayLogStory, saveToDailyLogStory, getSubOptionsForHabit, type DailyLogEntry, type SubOption } from '@/components/Dashboard/SmartLogBubbles';
+import { getTodayLogStory, saveToDailyLogStory, syncActivityEntryToFirestore, subscribeToActivityLog, getSubOptionsForHabit, type DailyLogEntry, type SubOption } from '@/components/Dashboard/SmartLogBubbles';
 import { bodhiSpeakLog } from '@/lib/bodhiVoice';
 import { useLifestyleEngine, logHabitAndSync } from '@/hooks/useLifestyleEngine';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
@@ -269,6 +269,10 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const [celebrateId, setCelebrateId] = useState<string | null>(null);
   const [smartLoggedToday, setSmartLoggedToday] = useState<Set<string>>(new Set());
   const [activeSubHabitId, setActiveSubHabitId] = useState<string | null>(null);
+  const [expandedSlots, setExpandedSlots] = useState<Record<string, boolean>>(() => {
+    const h = new Date().getHours();
+    return { morning: h >= 4 && h < 12, noon: h >= 12 && h < 17, evening: h >= 17 };
+  });
   // Ayurvedic completion state: shared localStorage + Firestore
   const [ayurCompletedIds, setAyurCompletedIds] = useState<Set<string>>(() => getTodayAyurCompletedIds());
   const engine = useLifestyleEngine();
@@ -300,6 +304,31 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
     };
   }, []);
 
+  // ── Firestore real-time listener: merges activity logs from all logged-in devices ──
+  useEffect(() => {
+    if (!user?.uid) return;
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+    const unsub = subscribeToActivityLog(user.uid, today, (remoteEntries) => {
+      setLogStory(prev => {
+        const byId = new Map<string, DailyLogEntry>();
+        prev.forEach(e => byId.set(e.id, e));
+        remoteEntries.forEach(e => {
+          if (!byId.has(e.id) || e.loggedAt > (byId.get(e.id)?.loggedAt ?? 0)) {
+            byId.set(e.id, e);
+          }
+        });
+        const merged = Array.from(byId.values()).sort((a, b) => a.loggedAt - b.loggedAt);
+        try {
+          const all: DailyLogEntry[] = JSON.parse(localStorage.getItem('onesutra_daily_log_story_v1') ?? '[]');
+          const other = all.filter(e => e.date !== today);
+          localStorage.setItem('onesutra_daily_log_story_v1', JSON.stringify([...merged, ...other]));
+        } catch { /* ignore */ }
+        return merged;
+      });
+    });
+    return unsub;
+  }, [user?.uid]);
+
   const weekDays = useMemo(() => {
     const days: { label: string; pct: number }[] = [];
     for (let i = 6; i >= 0; i--) {
@@ -330,7 +359,14 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
     if (id !== hId) logHabitAndSync(user?.uid, id, sub?.detail);
     saveToSmartLog(id);
     saveToSmartLog(hId);
-    if (ayurHabit) saveToDailyLogStory(id, ayurHabit.emoji, ayurHabit.name, slotCfgColor);
+    if (ayurHabit) {
+      saveToDailyLogStory(id, ayurHabit.emoji, ayurHabit.name, slotCfgColor);
+      syncActivityEntryToFirestore(user?.uid, {
+        id, icon: ayurHabit.emoji, label: ayurHabit.name, color: slotCfgColor,
+        loggedAt: Date.now(),
+        date: new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date()),
+      });
+    }
     try { window.dispatchEvent(new CustomEvent('habit-logged')); } catch { }
     try { window.dispatchEvent(new CustomEvent('daily-log-story-updated')); } catch { }
     setSmartLoggedToday(getSmartLoggedToday());
@@ -603,7 +639,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
         )}
         {/* Crystal Tabs */}
         <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '0.68rem' }}>
-          {([{ key: 'pending', label: 'To Do', emoji: '📋', count: pendingHabits.length }, { key: 'done', label: 'Done', emoji: '✅', count: doneHabits.length }, { key: 'activity', label: 'Activity', emoji: '⚡', count: logStory.length }] as const).map(tab => {
+          {([{ key: 'pending', label: 'Activity Logs', emoji: '�', count: pendingHabits.length + logStory.length }, { key: 'done', label: 'Done', emoji: '✅', count: doneHabits.length }, { key: 'activity', label: 'History', emoji: '⚡', count: logStory.length }] as const).map(tab => {
             const active = activeTab === tab.key;
             return (
               <motion.button key={tab.key} whileTap={{ scale: 0.93 }} onClick={() => setActiveTab(tab.key)}
@@ -619,29 +655,98 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
         <AnimatePresence mode="wait">
           {activeTab === 'pending' && (
             <motion.div key="pending" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }}>
-              {totalHabits === 0 ? (
+              {totalHabits === 0 && logStory.length === 0 ? (
                 <motion.div whileTap={{ scale: 0.97 }} onClick={goAddHabit}
                   style={{ textAlign: 'center', padding: '1.5rem 1rem', border: '1.5px dashed rgba(167,139,250,0.24)', borderRadius: 18, cursor: 'pointer', background: 'rgba(167,139,250,0.04)' }}>
                   <p style={{ margin: '0 0 0.4rem', fontSize: '2rem' }}>🌱</p>
                   <p style={{ margin: '0 0 0.65rem', color: 'rgba(255,255,255,0.38)', fontSize: '0.84rem', fontFamily: "'Outfit',sans-serif" }}>No sadhana yet — begin your Ayurvedic practice</p>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '0.36rem 1rem', borderRadius: 99, background: 'rgba(139,92,246,0.22)', border: '1px solid rgba(167,139,250,0.38)', color: '#c4b5fd', fontSize: '0.74rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}><Plus size={11} /> Add Ayurvedic Habits</span>
                 </motion.div>
-              ) : pendingHabits.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '1.2rem 1rem', border: '1px solid rgba(74,222,128,0.22)', borderRadius: 18, background: 'rgba(74,222,128,0.04)' }}>
-                  <motion.p animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 2, repeat: Infinity }} style={{ margin: '0 0 0.25rem', fontSize: '1.5rem' }}>🪔</motion.p>
-                  <p style={{ margin: '0 0 0.12rem', color: '#4ade80', fontSize: '0.88rem', fontWeight: 700, fontFamily: "'Outfit',sans-serif" }}>All {slotCfg.label.toLowerCase()} practices complete!</p>
-                  <p style={{ margin: 0, color: 'rgba(255,255,255,0.26)', fontSize: '0.62rem', fontFamily: 'serif', fontStyle: 'italic' }}>सिद्धि — Mastery achieved</p>
-                </div>
               ) : (
                 <>
-                  {pendingHabits.length > 0 && (
-                    <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-                      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0.32rem 0.6rem', borderRadius: 10, marginBottom: '0.42rem', background: 'linear-gradient(135deg,rgba(251,191,36,0.06),rgba(139,92,246,0.04))', border: '1px solid rgba(251,191,36,0.14)' }}>
-                      <span style={{ fontSize: '0.82rem', flexShrink: 0 }}>🔥</span>
-                      <p style={{ margin: 0, fontSize: '0.64rem', color: 'rgba(255,255,255,0.42)', fontFamily: "'Outfit',sans-serif", lineHeight: 1.3 }}><span style={{ color: '#fbbf24', fontWeight: 800 }}>Tap to log</span> — Bodhi speaks on every activity</p>
-                    </motion.div>
-                  )}
-                  {pendingHabits.map(h => <MiniHabitCard key={h.id} habit={h} isCompleted={false} streak={engine.getHabitStreak(h.id)} onComplete={setActiveSubHabitId} />)}
+                  {(['morning', 'noon', 'evening'] as const).map((slotKey) => {
+                    const cfg = {
+                      morning: { label: 'Morning', emoji: '🌅', color: '#fbbf24', startH: 4,  endH: 12 },
+                      noon:    { label: 'Noon',    emoji: '☀️', color: '#fb923c', startH: 12, endH: 17 },
+                      evening: { label: 'Evening', emoji: '🪔', color: '#a78bfa', startH: 17, endH: 24 },
+                    }[slotKey];
+                    const curH = new Date().getHours();
+                    const isCurrent = curH >= cfg.startH && curH < cfg.endH;
+                    if (curH < cfg.startH) return null;
+                    const slotLogs = logStory.filter(e => {
+                      const h = new Date(e.loggedAt).getHours();
+                      return h >= cfg.startH && h < cfg.endH;
+                    });
+                    const isExp = expandedSlots[slotKey];
+                    return (
+                      <div key={slotKey} style={{ marginBottom: '0.36rem' }}>
+                        <button
+                          onClick={() => setExpandedSlots(prev => ({ ...prev, [slotKey]: !prev[slotKey] }))}
+                          style={{
+                            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            padding: '0.38rem 0.6rem', borderRadius: 12, marginBottom: isExp ? '0.22rem' : 0,
+                            background: isCurrent ? `${cfg.color}14` : 'rgba(255,255,255,0.03)',
+                            border: `1px solid ${isCurrent ? cfg.color + '30' : 'rgba(255,255,255,0.07)'}`,
+                            cursor: 'pointer',
+                          }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.34rem' }}>
+                            <span style={{ fontSize: '0.72rem' }}>{cfg.emoji}</span>
+                            <span style={{ fontSize: '0.6rem', fontWeight: 800, color: cfg.color, fontFamily: "'Outfit',sans-serif" }}>{cfg.label}</span>
+                            {isCurrent && <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.5, repeat: Infinity }}
+                              style={{ fontSize: '0.42rem', padding: '0.04rem 0.26rem', borderRadius: 99, background: `${cfg.color}22`, color: cfg.color, fontWeight: 800, letterSpacing: '0.05em', fontFamily: "'Outfit',sans-serif" }}>● LIVE</motion.span>}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.44rem' }}>
+                            <span style={{ fontSize: '0.5rem', color: slotLogs.length > 0 ? cfg.color : 'rgba(255,255,255,0.2)', fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>
+                              {slotLogs.length > 0 ? `${slotLogs.length} logged` : 'none'}
+                            </span>
+                            <span style={{ fontSize: '0.56rem', color: 'rgba(255,255,255,0.28)' }}>{isExp ? '▲' : '▼'}</span>
+                          </div>
+                        </button>
+                        {isExp && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.18rem' }}>
+                            {slotLogs.map((entry, i) => {
+                              const t = new Date(entry.loggedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+                              const loggedH = new Date(entry.loggedAt).getHours();
+                              const ayurHabit = AYURVEDIC_HABITS.find(h => h.id === entry.id);
+                              const expCat = ayurHabit?.category ?? slotKey;
+                              const logCat = loggedH >= 4 && loggedH < 12 ? 'morning' : loggedH >= 12 && loggedH < 17 ? 'midday' : 'evening';
+                              const onTime = expCat === logCat || (expCat as string) === 'anytime';
+                              return (
+                                <motion.div key={`${entry.id}_${i}`} initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}
+                                  style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.32rem 0.54rem', borderRadius: 11, background: `${entry.color}0c`, border: `1px solid ${entry.color}1c` }}>
+                                  <span style={{ fontSize: '0.88rem', flexShrink: 0 }}>{entry.icon}</span>
+                                  <p style={{ flex: 1, margin: 0, fontSize: '0.68rem', fontWeight: 700, color: 'rgba(255,255,255,0.82)', fontFamily: "'Outfit',sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.label}</p>
+                                  <span style={{ fontSize: '0.48rem', color: 'rgba(255,255,255,0.26)', fontFamily: "'Outfit',sans-serif", flexShrink: 0 }}>{t}</span>
+                                  <span style={{ fontSize: '0.44rem', padding: '0.03rem 0.22rem', borderRadius: 99, background: onTime ? 'rgba(74,222,128,0.12)' : 'rgba(251,191,36,0.12)', color: onTime ? '#4ade80' : '#fbbf24', fontFamily: "'Outfit',sans-serif", fontWeight: 800, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                                    {onTime ? '✅ On Time' : '⏰ Late'}
+                                  </span>
+                                </motion.div>
+                              );
+                            })}
+                            {slotLogs.length === 0 && !isCurrent && (
+                              <p style={{ margin: 0, padding: '0.34rem 0.54rem', fontSize: '0.58rem', color: 'rgba(255,255,255,0.18)', fontFamily: "'Outfit',sans-serif", fontStyle: 'italic' }}>No activities logged in this slot</p>
+                            )}
+                            {isCurrent && pendingHabits.length > 0 && (
+                              <div style={{ marginTop: '0.12rem' }}>
+                                <motion.div initial={{ opacity: 0, y: -3 }} animate={{ opacity: 1, y: 0 }}
+                                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '0.26rem 0.54rem', borderRadius: 9, marginBottom: '0.28rem', background: 'linear-gradient(135deg,rgba(251,191,36,0.06),rgba(139,92,246,0.04))', border: '1px solid rgba(251,191,36,0.13)' }}>
+                                  <span style={{ fontSize: '0.76rem' }}>🔥</span>
+                                  <p style={{ margin: 0, fontSize: '0.58rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Outfit',sans-serif" }}><span style={{ color: '#fbbf24', fontWeight: 800 }}>Tap to log</span> — Bodhi celebrates with you</p>
+                                </motion.div>
+                                {pendingHabits.map(h => <MiniHabitCard key={h.id} habit={h} isCompleted={false} streak={engine.getHabitStreak(h.id)} onComplete={setActiveSubHabitId} />)}
+                              </div>
+                            )}
+                            {isCurrent && pendingHabits.length === 0 && totalHabits > 0 && (
+                              <div style={{ textAlign: 'center', padding: '0.5rem', border: '1px solid rgba(74,222,128,0.2)', borderRadius: 11, background: 'rgba(74,222,128,0.04)' }}>
+                                <motion.p animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }} style={{ margin: '0 0 0.1rem', fontSize: '1.1rem' }}>🪔</motion.p>
+                                <p style={{ margin: 0, color: '#4ade80', fontSize: '0.74rem', fontWeight: 700, fontFamily: "'Outfit',sans-serif" }}>All practices complete!</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </>
               )}
             </motion.div>

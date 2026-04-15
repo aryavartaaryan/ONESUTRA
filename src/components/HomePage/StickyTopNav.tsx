@@ -2036,7 +2036,7 @@ export default function StickyTopNav() {
                     color: 'rgba(255,255,255,0.95)',
                     fontFamily: "'Playfair Display', Georgia, serif",
                     letterSpacing: '-0.01em', textShadow: '0 2px 8px rgba(0,0,0,0.4)',
-                }}>Watch the stories and amplify your life.✨</h2>
+                }}>{(() => { const h = new Date().getHours(); if (h >= 4 && h < 12) return '🌅 Watch the Morning Pranic Feeds and Rejuvenate'; if (h >= 12 && h < 17) return '☀️ Watch Noon Pranic Feeds and Energise'; if (h >= 17 && h < 22) return '🪔 Watch Evening Pranic Feeds and Unwind'; return '✨ Watch the stories and amplify your life.'; })()}</h2>
             </div>
             <HomeStoryBar rectangular />
 

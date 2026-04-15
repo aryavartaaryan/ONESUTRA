@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import {
   CheckCircle2, SkipForward, Plus,
-  ChevronRight, Zap, RotateCcw, Heart, TrendingUp, Bell, MessageCircle,
+  ChevronRight, Zap, RotateCcw, TrendingUp, Bell, MessageCircle,
   Sunrise, Sun, Sunset, Moon, Clock, Infinity as InfinityIcon, Star,
   ChevronDown, Target, Layers, X,
 } from 'lucide-react';
@@ -58,6 +58,14 @@ const ENERGY_OPTIONS = [
   { value: 2, emoji: '🌙', label: 'Low' },
   { value: 1, emoji: '💤', label: 'Drained' },
 ];
+
+const CHECKIN_MOOD_MAP: Record<string, { emoji: string; label: string; color: string }> = {
+  blooming:    { emoji: '🌸', label: 'Blooming', color: '#fb923c' },
+  gentle_leaf: { emoji: '🍃', label: 'Gentle',   color: '#4ade80' },
+  storm_cloud: { emoji: '🌩️', label: 'Stormy',   color: '#a78bfa' },
+  bright_sun:  { emoji: '🔥', label: 'Intense',  color: '#fbbf24' },
+  heavy_stone: { emoji: '🪨', label: 'Heavy',    color: '#94a3b8' },
+};
 
 
 // ─── Prakriti Wisdom ────────────────────────────────────────────────────────
@@ -828,6 +836,11 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
   const smartGreeting = firstName ? `${greetingWord}, ${firstName}` : greetingWord;
   const greetingIconColor = hour >= 3 && hour < 7 ? '#fb923c' : hour >= 7 && hour < 17 ? '#fbbf24' : hour >= 17 && hour < 21 ? '#f97316' : '#818cf8';
   const todayLabel = new Date(todayDateKey).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
+  const checkInMood = getMorningMood();
+  const checkInCard = checkInMood ? (CHECKIN_MOOD_MAP[checkInMood.mood] ?? null) : null;
+  const ciColor = checkInCard?.color ?? '';
+  const ciEmoji = checkInCard?.emoji ?? '💚';
+  const ciLabel = checkInCard?.label ?? '';
 
   const { completedIds, skippedIds } = engine.getTodayStatus();
   const effectiveCompletedIds = useMemo(
@@ -1408,9 +1421,16 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
               <p style={{ margin: 0, fontSize: '0.68rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.04em' }}>{todayLabel}</p>
               <div style={{ display: 'flex', gap: '0.32rem', alignItems: 'center' }}>
                 <motion.button whileTap={{ scale: 0.88 }} onClick={() => setShowMoodLog(true)}
-                  style={{ padding: '0.25rem 0.6rem', borderRadius: 999, cursor: 'pointer', background: engine.todayMood ? 'rgba(168,85,247,0.2)' : 'rgba(255,255,255,0.07)', border: `1px solid ${engine.todayMood ? 'rgba(168,85,247,0.45)' : 'rgba(255,255,255,0.1)'}`, color: engine.todayMood ? '#c084fc' : 'rgba(255,255,255,0.42)', fontSize: '0.7rem', fontWeight: 800, fontFamily: "'Outfit', sans-serif", display: 'flex', alignItems: 'center', gap: 3 }}>
-                  <Heart size={10} />
-                  {engine.todayMood ? (MOOD_OPTIONS.find(m => m.value === engine.todayMood!.mood)?.emoji ?? '😊') : 'Mood'}
+                  style={{
+                    padding: '0.22rem 0.58rem', borderRadius: 999, cursor: 'pointer',
+                    background: checkInCard ? `${ciColor}20` : (engine.todayMood ? 'rgba(168,85,247,0.2)' : 'rgba(255,255,255,0.07)'),
+                    border: `1px solid ${checkInCard ? ciColor + '50' : (engine.todayMood ? 'rgba(168,85,247,0.45)' : 'rgba(255,255,255,0.1)')}`,
+                    color: checkInCard ? ciColor : (engine.todayMood ? '#c084fc' : 'rgba(255,255,255,0.42)'),
+                    fontSize: '0.62rem', fontWeight: 800, fontFamily: "'Outfit', sans-serif",
+                    display: 'flex', alignItems: 'center', gap: 4,
+                  }}>
+                  <span style={{ fontSize: '0.78rem', lineHeight: 1 }}>{ciEmoji}</span>
+                  {checkInCard ? ciLabel : (engine.todayMood ? (MOOD_OPTIONS.find(m => m.value === engine.todayMood!.mood)?.emoji ?? '😊') : 'Mood')}
                 </motion.button>
                 <motion.button whileTap={{ scale: 0.88 }} onClick={engine.toggleAdhdMode}
                   style={{ padding: '0.25rem 0.6rem', borderRadius: 999, cursor: 'pointer', background: engine.adhdMode ? 'rgba(251,191,36,0.2)' : 'rgba(255,255,255,0.07)', border: `1px solid ${engine.adhdMode ? 'rgba(251,191,36,0.5)' : 'rgba(255,255,255,0.1)'}`, color: engine.adhdMode ? '#fbbf24' : 'rgba(255,255,255,0.42)', fontSize: '0.7rem', fontWeight: 800, fontFamily: "'Outfit', sans-serif", display: 'flex', alignItems: 'center', gap: 3 }}>

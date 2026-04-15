@@ -122,6 +122,54 @@ export function getTodayLogStory(): DailyLogEntry[] {
     } catch { return []; }
 }
 
+// ─── Firestore Activity Log Sync ─────────────────────────────────────────────
+// Writes a single entry to Firestore with merge so multiple devices can
+// independently add their own entries without overwriting each other.
+export async function syncActivityEntryToFirestore(
+    uid: string | undefined,
+    entry: DailyLogEntry
+): Promise<void> {
+    if (!uid) return;
+    try {
+        const { getFirebaseFirestore } = await import('@/lib/firebase');
+        const { doc, setDoc } = await import('firebase/firestore');
+        const db = await getFirebaseFirestore();
+        await setDoc(
+            doc(db, 'users', uid, 'activity_logs', entry.date),
+            { entries: { [entry.id]: entry }, updatedAt: Date.now() },
+            { merge: true }
+        );
+    } catch { /* offline – local state already saved */ }
+}
+
+// Sets up a real-time onSnapshot listener for a user's activity log for a given date.
+// Returns an unsubscribe function. Entries from all devices are merged in the caller.
+export function subscribeToActivityLog(
+    uid: string,
+    date: string,
+    onUpdate: (entries: DailyLogEntry[]) => void
+): () => void {
+    let unsubFn: () => void = () => {};
+    (async () => {
+        try {
+            const { getFirebaseFirestore } = await import('@/lib/firebase');
+            const { doc, onSnapshot } = await import('firebase/firestore');
+            const db = await getFirebaseFirestore();
+            unsubFn = onSnapshot(
+                doc(db, 'users', uid, 'activity_logs', date),
+                (snap) => {
+                    if (!snap.exists()) return;
+                    const entries = Object.values(
+                        (snap.data().entries ?? {}) as Record<string, DailyLogEntry>
+                    ).sort((a, b) => a.loggedAt - b.loggedAt);
+                    onUpdate(entries);
+                }
+            );
+        } catch { /* ignore */ }
+    })();
+    return () => unsubFn();
+}
+
 // ─── Pull completed habit IDs from the lifestyle store ───────────────────────
 function getCompletedHabitIds(): Set<string> {
     try {
@@ -914,6 +962,7 @@ export default function SmartLogBubbles() {
         saveLoggedToday(updated);
         setAyurCompletedIds(prev => new Set([...prev, bubble.id]));
         saveToDailyLogStory(bubble.id, bubble.icon, bubble.label, bubble.color);
+        syncActivityEntryToFirestore(user?.uid, { id: bubble.id, icon: bubble.icon, label: bubble.label, color: bubble.color, loggedAt: Date.now(), date: getTodayStr() });
         setActiveBubble(null);
         // ── Route through engine.completeHabit() → writes to habit_logs Firestore ──
         // This is the single source of truth. Powers:

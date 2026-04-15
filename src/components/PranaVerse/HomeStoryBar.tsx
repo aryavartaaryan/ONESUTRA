@@ -1764,8 +1764,8 @@ function MantraStoryViewer({
                 }}>{reel.mantraText}</p>
                 <p style={{
                     fontFamily: "'Inter',sans-serif", fontSize: '0.55rem',
-                    color: `${reel.color}cc`, fontStyle: 'italic', marginTop: '0.7rem',
-                    letterSpacing: '0.04em', textShadow: `0 0 10px ${reel.color}66`,
+                    color: 'rgba(255,255,255,0.85)', fontStyle: 'italic', marginTop: '0.7rem',
+                    letterSpacing: '0.04em', textShadow: '0 1px 8px rgba(0,0,0,0.8)',
                 }}>{reel.transliteration}</p>
             </motion.div>
 
@@ -1776,7 +1776,7 @@ function MantraStoryViewer({
                 background: 'linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.8) 60%, transparent 100%)',
             }}>
                 {/* Meaning */}
-                <p style={{ fontFamily: "'Inter',sans-serif", fontSize: '0.58rem', color: 'rgba(255,255,255,0.55)', fontStyle: 'italic', lineHeight: 1.6, marginBottom: '0.7rem' }}>
+                <p style={{ fontFamily: "'Inter',sans-serif", fontSize: '0.58rem', color: 'rgba(255,255,255,0.75)', fontStyle: 'italic', lineHeight: 1.6, marginBottom: '0.7rem' }}>
                     ✦ {reel.meaning}
                 </p>
 
@@ -1822,15 +1822,17 @@ function MantraStoryViewer({
                             whileHover={{ scale: 1.06 }}
                             onClick={togglePlay}
                             style={{
-                                background: `linear-gradient(145deg, ${reel.color}ee, ${reel.secondColor}cc)`,
-                                border: `1.5px solid ${reel.color}88`,
+                                background: 'rgba(255,255,255,0.08)',
+                                backdropFilter: 'blur(24px)',
+                                WebkitBackdropFilter: 'blur(24px)',
+                                border: '1.5px solid rgba(255,255,255,0.28)',
                                 borderRadius: '50%', width: 60, height: 60,
                                 color: '#fff', cursor: 'pointer',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                boxShadow: `0 0 28px ${reel.color}66, 0 0 60px ${reel.color}22, 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.3)`,
+                                boxShadow: '0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.18)',
                                 position: 'relative', overflow: 'hidden',
                             }}>
-                            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg, rgba(255,255,255,0.22) 0%, transparent 55%)', borderRadius: '50%', pointerEvents: 'none' }} />
+                            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg, rgba(255,255,255,0.12) 0%, transparent 50%)', borderRadius: '50%', pointerEvents: 'none' }} />
                             {playing
                                 ? <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                                 : <svg width="22" height="22" viewBox="0 0 24 24" fill="white" style={{ marginLeft: 3 }}><path d="M8 5v14l11-7z"/></svg>
