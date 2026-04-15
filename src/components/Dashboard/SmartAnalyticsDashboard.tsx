@@ -265,7 +265,7 @@ function MiniHabitCard({ habit, isCompleted, streak, onComplete }: {
 export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: string }) {
   const [logStory, setLogStory] = useState<DailyLogEntry[]>([]);
   const [mounted, setMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState<'pending' | 'done' | 'activity'>('pending');
+  const [activeTab, setActiveTab] = useState<'pending'>('pending');
   const [celebrateId, setCelebrateId] = useState<string | null>(null);
   const [smartLoggedToday, setSmartLoggedToday] = useState<Set<string>>(new Set());
   const [activeSubHabitId, setActiveSubHabitId] = useState<string | null>(null);
@@ -639,17 +639,11 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
         )}
         {/* Crystal Tabs */}
         <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '0.68rem' }}>
-          {([{ key: 'pending', label: 'Activity Logs', emoji: '�', count: pendingHabits.length + logStory.length }, { key: 'done', label: 'Done', emoji: '✅', count: doneHabits.length }, { key: 'activity', label: 'History', emoji: '⚡', count: logStory.length }] as const).map(tab => {
-            const active = activeTab === tab.key;
-            return (
-              <motion.button key={tab.key} whileTap={{ scale: 0.93 }} onClick={() => setActiveTab(tab.key)}
-                style={{ flex: 1, padding: '0.45rem 0.2rem', borderRadius: 14, border: `1.5px solid ${active ? slotCfg.color + '58' : 'rgba(255,255,255,0.07)'}`, background: active ? `linear-gradient(135deg,${slotCfg.color}1c,${slotCfg.color}08)` : 'rgba(255,255,255,0.03)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, boxShadow: active ? `0 4px 18px ${slotCfg.color}22,inset 0 1px 0 ${slotCfg.color}18` : 'none' }}>
-                <span style={{ fontSize: '0.65rem' }}>{tab.emoji}</span>
-                <span style={{ fontSize: '0.54rem', fontWeight: 800, color: active ? slotCfg.color : 'rgba(255,255,255,0.3)', fontFamily: "'Outfit',sans-serif", letterSpacing: '0.04em' }}>{tab.label}</span>
-                {tab.count > 0 && <span style={{ fontSize: '0.46rem', padding: '0.03rem 0.28rem', borderRadius: 99, background: active ? `${slotCfg.color}28` : 'rgba(255,255,255,0.06)', color: active ? slotCfg.color : 'rgba(255,255,255,0.26)', fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>{tab.count}</span>}
-              </motion.button>
-            );
-          })}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.38rem', padding: '0.3rem 0.5rem', borderRadius: 14, border: `1.5px solid ${slotCfg.color}40`, background: `linear-gradient(135deg,${slotCfg.color}10,${slotCfg.color}05)` }}>
+            <span style={{ fontSize: '0.72rem' }}>📊</span>
+            <span style={{ fontSize: '0.58rem', fontWeight: 800, color: slotCfg.color, fontFamily: "'Outfit',sans-serif", letterSpacing: '0.04em' }}>Activity Logs</span>
+            {(pendingHabits.length + logStory.length) > 0 && <span style={{ fontSize: '0.46rem', padding: '0.03rem 0.28rem', borderRadius: 99, background: `${slotCfg.color}28`, color: slotCfg.color, fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>{pendingHabits.length + logStory.length}</span>}
+          </div>
         </div>
         {/* Tab Content */}
         <AnimatePresence mode="wait">
@@ -751,53 +745,6 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
               )}
             </motion.div>
           )}
-          {activeTab === 'done' && (
-            <motion.div key="done" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }}>
-              {doneHabits.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '1.3rem 1rem', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 18, background: 'rgba(255,255,255,0.02)' }}>
-                  <p style={{ margin: '0 0 0.22rem', fontSize: '1.4rem' }}>🌅</p>
-                  <p style={{ margin: 0, color: 'rgba(255,255,255,0.3)', fontSize: '0.82rem', fontFamily: "'Outfit',sans-serif" }}>Nothing logged yet — your first practice awaits.</p>
-                </div>
-              ) : (
-                <>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.38rem', marginBottom: '0.45rem' }}>
-                    <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,transparent,rgba(74,222,128,0.32))' }} />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.22rem' }}><CheckCircle2 size={11} style={{ color: '#4ade80' }} /><span style={{ fontSize: '0.52rem', color: '#4ade80', fontWeight: 800, fontFamily: "'Outfit',sans-serif", letterSpacing: '0.07em' }}>{doneHabits.length} DONE TODAY</span></div>
-                    <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,rgba(74,222,128,0.32),transparent)' }} />
-                  </div>
-                  {doneHabits.map(h => <MiniHabitCard key={h.id} habit={h} isCompleted={true} streak={engine.getHabitStreak(h.id)} onComplete={handleComplete} />)}
-                </>
-              )}
-            </motion.div>
-          )}
-          {activeTab === 'activity' && (
-            <motion.div key="activity" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }}>
-              {logStory.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '1.3rem 1rem', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 18, background: 'rgba(255,255,255,0.02)' }}>
-                  <p style={{ margin: '0 0 0.22rem', fontSize: '1.4rem' }}>⚡</p>
-                  <p style={{ margin: 0, color: 'rgba(255,255,255,0.3)', fontSize: '0.82rem', fontFamily: "'Outfit',sans-serif" }}>No Smart Log activities yet today.</p>
-                </div>
-              ) : (
-                <>
-                  <p style={{ margin: '0 0 0.32rem', fontSize: '0.52rem', fontWeight: 800, color: 'rgba(255,255,255,0.28)', letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: "'Outfit',sans-serif" }}>⚡ Logged Today · Newest First</p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    {[...logStory].reverse().map((entry, i) => {
-                      const t = new Date(entry.loggedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-                      return (
-                        <motion.div key={`${entry.id}_tl`} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
-                          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.38rem 0.6rem', borderRadius: 12, background: `${entry.color}0d`, border: `1px solid ${entry.color}1e` }}>
-                          <span style={{ fontSize: '1rem', flexShrink: 0 }}>{entry.icon}</span>
-                          <p style={{ flex: 1, margin: 0, fontSize: '0.78rem', fontWeight: 700, color: 'rgba(255,255,255,0.85)', fontFamily: "'Outfit',sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.label}</p>
-                          <span style={{ fontSize: '0.52rem', color: 'rgba(255,255,255,0.25)', fontFamily: "'Outfit',sans-serif", flexShrink: 0 }}>{t}</span>
-                          <span style={{ fontSize: '0.48rem', padding: '0.04rem 0.26rem', borderRadius: 99, background: `${entry.color}20`, color: entry.color, fontFamily: "'Outfit',sans-serif", fontWeight: 800, flexShrink: 0 }}>✓</span>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-            </motion.div>
-          )}
         </AnimatePresence>
         {/* Celebration toast */}
         <AnimatePresence>
@@ -814,14 +761,12 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
             style={{ flex: 1, padding: '0.55rem 0.4rem', borderRadius: 13, background: 'linear-gradient(135deg,rgba(124,58,237,0.18),rgba(168,85,247,0.1))', border: '1px solid rgba(139,92,246,0.32)', color: '#c4b5fd', fontSize: '0.63rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
             <Plus size={11} /> New Habit
           </motion.button>
-          <motion.button whileTap={{ scale: 0.93 }} onClick={() => setActiveTab('pending')}
-            style={{ flex: 1, padding: '0.55rem 0.4rem', borderRadius: 13, background: pendingHabits.length > 0 ? 'rgba(251,191,36,0.1)' : 'rgba(255,255,255,0.03)', border: `1px solid ${pendingHabits.length > 0 ? 'rgba(251,191,36,0.28)' : 'rgba(255,255,255,0.07)'}`, color: pendingHabits.length > 0 ? '#fbbf24' : 'rgba(255,255,255,0.22)', fontSize: '0.63rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+          <div style={{ flex: 1, padding: '0.55rem 0.4rem', borderRadius: 13, background: pendingHabits.length > 0 ? 'rgba(251,191,36,0.08)' : 'rgba(255,255,255,0.03)', border: `1px solid ${pendingHabits.length > 0 ? 'rgba(251,191,36,0.22)' : 'rgba(255,255,255,0.07)'}`, color: pendingHabits.length > 0 ? '#fbbf24' : 'rgba(255,255,255,0.22)', fontSize: '0.63rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
             <Zap size={11} /> {pendingHabits.length > 0 ? `${pendingHabits.length} Pending` : 'All Done ✓'}
-          </motion.button>
-          <motion.button whileTap={{ scale: 0.93 }} onClick={() => setActiveTab('activity')}
-            style={{ flex: 1, padding: '0.55rem 0.4rem', borderRadius: 13, background: logStory.length > 0 ? 'rgba(34,211,238,0.08)' : 'rgba(255,255,255,0.03)', border: `1px solid ${logStory.length > 0 ? 'rgba(34,211,238,0.24)' : 'rgba(255,255,255,0.07)'}`, color: logStory.length > 0 ? '#22d3ee' : 'rgba(255,255,255,0.22)', fontSize: '0.63rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+          </div>
+          <div style={{ flex: 1, padding: '0.55rem 0.4rem', borderRadius: 13, background: logStory.length > 0 ? 'rgba(34,211,238,0.08)' : 'rgba(255,255,255,0.03)', border: `1px solid ${logStory.length > 0 ? 'rgba(34,211,238,0.22)' : 'rgba(255,255,255,0.07)'}`, color: logStory.length > 0 ? '#22d3ee' : 'rgba(255,255,255,0.22)', fontSize: '0.63rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
             <Flame size={11} /> {logStory.length > 0 ? `${logStory.length} Logged` : 'Log Now'}
-          </motion.button>
+          </div>
         </div>
       </div>
 

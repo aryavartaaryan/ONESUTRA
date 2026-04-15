@@ -16,6 +16,7 @@ import ConsciousManifesto from '@/components/HomePage/ConsciousManifesto';
 import SacredCanvas from '@/components/SacredCanvas/SacredCanvas';
 import SakhaBodhiOrb from '@/components/Dashboard/SakhaBodhiOrb';
 import SmartLogBubbles from '@/components/Dashboard/SmartLogBubbles';
+import SmartAnalyticsDashboard from '@/components/Dashboard/SmartAnalyticsDashboard';
 
 import EphemeralGreeting from '@/components/HomePage/EphemeralGreeting';
 import StickyTopNav from '@/components/HomePage/StickyTopNav';
@@ -778,6 +779,11 @@ export default function Home() {
               <SmartLogBubbles />
             </div>
           </motion.div>
+        )}
+
+        {/* ══ SMART ANALYTICS — below the logging system ══ */}
+        {!isPortalOpen && (
+          <SmartAnalyticsDashboard globalBg={globalBg} />
         )}
 
         {/* ══ LIFESTYLE HUB — integrated from /lifestyle ══ */}
