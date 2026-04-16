@@ -1074,6 +1074,16 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
 
   const DOSHA_COLORS: Record<string, string> = { vata: '#a78bfa', pitta: '#fb923c', kapha: '#4ade80' };
   const doshaColor = prakriti ? (DOSHA_COLORS[prakriti.primary] ?? '#a78bfa') : '#a78bfa';
+  // Color based on the CURRENT TIME PERIOD's dominant dosha (not user prakriti)
+  const phaseColor = DOSHA_COLORS[currentPhase.dominantDosha] ?? doshaColor;
+  const PHASE_HEADLINES: Record<string, string> = {
+    'brahma-muhurta': '✦ Sacred hour — rise before the world, meditate & set your sankalpa',
+    'kapha-morning':  '🌿 Kapha time — take your bath, do Surya Namaskar, fire your Agni NOW',
+    'pitta-midday':   '🔥 Peak Pitta fire — eat your main meal & tackle your most vital work',
+    'vata-afternoon': '💨 Vata flows — best time to create, communicate & think freely',
+    'kapha-evening':  '🌙 Kapha grounds — light dinner, gentle walk, screens off, honour Ojas',
+    'pitta-night':    '🛌 Sleep now — Pitta heals cells at night · being awake robs tomorrow',
+  };
 
   // ── Nature background image (time-based, same pool as homepage) ─────────
   const NATURE_BG: Record<string, string[]> = {
@@ -1503,21 +1513,64 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
               </div>
             )}
 
-            {/* Row 3: dosha phase strip */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', padding: '0.52rem 0.8rem', borderRadius: 12, background: 'rgba(0,0,0,0.28)', border: `1px solid ${doshaColor}40`, backdropFilter: 'blur(10px)' }}>
-              <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 2.2, repeat: Infinity }}
-                style={{ width: 8, height: 8, borderRadius: '50%', background: doshaColor, flexShrink: 0, boxShadow: `0 0 8px ${doshaColor}` }} />
-              <span style={{ flex: 1, fontSize: '0.84rem', fontWeight: 700, color: 'rgba(255,255,255,0.82)', fontFamily: "'Outfit', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {currentPhase.label}{currentPhase.timeRange ? ` · ${currentPhase.timeRange}` : ''}
-              </span>
-              <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', fontFamily: "'Outfit', sans-serif", flexShrink: 0 }}>{currentPhase.quality}</span>
-              {inBrahmaMuhurta && (
-                <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 2, repeat: Infinity }}
-                  style={{ fontSize: '0.62rem', padding: '0.14rem 0.5rem', borderRadius: 99, background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.38)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 700, flexShrink: 0 }}>
-                  ✦ Brahma
-                </motion.span>
-              )}
-            </div>
+            {/* Row 3: Enhanced Dosha Phase Card */}
+            <motion.div
+              key={currentPhase.phase}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              style={{
+                borderRadius: 16, overflow: 'hidden',
+                border: `1px solid ${phaseColor}38`,
+                background: `linear-gradient(135deg,${phaseColor}12 0%,rgba(4,2,18,0.85) 100%)`,
+                backdropFilter: 'blur(14px)',
+                boxShadow: `0 2px 18px ${phaseColor}18`,
+              }}
+            >
+              {/* — Header row — */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', padding: '0.55rem 0.85rem 0.32rem' }}>
+                <motion.div animate={{ opacity: [1, 0.25, 1] }} transition={{ duration: 2.2, repeat: Infinity }}
+                  style={{ width: 8, height: 8, borderRadius: '50%', background: phaseColor, flexShrink: 0, boxShadow: `0 0 8px ${phaseColor}` }} />
+                <span style={{ flex: 1, fontSize: '0.75rem', fontWeight: 900, color: phaseColor, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                  {currentPhase.label}
+                </span>
+                <span style={{ fontSize: '0.56rem', color: 'rgba(255,255,255,0.28)', fontFamily: "'Outfit', sans-serif", flexShrink: 0 }}>
+                  {currentPhase.timeRange}
+                </span>
+                {inBrahmaMuhurta && (
+                  <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 2, repeat: Infinity }}
+                    style={{ fontSize: '0.52rem', padding: '0.06rem 0.36rem', borderRadius: 99, background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.35)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 700, flexShrink: 0 }}>
+                    ✦ Brahma
+                  </motion.span>
+                )}
+              </div>
+              {/* — Catchy actionable headline — */}
+              <p style={{ margin: 0, padding: '0 0.85rem 0.42rem', fontSize: '0.74rem', fontWeight: 700, color: 'rgba(255,255,255,0.92)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.45 }}>
+                {PHASE_HEADLINES[currentPhase.phase] ?? currentPhase.quality}
+              </p>
+              {/* — Do Now pills — */}
+              <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', padding: '0 0.85rem 0.48rem' }}>
+                {currentPhase.bestFor.slice(0, 4).map((item, i) => (
+                  <span key={i} style={{
+                    fontSize: '0.6rem', fontWeight: 800, color: phaseColor,
+                    fontFamily: "'Outfit', sans-serif",
+                    padding: '0.18rem 0.56rem', borderRadius: 99,
+                    background: `${phaseColor}16`, border: `1px solid ${phaseColor}40`,
+                  }}>
+                    {item}
+                  </span>
+                ))}
+              </div>
+              {/* — Avoid row — */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.26rem', flexWrap: 'wrap', padding: '0.28rem 0.85rem 0.48rem', borderTop: `1px solid ${phaseColor}1a` }}>
+                <span style={{ fontSize: '0.52rem', fontWeight: 800, color: 'rgba(255,120,120,0.55)', fontFamily: "'Outfit', sans-serif", flexShrink: 0 }}>Avoid →</span>
+                {currentPhase.avoid.slice(0, 3).map((item, i) => (
+                  <span key={i} style={{ fontSize: '0.56rem', color: 'rgba(255,255,255,0.24)', fontFamily: "'Outfit', sans-serif" }}>
+                    {item}{i < 2 ? ' ·' : ''}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
           </div>}
 
           {/* ── Streak Board ─────────────────────────────────────────────── */}

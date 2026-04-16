@@ -272,12 +272,12 @@ function AyurvedaHomeCard() {
 }
 
 const SAP_PHASE_ESSENCE: Record<string, string> = {
-  'brahma-muhurta': '🌙 Vata rises · sacred silence · wake before the world',
-  'kapha-morning':  '🌿 Kapha rules · move your body · fire up your Agni',
-  'pitta-midday':   '🔥 Pitta peak · max Agni · go deep on your most vital work',
-  'vata-afternoon': '💨 Vata flows · create · communicate · stay light & free',
-  'kapha-evening':  '🌿 Kapha grounds · wind down · eat light · rest deeply',
-  'pitta-night':    '🌙 Pitta repairs · your inner fire heals while you sleep',
+  'brahma-muhurta': '✦ Sacred hour — rise before the world · meditate · set your sankalpa now',
+  'kapha-morning':  '🌿 Kapha time — take your bath, do Surya Namaskar · fire your Agni!',
+  'pitta-midday':   '🔥 Peak Pitta — eat your main meal now · tackle your most vital work',
+  'vata-afternoon': '💨 Vata flows — ideal for creative work, calls & communicating ideas',
+  'kapha-evening':  '� Kapha grounds — light dinner · gentle walk · screens off · honour Ojas',
+  'pitta-night':    '🛌 Sleep NOW — Pitta heals cells at night · being awake robs tomorrow',
 };
 const SAP_PRANA_LABEL: Record<string, { label: string; emoji: string }> = {
   morning: { label: 'Morning Prana', emoji: '🌅' },
@@ -720,13 +720,23 @@ export default function Home() {
                     </motion.span>
                   );
                 })()}
-                {/* Dosha essence — catchy subtitle */}
-                <motion.p
+                {/* Dosha essence — catchy subtitle + Do Now pills */}
+                <motion.div
                   key={doshaCurrentPhase.phase}
                   initial={{ opacity: 0, y: 3 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}
-                  style={{ margin: '0.3rem 0 0', fontSize: '0.72rem', fontWeight: 700, color: doshaColor, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.01em', lineHeight: 1.4, padding: '0.25rem 0.62rem', background: `${doshaColor}14`, border: `1px solid ${doshaColor}2e`, borderRadius: 12 }}>
-                  {SAP_PHASE_ESSENCE[doshaCurrentPhase.phase] ?? doshaCurrentPhase.quality}
-                </motion.p>
+                  style={{ margin: '0.3rem 0 0', borderRadius: 14, border: `1px solid ${doshaColor}2e`, background: `${doshaColor}0e`, overflow: 'hidden' }}
+                >
+                  <p style={{ margin: 0, padding: '0.28rem 0.62rem 0.2rem', fontSize: '0.72rem', fontWeight: 700, color: doshaColor, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.01em', lineHeight: 1.4 }}>
+                    {SAP_PHASE_ESSENCE[doshaCurrentPhase.phase] ?? doshaCurrentPhase.quality}
+                  </p>
+                  <div style={{ display: 'flex', gap: '0.26rem', flexWrap: 'wrap', padding: '0 0.62rem 0.32rem' }}>
+                    {doshaCurrentPhase.bestFor.slice(0, 3).map((item: string, i: number) => (
+                      <span key={i} style={{ fontSize: '0.55rem', fontWeight: 800, color: doshaColor, fontFamily: "'Outfit', sans-serif", padding: '0.12rem 0.44rem', borderRadius: 99, background: `${doshaColor}18`, border: `1px solid ${doshaColor}35` }}>
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </motion.div>
               </div>
             </div>
 
