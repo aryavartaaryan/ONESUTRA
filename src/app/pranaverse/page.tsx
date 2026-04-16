@@ -2303,8 +2303,8 @@ function AuraSpaceInner() {
                         { id: 'home', emoji: '⌂', label: 'Home', action: () => router.push('/'), color: '#a78bfa' },
                         { id: 'story', emoji: '✦', label: 'Feed', action: () => setActiveTab('story'), color: '#c084fc' },
                         { id: 'map', emoji: '🗺️', label: 'Map', action: () => setActiveTab('map'), color: '#60a5fa' },
-                        { id: 'chat', emoji: '💬', label: 'Chat', action: () => router.push('/pranaverse-chat'), color: '#34d399' },
-                    ] as Array<{ id: Tab | 'home' | 'chat'; emoji: string; label: string; action: () => void; color: string }>).map(item => {
+                        { id: 'friends', emoji: '👥', label: 'Friends', action: () => router.push('/pranaverse-chat'), color: '#f472b6' },
+                    ] as Array<{ id: Tab | 'home' | 'friends'; emoji: string; label: string; action: () => void; color: string }>).map(item => {
                         const isActive = item.id !== 'home' && activeTab === item.id;
                         return (
                             <motion.button key={item.id}

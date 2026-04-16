@@ -725,7 +725,16 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
         {/* Header — compact & sleek */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.44rem' }}>
           <div>
-            <p style={{ margin: '0 0 2px', fontSize: '0.46rem', fontWeight: 700, color: 'rgba(255,255,255,0.26)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: "'Outfit',sans-serif" }}>Daily Wins · दिनचर्या</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.38rem', marginBottom: 3 }}>
+              <p style={{ margin: 0, fontSize: '0.46rem', fontWeight: 700, color: 'rgba(255,255,255,0.26)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: "'Outfit',sans-serif" }}>Daily Wins · दिनचर्या</p>
+              <motion.div
+                animate={{ opacity: [0.7, 1, 0.7], scale: [1, 1.04, 1] }}
+                transition={{ duration: 2.8, repeat: Infinity }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '0.06rem 0.38rem', borderRadius: 99, background: 'linear-gradient(90deg,#f472b618,#a78bfa18)', border: '1px solid #f472b630', flexShrink: 0 }}
+              >
+                <span style={{ fontSize: '0.38rem', fontWeight: 800, color: '#f472b6', fontFamily: "'Outfit',sans-serif", letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>👥 Share with friends</span>
+              </motion.div>
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.24rem' }}>
               <motion.span animate={{ opacity: [0.45, 1, 0.45] }} transition={{ duration: 3.5, repeat: Infinity }} style={{ fontSize: '0.62rem', color: slotCfg.color }}>✦</motion.span>
               <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#fff', fontFamily: "'Outfit',sans-serif", letterSpacing: '-0.01em' }}>Today&#39;s Progress</span>

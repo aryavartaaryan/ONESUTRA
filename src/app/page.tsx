@@ -1036,7 +1036,7 @@ export default function Home() {
           { id: 'home', emoji: '⌂', label: 'Home', href: null, color: '#a78bfa' },
           { id: 'feed', emoji: '❖', label: 'Feed', href: '/pranaverse', color: '#c084fc' },
           { id: 'map', emoji: '🗺️', label: 'Map', href: '/pranaverse?tab=map', color: '#60a5fa' },
-          { id: 'chat', emoji: '💬', label: 'Chat', href: '/pranaverse-chat', color: '#34d399' },
+          { id: 'friends', emoji: '�', label: 'Friends', href: '/pranaverse-chat', color: '#f472b6' },
         ] as const).map(item => {
           const active = item.id === 'home';
           return (

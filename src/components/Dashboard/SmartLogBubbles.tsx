@@ -1415,10 +1415,10 @@ export default function SmartLogBubbles() {
                 {/* Text block */}
                 <div style={{ flex: 1, minWidth: 0, position: 'relative', zIndex: 1 }}>
                     <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 900, color: timeLabel.color, fontFamily: "'Outfit', sans-serif", lineHeight: 1.28, textShadow: `0 0 22px ${timeLabel.color}50` }}>
-                        Log the {timeLabel.slotName} activities on time
+                        Log it ❖ Share with your friends
                     </p>
-                    <p style={{ margin: '0.18rem 0 0', fontSize: '0.58rem', color: 'rgba(255,255,255,0.52)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.45, fontWeight: 600 }}>
-                        Increase your wellness to ultra level ✦
+                    <p style={{ margin: '0.18rem 0 0', fontSize: '0.55rem', color: 'rgba(255,255,255,0.48)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.45, fontWeight: 600 }}>
+                        Every log becomes a wellness story for your circle 👥
                     </p>
                 </div>
                 {/* Count badge */}

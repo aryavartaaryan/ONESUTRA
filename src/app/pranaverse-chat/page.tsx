@@ -1156,9 +1156,9 @@ export default function PranverseChatHub() {
                     { id: 'home', emoji: '⌂', label: 'Home' },
                     { id: 'feed', emoji: '✦', label: 'Feed' },
                     { id: 'map', emoji: '🗺️', label: 'Map' },
-                    { id: 'chat', emoji: '💬', label: 'Chat' },
+                    { id: 'friends', emoji: '👥', label: 'Friends' },
                 ] as const).map(item => {
-                    const active = item.id === 'chat';
+                    const active = item.id === 'friends';
                     return (
                         <motion.button key={item.id} whileTap={{ scale: 0.9 }}
                             onClick={() => {
