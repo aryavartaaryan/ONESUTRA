@@ -1127,13 +1127,17 @@ export default function SmartLogBubbles() {
                 elapsed += dt;
                 const max = el.scrollWidth - el.clientWidth;
                 if (max > 0) {
-                    // Sine oscillates -1 → +1; map to 0 → max with ease-in-out at each end
+                    // Reserve first-bubble width so it is always visible at the left edge
+                    const firstChild = el.firstElementChild as HTMLElement | null;
+                    const reserve = firstChild ? Math.max(firstChild.offsetWidth + 12, 92) : 92;
+                    const effectiveMax = Math.max(0, max - reserve);
+                    // Sine oscillates -1 → +1; map to 0 → effectiveMax with ease-in-out
                     const phase = (elapsed % CYCLE) / CYCLE; // 0 → 1
                     // Triangle wave 0→1→0 per cycle
                     const tri = phase < 0.5 ? phase * 2 : 2 - phase * 2;
                     // Apply smooth ease-in-out (cosine)
                     const eased = (1 - Math.cos(tri * Math.PI)) / 2;
-                    el.scrollLeft = eased * max;
+                    el.scrollLeft = eased * effectiveMax;
                 }
             }
             rafId = requestAnimationFrame(step);
@@ -1517,7 +1521,21 @@ export default function SmartLogBubbles() {
                         }}
                     >
                         <style>{`.smart-log-row::-webkit-scrollbar{display:none}`}</style>
-                        {timedBubbles.map((bubble, i) => renderBubble(bubble, i, i > 0))}
+                        {timedBubbles.map((bubble, i) => {
+                            const rendered = renderBubble(bubble, i, i > 0);
+                            if (!rendered) return null;
+                            if (i === 0) return (
+                                <div key={`sfirst-${bubble.id}`} style={{
+                                    position: 'sticky', left: 0, zIndex: 4, flexShrink: 0,
+                                    background: 'linear-gradient(90deg, rgba(3,1,14,0.97) 82%, transparent)',
+                                    borderRadius: 20, paddingRight: '0.55rem',
+                                    boxShadow: '8px 0 20px rgba(3,1,14,0.72)',
+                                }}>
+                                    {rendered}
+                                </div>
+                            );
+                            return rendered;
+                        })}
                         {timedBubbles.length > 0 && anytimeBubbles.length > 0 && (
                             <div style={{
                                 flexShrink: 0, width: 1, height: 64, alignSelf: 'center',
