@@ -319,12 +319,12 @@ function TodoDuoGrid({
   const curSub = getActivitySubtitle(current.id, current.name, userName);
   const nextSub = next ? getActivitySubtitle(next.id, next.name, userName) : null;
   const curColor = current.color ?? slotColor;
+  const nxtColor = next ? (next.color ?? slotColor) : slotColor;
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: next ? '1fr 1fr' : '1fr', gap: '0.5rem', marginBottom: '0.65rem' }}>
       {/* ── Current Activity Card (loggable) ── */}
-      <motion.div
-        whileTap={{ scale: 0.96 }}
+      <div
         onClick={() => onLogCurrent(current.id)}
         style={{
           borderRadius: 22, padding: '0.9rem 0.78rem',
@@ -333,6 +333,7 @@ function TodoDuoGrid({
           boxShadow: `0 8px 36px ${curColor}28, 0 2px 0 ${curColor}18 inset, 0 -1px 0 rgba(0,0,0,0.4) inset`,
           cursor: 'pointer', position: 'relative', overflow: 'hidden',
           minHeight: 170, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+          WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation',
         }}
       >
         {/* ambient glow pulse */}
@@ -367,8 +368,7 @@ function TodoDuoGrid({
           </p>
         </div>
         {/* Log button */}
-        <motion.div
-          whileTap={{ scale: 0.88 }}
+        <div
           style={{
             marginTop: '0.65rem', position: 'relative', zIndex: 1,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
@@ -376,52 +376,52 @@ function TodoDuoGrid({
             background: `linear-gradient(135deg, ${curColor}3a, ${curColor}18)`,
             border: `1.5px solid ${curColor}55`,
             boxShadow: `0 4px 18px ${curColor}28`,
+            touchAction: 'manipulation',
           }}
         >
           <CheckCircle2 size={13} style={{ color: curColor }} />
           <span style={{ fontSize: '0.64rem', fontWeight: 900, color: curColor, fontFamily: "'Outfit',sans-serif", letterSpacing: '0.02em' }}>
             Tap to Log ✦
           </span>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
 
-      {/* ── Next Activity Card (locked preview) ── */}
+      {/* ── Next Activity Card — locked, fully visible, no blur ── */}
       {next && nextSub && (
         <div style={{
           borderRadius: 22, padding: '0.9rem 0.78rem',
-          background: 'linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(4,2,18,0.75) 100%)',
-          border: '1.5px solid rgba(255,255,255,0.09)',
+          background: `linear-gradient(145deg, ${nxtColor}12 0%, rgba(4,2,18,0.82) 100%)`,
+          border: `1.5px solid ${nxtColor}30`,
           minHeight: 170, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
           position: 'relative', overflow: 'hidden',
-          opacity: 0.62,
         }}>
-          {/* UP NEXT badge */}
+          {/* NEXT badge */}
           <div style={{
             position: 'absolute', top: 9, right: 9,
             fontSize: '0.38rem', padding: '0.12rem 0.38rem', borderRadius: 99,
-            background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.18)',
-            color: 'rgba(255,255,255,0.4)', fontWeight: 900, fontFamily: "'Outfit',sans-serif", letterSpacing: '0.1em',
-          }}>UP NEXT</div>
-          {/* Card content */}
+            background: `${nxtColor}14`, border: `1px solid ${nxtColor}35`,
+            color: `${nxtColor}bb`, fontWeight: 900, fontFamily: "'Outfit',sans-serif", letterSpacing: '0.1em',
+          }}>NEXT →</div>
+          {/* Card content — no filter, no grayscale, fully readable */}
           <div>
-            <span style={{ fontSize: '1.9rem', lineHeight: 1, display: 'block', marginBottom: '0.45rem', filter: 'grayscale(0.4) opacity(0.75)' }}>{next.icon}</span>
-            <p style={{ margin: '0 0 0.3rem', fontSize: '0.73rem', fontWeight: 900, color: 'rgba(255,255,255,0.52)', fontFamily: "'Outfit',sans-serif", lineHeight: 1.22, paddingRight: '1.4rem' }}>
+            <span style={{ fontSize: '1.9rem', lineHeight: 1, display: 'block', marginBottom: '0.45rem' }}>{next.icon}</span>
+            <p style={{ margin: '0 0 0.3rem', fontSize: '0.73rem', fontWeight: 900, color: `${nxtColor}cc`, fontFamily: "'Outfit',sans-serif", lineHeight: 1.22, paddingRight: '1.4rem' }}>
               {next.name}
             </p>
-            <p style={{ margin: 0, fontSize: '0.54rem', color: 'rgba(255,255,255,0.3)', fontFamily: "'Outfit',sans-serif", lineHeight: 1.55, fontWeight: 500, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            <p style={{ margin: 0, fontSize: '0.54rem', color: 'rgba(255,255,255,0.56)', fontFamily: "'Outfit',sans-serif", lineHeight: 1.55, fontWeight: 500, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
               {nextSub.body}
             </p>
           </div>
-          {/* Lock indicator */}
+          {/* Lock indicator — shows locked state without dimming the card */}
           <div style={{
             marginTop: '0.65rem',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-            padding: '0.48rem 0.6rem', borderRadius: 13,
-            background: 'rgba(255,255,255,0.03)', border: '1.5px solid rgba(255,255,255,0.09)',
+            padding: '0.42rem 0.6rem', borderRadius: 13,
+            background: `${nxtColor}08`, border: `1px solid ${nxtColor}22`,
           }}>
-            <span style={{ fontSize: '0.72rem' }}>🔒</span>
-            <span style={{ fontSize: '0.58rem', fontWeight: 700, color: 'rgba(255,255,255,0.24)', fontFamily: "'Outfit',sans-serif" }}>
-              Unlocks after current
+            <span style={{ fontSize: '0.68rem' }}>🔒</span>
+            <span style={{ fontSize: '0.58rem', fontWeight: 700, color: `${nxtColor}88`, fontFamily: "'Outfit',sans-serif" }}>
+              Locked · Log current first
             </span>
           </div>
         </div>
@@ -442,6 +442,21 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const [storyTrigger, setStoryTrigger] = useState<{ id: string; name: string; emoji: string } | null>(null);
   const pendingScrollRef = useRef<HTMLDivElement>(null);
   const [pendingSlide, setPendingSlide] = useState(0);
+  const autoSlideUserTouchedRef = useRef(false);
+
+  // Auto-slide: advances every 3.5 s, pauses 7 s after user manually swipes
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (autoSlideUserTouchedRef.current) return;
+      const el = pendingScrollRef.current;
+      if (!el || el.scrollWidth <= el.clientWidth + 4) return; // single slide — skip
+      const nextLeft = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4
+        ? 0
+        : el.scrollLeft + el.clientWidth;
+      el.scrollTo({ left: nextLeft, behavior: 'smooth' });
+    }, 3500);
+    return () => clearInterval(timer);
+  }, []);
   const [expandedSlots, setExpandedSlots] = useState<Record<string, boolean>>({});
   const [progressOpen, setProgressOpen] = useState(false);
   const [loggedOpen, setLoggedOpen] = useState(false);
@@ -869,6 +884,11 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
                   const el = pendingScrollRef.current;
                   const slide = Math.round(el.scrollLeft / Math.max(1, el.clientWidth));
                   setPendingSlide(slide);
+                  // Pause auto-slide for 7 s after user manually swipes
+                  autoSlideUserTouchedRef.current = true;
+                  clearTimeout((pendingScrollRef.current as HTMLDivElement & { _pauseTimer?: ReturnType<typeof setTimeout> })._pauseTimer);
+                  (pendingScrollRef.current as HTMLDivElement & { _pauseTimer?: ReturnType<typeof setTimeout> })._pauseTimer =
+                    setTimeout(() => { autoSlideUserTouchedRef.current = false; }, 7000);
                 }}
                 style={{
                   display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory',
