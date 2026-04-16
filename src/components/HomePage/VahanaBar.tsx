@@ -72,18 +72,19 @@ export default function VahanaBar() {
 
             <nav style={{
                 position: 'fixed',
-                bottom: 10, left: 10, right: 10,
+                bottom: 0, left: 0, right: 0,
                 zIndex: 9000,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-around',
-                padding: '0.42rem 0.2rem calc(0.48rem + env(safe-area-inset-bottom))',
-                background: 'rgba(4, 2, 20, 0.96)',
+                padding: '0.50rem 0.2rem calc(0.52rem + env(safe-area-inset-bottom))',
+                background: 'rgba(4, 2, 20, 0.97)',
                 backdropFilter: 'blur(32px) saturate(200%)',
                 WebkitBackdropFilter: 'blur(32px) saturate(200%)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                boxShadow: '0 -2px 20px rgba(0,0,0,0.5), 0 8px 40px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.05)',
-                borderRadius: 22,
+                borderTop: '1px solid rgba(255,255,255,0.09)',
+                borderLeft: 'none', borderRight: 'none', borderBottom: 'none',
+                boxShadow: '0 -4px 28px rgba(0,0,0,0.55), 0 -1px 0 rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.05)',
+                borderRadius: '18px 18px 0 0',
             }}>
                 {/* Ambient violet glow */}
                 <div aria-hidden style={{

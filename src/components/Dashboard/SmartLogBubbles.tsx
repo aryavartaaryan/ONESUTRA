@@ -1611,6 +1611,7 @@ export default function SmartLogBubbles() {
                 habitName={storyTrigger.name}
                 habitEmoji={storyTrigger.emoji}
                 userName={getLocalUserName()}
+                userId={user?.uid}
                 onClose={() => setStoryTrigger(null)}
             />
         )}

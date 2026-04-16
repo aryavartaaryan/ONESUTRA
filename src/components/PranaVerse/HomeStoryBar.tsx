@@ -1993,11 +1993,11 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
         const uid = (() => { try { return JSON.parse(localStorage.getItem('onesutra_auth_v1') ?? '{}')?.uid ?? ''; } catch { return ''; } })();
         setCurrentUserId(uid);
 
-        // Helper: sort stories — current user's stories always first, then by time
+        // Helper: sort stories — friends' stories first, own story at the end
         const sortStories = (arr: WellnessStory[]) =>
             [...arr].sort((a, b) => {
-                if (uid && a.userId === uid && b.userId !== uid) return -1;
-                if (uid && b.userId === uid && a.userId !== uid) return 1;
+                if (uid && a.userId === uid && b.userId !== uid) return 1;   // own → push to end
+                if (uid && b.userId === uid && a.userId !== uid) return -1;  // friends → pull to front
                 return b.timestamp - a.timestamp;
             });
 
@@ -2006,11 +2006,14 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
             const local = getWellnessStories(undefined);
             setWellnessStories(prev => {
                 const byId = new Map(prev.map(s => [s.id, s]));
-                local.forEach(s => { if (!byId.has(s.id)) byId.set(s.id, s); });
+                local.forEach(s => { byId.set(s.id, s); }); // always overwrite with latest local copy
                 return sortStories(Array.from(byId.values()));
             });
         };
         window.addEventListener('wellness-story-updated', handleLocalUpdate);
+        // Populate from localStorage immediately on mount so stories appear
+        // even before the Firestore subscription resolves (covers page-refresh case)
+        handleLocalUpdate();
 
         // Firestore real-time subscription — all users' today stories (social feed)
         const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
