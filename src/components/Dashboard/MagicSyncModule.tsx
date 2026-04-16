@@ -977,18 +977,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
 
                 {/* ── SMART MANAGER HEADER ── */}
                 <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.2rem' }}>
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                        <img
-                            src="/OneSUTRA.png"
-                            alt="OneSUTRA"
-                            style={{
-                                width: 32, height: 32, borderRadius: '50%',
-                                objectFit: 'cover', flexShrink: 0,
-                                border: '1.5px solid rgba(251,191,36,0.4)',
-                                boxShadow: '0 0 10px rgba(251,191,36,0.35)',
-                            }}
-                        />
-                        <div style={{ flex: 1 }}>
+                    <div style={{ flex: 1 }}>
                         <h2 style={{
                             margin: 0, fontSize: '0.85rem',
                             fontWeight: 700, lineHeight: 1.2, letterSpacing: '0.12em',
@@ -1009,7 +998,6 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                         }}>
                             AI Sakha <span style={{ color: '#fbbf24', fontWeight: 600 }}>Bodhi</span> advises &amp; schedules
                         </p>
-                        </div>
                     </div>
                     {/* CAL Button */}
                     <motion.button
@@ -1037,6 +1025,50 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                     </motion.button>
                 </div>
 
+                {/* ── SMART PRODUCTIVITY TIPS ── */}
+                {(() => {
+                    const h = new Date().getHours();
+                    const tips: { icon: string; text: string; accent: string }[] =
+                        h >= 5 && h < 10 ? [
+                            { icon: '💧', text: 'Warm water NOW → flushes Ama, ignites Agni for the day', accent: '#67e8f9' },
+                            { icon: '⚡', text: 'No phone first 30 min → your Ojas builds in silence', accent: '#fbbf24' },
+                            { icon: '🧘', text: '5-min pranayama = 2× focus for the next 3 hours', accent: '#a78bfa' },
+                        ] : h >= 10 && h < 14 ? [
+                            { icon: '🔥', text: 'Pitta peak NOW — tackle your hardest task this hour', accent: '#fb923c' },
+                            { icon: '🍛', text: 'Biggest meal at noon → Agni is strongest, digest fully', accent: '#86efac' },
+                            { icon: '🎯', text: '90-min deep work sprint → phone away, enter flow state', accent: '#fbbf24' },
+                        ] : h >= 14 && h < 18 ? [
+                            { icon: '🌬️', text: 'Vata window open → perfect for creative work & ideas', accent: '#a78bfa' },
+                            { icon: '🚶', text: '20-min walk now → clears mental fog, resets cortisol', accent: '#4ade80' },
+                            { icon: '📵', text: 'Start winding down screens by 8 PM → protect Ojas', accent: '#fb923c' },
+                        ] : h >= 18 && h < 22 ? [
+                            { icon: '📓', text: 'Brain dump everything → empty mind = deeper sleep', accent: '#2dd4bf' },
+                            { icon: '📵', text: 'Screens off now → melatonin rises, Ojas restores', accent: '#fb923c' },
+                            { icon: '🙏', text: 'Name 3 wins today → gratitude programs Sattva overnight', accent: '#fbbf24' },
+                        ] : [
+                            { icon: '🌙', text: 'Sleep by 10 PM → Kapha repair window, max Ojas restored', accent: '#c4b5fd' },
+                            { icon: '📵', text: 'Phone away — blue light at night destroys deep sleep', accent: '#fb923c' },
+                            { icon: '🌿', text: 'Warm milk + nutmeg → calms Vata, ensures deep rest', accent: '#86efac' },
+                        ];
+                    return (
+                        <div style={{ marginBottom: '1rem', padding: '0.55rem 0.7rem', borderRadius: 14, background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.15)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: '0.4rem' }}>
+                                <span style={{ fontSize: '0.48rem', fontWeight: 900, color: 'rgba(251,191,36,0.7)', letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: "'Inter', system-ui, sans-serif" }}>⚡ Smart Tips — Right Now</span>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.28rem' }}>
+                                {tips.map((tip, i) => (
+                                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.45rem' }}>
+                                        <span style={{ fontSize: '0.78rem', lineHeight: 1.3, flexShrink: 0 }}>{tip.icon}</span>
+                                        <span style={{ fontSize: '0.6rem', fontWeight: 600, color: 'rgba(255,255,255,0.78)', fontFamily: "'Inter', system-ui, sans-serif", lineHeight: 1.45 }}>
+                                            <span style={{ color: tip.accent, fontWeight: 800 }}>{tip.text.split('→')[0].trim()}</span>
+                                            {tip.text.includes('→') && <span style={{ color: 'rgba(255,255,255,0.52)', fontWeight: 500 }}> → {tip.text.split('→')[1].trim()}</span>}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                })()}
 
                 {/* ── BUBBLE ARENA + DROP BAR ── */}
                 <style>{`
