@@ -624,7 +624,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const slotAyurHabitsAll = [
     ...slotAyurHabits,
     ...AYURVEDIC_HABITS.filter(h => mealDefaultIds.includes(h.id) && !slotAyurHabits.some(s => s.id === h.id)),
-  ];
+  ].sort((a, b) => AYURVEDIC_HABITS.findIndex(h => h.id === a.id) - AYURVEDIC_HABITS.findIndex(h => h.id === b.id));
 
   // ── Merged completion: localStorage ayur + Firestore habit_logs ──
   const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());

@@ -717,7 +717,7 @@ export function getTimedBubbles(): LogBubble[] {
     const habits = [
         ...baseHabits,
         ...allAyurHabits.filter(h => alwaysIds.includes(h.id) && !baseHabits.some(b => b.id === h.id)),
-    ];
+    ].sort((a, b) => allAyurHabits.findIndex(h => h.id === a.id) - allAyurHabits.findIndex(h => h.id === b.id));
     // Filter out already-completed habits so logged bubbles vanish immediately
     const completedToday = getTodayAyurCompletedIds();
     const logStoryIds = new Set(getTodayLogStory().map(e => e.id));
