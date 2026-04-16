@@ -3,224 +3,187 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Briefcase, Users } from 'lucide-react';
+import { Home, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useLanguage } from '@/context/LanguageContext';
 
-// ── Elegant PranaVerse SVG Icon ─────────────────────────────────
-function PranaVerseIcon({ size = 22, active = false }: { size?: number; active?: boolean }) {
-    const col = active ? '#a78bfa' : 'rgba(255,255,255,0.55)';
-    const glowCol = '#7c3aed';
+// ── Sacred Atom / PranaVerse Icon ─────────────────────────────────────────
+function PranaVerseIcon({ size = 20, active = false, color = '#a78bfa' }: { size?: number; active?: boolean; color?: string }) {
+    const col = active ? color : 'rgba(255,255,255,0.28)';
     return (
         <svg width={size} height={size} viewBox="0 0 48 48" fill="none"
-            style={{
-                filter: active
-                    ? `drop-shadow(0 0 ${size * 0.32}px ${glowCol}bb) drop-shadow(0 0 ${size * 0.14}px ${glowCol}66)`
-                    : 'none',
-                transition: 'all 0.3s ease',
-            }}>
-            {/* Outer dashed orbit ring */}
-            <circle cx="24" cy="24" r="21" stroke={col} strokeWidth="0.65" strokeOpacity={active ? 0.55 : 0.3} strokeDasharray="3 2.2" />
-            {/* Mid solid ring */}
-            <circle cx="24" cy="24" r="14.5" stroke={col} strokeWidth="0.95" strokeOpacity={active ? 0.8 : 0.4} />
-            {/* Inner filled core */}
-            <circle cx="24" cy="24" r="5.8" fill={active ? '#a78bfa88' : 'rgba(167,139,250,0.22)'} />
-            <circle cx="24" cy="24" r="3.8" fill={active ? '#a78bfacc' : 'rgba(167,139,250,0.5)'} />
-            {/* 8 radiating spokes */}
+            style={{ filter: active ? `drop-shadow(0 0 ${size * 0.28}px ${color}cc)` : 'none', transition: 'all 0.28s ease' }}>
+            <circle cx="24" cy="24" r="21" stroke={col} strokeWidth="0.65" strokeDasharray="3 2.2" strokeOpacity={active ? 0.55 : 0.28} />
+            <circle cx="24" cy="24" r="14.5" stroke={col} strokeWidth="0.95" strokeOpacity={active ? 0.82 : 0.32} />
+            <circle cx="24" cy="24" r="5.8" fill={active ? `${color}55` : 'rgba(255,255,255,0.10)'} />
+            <circle cx="24" cy="24" r="3.8" fill={active ? `${color}cc` : 'rgba(255,255,255,0.32)'} />
             {[0, 45, 90, 135, 180, 225, 270, 315].map((deg, k) => {
                 const rad = deg * Math.PI / 180;
                 const x1 = 24 + Math.cos(rad) * 7.5;
                 const y1 = 24 + Math.sin(rad) * 7.5;
                 const x2 = 24 + Math.cos(rad) * (k % 2 === 0 ? 19 : 13.5);
                 const y2 = 24 + Math.sin(rad) * (k % 2 === 0 ? 19 : 13.5);
-                return <line key={k} x1={x1} y1={y1} x2={x2} y2={y2}
-                    stroke={col} strokeWidth={k % 2 === 0 ? '1.3' : '0.75'}
-                    strokeOpacity={k % 2 === 0 ? (active ? 1 : 0.55) : (active ? 0.65 : 0.35)}
+                return <line key={k} x1={x1} y1={y1} x2={x2} y2={y2} stroke={col}
+                    strokeWidth={k % 2 === 0 ? '1.3' : '0.75'}
+                    strokeOpacity={k % 2 === 0 ? (active ? 1 : 0.42) : (active ? 0.65 : 0.25)}
                     strokeLinecap="round" />;
             })}
-            {/* 4 cardinal star-tip dots */}
             {[0, 90, 180, 270].map((deg, k) => {
                 const rad = deg * Math.PI / 180;
-                return <circle key={k}
-                    cx={24 + Math.cos(rad) * 21.5}
-                    cy={24 + Math.sin(rad) * 21.5}
-                    r="1.6" fill={col} fillOpacity={active ? 0.9 : 0.45} />;
+                return <circle key={k} cx={24 + Math.cos(rad) * 21.5} cy={24 + Math.sin(rad) * 21.5}
+                    r="1.6" fill={col} fillOpacity={active ? 0.92 : 0.35} />;
             })}
-            {/* Center star */}
-            <circle cx="24" cy="24" r="1.5" fill="#fff" fillOpacity={active ? 0.98 : 0.55} />
+            <circle cx="24" cy="24" r="1.5" fill="#fff" fillOpacity={active ? 1 : 0.45} />
         </svg>
     );
 }
 
-export default function VahanaBar() {
-    const { lang } = useLanguage();
-    const pathname = usePathname();
+// ── Gurukul Open Book Icon ─────────────────────────────────────────────────
+function GurukulIcon({ size = 19, active = false, color = '#fbbf24' }: { size?: number; active?: boolean; color?: string }) {
+    const col = active ? color : 'rgba(255,255,255,0.28)';
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+            style={{ filter: active ? `drop-shadow(0 0 5px ${color}99)` : 'none', transition: 'all 0.25s ease' }}>
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke={col} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke={col} strokeWidth="1.8" strokeLinejoin="round" />
+            <path d="M9 7h6M9 11h4" stroke={col} strokeWidth="1.55" strokeLinecap="round" />
+        </svg>
+    );
+}
 
-    const NAV = [
-        {
-            id: 'gurukul', href: '/vedic-sangrah',
-            label: 'Gurukul',
-            icon: 'briefcase' as const,
-        },
-        {
-            id: 'home', href: '/',
-            label: 'Home',
-            icon: 'home' as const,
-        },
-        {
-            id: 'pranaverse', href: '/pranaverse',
-            label: 'PranaVerse',
-            icon: 'pranaverse' as const,
-        },
-        {
-            id: 'friends', href: '/pranaverse-chat',
-            label: 'Friends',
-            icon: 'friends' as const,
-        },
-    ] as const;
+// ── Nav item config ───────────────────────────────────────────────────────
+const NAV_ITEMS = [
+    { id: 'gurukul',    href: '/vedic-sangrah',   label: 'Gurukul',    color: '#fbbf24' },
+    { id: 'home',       href: '/',                 label: 'Home',       color: '#60a5fa' },
+    { id: 'pranaverse', href: '/pranaverse',       label: 'PranaVerse', color: '#a78bfa' },
+    { id: 'friends',    href: '/pranaverse-chat',  label: 'Friends',    color: '#f472b6' },
+] as const;
+
+export default function VahanaBar() {
+    const pathname = usePathname();
 
     return (
         <>
             <style>{`
-                @keyframes vahana-prana-pulse {
-                    0%, 100% { box-shadow: 0 0 0 0 rgba(167,139,250,0), 0 0 16px rgba(167,139,250,0.3); }
-                    50%       { box-shadow: 0 0 0 6px rgba(167,139,250,0.08), 0 0 28px rgba(167,139,250,0.55); }
-                }
-                @keyframes vahana-home-pulse {
-                    0%, 100% { box-shadow: 0 0 0 0 rgba(251,191,36,0), 0 0 14px rgba(251,191,36,0.3); }
-                    50%       { box-shadow: 0 0 0 5px rgba(251,191,36,0.07), 0 0 22px rgba(251,191,36,0.5); }
+                @keyframes vahana-line-pulse {
+                    0%, 100% { opacity: 0.75; }
+                    50% { opacity: 1; }
                 }
             `}</style>
+
             <nav style={{
                 position: 'fixed',
-                bottom: 12, left: 12, right: 12,
+                bottom: 10, left: 10, right: 10,
                 zIndex: 9000,
-                padding: '0.55rem 0.6rem calc(0.55rem + env(safe-area-inset-bottom))',
-                background: 'rgba(18, 16, 28, 0.45)',
-                backdropFilter: 'blur(22px) saturate(150%)',
-                WebkitBackdropFilter: 'blur(22px) saturate(150%)',
-                border: '1px solid rgba(167, 139, 250, 0.20)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.45)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-around',
-                borderRadius: 24,
+                padding: '0.42rem 0.2rem calc(0.48rem + env(safe-area-inset-bottom))',
+                background: 'rgba(4, 2, 20, 0.96)',
+                backdropFilter: 'blur(32px) saturate(200%)',
+                WebkitBackdropFilter: 'blur(32px) saturate(200%)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                boxShadow: '0 -2px 20px rgba(0,0,0,0.5), 0 8px 40px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.05)',
+                borderRadius: 22,
             }}>
-                {/* Subtle violet ambient glow */}
+                {/* Ambient violet glow */}
                 <div aria-hidden style={{
-                    position: 'absolute', inset: 0, pointerEvents: 'none', borderRadius: 24,
-                    background: 'radial-gradient(ellipse at 75% 100%, rgba(167, 139, 250, 0.10) 0%, transparent 60%)',
+                    position: 'absolute', inset: 0, pointerEvents: 'none', borderRadius: 22,
+                    background: 'radial-gradient(ellipse at 50% 120%, rgba(167,139,250,0.07) 0%, transparent 65%)',
                 }} />
 
-                {NAV.map(({ id, href, label, icon }) => {
+                {NAV_ITEMS.map(({ id, href, label, color }) => {
                     const isActive = (id === 'home' && pathname === '/') ||
                         (id !== 'home' && pathname.startsWith(href));
-                    const isPrana = id === 'pranaverse';
-                    const isHome = id === 'home';
-                    const isElevated = (isPrana && isActive) || (isHome && isActive && !pathname.startsWith('/pranaverse'));
 
                     return (
-                        <Link key={id} href={href} style={{ textDecoration: 'none', flex: 1 }}>
+                        <Link key={id} href={href} style={{ textDecoration: 'none', flex: 1, display: 'flex', justifyContent: 'center' }}>
                             <motion.div
-                                whileTap={{ scale: 0.82 }}
-                                transition={{ type: 'spring', stiffness: 420, damping: 24 }}
+                                whileTap={{ scale: 0.83 }}
+                                transition={{ type: 'spring', stiffness: 440, damping: 26 }}
                                 style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: 3,
-                                    padding: '0.3rem 0.1rem',
-                                    position: 'relative',
+                                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                                    padding: '0.18rem 0.35rem', position: 'relative', minWidth: 50,
                                 }}
                             >
-                                {/* PranaVerse — elevated floated circle */}
-                                {isPrana && isActive ? (
-                                    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                        {/* Faint gold top line above the active icon */}
+                                {/* Colored top indicator line — PranaVerse style */}
+                                {isActive && (
+                                    <motion.div
+                                        initial={{ scaleX: 0, opacity: 0 }}
+                                        animate={{ scaleX: 1, opacity: 1 }}
+                                        transition={{ type: 'spring', stiffness: 320, damping: 22 }}
+                                        style={{
+                                            position: 'absolute', top: -2, left: '50%', transform: 'translateX(-50%)',
+                                            width: 28, height: 2.5, borderRadius: 999,
+                                            background: `linear-gradient(90deg, ${color}99, ${color}, ${color}99)`,
+                                            boxShadow: `0 0 10px ${color}cc, 0 0 22px ${color}55`,
+                                            animation: 'vahana-line-pulse 2.4s ease-in-out infinite',
+                                        }}
+                                    />
+                                )}
+
+                                {/* Glassmorphic icon circle */}
+                                <motion.div
+                                    whileHover={{ scale: 1.09 }}
+                                    transition={{ type: 'spring', stiffness: 380, damping: 22 }}
+                                    style={{
+                                        width: 40, height: 40, borderRadius: '50%', position: 'relative',
+                                        background: isActive
+                                            ? `radial-gradient(circle at 34% 26%, rgba(255,255,255,0.24) 0%, ${color}2e 44%, ${color}10 100%)`
+                                            : 'rgba(255,255,255,0.04)',
+                                        border: isActive
+                                            ? `1.5px solid ${color}55`
+                                            : '1.5px solid rgba(255,255,255,0.07)',
+                                        boxShadow: isActive
+                                            ? `0 0 20px ${color}44, 0 0 6px ${color}22, inset 0 1px 0 rgba(255,255,255,0.22)`
+                                            : 'none',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        transition: 'all 0.26s ease',
+                                        overflow: 'hidden',
+                                        flexShrink: 0,
+                                    }}
+                                >
+                                    {/* Inner specular highlight */}
+                                    {isActive && (
                                         <div style={{
-                                            position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)',
-                                            width: 32, height: 2,
-                                            background: 'linear-gradient(90deg, transparent, rgba(251,191,36,0.72) 30%, rgba(251,191,36,0.85) 50%, rgba(251,191,36,0.72) 70%, transparent)',
-                                            borderRadius: 99,
+                                            position: 'absolute', top: '7%', left: '11%',
+                                            width: '46%', height: '30%',
+                                            background: 'radial-gradient(ellipse, rgba(255,255,255,0.32) 0%, transparent 100%)',
+                                            borderRadius: '50%', transform: 'rotate(-22deg)', filter: 'blur(1.5px)',
+                                            pointerEvents: 'none',
                                         }} />
-                                        <div style={{
-                                            width: 50, height: 50,
-                                            borderRadius: '50%',
-                                            background: 'linear-gradient(145deg, #0f0a1e, #1a0f2e)',
-                                            border: '1.8px solid rgba(167,139,250,0.78)',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            animation: 'vahana-prana-pulse 2.8s ease-in-out infinite',
-                                            marginTop: '-20px',
-                                            position: 'relative', zIndex: 2,
-                                        }}>
-                                            <PranaVerseIcon size={22} active />
-                                        </div>
-                                    </div>
-                                ) : isHome && isActive ? (
-                                    <div style={{
-                                        width: 48, height: 48,
-                                        borderRadius: '50%',
-                                        background: 'linear-gradient(145deg, #0f172a, #1e293b)',
-                                        border: '1.8px solid rgba(251,191,36,0.75)',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        animation: 'vahana-home-pulse 2.5s ease-in-out infinite',
-                                        marginTop: '-18px',
-                                        position: 'relative', zIndex: 2,
-                                    }}>
-                                        <Home size={20} strokeWidth={2}
-                                            style={{ color: '#fbbf24', filter: 'drop-shadow(0 0 6px rgba(251,191,36,0.7))' }} />
-                                    </div>
-                                ) : (
-                                    <div style={{
-                                        width: 34, height: 34,
-                                        borderRadius: '50%',
-                                        background: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
-                                        border: isActive ? '1px solid rgba(255,255,255,0.18)' : '1px solid transparent',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        transition: 'all 0.25s ease',
-                                    }}>
-                                        {icon === 'pranaverse' ? (
-                                            <PranaVerseIcon size={18} active={isActive} />
-                                        ) : icon === 'home' ? (
-                                            <Home size={17} strokeWidth={isActive ? 2.1 : 1.6}
-                                                style={{ color: isActive ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.38)', transition: 'all 0.25s ease' }} />
-                                        ) : icon === 'briefcase' ? (
-                                            <Briefcase size={17} strokeWidth={isActive ? 2.1 : 1.6}
-                                                style={{ color: isActive ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.38)', transition: 'all 0.25s ease' }} />
-                                        ) : icon === 'friends' ? (
-                                            <Users size={17} strokeWidth={isActive ? 2.1 : 1.6}
-                                                style={{ color: isActive ? '#f472b6' : 'rgba(255,255,255,0.38)', transition: 'all 0.25s ease' }} />
-                                        ) : (
-                                            <Home size={17} strokeWidth={isActive ? 2.1 : 1.6}
-                                                style={{ color: isActive ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.38)', transition: 'all 0.25s ease' }} />
-                                        )}
-                                    </div>
-                                )}
+                                    )}
 
-                                {/* Active indicator dot for non-elevated items */}
-                                {isActive && !isPrana && !isHome && (
-                                    <div style={{
-                                        position: 'absolute',
-                                        bottom: 1,
-                                        width: 3, height: 3,
-                                        borderRadius: '50%',
-                                        background: 'rgba(255,255,255,0.7)',
-                                    }} />
-                                )}
+                                    {id === 'pranaverse' && <PranaVerseIcon size={20} active={isActive} color={color} />}
+                                    {id === 'gurukul' && <GurukulIcon size={19} active={isActive} color={color} />}
+                                    {id === 'home' && (
+                                        <Home size={18} strokeWidth={isActive ? 2.2 : 1.55}
+                                            style={{
+                                                color: isActive ? color : 'rgba(255,255,255,0.26)',
+                                                filter: isActive ? `drop-shadow(0 0 5px ${color}99)` : 'none',
+                                                transition: 'all 0.25s ease',
+                                            }} />
+                                    )}
+                                    {id === 'friends' && (
+                                        <Users size={18} strokeWidth={isActive ? 2.2 : 1.55}
+                                            style={{
+                                                color: isActive ? color : 'rgba(255,255,255,0.26)',
+                                                filter: isActive ? `drop-shadow(0 0 5px ${color}99)` : 'none',
+                                                transition: 'all 0.25s ease',
+                                            }} />
+                                    )}
+                                </motion.div>
 
+                                {/* Label */}
                                 <span style={{
-                                    fontSize: (isPrana && isActive) || (isHome && isActive) ? 9.5 : 9,
-                                    fontWeight: isActive ? 600 : 400,
-                                    fontFamily: "'Inter', system-ui, sans-serif",
-                                    letterSpacing: '0.06em',
-                                    textTransform: 'uppercase',
-                                    color: isActive
-                                        ? (isPrana && isActive ? 'rgba(167,139,250,0.95)' : isHome && isActive ? 'rgba(251,191,36,0.9)' : 'rgba(255,255,255,0.88)')
-                                        : 'rgba(255,255,255,0.30)',
+                                    fontSize: '0.40rem', fontWeight: 700,
+                                    fontFamily: "'Outfit', system-ui, sans-serif",
+                                    letterSpacing: '0.10em', textTransform: 'uppercase', lineHeight: 1,
+                                    color: isActive ? color : 'rgba(255,255,255,0.22)',
+                                    textShadow: isActive ? `0 0 10px ${color}77` : 'none',
                                     transition: 'all 0.25s ease',
-                                    marginTop: isActive && (isPrana || isHome) ? 2 : 0,
-                                }}>{label}</span>
+                                }}>
+                                    {label}
+                                </span>
                             </motion.div>
                         </Link>
                     );

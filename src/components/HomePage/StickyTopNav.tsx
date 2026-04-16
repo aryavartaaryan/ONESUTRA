@@ -1923,13 +1923,13 @@ export default function StickyTopNav() {
                 position: 'fixed',
                 top: 0, left: 0, right: 0,
                 zIndex: 1000,
-                background: 'rgba(12, 12, 22, 0.72)',
-                backdropFilter: 'blur(24px) saturate(160%)',
-                WebkitBackdropFilter: 'blur(24px) saturate(160%)',
-                borderBottom: '1px solid rgba(251, 191, 36, 0.20)',
-                boxShadow: '0 8px 40px rgba(0, 0, 0, 0.55)',
+                background: 'rgba(4, 2, 20, 0.95)',
+                backdropFilter: 'blur(32px) saturate(200%)',
+                WebkitBackdropFilter: 'blur(32px) saturate(200%)',
+                borderBottom: '1px solid rgba(255,255,255,0.07)',
+                boxShadow: '0 1px 0 rgba(251,191,36,0.10), 0 12px 48px rgba(0,0,0,0.70)',
                 /* No overflow:hidden — story cards at 154px need full vertical space */
-                borderRadius: '0 0 28px 28px',
+                borderRadius: '0 0 24px 24px',
                 transform: headerVisible ? 'translateY(0)' : 'translateY(-110%)',
                 transition: 'transform 0.48s cubic-bezier(0.4,0,0.2,1)',
                 willChange: 'transform',
@@ -1991,29 +1991,66 @@ export default function StickyTopNav() {
                                 <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.90 }}
                                     style={{
                                         width: 32, height: 32, borderRadius: '50%',
-                                        background: `radial-gradient(circle at 36% 26%, rgba(255,255,255,0.30) 0%, ${color}22 26%, ${color}2a 52%, ${color}1a 76%, ${color}0c 100%)`,
-                                        backdropFilter: 'blur(10px) saturate(180%)',
-                                        WebkitBackdropFilter: 'blur(10px) saturate(180%)',
-                                        border: '1.2px solid rgba(255,255,255,0.24)',
-                                        boxShadow: `0 0 12px ${color}44, 0 2px 8px rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.24), inset 0 -2px 6px ${color}18`,
+                                        background: `radial-gradient(circle at 34% 26%, rgba(255,255,255,0.24) 0%, ${color}2e 44%, ${color}10 100%)`,
+                                        border: `1.5px solid ${color}55`,
+                                        boxShadow: `0 0 16px ${color}44, inset 0 1px 0 rgba(255,255,255,0.22)`,
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         position: 'relative', overflow: 'hidden',
                                     }}>
                                     <div style={{
-                                        position: 'absolute', top: '6%', left: '10%', width: '52%', height: '35%',
-                                        background: 'radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0.22) 40%, transparent 100%)',
-                                        borderRadius: '50%', transform: 'rotate(-25deg)', filter: 'blur(2px)',
+                                        position: 'absolute', top: '7%', left: '11%', width: '46%', height: '30%',
+                                        background: 'radial-gradient(ellipse, rgba(255,255,255,0.32) 0%, transparent 100%)',
+                                        borderRadius: '50%', transform: 'rotate(-22deg)', filter: 'blur(1.5px)',
+                                        pointerEvents: 'none',
                                     }} />
                                     <span style={{
-                                        fontSize: '0.95rem',
+                                        fontSize: '0.92rem',
                                         position: 'relative', zIndex: 2,
                                         filter: `drop-shadow(0 0 5px ${color}88)`,
                                         fontWeight: 900, lineHeight: 1,
                                     }}>{emoji}</span>
                                 </motion.div>
-                                <span style={{ fontSize: '6px', fontWeight: 600, color: `${color}99`, letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: "'Inter', system-ui, sans-serif", lineHeight: 1 }}>{label}</span>
+                                <span style={{ fontSize: '6px', fontWeight: 700, color: `${color}cc`, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: "'Outfit', system-ui, sans-serif", lineHeight: 1 }}>{label}</span>
                             </Link>
                         ))}
+
+                        {/* Profile avatar */}
+                        <Link href="/profile" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, textDecoration: 'none' }}>
+                            <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.88 }}
+                                style={{
+                                    width: 32, height: 32, borderRadius: '50%',
+                                    background: user?.photoURL
+                                        ? 'none'
+                                        : 'radial-gradient(circle at 34% 26%, rgba(255,255,255,0.24) 0%, rgba(167,139,250,0.25) 44%, rgba(167,139,250,0.10) 100%)',
+                                    border: '1.5px solid rgba(167,139,250,0.65)',
+                                    boxShadow: '0 0 16px rgba(167,139,250,0.40), inset 0 1px 0 rgba(255,255,255,0.22)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    position: 'relative', overflow: 'hidden',
+                                    flexShrink: 0,
+                                }}>
+                                {user?.photoURL ? (
+                                    <img src={user.photoURL} alt={user.name ?? 'Profile'}
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                                ) : (
+                                    <>
+                                        <div style={{
+                                            position: 'absolute', top: '7%', left: '11%', width: '46%', height: '30%',
+                                            background: 'radial-gradient(ellipse, rgba(255,255,255,0.32) 0%, transparent 100%)',
+                                            borderRadius: '50%', transform: 'rotate(-22deg)', filter: 'blur(1.5px)',
+                                            pointerEvents: 'none',
+                                        }} />
+                                        {user?.name ? (
+                                            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#a78bfa', position: 'relative', zIndex: 2, fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.02em', filter: 'drop-shadow(0 0 5px #a78bfa88)' }}>
+                                                {user.name.charAt(0).toUpperCase()}
+                                            </span>
+                                        ) : (
+                                            <User size={14} style={{ color: '#a78bfa', position: 'relative', zIndex: 2, filter: 'drop-shadow(0 0 5px #a78bfa88)' }} />
+                                        )}
+                                    </>
+                                )}
+                            </motion.div>
+                            <span style={{ fontSize: '6px', fontWeight: 700, color: 'rgba(167,139,250,0.85)', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: "'Outfit', system-ui, sans-serif", lineHeight: 1 }}>Profile</span>
+                        </Link>
 
                     </div>
                 </div>
