@@ -643,6 +643,22 @@ export default function Home() {
               zIndex: 10,
             }}
           >
+            {/* ── SIAS System Title ── */}
+            <div style={{ textAlign: 'center', marginBottom: '0.6rem', paddingBottom: '0.48rem', borderBottom: `1px solid ${doshaColor}1c` }}>
+              <motion.div animate={{ opacity: [0.82, 1, 0.82] }} transition={{ duration: 3.6, repeat: Infinity }}>
+                <p style={{
+                  margin: 0, fontSize: '0.78rem', fontWeight: 900,
+                  background: `linear-gradient(90deg, ${doshaColor}, #c084fc, #22d3ee, ${doshaColor})`,
+                  WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+                  fontFamily: "'Outfit',sans-serif", letterSpacing: '-0.01em', lineHeight: 1.15,
+                }}>
+                  Smart Intelligent Ayurvedic System
+                </p>
+                <p style={{ margin: '0.1rem 0 0', fontSize: '0.44rem', fontWeight: 900, color: `${doshaColor}88`, fontFamily: "'Outfit',sans-serif", letterSpacing: '0.3em', textTransform: 'uppercase' }}>
+                  ✦ SIAS ✦
+                </p>
+              </motion.div>
+            </div>
             {/* ── Hero Greeting Row — ONE sun/moon icon + personalized greeting ── */}
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.52rem' }}>
               <div style={{ flex: 1, minWidth: 0 }}>

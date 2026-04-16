@@ -92,6 +92,10 @@ const MORNING_PRACTICE_ORDER_SAD: Record<string, number> = {
   h_pranayama: 3, h_morning_meditation: 4,
   h_morning_sunlight: 5, h_gratitude: 6, h_breakfast: 7,
 };
+const EVENING_PRACTICE_ORDER_SAD: Record<string, number> = {
+  light_dinner_early: 0, evening_walk: 1,
+  screen_free_hour: 2, journaling: 3, sleep_by_10: 4,
+};
 // SmartLog bubble ID → lifestyle-store h_* ID (for cross-section sync)
 const SMARTLOG_TO_H_ID_SAD: Record<string, string> = {
   wake: 'h_wake_early', warm_water: 'h_warm_water',
@@ -309,11 +313,15 @@ function TodoDuoGrid({
   next,
   slotColor,
   onLogCurrent,
+  isFirstCard = true,
+  onLockedClick,
 }: {
   current: HabitItem;
   next: HabitItem | null;
   slotColor: string;
   onLogCurrent: (id: string) => void;
+  isFirstCard?: boolean;
+  onLockedClick?: () => void;
 }) {
   const userName = typeof window !== 'undefined' ? getLocalUserNameSAD() : 'friend';
   const curSub = getActivitySubtitle(current.id, current.name, userName);
@@ -325,11 +333,11 @@ function TodoDuoGrid({
     <div style={{ display: 'grid', gridTemplateColumns: next ? '1fr 1fr' : '1fr', gap: '0.5rem', marginBottom: '0.65rem' }}>
       {/* ── Current Activity Card (loggable) ── */}
       <div
-        onClick={() => onLogCurrent(current.id)}
+        onClick={() => isFirstCard ? onLogCurrent(current.id) : onLockedClick?.()}
         style={{
           borderRadius: 22, padding: '0.9rem 0.78rem',
           background: `linear-gradient(145deg, ${curColor}28 0%, rgba(4,2,18,0.9) 100%)`,
-          border: `2px solid ${curColor}70`,
+          border: isFirstCard ? `2px solid ${curColor}70` : `2px solid ${curColor}35`,
           boxShadow: `0 8px 36px ${curColor}28, 0 2px 0 ${curColor}18 inset, 0 -1px 0 rgba(0,0,0,0.4) inset`,
           cursor: 'pointer', position: 'relative', overflow: 'hidden',
           minHeight: 170, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
@@ -352,7 +360,7 @@ function TodoDuoGrid({
             background: `${curColor}28`, border: `1px solid ${curColor}68`,
             color: curColor, fontWeight: 900, fontFamily: "'Outfit',sans-serif", letterSpacing: '0.1em',
           }}
-        >● NOW</motion.div>
+        >{isFirstCard ? '● NOW' : '🔒 NEXT'}</motion.div>
         {/* Card content */}
         <div style={{ position: 'relative', zIndex: 1 }}>
           <motion.span
@@ -379,22 +387,25 @@ function TodoDuoGrid({
             touchAction: 'manipulation',
           }}
         >
-          <CheckCircle2 size={13} style={{ color: curColor }} />
-          <span style={{ fontSize: '0.64rem', fontWeight: 900, color: curColor, fontFamily: "'Outfit',sans-serif", letterSpacing: '0.02em' }}>
-            Tap to Log ✦
+          {isFirstCard ? <CheckCircle2 size={13} style={{ color: curColor }} /> : <span style={{ fontSize: '0.68rem' }}>🔒</span>}
+          <span style={{ fontSize: '0.64rem', fontWeight: 900, color: isFirstCard ? curColor : `${curColor}70`, fontFamily: "'Outfit',sans-serif", letterSpacing: '0.02em' }}>
+            {isFirstCard ? 'Tap to Log ❆' : 'Log First Above ❆'}
           </span>
         </div>
       </div>
 
       {/* ── Next Activity Card — locked, fully visible, no blur ── */}
       {next && nextSub && (
-        <div style={{
-          borderRadius: 22, padding: '0.9rem 0.78rem',
-          background: `linear-gradient(145deg, ${nxtColor}12 0%, rgba(4,2,18,0.82) 100%)`,
-          border: `1.5px solid ${nxtColor}30`,
-          minHeight: 170, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-          position: 'relative', overflow: 'hidden',
-        }}>
+        <div
+          onClick={() => onLockedClick?.()}
+          style={{
+            borderRadius: 22, padding: '0.9rem 0.78rem',
+            background: `linear-gradient(145deg, ${nxtColor}12 0%, rgba(4,2,18,0.82) 100%)`,
+            border: `1.5px solid ${nxtColor}30`,
+            minHeight: 170, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+            position: 'relative', overflow: 'hidden',
+            cursor: 'pointer', WebkitTapHighlightColor: 'transparent',
+          }}>
           {/* NEXT badge */}
           <div style={{
             position: 'absolute', top: 9, right: 9,
@@ -439,6 +450,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const [celebrateId, setCelebrateId] = useState<string | null>(null);
   const [smartLoggedToday, setSmartLoggedToday] = useState<Set<string>>(new Set());
   const [activeSubHabitId, setActiveSubHabitId] = useState<string | null>(null);
+  const [blockToast, setBlockToast] = useState<string | null>(null);
   const [storyTrigger, setStoryTrigger] = useState<{ id: string; name: string; emoji: string } | null>(null);
   const pendingScrollRef = useRef<HTMLDivElement>(null);
   const [pendingSlide, setPendingSlide] = useState(0);
@@ -720,6 +732,8 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
 
   const pendingHabits = slotCfg.slotKey === 'morning'
     ? [...pendingAyurItems, ...extraPending].sort((a, b) => (MORNING_PRACTICE_ORDER_SAD[AYUR_TO_H_ID[a.id] ?? a.id] ?? 99) - (MORNING_PRACTICE_ORDER_SAD[AYUR_TO_H_ID[b.id] ?? b.id] ?? 99))
+    : slotCfg.slotKey === 'evening'
+    ? [...pendingAyurItems, ...extraPending].sort((a, b) => (EVENING_PRACTICE_ORDER_SAD[a.id] ?? 99) - (EVENING_PRACTICE_ORDER_SAD[b.id] ?? 99))
     : [...pendingAyurItems, ...extraPending];
   const doneHabits = [...doneAyurItems, ...extraDone];
 
@@ -847,6 +861,17 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
           )}
         </AnimatePresence>
 
+        {/* ── Block toast for locked grid taps ── */}
+        <AnimatePresence>
+          {blockToast && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+              style={{ marginBottom: '0.48rem', padding: '0.36rem 0.85rem', borderRadius: 99, background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.32)', fontSize: '0.68rem', fontWeight: 700, color: '#fbbf24', fontFamily: "'Outfit',sans-serif", textAlign: 'center' }}
+            >
+              {blockToast}
+            </motion.div>
+          )}
+        </AnimatePresence>
         {/* ═══ SECTION A — TO DO (always visible) ══════════════════════════ */}
         <div style={{ marginBottom: '0.72rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.48rem' }}>
@@ -905,6 +930,12 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
                         next={next}
                         slotColor={slotCfgColor}
                         onLogCurrent={(hab) => { playConfirmChime(); setActiveSubHabitId(hab); }}
+                        isFirstCard={i === 0}
+                        onLockedClick={() => {
+                          const firstName = pendingHabits[0]?.name ?? 'current activity';
+                          setBlockToast(`Log "${firstName}" first ✦`);
+                          setTimeout(() => setBlockToast(null), 2500);
+                        }}
                       />
                     </div>
                   );
