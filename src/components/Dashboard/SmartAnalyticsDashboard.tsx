@@ -456,25 +456,16 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const [pendingSlide, setPendingSlide] = useState(0);
   const autoSlideUserTouchedRef = useRef(false);
 
-  // Auto-slide: bounces 0→1→0→2→0→3→0→… so first grid is always visible between every slide
+  // Auto-slide: advances one slide at a time, wraps to 0; pauses after user swipe
   useEffect(() => {
-    let nextTarget = 1;
-    let returning = false;
     const timer = setInterval(() => {
       if (autoSlideUserTouchedRef.current) return;
       const el = pendingScrollRef.current;
       if (!el || el.scrollWidth <= el.clientWidth + 4) return;
-      const slideW = el.clientWidth + 8;
-      const totalSlides = Math.max(1, Math.round(el.scrollWidth / slideW));
-      if (returning || totalSlides <= 1) {
-        el.scrollTo({ left: 0, behavior: 'smooth' });
-        returning = false;
-      } else {
-        if (nextTarget >= totalSlides) nextTarget = 1;
-        el.scrollTo({ left: nextTarget * slideW, behavior: 'smooth' });
-        nextTarget++;
-        returning = true;
-      }
+      const nextLeft = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4
+        ? 0
+        : el.scrollLeft + el.clientWidth;
+      el.scrollTo({ left: nextLeft, behavior: 'smooth' });
     }, 3500);
     return () => clearInterval(timer);
   }, []);
@@ -933,14 +924,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
                   const curr = pendingHabits[i * 2];
                   const next = pendingHabits[i * 2 + 1] ?? null;
                   return (
-                    <div key={i} style={{
-                      flexShrink: 0, width: '100%', scrollSnapAlign: 'start',
-                      ...(i === 0 ? {
-                        position: 'sticky', left: 0, zIndex: 4,
-                        background: 'linear-gradient(90deg, rgba(3,1,14,0.97) 85%, transparent)',
-                        borderRadius: 22, boxShadow: '10px 0 22px rgba(3,1,14,0.75)',
-                      } : {}),
-                    }}>
+                    <div key={i} style={{ flexShrink: 0, width: '100%', scrollSnapAlign: 'start' }}>
                       <TodoDuoGrid
                         current={curr}
                         next={next}

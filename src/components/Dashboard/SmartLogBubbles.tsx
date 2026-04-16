@@ -1128,8 +1128,9 @@ export default function SmartLogBubbles() {
                 const max = el.scrollWidth - el.clientWidth;
                 if (max > 0) {
                     // Reserve first-bubble width so it is always visible at the left edge
-                    const firstChild = el.firstElementChild as HTMLElement | null;
-                    const reserve = firstChild ? Math.max(firstChild.offsetWidth + 12, 92) : 92;
+                    // children[0] is <style>, children[1] is the first actual bubble
+                    const firstBubbleEl = el.children[1] as HTMLElement | null;
+                    const reserve = firstBubbleEl ? Math.max(firstBubbleEl.offsetWidth + 16, 110) : 110;
                     const effectiveMax = Math.max(0, max - reserve);
                     // Sine oscillates -1 → +1; map to 0 → effectiveMax with ease-in-out
                     const phase = (elapsed % CYCLE) / CYCLE; // 0 → 1
@@ -1521,21 +1522,7 @@ export default function SmartLogBubbles() {
                         }}
                     >
                         <style>{`.smart-log-row::-webkit-scrollbar{display:none}`}</style>
-                        {timedBubbles.map((bubble, i) => {
-                            const rendered = renderBubble(bubble, i, i > 0);
-                            if (!rendered) return null;
-                            if (i === 0) return (
-                                <div key={`sfirst-${bubble.id}`} style={{
-                                    position: 'sticky', left: 0, zIndex: 4, flexShrink: 0,
-                                    background: 'linear-gradient(90deg, rgba(3,1,14,0.97) 82%, transparent)',
-                                    borderRadius: 20, paddingRight: '0.55rem',
-                                    boxShadow: '8px 0 20px rgba(3,1,14,0.72)',
-                                }}>
-                                    {rendered}
-                                </div>
-                            );
-                            return rendered;
-                        })}
+                        {timedBubbles.map((bubble, i) => renderBubble(bubble, i, i > 0))}
                         {timedBubbles.length > 0 && anytimeBubbles.length > 0 && (
                             <div style={{
                                 flexShrink: 0, width: 1, height: 64, alignSelf: 'center',
