@@ -977,7 +977,18 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
 
                 {/* ── SMART MANAGER HEADER ── */}
                 <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.2rem' }}>
-                    <div style={{ flex: 1 }}>
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                        <img
+                            src="/OneSUTRA.png"
+                            alt="OneSUTRA"
+                            style={{
+                                width: 32, height: 32, borderRadius: '50%',
+                                objectFit: 'cover', flexShrink: 0,
+                                border: '1.5px solid rgba(251,191,36,0.4)',
+                                boxShadow: '0 0 10px rgba(251,191,36,0.35)',
+                            }}
+                        />
+                        <div style={{ flex: 1 }}>
                         <h2 style={{
                             margin: 0, fontSize: '0.85rem',
                             fontWeight: 700, lineHeight: 1.2, letterSpacing: '0.12em',
@@ -998,6 +1009,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                         }}>
                             AI Sakha <span style={{ color: '#fbbf24', fontWeight: 600 }}>Bodhi</span> advises &amp; schedules
                         </p>
+                        </div>
                     </div>
                     {/* CAL Button */}
                     <motion.button
