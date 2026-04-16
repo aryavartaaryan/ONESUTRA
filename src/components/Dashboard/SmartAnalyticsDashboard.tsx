@@ -652,6 +652,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const MEAL_DEFAULTS: Partial<Record<typeof ayurSlot, string[]>> = {
     midday: ['main_meal_noon'],
     evening: ['light_dinner_early'],
+    night: ['light_dinner_early'],   // match MEAL_ALWAYS in SmartLogBubbles
   };
   const mealDefaultIds = MEAL_DEFAULTS[ayurSlot] ?? [];
   const slotAyurHabitsAll = [
@@ -732,7 +733,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
 
   const pendingHabits = slotCfg.slotKey === 'morning'
     ? [...pendingAyurItems, ...extraPending].sort((a, b) => (MORNING_PRACTICE_ORDER_SAD[AYUR_TO_H_ID[a.id] ?? a.id] ?? 99) - (MORNING_PRACTICE_ORDER_SAD[AYUR_TO_H_ID[b.id] ?? b.id] ?? 99))
-    : slotCfg.slotKey === 'evening'
+    : (slotCfg.slotKey === 'evening' || slotCfg.slotKey === 'night')
     ? [...pendingAyurItems, ...extraPending].sort((a, b) => (EVENING_PRACTICE_ORDER_SAD[a.id] ?? 99) - (EVENING_PRACTICE_ORDER_SAD[b.id] ?? 99))
     : [...pendingAyurItems, ...extraPending];
   const doneHabits = [...doneAyurItems, ...extraDone];
