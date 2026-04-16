@@ -152,6 +152,29 @@ export const FEELINGS = [
 // This makes the wellness story section a real social feed across devices.
 const FS_COLLECTION = 'wellness_stories';
 
+// ── Offline / permission retry queue ──────────────────────────────────────
+// If a Firestore write fails (e.g. missing security rule, offline), the story
+// is queued in localStorage and retried automatically on the next app mount.
+const RETRY_KEY = 'onesutra_wellness_stories_retry';
+
+function _getRetryQueue(): WellnessStory[] {
+  try { return JSON.parse(localStorage.getItem(RETRY_KEY) ?? '[]') as WellnessStory[]; } catch { return []; }
+}
+function _addToRetryQueue(story: WellnessStory): void {
+  try {
+    const q = _getRetryQueue();
+    const idx = q.findIndex(s => s.id === story.id);
+    if (idx >= 0) q.splice(idx, 1, story); else q.push(story);
+    localStorage.setItem(RETRY_KEY, JSON.stringify(q.slice(0, 20)));
+  } catch { /* ignore */ }
+}
+function _removeFromRetryQueue(id: string): void {
+  try {
+    const q = _getRetryQueue().filter(s => s.id !== id);
+    localStorage.setItem(RETRY_KEY, JSON.stringify(q));
+  } catch { /* ignore */ }
+}
+
 export async function saveWellnessStoryToFirestore(story: WellnessStory): Promise<void> {
   try {
     const { getFirebaseFirestore } = await import('./firebase');
@@ -164,7 +187,24 @@ export async function saveWellnessStoryToFirestore(story: WellnessStory): Promis
       delete payload.imageDataUrl;
     }
     await setDoc(doc(db, FS_COLLECTION, story.id), payload);
-  } catch { /* offline — local state already saved */ }
+    _removeFromRetryQueue(story.id); // success — clear from retry queue
+  } catch (err) {
+    // Log so developer can see if it's a rules issue
+    console.warn('[WellnessStory] Firestore write failed — queued for retry:', err);
+    _addToRetryQueue(story); // will be retried on next app mount
+  }
+}
+
+/** Call once on app mount to retry any stories that failed to sync previously. */
+export async function retryPendingWellnessStories(): Promise<void> {
+  if (typeof window === 'undefined') return;
+  const today = getTodayIST();
+  // Only retry today's stories — expired ones are discarded
+  const pending = _getRetryQueue().filter(s => (s.date ?? '') === today);
+  if (pending.length === 0) return;
+  for (const story of pending) {
+    await saveWellnessStoryToFirestore(story);
+  }
 }
 
 export async function deleteWellnessStoryFromFirestore(id: string): Promise<void> {

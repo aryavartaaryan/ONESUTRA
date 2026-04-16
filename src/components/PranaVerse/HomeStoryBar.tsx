@@ -10,7 +10,7 @@ import { BODHI_DEFAULT_STORIES } from '@/components/HomePage/StickyTopNav';
 import { MANTRA_REELS } from '@/components/PranaVerse/MantraReelFeed';
 import { useDoshaEngine } from '@/hooks/useDoshaEngine';
 import { useLifestyleEngine } from '@/hooks/useLifestyleEngine';
-import { getWellnessStories, deleteWellnessStory, deleteWellnessStoryFromFirestore, subscribeToWellnessStories, getStoryBg, type WellnessStory } from '@/lib/wellnessStories';
+import { getWellnessStories, deleteWellnessStory, deleteWellnessStoryFromFirestore, subscribeToWellnessStories, retryPendingWellnessStories, getStoryBg, type WellnessStory } from '@/lib/wellnessStories';
 
 // ── User story types (mirroring StickyTopNav) ─────────────────────────
 type UserStoryCategory = 'task' | 'challenge' | 'idea' | 'issue' | 'wellness' | 'log';
@@ -2014,6 +2014,8 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
         // Populate from localStorage immediately on mount so stories appear
         // even before the Firestore subscription resolves (covers page-refresh case)
         handleLocalUpdate();
+        // Retry any stories that previously failed to reach Firestore (e.g. missing rule)
+        void retryPendingWellnessStories();
 
         // Firestore real-time subscription — all users' today stories (social feed)
         const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());

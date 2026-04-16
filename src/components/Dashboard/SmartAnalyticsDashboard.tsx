@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -16,6 +16,7 @@ import {
   getISTTimeStr, getISODateIST, updateLateStreak,
 } from '@/lib/habitWindows';
 import { getMorningMood } from '@/components/MoodGarden/MorningMoodCards';
+import WellnessStoryCreator from './WellnessStoryCreator';
 import {
   AYURVEDIC_HABITS, AYUR_TO_H_ID, H_ID_TO_AYUR,
   getHabitsForSlot, getTodayAyurCompletedIds, setAyurHabitCompleted,
@@ -438,6 +439,9 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const [celebrateId, setCelebrateId] = useState<string | null>(null);
   const [smartLoggedToday, setSmartLoggedToday] = useState<Set<string>>(new Set());
   const [activeSubHabitId, setActiveSubHabitId] = useState<string | null>(null);
+  const [storyTrigger, setStoryTrigger] = useState<{ id: string; name: string; emoji: string } | null>(null);
+  const pendingScrollRef = useRef<HTMLDivElement>(null);
+  const [pendingSlide, setPendingSlide] = useState(0);
   const [expandedSlots, setExpandedSlots] = useState<Record<string, boolean>>({});
   const [progressOpen, setProgressOpen] = useState(false);
   const [loggedOpen, setLoggedOpen] = useState(false);
@@ -551,6 +555,8 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
     setCelebrateId(id);
     setTimeout(() => setCelebrateId(null), 1800);
     if (!ayurHabit) return;
+    // Trigger story sharing after the celebration toast
+    setTimeout(() => setStoryTrigger({ id, name: ayurHabit.name, emoji: ayurHabit.emoji }), 1600);
     try {
       const loggedAtMs = Date.now();
       const logTime = getISTTimeStr(loggedAtMs);
@@ -853,24 +859,50 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '0.3rem 0.9rem', borderRadius: 99, background: 'rgba(139,92,246,0.22)', border: '1px solid rgba(167,139,250,0.38)', color: '#c4b5fd', fontSize: '0.7rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}><Plus size={10} /> Add Habits</span>
             </motion.div>
           ) : pendingHabits.length > 0 ? (
-            <AnimatePresence mode="wait">
-              <motion.div key={pendingHabits[0].id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.3 }}>
-                <TodoDuoGrid
-                  current={pendingHabits[0]}
-                  next={pendingHabits[1] ?? null}
-                  slotColor={slotCfgColor}
-                  onLogCurrent={(id) => { playConfirmChime(); setActiveSubHabitId(id); }}
-                />
-                {pendingHabits.length > 2 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.28rem', justifyContent: 'center', marginTop: '0.1rem', marginBottom: '0.2rem' }}>
-                    {pendingHabits.slice(2).map((_, i) => (
-                      <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,0.14)', flexShrink: 0 }} />
-                    ))}
-                    <span style={{ fontSize: '0.46rem', color: 'rgba(255,255,255,0.22)', fontFamily: "'Outfit',sans-serif", marginLeft: 4 }}>{pendingHabits.length - 2} more ahead</span>
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
+            <div>
+              <style>{`.sad-pending::-webkit-scrollbar{display:none}`}</style>
+              <div
+                ref={pendingScrollRef}
+                className="sad-pending"
+                onScroll={() => {
+                  if (!pendingScrollRef.current) return;
+                  const el = pendingScrollRef.current;
+                  const slide = Math.round(el.scrollLeft / Math.max(1, el.clientWidth));
+                  setPendingSlide(slide);
+                }}
+                style={{
+                  display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory',
+                  scrollbarWidth: 'none', gap: '0.45rem',
+                }}
+              >
+                {Array.from({ length: Math.ceil(pendingHabits.length / 2) }, (_, i) => {
+                  const curr = pendingHabits[i * 2];
+                  const next = pendingHabits[i * 2 + 1] ?? null;
+                  return (
+                    <div key={i} style={{ flexShrink: 0, width: '100%', scrollSnapAlign: 'start' }}>
+                      <TodoDuoGrid
+                        current={curr}
+                        next={next}
+                        slotColor={slotCfgColor}
+                        onLogCurrent={(hab) => { playConfirmChime(); setActiveSubHabitId(hab); }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+              {Math.ceil(pendingHabits.length / 2) > 1 && (
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.3rem', marginTop: '0.3rem', marginBottom: '0.1rem' }}>
+                  {Array.from({ length: Math.ceil(pendingHabits.length / 2) }, (_, i) => (
+                    <motion.div
+                      key={i}
+                      animate={{ width: i === pendingSlide ? 18 : 5, background: i === pendingSlide ? slotCfgColor : 'rgba(255,255,255,0.18)' }}
+                      transition={{ duration: 0.25 }}
+                      style={{ height: 4, borderRadius: 99 }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           ) : totalHabits > 0 ? (
             <div style={{ textAlign: 'center', padding: '0.55rem', border: '1px solid rgba(74,222,128,0.2)', borderRadius: 12, background: 'rgba(74,222,128,0.04)' }}>
               <motion.p animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }} style={{ margin: '0 0 0.1rem', fontSize: '1.1rem' }}>🪔</motion.p>
@@ -1022,6 +1054,18 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
         </motion.button>
       </div>
     </motion.div>
+
+    {/* ── Wellness Story Creator (triggered after SmartAnalytics log) ── */}
+    {mounted && storyTrigger && (
+      <WellnessStoryCreator
+        habitId={storyTrigger.id}
+        habitName={storyTrigger.name}
+        habitEmoji={storyTrigger.emoji}
+        userName={getLocalUserNameSAD()}
+        userId={user?.uid}
+        onClose={() => setStoryTrigger(null)}
+      />
+    )}
 
     {/* ── Sub-option sheet via portal so it escapes overflow:hidden ── */}
     {mounted && activeSubHabitId && createPortal(
