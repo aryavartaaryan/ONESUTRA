@@ -725,9 +725,9 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const EVENING_ORDER: Record<string, number> = {
     h_evening_meditation: 1, evening_meditation: 1,
     light_dinner_early: 2,
-    screen_free_hour: 3, h_digital_sunset: 3,
-    journaling: 4, h_brain_dump: 4,
-    evening_walk: 5, h_walk: 5,
+    evening_walk: 3, h_walk: 3,
+    screen_free_hour: 4, h_digital_sunset: 4,
+    journaling: 5, h_brain_dump: 5,
   };
   const pendingHabits = slotCfg.slotKey === 'morning'
     ? [...pendingAyurItems, ...extraPending].sort((a, b) => (MORNING_PRACTICE_ORDER_SAD[AYUR_TO_H_ID[a.id] ?? a.id] ?? 99) - (MORNING_PRACTICE_ORDER_SAD[AYUR_TO_H_ID[b.id] ?? b.id] ?? 99))
