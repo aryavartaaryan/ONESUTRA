@@ -2015,31 +2015,6 @@ export default function StickyTopNav() {
                             </Link>
                         ))}
 
-                        {/* ── Profile avatar button (top nav) ── */}
-                        <motion.button
-                            whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.90 }}
-                            onClick={() => { if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('openProfileModal')); }}
-                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                        >
-                            <motion.div
-                                animate={{ boxShadow: ['0 0 0 0 #f472b638', '0 0 0 3px #f472b600'] }}
-                                transition={{ duration: 2.8, repeat: Infinity }}
-                                style={{
-                                    width: 32, height: 32, borderRadius: '50%',
-                                    background: 'radial-gradient(circle at 36% 26%, rgba(255,255,255,0.30) 0%, #f472b622 26%, #f472b62a 52%, #f472b61a 76%, #f472b60c 100%)',
-                                    backdropFilter: 'blur(10px) saturate(180%)',
-                                    WebkitBackdropFilter: 'blur(10px) saturate(180%)',
-                                    border: '1.2px solid rgba(255,255,255,0.24)',
-                                    boxShadow: '0 0 12px #f472b644, 0 2px 8px rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.24)',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    position: 'relative', overflow: 'hidden',
-                                }}
-                            >
-                                <div style={{ position: 'absolute', top: '6%', left: '10%', width: '52%', height: '35%', background: 'radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0.22) 40%, transparent 100%)', borderRadius: '50%', transform: 'rotate(-25deg)', filter: 'blur(2px)' }} />
-                                <User size={14} style={{ color: '#f472b6', position: 'relative', zIndex: 2, filter: 'drop-shadow(0 0 5px #f472b688)' }} />
-                            </motion.div>
-                            <span style={{ fontSize: '6px', fontWeight: 600, color: '#f472b699', letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: "'Inter', system-ui, sans-serif", lineHeight: 1 }}>Profile</span>
-                        </motion.button>
                     </div>
                 </div>
 

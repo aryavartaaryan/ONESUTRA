@@ -53,6 +53,7 @@ export default function WellnessStoryCreator({ habitId, habitName, habitEmoji, u
   const [feelingEmoji, setFeelingEmoji] = useState<string | null>(null);
   const [step, setStep] = useState<'create' | 'sharing' | 'done'>('create');
   const fileRef = useRef<HTMLInputElement>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
   const colors = getHabitColors(habitId);
   const bg = getStoryBg(habitId);
 
@@ -208,21 +209,34 @@ export default function WellnessStoryCreator({ habitId, habitName, habitEmoji, u
                 Add a photo (optional)
               </p>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                <motion.button
-                  whileTap={{ scale: 0.88 }}
-                  onClick={() => fileRef.current?.click()}
-                  style={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
-                    padding: '0.7rem 1.1rem', borderRadius: 16,
-                    background: `${colors[0]}14`, border: `1.5px dashed ${colors[0]}55`,
-                    cursor: 'pointer', color: colors[0],
-                  }}
-                >
-                  <Camera size={18} strokeWidth={2} />
-                  <span style={{ fontSize: '0.48rem', fontWeight: 700, fontFamily: "'Outfit',sans-serif", whiteSpace: 'nowrap' }}>
-                    {imageDataUrl ? 'Change photo' : 'Camera / Gallery'}
-                  </span>
-                </motion.button>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <motion.button
+                    whileTap={{ scale: 0.88 }}
+                    onClick={() => fileRef.current?.click()}
+                    style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                      padding: '0.7rem 0.9rem', borderRadius: 16,
+                      background: `${colors[0]}14`, border: `1.5px dashed ${colors[0]}55`,
+                      cursor: 'pointer', color: colors[0],
+                    }}
+                  >
+                    <Camera size={16} strokeWidth={2} />
+                    <span style={{ fontSize: '0.44rem', fontWeight: 700, fontFamily: "'Outfit',sans-serif", whiteSpace: 'nowrap' }}>Camera</span>
+                  </motion.button>
+                  <motion.button
+                    whileTap={{ scale: 0.88 }}
+                    onClick={() => galleryRef.current?.click()}
+                    style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                      padding: '0.7rem 0.9rem', borderRadius: 16,
+                      background: 'rgba(255,255,255,0.06)', border: '1.5px dashed rgba(255,255,255,0.22)',
+                      cursor: 'pointer', color: 'rgba(255,255,255,0.55)',
+                    }}
+                  >
+                    <span style={{ fontSize: '1rem', lineHeight: 1 }}>🖼️</span>
+                    <span style={{ fontSize: '0.44rem', fontWeight: 700, fontFamily: "'Outfit',sans-serif", whiteSpace: 'nowrap' }}>Gallery</span>
+                  </motion.button>
+                </div>
 
                 {imageDataUrl && (
                   <motion.div
@@ -244,6 +258,7 @@ export default function WellnessStoryCreator({ habitId, habitName, habitEmoji, u
                 </p>
               </div>
               <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={pickPhoto} style={{ display: 'none' }} />
+              <input ref={galleryRef} type="file" accept="image/*" onChange={pickPhoto} style={{ display: 'none' }} />
             </div>
 
             {/* Feeling selector */}

@@ -770,38 +770,39 @@ export default function Home() {
           </motion.div>
         )}
 
-        {/* ══ SMART LOG BUBBLES — same glass style as LifestylePanel ══ */}
+        {/* ══ FUSED: SMART ANALYTICS + SMART LOG BUBBLES ══ */}
         {!isPortalOpen && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            style={{
-              position: 'relative', zIndex: 10,
-              overflow: 'hidden',
-              border: '1px solid rgba(255,255,255,0.09)',
-              borderRadius: 26,
-              margin: '0 0.6rem 1.2rem',
-              padding: '0.3rem 0',
-              boxShadow: '0 24px 72px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)',
-            }}
+            transition={{ delay: 0.18, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           >
-            {/* Identical nature bg layer as LifestylePanel */}
-            <div style={{ position: 'absolute', inset: 0, backgroundImage: `url('${globalBg}')`, backgroundSize: 'cover', backgroundPosition: 'center', transform: 'scale(1.07)', filter: 'blur(2px) brightness(0.68) saturate(1.15)', zIndex: 0 }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(4,2,16,0.06) 0%, rgba(4,2,16,0.28) 60%, rgba(4,2,16,0.42) 100%)', zIndex: 1 }} />
-            <div style={{ position: 'relative', zIndex: 2 }}>
-              <SmartLogBubbles />
+            {/* Smart Analytics (TodoDuoGrid at top + collapsible progress/logged) */}
+            <SmartAnalyticsDashboard globalBg={globalBg} />
+
+            {/* Smart Log Bubbles — fused below analytics, same section feel */}
+            <div
+              style={{
+                position: 'relative', zIndex: 10,
+                overflow: 'hidden',
+                border: '1px solid rgba(255,255,255,0.07)',
+                borderRadius: 26,
+                margin: '-0.3rem 0.6rem 1.2rem',
+                padding: '0.3rem 0',
+                boxShadow: '0 16px 56px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
+              }}
+            >
+              <div style={{ position: 'absolute', inset: 0, backgroundImage: `url('${globalBg}')`, backgroundSize: 'cover', backgroundPosition: 'center', transform: 'scale(1.07)', filter: 'blur(2px) brightness(0.68) saturate(1.15)', zIndex: 0 }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(4,2,16,0.06) 0%, rgba(4,2,16,0.28) 60%, rgba(4,2,16,0.42) 100%)', zIndex: 1 }} />
+              <div style={{ position: 'relative', zIndex: 2 }}>
+                <SmartLogBubbles />
+              </div>
             </div>
           </motion.div>
         )}
 
-        {/* ══ PANCHAKOSHA STRIP — between Smart Bubbles & Smart Analytics ══ */}
+        {/* ══ PANCHAKOSHA STRIP ══ */}
         {!isPortalOpen && <PanchakoshaNav />}
-
-        {/* ══ SMART ANALYTICS — below the logging system ══ */}
-        {!isPortalOpen && (
-          <SmartAnalyticsDashboard globalBg={globalBg} />
-        )}
 
         {/* ══ LIFESTYLE HUB — integrated from /lifestyle ══ */}
         {!isPortalOpen && (
