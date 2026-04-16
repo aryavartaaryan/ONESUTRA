@@ -10,7 +10,7 @@ import { BODHI_DEFAULT_STORIES } from '@/components/HomePage/StickyTopNav';
 import { MANTRA_REELS } from '@/components/PranaVerse/MantraReelFeed';
 import { useDoshaEngine } from '@/hooks/useDoshaEngine';
 import { useLifestyleEngine } from '@/hooks/useLifestyleEngine';
-import { getWellnessStories, deleteWellnessStory, getStoryBg, type WellnessStory } from '@/lib/wellnessStories';
+import { getWellnessStories, deleteWellnessStory, deleteWellnessStoryFromFirestore, subscribeToWellnessStories, getStoryBg, type WellnessStory } from '@/lib/wellnessStories';
 
 // ── User story types (mirroring StickyTopNav) ─────────────────────────
 type UserStoryCategory = 'task' | 'challenge' | 'idea' | 'issue' | 'wellness' | 'log';
@@ -1890,10 +1890,11 @@ function RectStoryCard({
 }
 
 // ── Wellness Story Viewer ──────────────────────────────────────────────────
-function WellnessStoryViewer({ stories, currentIdx, onClose, onNext, onPrev, onDelete }: {
+function WellnessStoryViewer({ stories, currentIdx, onClose, onNext, onPrev, onDelete, currentUserId }: {
     stories: WellnessStory[]; currentIdx: number;
     onClose: () => void; onNext: () => void; onPrev: () => void;
     onDelete: (id: string) => void;
+    currentUserId?: string;
 }) {
     const story = stories[currentIdx];
     useEffect(() => { document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = ''; }; }, []);
@@ -1926,9 +1927,11 @@ function WellnessStoryViewer({ stories, currentIdx, onClose, onNext, onPrev, onD
                     ))}
                 </div>
                 <div style={{ position: 'absolute', top: 30, right: 12, display: 'flex', gap: 8, zIndex: 20 }}>
+                    {(!currentUserId || !story.userId || story.userId === currentUserId) && (
                     <button onClick={e => { e.stopPropagation(); if (window.confirm('Remove this story?')) { onDelete(story.id); if (stories.length <= 1) onClose(); else onNext(); } }}
                         style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(239,68,68,0.25)', backdropFilter: 'blur(10px)', border: '1px solid rgba(239,68,68,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fca5a5', fontSize: '0.65rem', fontWeight: 700, fontFamily: "'Outfit',sans-serif" }}
                     >Del</button>
+                    )}
                     <button onClick={e => { e.stopPropagation(); onClose(); }}
                         style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(0,0,0,0.38)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff' }}
                     ><X size={15} /></button>
@@ -1984,18 +1987,54 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
     const [activeLogIdx, setActiveLogIdx] = useState<number | null>(null);
     const [wellnessStories, setWellnessStories] = useState<WellnessStory[]>([]);
     const [activeWellnessIdx, setActiveWellnessIdx] = useState<number | null>(null);
+    const [currentUserId, setCurrentUserId] = useState<string>('');
 
     useEffect(() => {
-        const currentUserId = (() => { try { return JSON.parse(localStorage.getItem('onesutra_auth_v1') ?? '{}')?.uid ?? ''; } catch { return ''; } })();
-        const refresh = () => setWellnessStories(getWellnessStories(currentUserId || undefined));
-        refresh();
-        window.addEventListener('wellness-story-updated', refresh);
-        window.addEventListener('focus', refresh);
+        const uid = (() => { try { return JSON.parse(localStorage.getItem('onesutra_auth_v1') ?? '{}')?.uid ?? ''; } catch { return ''; } })();
+        setCurrentUserId(uid);
+
+        // Helper: sort stories — current user's stories always first, then by time
+        const sortStories = (arr: WellnessStory[]) =>
+            [...arr].sort((a, b) => {
+                if (uid && a.userId === uid && b.userId !== uid) return -1;
+                if (uid && b.userId === uid && a.userId !== uid) return 1;
+                return b.timestamp - a.timestamp;
+            });
+
+        // Local fallback — immediate UI update when THIS device creates a story
+        const handleLocalUpdate = () => {
+            const local = getWellnessStories(undefined);
+            setWellnessStories(prev => {
+                const byId = new Map(prev.map(s => [s.id, s]));
+                local.forEach(s => { if (!byId.has(s.id)) byId.set(s.id, s); });
+                return sortStories(Array.from(byId.values()));
+            });
+        };
+        window.addEventListener('wellness-story-updated', handleLocalUpdate);
+
+        // Firestore real-time subscription — all users' today stories (social feed)
+        const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+        const unsubFirestore = subscribeToWellnessStories(today, (firestoreStories) => {
+            // Merge Firestore stories with any local-only stories not yet written
+            const local = getWellnessStories(undefined);
+            const byId = new Map<string, WellnessStory>();
+            firestoreStories.forEach(s => byId.set(s.id, s));
+            local.forEach(s => { if (!byId.has(s.id)) byId.set(s.id, s); });
+            setWellnessStories(sortStories(Array.from(byId.values())));
+        });
+
         // Midnight reset — clear stories when day rolls over
         const now = new Date();
-        const midnight = new Date(now); midnight.setDate(midnight.getDate() + 1); midnight.setHours(0, 0, 0, 0);
-        const midnightTimer = setTimeout(() => { refresh(); }, midnight.getTime() - now.getTime());
-        return () => { window.removeEventListener('wellness-story-updated', refresh); window.removeEventListener('focus', refresh); clearTimeout(midnightTimer); };
+        const midnight = new Date(now);
+        midnight.setDate(midnight.getDate() + 1);
+        midnight.setHours(0, 0, 0, 0);
+        const midnightTimer = setTimeout(() => { setWellnessStories([]); }, midnight.getTime() - now.getTime());
+
+        return () => {
+            window.removeEventListener('wellness-story-updated', handleLocalUpdate);
+            unsubFirestore();
+            clearTimeout(midnightTimer);
+        };
     }, []);
 
     useEffect(() => { if (activeHabits.length === 0) seedStarterHabits(); }, []);  // seed once on mount
@@ -2236,19 +2275,27 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
                 pointerEvents: isAnyViewerOpen ? 'none' : 'auto',
                 scrollBehavior: 'auto',
             }}>
-                {/* ── WELLNESS STORIES bubble (user's logged habit stories) ── */}
-                {wellnessStories.length > 0 && (
-                    rectangular ? (
+                {/* ── WELLNESS STORIES bubble (user's + friends' logged habit stories) ── */}
+                {wellnessStories.length > 0 && (() => {
+                    const firstStory = wellnessStories[0];
+                    const isOwnFirst = currentUserId && firstStory?.userId === currentUserId;
+                    const bubbleLabel = isOwnFirst
+                        ? 'My Wellness'
+                        : `${firstStory?.userName ?? ''}'s Story`;
+                    const bubbleSublabel = isOwnFirst
+                        ? 'My Story Today'
+                        : `${firstStory?.userName ?? ''}'s Story`;
+                    return rectangular ? (
                         <RectStoryCard
                             icon="🌿"
                             label={`${wellnessStories.length} Wellness`}
-                            sublabel={wellnessStories.length === 1 && wellnessStories[0].userName && wellnessStories[0].userName !== userName.split(' ')[0] ? `${wellnessStories[0].userName}'s Story` : 'My Story Today'}
+                            sublabel={bubbleSublabel}
                             color="#34d399"
                             ring="conic-gradient(#34d399,#fbbf24,#34d399)"
-                            thumbBg={wellnessStories[0].imageDataUrl ?? getStoryBg(wellnessStories[0].habitId)}
+                            thumbBg={firstStory.imageDataUrl ?? getStoryBg(firstStory.habitId)}
                             index={-1}
                             isViewed={wellnessStories.every(s => viewedIds.has(s.id))}
-                            onClick={() => { setActiveWellnessIdx(0); setViewedIds(v => new Set([...v, wellnessStories[0].id])); window.history.pushState({ pvStory: true }, ''); }}
+                            onClick={() => { setActiveWellnessIdx(0); setViewedIds(v => new Set([...v, firstStory.id])); window.history.pushState({ pvStory: true }, ''); }}
                         />
                     ) : (
                         <motion.div
@@ -2256,7 +2303,7 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             transition={{ type: 'spring', stiffness: 300, damping: 22 }}
                             whileTap={{ scale: 0.91 }}
-                            onClick={() => { setActiveWellnessIdx(0); setViewedIds(v => new Set([...v, wellnessStories[0].id])); window.history.pushState({ pvStory: true }, ''); }}
+                            onClick={() => { setActiveWellnessIdx(0); setViewedIds(v => new Set([...v, firstStory.id])); window.history.pushState({ pvStory: true }, ''); }}
                             style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', flexShrink: 0, cursor: 'pointer', scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
                         >
                             <div style={{
@@ -2269,13 +2316,13 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
                             }}>
                                 <div style={{ width: '100%', height: '100%', borderRadius: '50%', border: '2.5px solid #000', overflow: 'hidden', position: 'relative', filter: wellnessStories.every(s => viewedIds.has(s.id)) ? 'grayscale(0.6) brightness(0.55)' : 'none' }}>
                                     <img
-                                        src={wellnessStories[0].imageDataUrl ?? getStoryBg(wellnessStories[0].habitId)}
+                                        src={firstStory.imageDataUrl ?? getStoryBg(firstStory.habitId)}
                                         alt="Wellness"
                                         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.72) saturate(1.2)' }}
                                     />
                                     <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 40%, #34d39944 0%, transparent 72%)' }} />
                                     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <span style={{ fontSize: '1.55rem', filter: 'drop-shadow(0 0 10px #34d399) drop-shadow(0 0 5px #34d399cc)' }}>{wellnessStories[0].emoji}</span>
+                                        <span style={{ fontSize: '1.55rem', filter: 'drop-shadow(0 0 10px #34d399) drop-shadow(0 0 5px #34d399cc)' }}>{firstStory.emoji}</span>
                                     </div>
                                 </div>
                                 {!wellnessStories.every(s => viewedIds.has(s.id)) && (
@@ -2284,10 +2331,10 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
                                     </div>
                                 )}
                             </div>
-                            <span style={{ fontSize: '0.52rem', fontFamily: "'Inter',sans-serif", fontWeight: 700, color: wellnessStories.every(s => viewedIds.has(s.id)) ? 'rgba(255,255,255,0.28)' : '#34d399', letterSpacing: '0.04em', textShadow: wellnessStories.every(s => viewedIds.has(s.id)) ? 'none' : '0 0 8px #34d39980' }}>{wellnessStories.length === 1 && wellnessStories[0].userName && wellnessStories[0].userName !== userName.split(' ')[0] ? `${wellnessStories[0].userName}'s Story` : 'My Wellness'}</span>
+                            <span style={{ fontSize: '0.52rem', fontFamily: "'Inter',sans-serif", fontWeight: 700, color: wellnessStories.every(s => viewedIds.has(s.id)) ? 'rgba(255,255,255,0.28)' : '#34d399', letterSpacing: '0.04em', textShadow: wellnessStories.every(s => viewedIds.has(s.id)) ? 'none' : '0 0 8px #34d39980' }}>{bubbleLabel}</span>
                         </motion.div>
-                    )
-                )}
+                    );
+                })()}
 
                 {/* ── USER TASK STORIES: ONE grouped card per category ── */}
                 {(['task', 'challenge', 'idea', 'issue', 'wellness'] as const).map((cat, i) => {
@@ -2537,6 +2584,7 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
                             <WellnessStoryViewer
                                 stories={wellnessStories}
                                 currentIdx={activeWellnessIdx}
+                                currentUserId={currentUserId}
                                 onClose={() => setActiveWellnessIdx(null)}
                                 onNext={() => {
                                     if (activeWellnessIdx < wellnessStories.length - 1) {
@@ -2547,7 +2595,8 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
                                 onPrev={() => { if (activeWellnessIdx > 0) setActiveWellnessIdx(i => i! - 1); }}
                                 onDelete={(id) => {
                                     deleteWellnessStory(id);
-                                    setWellnessStories(getWellnessStories());
+                                    void deleteWellnessStoryFromFirestore(id);
+                                    setWellnessStories(prev => prev.filter(s => s.id !== id));
                                 }}
                             />
                         )}

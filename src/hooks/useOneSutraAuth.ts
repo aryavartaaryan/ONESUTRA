@@ -30,6 +30,8 @@ const USER_DATA_KEYS = [
     'daily_log_story',
     'vedic_user_name',
     'onesutra_dosha_v1',
+    'onesutra_wellness_stories_v1',  // local wellness story cache — must clear on account switch
+    'onesutra_daily_log_story_v1',   // activity log cache — prevents cross-account bleed
 ] as const;
 
 function clearUserData() {

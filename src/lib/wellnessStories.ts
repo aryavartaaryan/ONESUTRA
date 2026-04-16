@@ -146,3 +146,58 @@ export const FEELINGS = [
   { emoji: '🌟', label: 'Inspired' },
   { emoji: '🙏', label: 'Grateful' },
 ] as const;
+
+// ── Firestore Wellness Story Sync ─────────────────────────────────────────
+// Collection: 'wellness_stories' (top-level — all users' stories visible to all)
+// This makes the wellness story section a real social feed across devices.
+const FS_COLLECTION = 'wellness_stories';
+
+export async function saveWellnessStoryToFirestore(story: WellnessStory): Promise<void> {
+  try {
+    const { getFirebaseFirestore } = await import('./firebase');
+    const { doc, setDoc } = await import('firebase/firestore');
+    const db = await getFirebaseFirestore();
+    // Strip imageDataUrl if it's very large to stay within Firestore's 1 MB doc limit.
+    // The local copy on the creator's device keeps the full-quality image.
+    const payload: Record<string, unknown> = { ...story };
+    if (typeof story.imageDataUrl === 'string' && story.imageDataUrl.length > 700_000) {
+      delete payload.imageDataUrl;
+    }
+    await setDoc(doc(db, FS_COLLECTION, story.id), payload);
+  } catch { /* offline — local state already saved */ }
+}
+
+export async function deleteWellnessStoryFromFirestore(id: string): Promise<void> {
+  try {
+    const { getFirebaseFirestore } = await import('./firebase');
+    const { doc, deleteDoc } = await import('firebase/firestore');
+    const db = await getFirebaseFirestore();
+    await deleteDoc(doc(db, FS_COLLECTION, id));
+  } catch { /* ignore */ }
+}
+
+// Real-time listener for ALL users' wellness stories for a given IST date.
+// Returns an unsubscribe function.
+export function subscribeToWellnessStories(
+  date: string,
+  onUpdate: (stories: WellnessStory[]) => void
+): () => void {
+  let unsubFn: () => void = () => {};
+  (async () => {
+    try {
+      const { getFirebaseFirestore } = await import('./firebase');
+      const { collection, query, where, onSnapshot } = await import('firebase/firestore');
+      const db = await getFirebaseFirestore();
+      unsubFn = onSnapshot(
+        query(collection(db, FS_COLLECTION), where('date', '==', date)),
+        (snap) => {
+          const stories = snap.docs
+            .map(d => d.data() as WellnessStory)
+            .sort((a, b) => b.timestamp - a.timestamp);
+          onUpdate(stories);
+        }
+      );
+    } catch { /* ignore — Firestore unavailable offline */ }
+  })();
+  return () => unsubFn();
+}

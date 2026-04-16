@@ -6,6 +6,7 @@ import { X, Camera, Share2, Sparkles } from 'lucide-react';
 import {
   type WellnessStory,
   saveWellnessStory,
+  saveWellnessStoryToFirestore,
   generateStoryText,
   FEELINGS,
   getStoryBg,
@@ -92,7 +93,8 @@ export default function WellnessStoryCreator({ habitId, habitName, habitEmoji, u
       color: colors[0],
       accentColor: colors[1],
     };
-    saveWellnessStory(story);
+    saveWellnessStory(story);               // local — instant feedback on this device
+    void saveWellnessStoryToFirestore(story); // Firestore — syncs to all devices & friends
     await new Promise(r => setTimeout(r, 800));
     setStep('done');
     setTimeout(onClose, 1400);
