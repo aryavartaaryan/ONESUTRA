@@ -1929,7 +1929,7 @@ export default function StickyTopNav() {
                 borderBottom: '1px solid rgba(255,255,255,0.07)',
                 boxShadow: '0 1px 0 rgba(251,191,36,0.10), 0 12px 48px rgba(0,0,0,0.70)',
                 /* No overflow:hidden — story cards at 154px need full vertical space */
-                borderRadius: '0 0 24px 24px',
+                borderRadius: 0,
                 transform: headerVisible ? 'translateY(0)' : 'translateY(-110%)',
                 transition: 'transform 0.48s cubic-bezier(0.4,0,0.2,1)',
                 willChange: 'transform',

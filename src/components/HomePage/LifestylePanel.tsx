@@ -1076,13 +1076,14 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
   const doshaColor = prakriti ? (DOSHA_COLORS[prakriti.primary] ?? '#a78bfa') : '#a78bfa';
   // Color based on the CURRENT TIME PERIOD's dominant dosha (not user prakriti)
   const phaseColor = DOSHA_COLORS[currentPhase.dominantDosha] ?? doshaColor;
+  const phaseFirstName = firstName || (user?.name ?? 'Friend').split(' ')[0];
   const PHASE_HEADLINES: Record<string, string> = {
-    'brahma-muhurta': '✦ Sacred hour — rise before the world, meditate & set your sankalpa',
-    'kapha-morning':  '🌿 Kapha time — take your bath, do Surya Namaskar, fire your Agni NOW',
-    'pitta-midday':   '🔥 Peak Pitta fire — eat your main meal & tackle your most vital work',
-    'vata-afternoon': '💨 Vata flows — best time to create, communicate & think freely',
-    'kapha-evening':  '🌙 Kapha grounds — light dinner, gentle walk, screens off, honour Ojas',
-    'pitta-night':    '🛌 Sleep now — Pitta heals cells at night · being awake robs tomorrow',
+    'brahma-muhurta': `✦ ${phaseFirstName}, it’s Vata Sacred Hour (2–6 AM). Vata governs movement & consciousness — the cosmos is silent and your mind is at its purest. Meditate, chant your mantra, set a sankalpa. Every minute here equals an hour of daytime practice.`,
+    'kapha-morning':  `🌿 ${phaseFirstName}, it’s Kapha Morning (6–10 AM). Kapha brings heaviness — the antidote is action. Take your bath NOW, do Surya Namaskar or brisk movement, eat a warm light breakfast. Move with intent or Kapha will weigh you down all day.`,
+    'pitta-midday':   `🔥 ${phaseFirstName}, it’s Pitta Noon (10 AM–2 PM). Pitta’s fire is at absolute peak — Agni is strongest now. Eat your largest meal, tackle your hardest decisions, go deep on your most vital work. This is your daily power window.`,
+    'vata-afternoon': `💨 ${phaseFirstName}, it’s Vata Afternoon (2–6 PM). Vata rules air, creativity & communication — ideal for brainstorming, writing, calls & creative expression. Sip herbal tea, stay light, avoid heavy snacks. Let your ideas flow freely.`,
+    'kapha-evening':  `🌙 ${phaseFirstName}, it’s Kapha Evening (6–10 PM). Kapha grounds and settles you — eat a light early dinner, take a gentle walk, dim the lights, put screens away. This is Ojas preservation time. Every wise choice now powers tomorrow.`,
+    'pitta-night':    `🛌 ${phaseFirstName}, it’s Pitta Night (10 PM–2 AM). Pitta’s inner fire does deep cellular repair right now — staying awake steals from your health. Sleep. One hour of rest in this window equals two hours at any other time.`,
   };
 
   // ── Nature background image (time-based, same pool as homepage) ─────────
@@ -1431,8 +1432,8 @@ export default function LifestylePanel({ globalBg, hideGreetingRow = false }: { 
                 style={{ fontSize: '1.25rem', filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.6))' }}
               >✦</motion.div>
               <div style={{ flex: 1 }}>
-                <p style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.01em', lineHeight: 1 }}>Smart Ayur Planner</p>
-                <p style={{ margin: 0, fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif", marginTop: 2, letterSpacing: '0.05em' }}>Habits · Progress · Planner · Ayurveda</p>
+                <p style={{ margin: 0, fontSize: '0.92rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.02em', lineHeight: 1 }}>Smart Ayurvedic Intelligence System</p>
+                <p style={{ margin: 0, fontSize: '0.56rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif", marginTop: 2, letterSpacing: '0.04em' }}>Dosha · Kala · Habits · Lifestyle · Productivity</p>
               </div>
               <motion.span
                 animate={{ opacity: [0.6, 1, 0.6] }}

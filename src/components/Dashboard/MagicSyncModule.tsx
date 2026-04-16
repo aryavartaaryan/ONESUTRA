@@ -986,7 +986,7 @@ export default function MagicSyncModule({ items: tasks, onToggle, onRemove, onAd
                             textTransform: 'uppercase',
                         }}>
                             <span style={{ marginRight: 6 }}>✦</span>
-                            Smart Ayur Planner
+                            Smart Ayurvedic Intelligence System
                         </h2>
                         <p style={{
                             margin: '0.2rem 0 0', fontSize: '0.68rem',

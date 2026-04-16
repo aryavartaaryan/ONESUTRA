@@ -271,13 +271,17 @@ function AyurvedaHomeCard() {
   );
 }
 
-const SAP_PHASE_ESSENCE: Record<string, string> = {
-  'brahma-muhurta': '✦ Sacred hour — rise before the world · meditate · set your sankalpa now',
-  'kapha-morning':  '🌿 Kapha time — take your bath, do Surya Namaskar · fire your Agni!',
-  'pitta-midday':   '🔥 Peak Pitta — eat your main meal now · tackle your most vital work',
-  'vata-afternoon': '💨 Vata flows — ideal for creative work, calls & communicating ideas',
-  'kapha-evening':  '� Kapha grounds — light dinner · gentle walk · screens off · honour Ojas',
-  'pitta-night':    '🛌 Sleep NOW — Pitta heals cells at night · being awake robs tomorrow',
+const buildPhaseEssence = (phase: string, name: string): string => {
+  const n = (name || 'Friend').split(' ')[0];
+  const map: Record<string, string> = {
+    'brahma-muhurta': `✦ ${n}, it's Vata Sacred Hour (2–6 AM). Vata governs movement & consciousness — at this hour the cosmos is silent and your mind is purest. Meditate, chant your mantra, set a sankalpa. Every minute here is worth an hour of daytime practice.`,
+    'kapha-morning':  `🌿 ${n}, it's Kapha Morning (6–10 AM). Kapha brings heaviness — the antidote is action. Take your bath NOW, do Surya Namaskar or brisk movement, eat a warm light breakfast. Move with intention or Kapha will make you sluggish the rest of the day.`,
+    'pitta-midday':   `🔥 ${n}, it's Pitta Noon (10 AM–2 PM). Pitta's fire is at absolute peak — Agni is strongest now. Eat your largest meal of the day, tackle your hardest decisions, go deep on creative or analytical work. This is your daily power window.`,
+    'vata-afternoon': `💨 ${n}, it's Vata Afternoon (2–6 PM). Vata rules air, creativity & communication — ideal for brainstorming, writing, client calls, creative expression and free thinking. Sip herbal tea, stay light, avoid heavy snacks. Let ideas flow.`,
+    'kapha-evening':  `🌙 ${n}, it's Kapha Evening (6–10 PM). Kapha grounds and settles — eat a light early dinner, take a gentle walk, dim the lights, put screens away. This is Ojas preservation time. Every choice you make now affects tomorrow's energy.`,
+    'pitta-night':    `🛌 ${n}, it's Pitta Night (10 PM–2 AM). Pitta's inner fire does deep cellular repair right now — staying awake literally steals from your health. Go to sleep. One hour of rest in this window equals two hours at any other time.`,
+  };
+  return map[phase] ?? 'Loading your Ayurvedic rhythm…';
 };
 const SAP_PRANA_LABEL: Record<string, { label: string; emoji: string }> = {
   morning: { label: 'Morning Prana', emoji: '🌅' },
@@ -644,8 +648,8 @@ export default function Home() {
               <motion.div animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.07, 1] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
                 style={{ fontSize: '1.05rem', filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.6))' }}>✦</motion.div>
               <div style={{ flex: 1 }}>
-                <p style={{ margin: 0, fontSize: '0.98rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.01em', lineHeight: 1 }}>Smart Ayur Planner</p>
-                <p style={{ margin: '2px 0 0', fontSize: '0.55rem', color: 'rgba(255,255,255,0.30)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.05em' }}>No-Cal AI · Habits · Dosha</p>
+                <p style={{ margin: 0, fontSize: '0.92rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.02em', lineHeight: 1 }}>Smart Ayurvedic Intelligence System</p>
+                <p style={{ margin: '2px 0 0', fontSize: '0.52rem', color: 'rgba(255,255,255,0.30)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.05em' }}>Dosha · Habits · Lifestyle · Kala</p>
               </div>
               <motion.span animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 3, repeat: Infinity }}
                 style={{ fontSize: '0.46rem', padding: '0.18rem 0.5rem', borderRadius: 99, background: 'rgba(251,191,36,0.10)', border: '1px solid rgba(251,191,36,0.28)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 800, letterSpacing: '0.12em' }}>LIVE</motion.span>
@@ -727,7 +731,7 @@ export default function Home() {
                   style={{ margin: '0.3rem 0 0', borderRadius: 14, border: `1px solid ${doshaColor}2e`, background: `${doshaColor}0e`, overflow: 'hidden' }}
                 >
                   <p style={{ margin: 0, padding: '0.28rem 0.62rem 0.2rem', fontSize: '0.72rem', fontWeight: 700, color: doshaColor, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.01em', lineHeight: 1.4 }}>
-                    {SAP_PHASE_ESSENCE[doshaCurrentPhase.phase] ?? doshaCurrentPhase.quality}
+                    {buildPhaseEssence(doshaCurrentPhase.phase, userName ?? '')}
                   </p>
                   <div style={{ display: 'flex', gap: '0.26rem', flexWrap: 'wrap', padding: '0 0.62rem 0.32rem' }}>
                     {doshaCurrentPhase.bestFor.slice(0, 3).map((item: string, i: number) => (

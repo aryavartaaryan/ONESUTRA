@@ -84,7 +84,7 @@ export default function VahanaBar() {
                 borderTop: '1px solid rgba(255,255,255,0.09)',
                 borderLeft: 'none', borderRight: 'none', borderBottom: 'none',
                 boxShadow: '0 -4px 28px rgba(0,0,0,0.55), 0 -1px 0 rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.05)',
-                borderRadius: '18px 18px 0 0',
+                borderRadius: 0,
             }}>
                 {/* Ambient violet glow */}
                 <div aria-hidden style={{
