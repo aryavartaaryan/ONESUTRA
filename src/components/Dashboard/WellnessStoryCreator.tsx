@@ -41,11 +41,12 @@ interface Props {
   habitName: string;
   habitEmoji: string;
   userName: string;
+  userId?: string;
   onClose: () => void;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
-export default function WellnessStoryCreator({ habitId, habitName, habitEmoji, userName, onClose }: Props) {
+export default function WellnessStoryCreator({ habitId, habitName, habitEmoji, userName, userId, onClose }: Props) {
   const [mounted, setMounted] = useState(false);
   const [storyText, setStoryText] = useState(() => generateStoryText(habitId, habitName, userName));
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
@@ -85,7 +86,9 @@ export default function WellnessStoryCreator({ habitId, habitName, habitEmoji, u
       feeling: feeling ?? undefined,
       feelingEmoji: feelingEmoji ?? undefined,
       userName: (userName || 'friend').split(' ')[0],
+      userId: userId ?? undefined,
       timestamp: Date.now(),
+      date: new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date()),
       color: colors[0],
       accentColor: colors[1],
     };

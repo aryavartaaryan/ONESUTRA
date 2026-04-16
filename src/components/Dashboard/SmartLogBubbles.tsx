@@ -103,25 +103,39 @@ export interface DailyLogEntry {
     color: string;
     loggedAt: number; // unix ms
     date: string;     // YYYY-MM-DD
+    userId?: string;  // scoped to auth user — prevents cross-account data bleed
 }
 
-export function saveToDailyLogStory(id: string, icon: string, label: string, color: string): void {
+export function saveToDailyLogStory(id: string, icon: string, label: string, color: string, userId?: string): void {
     try {
         const today = getTodayStr();
         const raw: DailyLogEntry[] = JSON.parse(localStorage.getItem(DAILY_LOG_STORY_KEY) ?? '[]');
         const filtered = raw.filter(e => e.date === today && e.id !== id);
-        filtered.push({ id, icon, label, color, loggedAt: Date.now(), date: today });
+        filtered.push({ id, icon, label, color, loggedAt: Date.now(), date: today, userId });
         localStorage.setItem(DAILY_LOG_STORY_KEY, JSON.stringify(filtered));
         window.dispatchEvent(new CustomEvent('daily-log-story-updated'));
     } catch { /* ignore */ }
 }
 
-export function getTodayLogStory(): DailyLogEntry[] {
+export function getTodayLogStory(userId?: string): DailyLogEntry[] {
     try {
         const today = getTodayStr();
         const raw: DailyLogEntry[] = JSON.parse(localStorage.getItem(DAILY_LOG_STORY_KEY) ?? '[]');
-        return raw.filter(e => e.date === today).sort((a, b) => a.loggedAt - b.loggedAt);
+        return raw
+            .filter(e => e.date === today && (!userId || !e.userId || e.userId === userId))
+            .sort((a, b) => a.loggedAt - b.loggedAt);
     } catch { return []; }
+}
+
+// Call on user change to clear stale entries from the previous account
+export function clearLogStoryForOtherUsers(currentUserId: string): void {
+    try {
+        const today = getTodayStr();
+        const raw: DailyLogEntry[] = JSON.parse(localStorage.getItem(DAILY_LOG_STORY_KEY) ?? '[]');
+        // Keep: today's entries for current user OR entries from other days (history)
+        const filtered = raw.filter(e => e.date !== today || !e.userId || e.userId === currentUserId);
+        localStorage.setItem(DAILY_LOG_STORY_KEY, JSON.stringify(filtered));
+    } catch { /* ignore */ }
 }
 
 // ─── Firestore Activity Log Sync ─────────────────────────────────────────────

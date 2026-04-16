@@ -5,7 +5,8 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Sunrise, Sun, Sunset, Moon, Sparkles, Plus, CheckCircle2, Bell, Zap, Flame } from 'lucide-react';
-import { getTodayLogStory, saveToDailyLogStory, syncActivityEntryToFirestore, subscribeToActivityLog, getSubOptionsForHabit, type DailyLogEntry, type SubOption } from '@/components/Dashboard/SmartLogBubbles';
+import { saveToDailyLogStory, getTodayLogStory, syncActivityEntryToFirestore, subscribeToActivityLog, clearLogStoryForOtherUsers, type DailyLogEntry } from './SmartLogBubbles';
+import { getSubOptionsForHabit, type SubOption } from '@/components/Dashboard/SmartLogBubbles';
 import { bodhiSpeakLog } from '@/lib/bodhiVoice';
 import { useLifestyleEngine, logHabitAndSync } from '@/hooks/useLifestyleEngine';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
@@ -448,16 +449,23 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const router = useRouter();
   const goAddHabit = useCallback(() => router.push('/lifestyle/ayurvedic-habits'), [router]);
 
+  // Clear stale log entries when a different account logs in
+  useEffect(() => {
+    if (!user?.uid) return;
+    clearLogStoryForOtherUsers(user.uid);
+    setLogStory(getTodayLogStory(user.uid));
+  }, [user?.uid]);
+
   useEffect(() => {
     setMounted(true);
-    setLogStory(getTodayLogStory());
+    setLogStory(getTodayLogStory(user?.uid));
     setSmartLoggedToday(getSmartLoggedToday());
     setAyurCompletedIds(getTodayAyurCompletedIds());
     // Sync expanded slots with current time on mount (fixes stale state from earlier sessions)
     const h = new Date().getHours();
     setExpandedSlots({ morning: h >= 4 && h < 12, noon: h >= 12 && h < 17, evening: h >= 17 });
     const refresh = () => {
-      setLogStory(getTodayLogStory());
+      setLogStory(getTodayLogStory(user?.uid));
       setSmartLoggedToday(getSmartLoggedToday());
       setAyurCompletedIds(getTodayAyurCompletedIds());
     };
@@ -531,7 +539,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
     saveToSmartLog(id);
     saveToSmartLog(hId);
     if (ayurHabit) {
-      saveToDailyLogStory(id, ayurHabit.emoji, ayurHabit.name, slotCfgColor);
+      saveToDailyLogStory(id, ayurHabit.emoji, ayurHabit.name, slotCfgColor, user?.uid);
       syncActivityEntryToFirestore(user?.uid, {
         id, icon: ayurHabit.emoji, label: ayurHabit.name, color: slotCfgColor,
         loggedAt: Date.now(),
@@ -724,21 +732,21 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
         {/* Header — compact & sleek */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.44rem' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.38rem', marginBottom: 3 }}>
-              <p style={{ margin: 0, fontSize: '0.46rem', fontWeight: 700, color: 'rgba(255,255,255,0.26)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: "'Outfit',sans-serif" }}>Daily Wins · दिनचर्या</p>
-              <motion.div
-                animate={{ opacity: [0.7, 1, 0.7], scale: [1, 1.04, 1] }}
-                transition={{ duration: 2.8, repeat: Infinity }}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '0.06rem 0.38rem', borderRadius: 99, background: 'linear-gradient(90deg,#f472b618,#a78bfa18)', border: '1px solid #f472b630', flexShrink: 0 }}
-              >
-                <span style={{ fontSize: '0.38rem', fontWeight: 800, color: '#f472b6', fontFamily: "'Outfit',sans-serif", letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>👥 Share with friends</span>
-              </motion.div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <p style={{ margin: 0, fontSize: '0.5rem', fontWeight: 700, color: 'rgba(255,255,255,0.28)', letterSpacing: '0.16em', textTransform: 'uppercase', fontFamily: "'Outfit',sans-serif" }}>Daily Wins · दिनचर्या</p>
+              {sanskrit && <span style={{ fontSize: '0.44rem', color: `${slotCfg.color}70`, fontFamily: 'serif', fontStyle: 'italic' }}>{sanskrit}</span>}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.24rem' }}>
-              <motion.span animate={{ opacity: [0.45, 1, 0.45] }} transition={{ duration: 3.5, repeat: Infinity }} style={{ fontSize: '0.62rem', color: slotCfg.color }}>✦</motion.span>
-              <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#fff', fontFamily: "'Outfit',sans-serif", letterSpacing: '-0.01em' }}>Today&#39;s Progress</span>
-              {sanskrit && <span style={{ fontSize: '0.48rem', color: `${slotCfg.color}70`, fontFamily: 'serif', fontStyle: 'italic' }}> · {sanskrit}</span>}
-            </div>
+            <motion.button
+              whileTap={{ scale: 0.94 }}
+              onClick={() => { if (typeof window !== 'undefined') window.location.href = '/pranaverse-chat'; }}
+              animate={{ opacity: [0.88, 1, 0.88] }}
+              transition={{ duration: 2.2, repeat: Infinity }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 5, padding: '0.26rem 0.68rem', borderRadius: 99, background: 'linear-gradient(90deg,#f472b622,#a78bfa18,#f472b614)', border: '1.5px solid #f472b650', cursor: 'pointer' }}
+            >
+              <span style={{ fontSize: '0.76rem' }}>👥</span>
+              <span style={{ fontSize: '0.54rem', fontWeight: 900, color: '#f472b6', fontFamily: "'Outfit',sans-serif", letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>Log · Share with Friends</span>
+              <motion.span animate={{ x: [0, 3, 0] }} transition={{ duration: 1.4, repeat: Infinity }} style={{ fontSize: '0.54rem', color: '#f472b6' }}>→</motion.span>
+            </motion.button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.24rem' }}>
             {engine.todayMood && <span style={{ fontSize: '0.88rem' }}>{['😢', '😔', '😐', '😊', '🤩'][engine.todayMood.mood - 1]}</span>}
@@ -750,6 +758,75 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
             </motion.div>
           </div>
         </div>
+        {/* ═══ SEE TODAY'S PROGRESS — TOP ══════════════════════════════════ */}
+        <motion.button whileTap={{ scale: 0.97 }} onClick={() => setProgressOpen(o => !o)}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.48rem 0.72rem', borderRadius: 14, marginBottom: '0.4rem', background: progressOpen ? `${slotCfg.color}14` : 'rgba(255,255,255,0.04)', border: `1.5px solid ${progressOpen ? slotCfg.color + '40' : 'rgba(255,255,255,0.08)'}`, cursor: 'pointer', transition: 'border-color 0.2s, background 0.2s' }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.38rem' }}>
+            <motion.span animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 2.8, repeat: Infinity }} style={{ fontSize: '0.85rem' }}>📊</motion.span>
+            <span style={{ fontSize: '0.68rem', fontWeight: 800, color: progressOpen ? slotCfg.color : 'rgba(255,255,255,0.55)', fontFamily: "'Outfit',sans-serif" }}>See Today&#39;s Progress</span>
+            <span style={{ fontSize: '0.44rem', padding: '0.04rem 0.28rem', borderRadius: 99, background: `${ringColor}18`, border: `1px solid ${ringColor}30`, color: ringColor, fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>{Math.round(completionRate)}% done</span>
+          </div>
+          <motion.span animate={{ rotate: progressOpen ? 180 : 0 }} transition={{ duration: 0.25 }} style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)' }}>▼</motion.span>
+        </motion.button>
+        <AnimatePresence initial={false}>
+          {progressOpen && (
+            <motion.div key="prog-panel" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} style={{ overflow: 'hidden', marginBottom: '0.5rem' }}>
+              <div style={{ paddingBottom: '0.4rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.55rem' }}>
+                  <span style={{ fontSize: '0.52rem', color: 'rgba(255,255,255,0.34)', fontFamily: "'Outfit',sans-serif", fontStyle: 'italic' }}>{statusText}</span>
+                  <span style={{ fontSize: '0.46rem', color: 'rgba(255,255,255,0.17)', fontFamily: "'Outfit',sans-serif" }}>{new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.6rem' }}>
+                  <div style={{ position: 'relative', flexShrink: 0, width: 92, height: 92 }}>
+                    <motion.div animate={{ opacity: [0.35, 0.65, 0.35] }} transition={{ duration: 3, repeat: Infinity }} style={{ position: 'absolute', inset: -5, borderRadius: '50%', background: `conic-gradient(${ringColor}28 ${completionRate * 3.6}deg,transparent ${completionRate * 3.6}deg)`, filter: 'blur(5px)' }} />
+                    <ProgressRing pct={completionRate} size={92} stroke={8} color={ringColor} />
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ fontSize: '1.35rem', fontWeight: 900, color: ringColor, fontFamily: "'Outfit',sans-serif", lineHeight: 1, textShadow: `0 0 20px ${ringColor}90` }}>{Math.round(completionRate)}%</span>
+                      <span style={{ fontSize: '0.36rem', color: 'rgba(255,255,255,0.28)', fontFamily: 'serif', fontStyle: 'italic', marginTop: 2 }}>सिद्धि</span>
+                    </div>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.32rem', marginBottom: '0.48rem' }}>
+                      {statVals.map((s, i) => (
+                        <div key={i} style={{ textAlign: 'center', padding: '0.35rem 0.1rem', borderRadius: 12, background: `linear-gradient(135deg,${s.bg},rgba(0,0,0,0.2))`, border: `1px solid ${s.border}` }}>
+                          <p style={{ margin: 0, fontSize: '0.88rem', fontWeight: 900, color: s.col, fontFamily: "'Outfit',sans-serif", lineHeight: 1 }}>{s.val}</p>
+                          <p style={{ margin: '2px 0 0', fontSize: '0.39rem', color: s.col, opacity: 0.65, fontFamily: "'Outfit',sans-serif", textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 800 }}>{s.label}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.2rem', alignItems: 'flex-end' }}>
+                      {weekDays.map((day, i) => (
+                        <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                          <div style={{ width: '100%', height: 20, borderRadius: 4, background: 'rgba(255,255,255,0.05)', overflow: 'hidden', position: 'relative' }}>
+                            <motion.div initial={{ height: 0 }} animate={{ height: `${day.pct}%` }} transition={{ duration: 0.9, delay: i * 0.07, ease: 'easeOut' }} style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: day.pct >= 80 ? 'linear-gradient(180deg,#4ade80,#22d3ee)' : day.pct >= 40 ? 'linear-gradient(180deg,#fbbf24,#fb923c)' : day.pct > 0 ? 'rgba(255,255,255,0.18)' : 'transparent', borderRadius: 4, boxShadow: day.pct >= 80 ? '0 0 8px rgba(74,222,128,0.6)' : 'none' }} />
+                          </div>
+                          <span style={{ fontSize: '0.35rem', color: 'rgba(255,255,255,0.26)', fontFamily: "'Outfit',sans-serif", fontWeight: 700, textTransform: 'uppercase' }}>{day.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.38rem', padding: '0.38rem 0.6rem', borderRadius: 12, background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.14)' }}>
+                  <span style={{ fontSize: '0.82rem', flexShrink: 0 }}>{levelInfo.icon}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.26rem' }}>
+                        <span style={{ fontSize: '0.6rem', color: '#fbbf24', fontWeight: 900, fontFamily: "'Outfit',sans-serif" }}>{levelInfo.name}</span>
+                        <span style={{ fontSize: '0.44rem', color: 'rgba(251,191,36,0.42)', fontFamily: 'serif', fontStyle: 'italic' }}>Tapas Level</span>
+                      </div>
+                      <span style={{ fontSize: '0.46rem', color: 'rgba(255,255,255,0.2)', fontFamily: "'Outfit',sans-serif" }}>{engine.xp.total} XP · {maxStreak > 0 ? `${maxStreak}🔥` : '—'}</span>
+                    </div>
+                    <div style={{ height: 5, borderRadius: 3, background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${xpPct}%` }} transition={{ duration: 1.2, ease: 'easeOut' }} style={{ height: '100%', background: 'linear-gradient(90deg,#fbbf24,#f97316,#ef4444)', borderRadius: 3, boxShadow: '0 0 10px rgba(251,191,36,0.6)' }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* ═══ SECTION A — TO DO (always visible) ══════════════════════════ */}
         <div style={{ marginBottom: '0.72rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.48rem' }}>
@@ -802,100 +879,6 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
             </div>
           ) : null}
         </div>
-
-        {/* ═══ "SEE TODAY'S PROGRESS" EXPAND BUTTON ════════════════════════ */}
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          onClick={() => setProgressOpen(o => !o)}
-          style={{
-            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '0.48rem 0.72rem', borderRadius: 14, marginBottom: '0.3rem',
-            background: progressOpen ? `${slotCfg.color}14` : 'rgba(255,255,255,0.04)',
-            border: `1.5px solid ${progressOpen ? slotCfg.color + '40' : 'rgba(255,255,255,0.08)'}`,
-            cursor: 'pointer', transition: 'border-color 0.2s, background 0.2s',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.38rem' }}>
-            <motion.span animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 2.8, repeat: Infinity }} style={{ fontSize: '0.85rem' }}>📊</motion.span>
-            <span style={{ fontSize: '0.68rem', fontWeight: 800, color: progressOpen ? slotCfg.color : 'rgba(255,255,255,0.55)', fontFamily: "'Outfit',sans-serif" }}>
-              See Today&#39;s Progress
-            </span>
-            <span style={{ fontSize: '0.46rem', color: ringColor, fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>{Math.round(completionRate)}% done</span>
-          </div>
-          <motion.span animate={{ rotate: progressOpen ? 180 : 0 }} transition={{ duration: 0.25 }} style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)' }}>▼</motion.span>
-        </motion.button>
-
-        {/* ═══ COLLAPSIBLE: Progress ring + stats + week + tapas ═══════════ */}
-        <AnimatePresence initial={false}>
-          {progressOpen && (
-            <motion.div
-              key="progress-panel"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              style={{ overflow: 'hidden' }}
-            >
-              <div style={{ paddingTop: '0.5rem', paddingBottom: '0.2rem' }}>
-                {/* Status row */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.58rem' }}>
-                  <span style={{ fontSize: '0.54rem', color: 'rgba(255,255,255,0.34)', fontFamily: "'Outfit',sans-serif", fontStyle: 'italic' }}>{statusText}</span>
-                  <span style={{ fontSize: '0.48rem', color: 'rgba(255,255,255,0.17)', fontFamily: "'Outfit',sans-serif" }}>{new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
-                </div>
-                {/* Ring + Ayurvedic Stats + Week bar */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.65rem' }}>
-                  <div style={{ position: 'relative', flexShrink: 0, width: 100, height: 100 }}>
-                    <motion.div animate={{ opacity: [0.35, 0.65, 0.35] }} transition={{ duration: 3, repeat: Infinity }}
-                      style={{ position: 'absolute', inset: -5, borderRadius: '50%', background: `conic-gradient(${ringColor}28 ${completionRate * 3.6}deg,transparent ${completionRate * 3.6}deg)`, filter: 'blur(5px)' }} />
-                    <ProgressRing pct={completionRate} size={100} stroke={9} color={ringColor} />
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                      <span style={{ fontSize: '1.45rem', fontWeight: 900, color: ringColor, fontFamily: "'Outfit',sans-serif", lineHeight: 1, textShadow: `0 0 20px ${ringColor}90` }}>{Math.round(completionRate)}%</span>
-                      <span style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.28)', fontFamily: 'serif', fontStyle: 'italic', marginTop: 2 }}>सिद्धि</span>
-                    </div>
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.35rem', marginBottom: '0.52rem' }}>
-                      {statVals.map((s, i) => (
-                        <div key={i} style={{ textAlign: 'center', padding: '0.38rem 0.1rem', borderRadius: 13, background: `linear-gradient(135deg,${s.bg},rgba(0,0,0,0.2))`, border: `1px solid ${s.border}` }}>
-                          <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 900, color: s.col, fontFamily: "'Outfit',sans-serif", lineHeight: 1 }}>{s.val}</p>
-                          <p style={{ margin: '2px 0 0', fontSize: '0.41rem', color: s.col, opacity: 0.65, fontFamily: "'Outfit',sans-serif", textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 800 }}>{s.label}</p>
-                        </div>
-                      ))}
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.2rem', alignItems: 'flex-end' }}>
-                      {weekDays.map((day, i) => (
-                        <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                          <div style={{ width: '100%', height: 22, borderRadius: 4, background: 'rgba(255,255,255,0.05)', overflow: 'hidden', position: 'relative' }}>
-                            <motion.div initial={{ height: 0 }} animate={{ height: `${day.pct}%` }} transition={{ duration: 0.9, delay: i * 0.07, ease: 'easeOut' }}
-                              style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: day.pct >= 80 ? 'linear-gradient(180deg,#4ade80,#22d3ee)' : day.pct >= 40 ? 'linear-gradient(180deg,#fbbf24,#fb923c)' : day.pct > 0 ? 'rgba(255,255,255,0.18)' : 'transparent', borderRadius: 4, boxShadow: day.pct >= 80 ? '0 0 8px rgba(74,222,128,0.6)' : 'none' }} />
-                          </div>
-                          <span style={{ fontSize: '0.37rem', color: 'rgba(255,255,255,0.26)', fontFamily: "'Outfit',sans-serif", fontWeight: 700, textTransform: 'uppercase' }}>{day.label}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                {/* Tapas Level bar */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.38rem', marginBottom: '0.5rem', padding: '0.42rem 0.65rem', borderRadius: 12, background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.14)' }}>
-                  <span style={{ fontSize: '0.85rem', flexShrink: 0 }}>{levelInfo.icon}</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.28rem' }}>
-                        <span style={{ fontSize: '0.62rem', color: '#fbbf24', fontWeight: 900, fontFamily: "'Outfit',sans-serif" }}>{levelInfo.name}</span>
-                        <span style={{ fontSize: '0.48rem', color: 'rgba(251,191,36,0.42)', fontFamily: 'serif', fontStyle: 'italic' }}>Tapas Level</span>
-                      </div>
-                      <span style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.2)', fontFamily: "'Outfit',sans-serif" }}>{engine.xp.total} XP · {maxStreak > 0 ? `${maxStreak}🔥` : '—'}</span>
-                    </div>
-                    <div style={{ height: 5, borderRadius: 3, background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
-                      <motion.div initial={{ width: 0 }} animate={{ width: `${xpPct}%` }} transition={{ duration: 1.2, ease: 'easeOut' }}
-                        style={{ height: '100%', background: 'linear-gradient(90deg,#fbbf24,#f97316,#ef4444)', borderRadius: 3, boxShadow: '0 0 10px rgba(251,191,36,0.6)' }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* ── Divider ── */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.3rem 0 0.5rem' }}>

@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Briefcase, User, MessageCircle } from 'lucide-react';
+import { Home, Briefcase, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -73,14 +73,9 @@ export default function VahanaBar() {
             icon: 'pranaverse' as const,
         },
         {
-            id: 'chat', href: '/pranaverse-chat',
-            label: 'Chat',
-            icon: 'chat' as const,
-        },
-        {
-            id: 'profile', href: '/profile',
-            label: 'Profile',
-            icon: 'user' as const,
+            id: 'friends', href: '/pranaverse-chat',
+            label: 'Friends',
+            icon: 'friends' as const,
         },
     ] as const;
 
@@ -193,14 +188,11 @@ export default function VahanaBar() {
                                         ) : icon === 'briefcase' ? (
                                             <Briefcase size={17} strokeWidth={isActive ? 2.1 : 1.6}
                                                 style={{ color: isActive ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.38)', transition: 'all 0.25s ease' }} />
-                                        ) : icon === 'chat' ? (
-                                            <MessageCircle size={17} strokeWidth={isActive ? 2.1 : 1.6}
-                                                style={{ color: isActive ? '#a78bfa' : 'rgba(255,255,255,0.38)', transition: 'all 0.25s ease' }} />
-                                        ) : icon === 'user' ? (
-                                            <User size={17} strokeWidth={isActive ? 2.1 : 1.6}
-                                                style={{ color: isActive ? '#c084fc' : 'rgba(255,255,255,0.38)', transition: 'all 0.25s ease' }} />
+                                        ) : icon === 'friends' ? (
+                                            <Users size={17} strokeWidth={isActive ? 2.1 : 1.6}
+                                                style={{ color: isActive ? '#f472b6' : 'rgba(255,255,255,0.38)', transition: 'all 0.25s ease' }} />
                                         ) : (
-                                            <User size={17} strokeWidth={isActive ? 2.1 : 1.6}
+                                            <Home size={17} strokeWidth={isActive ? 2.1 : 1.6}
                                                 style={{ color: isActive ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.38)', transition: 'all 0.25s ease' }} />
                                         )}
                                     </div>

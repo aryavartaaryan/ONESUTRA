@@ -770,26 +770,23 @@ export default function Home() {
           </motion.div>
         )}
 
-        {/* ══ FUSED: SMART ANALYTICS + SMART LOG BUBBLES ══ */}
+        {/* ══ FUSED: SMART LOG BUBBLES + SMART ANALYTICS ══ */}
         {!isPortalOpen && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.18, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           >
-            {/* Smart Analytics (TodoDuoGrid at top + collapsible progress/logged) */}
-            <SmartAnalyticsDashboard globalBg={globalBg} />
-
-            {/* Smart Log Bubbles — fused below analytics, same section feel */}
+            {/* Smart Log Bubbles — ALL loggable habit bubbles at the TOP */}
             <div
               style={{
                 position: 'relative', zIndex: 10,
                 overflow: 'hidden',
-                border: '1px solid rgba(255,255,255,0.07)',
+                border: '1px solid rgba(255,255,255,0.09)',
                 borderRadius: 26,
-                margin: '-0.3rem 0.6rem 1.2rem',
+                margin: '0 0.6rem 0.5rem',
                 padding: '0.3rem 0',
-                boxShadow: '0 16px 56px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
+                boxShadow: '0 24px 72px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)',
               }}
             >
               <div style={{ position: 'absolute', inset: 0, backgroundImage: `url('${globalBg}')`, backgroundSize: 'cover', backgroundPosition: 'center', transform: 'scale(1.07)', filter: 'blur(2px) brightness(0.68) saturate(1.15)', zIndex: 0 }} />
@@ -798,6 +795,9 @@ export default function Home() {
                 <SmartLogBubbles />
               </div>
             </div>
+
+            {/* Smart Analytics — grid cards + collapsible progress + logged today */}
+            <SmartAnalyticsDashboard globalBg={globalBg} />
           </motion.div>
         )}
 
@@ -1022,66 +1022,7 @@ export default function Home() {
         <StickyFeedbackButton />
       </div>
 
-      {/* ══ HOME BOTTOM NAV BAR — sleek PranaVerse-style ══ */}
-      <nav style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 900,
-        display: isPortalOpen ? 'none' : 'flex', alignItems: 'center', justifyContent: 'space-around',
-        padding: '0.6rem 0.5rem calc(0.6rem + env(safe-area-inset-bottom))',
-        background: 'linear-gradient(180deg, rgba(5,2,18,0.88) 0%, rgba(8,3,24,0.97) 100%)',
-        backdropFilter: 'blur(28px) saturate(160%)',
-        WebkitBackdropFilter: 'blur(28px) saturate(160%)',
-        borderTop: '1px solid rgba(167,139,250,0.15)',
-        boxShadow: '0 -8px 40px rgba(0,0,0,0.5), 0 -1px 0 rgba(167,139,250,0.08)',
-      }}>
-        {([
-          { id: 'home', emoji: '⌂', label: 'Home', href: null, color: '#a78bfa' },
-          { id: 'feed', emoji: '❖', label: 'Feed', href: '/pranaverse', color: '#c084fc' },
-          { id: 'map', emoji: '🗺️', label: 'Map', href: '/pranaverse?tab=map', color: '#60a5fa' },
-          { id: 'friends', emoji: '�', label: 'Friends', href: '/pranaverse-chat', color: '#f472b6' },
-        ] as const).map(item => {
-          const active = item.id === 'home';
-          return (
-            <motion.button key={item.id}
-              whileTap={{ scale: 0.88 }}
-              onClick={() => { if (item.href) window.location.href = item.href; }}
-              style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                background: 'none', border: 'none',
-                cursor: item.href ? 'pointer' : 'default',
-                padding: '0.15rem 0.6rem',
-                position: 'relative', minWidth: 56,
-              }}>
-              {active && (
-                <motion.div layoutId="home-nav-active" style={{
-                  position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)',
-                  width: 28, height: 3, borderRadius: 999,
-                  background: 'linear-gradient(90deg, #a78bfa, #c084fc)',
-                  boxShadow: '0 0 10px rgba(167,139,250,0.7)',
-                }} />
-              )}
-              <motion.div whileHover={{ scale: 1.12 }} style={{
-                width: 36, height: 36, borderRadius: '50%',
-                background: active
-                  ? `radial-gradient(circle at 36% 26%, rgba(255,255,255,0.25) 0%, ${item.color}30 50%, ${item.color}18 100%)`
-                  : 'rgba(255,255,255,0.04)',
-                border: active ? `1.5px solid ${item.color}55` : '1.5px solid rgba(255,255,255,0.08)',
-                boxShadow: active ? `0 0 18px ${item.color}45, inset 0 1px 0 rgba(255,255,255,0.2)` : 'none',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'all 0.25s ease',
-              }}>
-                <span style={{ fontSize: '1.1rem', filter: active ? `drop-shadow(0 0 6px ${item.color})` : 'none', opacity: active ? 1 : 0.42 }}>{item.emoji}</span>
-              </motion.div>
-              <span style={{
-                fontSize: '0.42rem', fontWeight: 700,
-                color: active ? item.color : 'rgba(255,255,255,0.28)',
-                fontFamily: "'Outfit',sans-serif",
-                letterSpacing: '0.09em', textTransform: 'uppercase',
-                textShadow: active ? `0 0 8px ${item.color}80` : 'none',
-              }}>{item.label}</span>
-            </motion.button>
-          );
-        })}
-      </nav>
+      {/* Bottom nav is rendered by VahanaBar (ConditionalVahanaBar in layout) */}
     </>
   );
 }

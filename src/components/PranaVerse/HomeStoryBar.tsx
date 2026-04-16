@@ -1982,14 +1982,20 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
     const { prakriti } = useDoshaEngine();
     const { todayMood, activeHabits, getTodayStatus, seedStarterHabits } = useLifestyleEngine();
     const [activeLogIdx, setActiveLogIdx] = useState<number | null>(null);
-    const [wellnessStories, setWellnessStories] = useState<WellnessStory[]>(() => typeof window !== 'undefined' ? getWellnessStories() : []);
+    const [wellnessStories, setWellnessStories] = useState<WellnessStory[]>([]);
     const [activeWellnessIdx, setActiveWellnessIdx] = useState<number | null>(null);
 
     useEffect(() => {
-        const refresh = () => setWellnessStories(getWellnessStories());
+        const currentUserId = (() => { try { return JSON.parse(localStorage.getItem('onesutra_auth_v1') ?? '{}')?.uid ?? ''; } catch { return ''; } })();
+        const refresh = () => setWellnessStories(getWellnessStories(currentUserId || undefined));
+        refresh();
         window.addEventListener('wellness-story-updated', refresh);
         window.addEventListener('focus', refresh);
-        return () => { window.removeEventListener('wellness-story-updated', refresh); window.removeEventListener('focus', refresh); };
+        // Midnight reset — clear stories when day rolls over
+        const now = new Date();
+        const midnight = new Date(now); midnight.setDate(midnight.getDate() + 1); midnight.setHours(0, 0, 0, 0);
+        const midnightTimer = setTimeout(() => { refresh(); }, midnight.getTime() - now.getTime());
+        return () => { window.removeEventListener('wellness-story-updated', refresh); window.removeEventListener('focus', refresh); clearTimeout(midnightTimer); };
     }, []);
 
     useEffect(() => { if (activeHabits.length === 0) seedStarterHabits(); }, []);  // seed once on mount
@@ -2236,7 +2242,7 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
                         <RectStoryCard
                             icon="🌿"
                             label={`${wellnessStories.length} Wellness`}
-                            sublabel="My Story Today"
+                            sublabel={wellnessStories.length === 1 && wellnessStories[0].userName && wellnessStories[0].userName !== userName.split(' ')[0] ? `${wellnessStories[0].userName}'s Story` : 'My Story Today'}
                             color="#34d399"
                             ring="conic-gradient(#34d399,#fbbf24,#34d399)"
                             thumbBg={wellnessStories[0].imageDataUrl ?? getStoryBg(wellnessStories[0].habitId)}
@@ -2278,7 +2284,7 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
                                     </div>
                                 )}
                             </div>
-                            <span style={{ fontSize: '0.52rem', fontFamily: "'Inter',sans-serif", fontWeight: 700, color: wellnessStories.every(s => viewedIds.has(s.id)) ? 'rgba(255,255,255,0.28)' : '#34d399', letterSpacing: '0.04em', textShadow: wellnessStories.every(s => viewedIds.has(s.id)) ? 'none' : '0 0 8px #34d39980' }}>My Wellness</span>
+                            <span style={{ fontSize: '0.52rem', fontFamily: "'Inter',sans-serif", fontWeight: 700, color: wellnessStories.every(s => viewedIds.has(s.id)) ? 'rgba(255,255,255,0.28)' : '#34d399', letterSpacing: '0.04em', textShadow: wellnessStories.every(s => viewedIds.has(s.id)) ? 'none' : '0 0 8px #34d39980' }}>{wellnessStories.length === 1 && wellnessStories[0].userName && wellnessStories[0].userName !== userName.split(' ')[0] ? `${wellnessStories[0].userName}'s Story` : 'My Wellness'}</span>
                         </motion.div>
                     )
                 )}

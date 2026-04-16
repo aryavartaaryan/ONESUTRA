@@ -12,30 +12,42 @@ export interface WellnessStory {
   feeling?: string;
   feelingEmoji?: string;
   userName: string;
+  userId?: string;     // Firebase UID — prevents cross-account bleed
   timestamp: number;   // Unix ms
+  date: string;        // IST date YYYY-MM-DD — stories expire at midnight
   color: string;
   accentColor: string;
 }
 
 const STORE_KEY = 'onesutra_wellness_stories_v1';
-const TTL_MS = 24 * 60 * 60 * 1000;
 
-export function getWellnessStories(): WellnessStory[] {
+function getTodayIST(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+}
+
+export function getWellnessStories(userId?: string): WellnessStory[] {
   if (typeof window === 'undefined') return [];
   try {
-    const raw = JSON.parse(localStorage.getItem(STORE_KEY) ?? '[]');
-    const now = Date.now();
-    return (raw as WellnessStory[]).filter(s => now - s.timestamp < TTL_MS);
+    const today = getTodayIST();
+    const raw = JSON.parse(localStorage.getItem(STORE_KEY) ?? '[]') as WellnessStory[];
+    // Expire at midnight (IST date match) — not 24h rolling window
+    return raw.filter(s => {
+      const sDate = s.date ?? new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date(s.timestamp));
+      if (sDate !== today) return false;
+      if (userId && s.userId && s.userId !== userId) return false;
+      return true;
+    });
   } catch { return []; }
 }
 
 export function saveWellnessStory(story: WellnessStory): void {
   if (typeof window === 'undefined') return;
   try {
+    const storyWithDate = { ...story, date: story.date ?? getTodayIST() };
     const stories = getWellnessStories();
-    const idx = stories.findIndex(s => s.habitId === story.habitId);
-    if (idx >= 0) stories.splice(idx, 1, story);
-    else stories.unshift(story);
+    const idx = stories.findIndex(s => s.habitId === storyWithDate.habitId);
+    if (idx >= 0) stories.splice(idx, 1, storyWithDate);
+    else stories.unshift(storyWithDate);
     localStorage.setItem(STORE_KEY, JSON.stringify(stories.slice(0, 15)));
     window.dispatchEvent(new CustomEvent('wellness-story-updated'));
   } catch { /* ignore */ }
