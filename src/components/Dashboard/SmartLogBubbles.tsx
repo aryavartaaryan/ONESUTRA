@@ -1221,6 +1221,28 @@ export default function SmartLogBubbles() {
                     !isDone && toggleBubble(bubble);
                 }}
             >
+                {/* Sequential step badge */}
+                <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: i * 0.06 + 0.18, type: 'spring', stiffness: 420, damping: 22 }}
+                    style={{
+                        width: 22, height: 22, borderRadius: '50%',
+                        background: isSequentiallyLocked
+                            ? 'rgba(255,255,255,0.04)'
+                            : `linear-gradient(135deg, ${bubble.color}38, ${bubble.color}15)`,
+                        border: `1.5px solid ${isSequentiallyLocked ? 'rgba(255,255,255,0.10)' : bubble.color + '55'}`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '0.50rem', fontWeight: 900,
+                        color: isSequentiallyLocked ? 'rgba(255,255,255,0.18)' : bubble.color,
+                        fontFamily: "'Outfit', sans-serif",
+                        boxShadow: isSequentiallyLocked ? 'none' : `0 0 10px ${bubble.color}22`,
+                        flexShrink: 0,
+                    }}
+                >
+                    {i + 1}
+                </motion.div>
+
                 {/* Bubble circle */}
                 <motion.div
                     animate={isDone ? {
@@ -1471,105 +1493,114 @@ export default function SmartLogBubbles() {
                     </p>
                 </motion.div>
             ) : (
-                <>
-                    {/* ── SINGLE UNIFIED SCROLL ROW ───────────────────────── */}
-                    <div
-                        className="smart-log-row"
-                        ref={bubbleRowRef}
-                        style={{
-                            display: 'flex',
-                            gap: '1rem',
-                            overflowX: 'auto',
-                            scrollbarWidth: 'none',
-                            padding: '1.4rem 1rem 1.4rem',
-                            alignItems: 'flex-start',
-                        }}
-                    >
-                        <style>{`.smart-log-row::-webkit-scrollbar{display:none}`}</style>
-                        {timedBubbles.map((bubble, i) => renderBubble(bubble, i, i > 0))}
-                        {timedBubbles.length > 0 && anytimeBubbles.length > 0 && (
-                            <div style={{
-                                flexShrink: 0,
-                                width: 1,
-                                height: 64,
-                                alignSelf: 'center',
-                                background: 'linear-gradient(180deg, transparent, rgba(255,255,255,0.10), transparent)',
-                                margin: '0 0.1rem',
-                            }} />
-                        )}
-                        {anytimeBubbles.map((bubble, i) => renderBubble(bubble, timedBubbles.length + i))}
-                    </div>
-
-                    {/* ── Sub-option sheet — Smart Analytics style ──────────────── */}
-                    <AnimatePresence>
-                        {active && (
-                            <motion.div
-                                key={active.id + '_sheet'}
-                                initial={{ opacity: 0, y: 14, scale: 0.97 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: 10, scale: 0.97 }}
-                                transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-                                style={{
-                                    marginTop: '0.5rem',
-                                    borderRadius: 18,
-                                    background: `linear-gradient(135deg, ${active.color}12 0%, rgba(4,2,20,0.92) 100%)`,
-                                    border: `1px solid ${active.color}30`,
-                                    backdropFilter: 'blur(20px)',
-                                    WebkitBackdropFilter: 'blur(20px)',
-                                    overflow: 'hidden',
-                                    boxShadow: `0 8px 32px rgba(0,0,0,0.45), 0 0 0 1px ${active.color}15`,
-                                }}
-                            >
-                                {/* Sheet header */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.6rem 0.85rem', borderBottom: `1px solid ${active.color}18` }}>
-                                    <div style={{ width: 38, height: 38, borderRadius: 12, background: `${active.color}18`, border: `1px solid ${active.color}35`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', flexShrink: 0 }}>{active.icon}</div>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <p style={{ margin: 0, fontSize: '0.84rem', fontWeight: 800, color: 'rgba(255,255,255,0.92)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.2 }}>{active.label}</p>
-                                        <p style={{ margin: '2px 0 0', fontSize: '0.6rem', color: active.color, fontFamily: "'Outfit', sans-serif", fontStyle: 'italic', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{active.sublabel}</p>
-                                    </div>
-                                    <motion.button whileTap={{ scale: 0.82 }} onClick={() => setActiveBubble(null)}
-                                        style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', flexShrink: 0 }}>✕</motion.button>
-                                </div>
-                                {/* Option rows (Analytics style) */}
-                                {active.subOptions.map((sub, i) => (
-                                    <motion.div
-                                        key={sub.label}
-                                        initial={{ opacity: 0, x: 14 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: i * 0.055, type: 'spring', stiffness: 400, damping: 26 }}
-                                        onClick={() => logAndNavigate(active, sub)}
-                                        style={{
-                                            display: 'flex', alignItems: 'center', gap: '0.65rem',
-                                            padding: '0.55rem 0.85rem',
-                                            borderBottom: i < active.subOptions.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
-                                            cursor: 'pointer',
-                                        }}
-                                    >
-                                        <div style={{ width: 34, height: 34, borderRadius: 10, background: `${active.color}16`, border: `1px solid ${active.color}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.05rem', flexShrink: 0 }}>{sub.icon}</div>
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700, color: 'rgba(255,255,255,0.88)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.2 }}>{sub.label}</p>
-                                            {'detail' in sub && sub.detail && (
-                                                <p style={{ margin: '1px 0 0', fontSize: '0.58rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.3 }}>{(sub as { label: string; icon: string; detail: string }).detail}</p>
-                                            )}
-                                        </div>
-                                        <span style={{ fontSize: '0.7rem', color: active.color, opacity: 0.65, flexShrink: 0 }}>→</span>
-                                    </motion.div>
-                                ))}
-                                {/* Quick log row */}
+                <AnimatePresence mode="wait">
+                    {active ? (
+                        /* ── OPTIONS PANEL (replaces bubble row when a bubble is tapped) ── */
+                        <motion.div
+                            key="options-panel"
+                            initial={{ opacity: 0, y: 18, scale: 0.96 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -10, scale: 0.97 }}
+                            transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+                            style={{
+                                borderRadius: 18,
+                                background: `linear-gradient(135deg, ${active.color}12 0%, rgba(4,2,20,0.95) 100%)`,
+                                border: `1px solid ${active.color}30`,
+                                backdropFilter: 'blur(24px)',
+                                WebkitBackdropFilter: 'blur(24px)',
+                                overflow: 'hidden',
+                                boxShadow: `0 8px 36px rgba(0,0,0,0.55), 0 0 0 1px ${active.color}15`,
+                            }}
+                        >
+                            {/* Sheet header */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.68rem 0.85rem', borderBottom: `1px solid ${active.color}18` }}>
                                 <motion.div
+                                    animate={{ scale: [1, 1.08, 1] }}
+                                    transition={{ duration: 2, repeat: Infinity }}
+                                    style={{ width: 42, height: 42, borderRadius: 13, background: `${active.color}1e`, border: `1.5px solid ${active.color}42`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', flexShrink: 0, boxShadow: `0 0 18px ${active.color}22` }}
+                                >{active.icon}</motion.div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <p style={{ margin: 0, fontSize: '0.88rem', fontWeight: 900, color: 'rgba(255,255,255,0.95)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.2 }}>{active.label}</p>
+                                    <p style={{ margin: '2px 0 0', fontSize: '0.60rem', color: active.color, fontFamily: "'Outfit', sans-serif", fontStyle: 'italic', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', opacity: 0.85 }}>{active.sublabel}</p>
+                                </div>
+                                <motion.button whileTap={{ scale: 0.80 }} onClick={() => setActiveBubble(null)}
+                                    style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', flexShrink: 0 }}>✕</motion.button>
+                            </div>
+                            {/* Option rows */}
+                            {active.subOptions.map((sub, i) => (
+                                <motion.div
+                                    key={sub.label}
                                     initial={{ opacity: 0, x: 14 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: active.subOptions.length * 0.055 + 0.04 }}
-                                    onClick={() => logAndNavigate(active)}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', padding: '0.52rem 0.85rem', cursor: 'pointer', borderTop: '1px dashed rgba(255,255,255,0.07)' }}
+                                    transition={{ delay: i * 0.055, type: 'spring', stiffness: 400, damping: 26 }}
+                                    onClick={() => logAndNavigate(active, sub)}
+                                    style={{
+                                        display: 'flex', alignItems: 'center', gap: '0.65rem',
+                                        padding: '0.58rem 0.85rem',
+                                        borderBottom: i < active.subOptions.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                                        cursor: 'pointer',
+                                    }}
                                 >
-                                    <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.05rem', flexShrink: 0 }}>✏️</div>
-                                    <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'rgba(255,255,255,0.38)', fontFamily: "'Outfit', sans-serif" }}>Tell Bodhi…</span>
+                                    <div style={{ width: 36, height: 36, borderRadius: 11, background: `${active.color}16`, border: `1px solid ${active.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>{sub.icon}</div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 700, color: 'rgba(255,255,255,0.90)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.2 }}>{sub.label}</p>
+                                        {'detail' in sub && sub.detail && (
+                                            <p style={{ margin: '1px 0 0', fontSize: '0.58rem', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.3 }}>{(sub as { label: string; icon: string; detail: string }).detail}</p>
+                                        )}
+                                    </div>
+                                    <span style={{ fontSize: '0.7rem', color: active.color, opacity: 0.65, flexShrink: 0 }}>→</span>
                                 </motion.div>
+                            ))}
+                            {/* Quick log row */}
+                            <motion.div
+                                initial={{ opacity: 0, x: 14 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: active.subOptions.length * 0.055 + 0.04 }}
+                                onClick={() => logAndNavigate(active)}
+                                style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', padding: '0.52rem 0.85rem', cursor: 'pointer', borderTop: '1px dashed rgba(255,255,255,0.07)' }}
+                            >
+                                <div style={{ width: 36, height: 36, borderRadius: 11, background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.05rem', flexShrink: 0 }}>✏️</div>
+                                <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'rgba(255,255,255,0.38)', fontFamily: "'Outfit', sans-serif" }}>Tell Bodhi…</span>
                             </motion.div>
-                        )}
-                    </AnimatePresence>
-                </>
+                        </motion.div>
+                    ) : (
+                        /* ── BUBBLES ROW (shown when no bubble is active) ── */
+                        <motion.div
+                            key="bubbles-row"
+                            initial={{ opacity: 0, y: -8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                            transition={{ type: 'spring', stiffness: 340, damping: 28 }}
+                        >
+                            <div
+                                className="smart-log-row"
+                                ref={bubbleRowRef}
+                                style={{
+                                    display: 'flex',
+                                    gap: '1rem',
+                                    overflowX: 'auto',
+                                    scrollbarWidth: 'none',
+                                    padding: '0.6rem 1rem 1.4rem',
+                                    alignItems: 'flex-start',
+                                }}
+                            >
+                                <style>{`.smart-log-row::-webkit-scrollbar{display:none}`}</style>
+                                {timedBubbles.map((bubble, i) => renderBubble(bubble, i, i > 0))}
+                                {timedBubbles.length > 0 && anytimeBubbles.length > 0 && (
+                                    <div style={{
+                                        flexShrink: 0,
+                                        width: 1,
+                                        height: 64,
+                                        alignSelf: 'center',
+                                        background: 'linear-gradient(180deg, transparent, rgba(255,255,255,0.10), transparent)',
+                                        margin: '0 0.1rem',
+                                    }} />
+                                )}
+                                {anytimeBubbles.map((bubble, i) => renderBubble(bubble, timedBubbles.length + i))}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             )}
         </div>
 
