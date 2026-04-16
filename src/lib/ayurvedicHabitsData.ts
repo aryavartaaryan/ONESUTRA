@@ -30,8 +30,7 @@ export interface AyurvedicHabit {
 export const AYURVEDIC_HABITS: AyurvedicHabit[] = [
     // ── Morning ──────────────────────────────────────────────────────────────
     { id: 'warm_water_morning', name: 'Ushapana (Warm Water)', nameHi: 'उषापान', emoji: '💧', category: 'morning', targetMin: 5, description: 'Drink 2–4 glasses of warm water upon waking. Flushes Ama and activates Agni for the day.', doshaEffect: { vata: -1, pitta: -1, kapha: -2 }, bestFor: ['kapha', 'vata'], tags: ['ama', 'agni', 'morning'] },
-    { id: 'tongue_scraping', name: 'Tongue Scraping', nameHi: 'जिह्वा शोधन', emoji: '🪥', category: 'morning', targetMin: 2, description: 'Remove overnight Ama from tongue. 7–14 gentle strokes improve taste and digestion.', doshaEffect: { vata: -1, pitta: -1, kapha: -2 }, bestFor: ['kapha', 'pitta'], tags: ['oral', 'ama', 'morning'] },
-    { id: 'abhyanga', name: 'Abhyanga (Self-Massage)', nameHi: 'अभ्यंग', emoji: '🫧', category: 'morning', targetMin: 15, description: 'Warm sesame oil self-massage before bath. Nourishes tissues, calms Vata, improves circulation.', doshaEffect: { vata: -3, pitta: -1, kapha: 0 }, bestFor: ['vata', 'pitta'], tags: ['ojas', 'vata', 'massage'] },
+    { id: 'dant_manjan_bath', name: 'Dant Manjan, Fresh up & Natural Bath', nameHi: 'दंत मंजन एवं स्नान', emoji: '🌿', category: 'morning', targetMin: 20, description: 'Ayurvedic Dant Manjan activates mouth energy centres and improves gut health. Natural water bath for Bhoota Shuddhi — purification of the five elements. These are not just hygiene practices but a scientific way to remove Amas, recharge body and mind.', doshaEffect: { vata: -2, pitta: -1, kapha: -2 }, bestFor: ['vata', 'kapha', 'pitta'], tags: ['oral', 'ama', 'bhoota-shuddhi', 'snana', 'morning'] },
     { id: 'anulom_vilom', name: 'Anulom Vilom', nameHi: 'अनुलोम विलोम', emoji: '🌬️', category: 'morning', targetMin: 15, description: 'Alternate nostril pranayama — balances ida and pingala nadis. Reduces all Doshas.', doshaEffect: { vata: -2, pitta: -2, kapha: -1 }, bestFor: ['vata', 'pitta', 'kapha'], tags: ['pranayama', 'nadi', 'morning'] },
     { id: 'kapalabhati', name: 'Kapalabhati', nameHi: 'कपालभाति', emoji: '💨', category: 'morning', targetMin: 10, description: 'Skull-shining breath — powerful Kapha reducer. Energises the mind and purifies lungs.', doshaEffect: { vata: 1, pitta: 1, kapha: -3 }, bestFor: ['kapha'], tags: ['pranayama', 'kapha', 'energy'] },
     { id: 'meditation', name: 'Silent Meditation', nameHi: 'ध्यान', emoji: '🧘', category: 'morning', targetMin: 15, description: 'Morning meditation — ideally in Brahma Muhurta — reduces all three doshas and builds Ojas.', doshaEffect: { vata: -1, pitta: -1, kapha: -1 }, bestFor: ['vata', 'pitta', 'kapha'], tags: ['ojas', 'sattva', 'morning'] },
@@ -62,8 +61,7 @@ export const AYURVEDIC_HABITS: AyurvedicHabit[] = [
 export const AYUR_TO_H_ID: Record<string, string> = {
     morning_meal: 'h_breakfast',
     warm_water_morning: 'h_warm_water',
-    tongue_scraping: 'h_tongue_scraping',
-    abhyanga: 'h_bathing',
+    dant_manjan_bath: 'h_bathing',
     anulom_vilom: 'h_pranayama',
     kapalabhati: 'h_pranayama',
     meditation: 'h_morning_meditation',
@@ -81,8 +79,7 @@ export const AYUR_TO_H_ID: Record<string, string> = {
 // ─── Reverse: h_* ID → Ayurvedic habit ID ────────────────────────────────────
 export const H_ID_TO_AYUR: Record<string, string> = {
     h_warm_water: 'warm_water_morning',
-    h_tongue_scraping: 'tongue_scraping',
-    h_bathing: 'abhyanga',
+    h_bathing: 'dant_manjan_bath',
     h_pranayama: 'anulom_vilom',
     h_morning_meditation: 'meditation',
     h_morning_sunlight: 'sunlight_morning',

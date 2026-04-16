@@ -62,6 +62,16 @@ function getLocalUserNameSAD(): string {
   return (typeof localStorage !== 'undefined' ? localStorage.getItem('vedic_user_name') : null) ?? 'friend';
 }
 
+// ─── Complete reverse map: h_* ID → ALL matching Ayurvedic habit IDs ─────────
+// H_ID_TO_AYUR only stores one entry per h_* ID but AYUR_TO_H_ID can map
+// multiple Ayurvedic IDs to the same h_* (e.g. both 'evening_walk' and
+// 'shatapavali' map to 'h_walk'). Build the full reverse here once.
+const H_ID_TO_ALL_AYUR: Record<string, string[]> = {};
+Object.entries(AYUR_TO_H_ID).forEach(([ayurId, hId]) => {
+  if (!H_ID_TO_ALL_AYUR[hId]) H_ID_TO_ALL_AYUR[hId] = [];
+  H_ID_TO_ALL_AYUR[hId].push(ayurId);
+});
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 const LIFE_AREA_COLORS: Record<string, string> = {
   mental: '#22d3ee', physical: '#4ade80', social: '#fb923c',
@@ -77,14 +87,14 @@ const CAT_CFG: Record<HabitCategory, { emoji: string; label: string; color: stri
 };
 // ─── Ayurvedic canonical order ──────────────────────────────────────────────
 const MORNING_PRACTICE_ORDER_SAD: Record<string, number> = {
-  h_wake_early: 0, h_warm_water: 1, h_tongue_scraping: 2,
-  h_pranayama: 3, h_morning_meditation: 4, h_bathing: 5,
-  h_morning_sunlight: 6, h_gratitude: 7, h_breakfast: 8,
+  h_wake_early: 0, h_warm_water: 1, h_bathing: 2,
+  h_pranayama: 3, h_morning_meditation: 4,
+  h_morning_sunlight: 5, h_gratitude: 6, h_breakfast: 7,
 };
 // SmartLog bubble ID → lifestyle-store h_* ID (for cross-section sync)
 const SMARTLOG_TO_H_ID_SAD: Record<string, string> = {
   wake: 'h_wake_early', warm_water: 'h_warm_water',
-  tongue_scrape: 'h_tongue_scraping', breathwork: 'h_pranayama',
+  dant_manjan_bath: 'h_bathing', breathwork: 'h_pranayama',
   bath: 'h_bathing', morning_light: 'h_morning_sunlight',
   breakfast: 'h_breakfast', sleep: 'h_sleep_early',
   gratitude: 'h_gratitude', hydration: 'h_water',
@@ -101,6 +111,37 @@ const AYUR_STAT_LABELS = [
   { key: 'complete', label: 'COMPLETE', sub: 'done today', icon: '✅' },
   { key: 'earned', label: 'EARNED', sub: 'energy pts', icon: '⚡' },
 ];
+
+// ─── Personalized To-Do subtitles for each Ayurvedic activity ────────────────
+const TODO_SUBTITLES: Record<string, (name: string) => { headline: string; body: string }> = {
+  h_wake_early: (n) => ({ headline: `Rise & Shine, ${n}!`, body: `It is wake up time. Rise, pay gratitude to God and start your sacred day. Tap to log once you've awakened.` }),
+  warm_water_morning: (n) => ({ headline: `Ushapana time, ${n}!`, body: `It is Ushapana time — drink 2–4 glasses of warm water to flush overnight Ama and kindle your Agni. Just do it and log here.` }),
+  dant_manjan_bath: (n) => ({ headline: `Purify & Recharge, ${n}!`, body: `Time to remove all Amas and do Bhoota Shuddhi. Use Ayurvedic Dant Manjan — it activates mouth energy centres and improves gut health too. Bathe with fresh natural water for five-element purification. These are not just habits but a scientific way to recharge body and mind. Do them and log here.` }),
+  anulom_vilom: (n) => ({ headline: `Meditation & Workout, ${n}!`, body: `Time for morning breathwork, meditation and workout. Meditate using our Meditation section, then complete your workout — a complete recharge ritual for body and mind. Log here after.` }),
+  kapalabhati: (n) => ({ headline: `Kapalabhati time, ${n}!`, body: `Skull-shining breath — powerful Kapha reducer and mind energiser. Purifies the lungs and ignites your Agni for the day ahead. Log after completing.` }),
+  meditation: (n) => ({ headline: `Meditation & Workout, ${n}!`, body: `Time for morning meditation and workout. Meditate using our Meditation section, then do your workout. These recharge and rejuvenate your body and mind completely. Log here after both.` }),
+  sunlight_morning: (n) => ({ headline: `Surya Darshana, ${n}!`, body: `Step outside and absorb Surya Shakti. Just 10+ minutes of morning light synchronises your circadian rhythm with the Ayurvedic clock. Log after absorbing the light.` }),
+  gratitude_practice: (n) => ({ headline: `Gratitude time, ${n}!`, body: `Name 3 genuine moments of gratitude. This sacred practice programs Sattva into your nervous system and rewires the brain toward joy every single day. Log after reflecting.` }),
+  morning_meal: (n) => ({ headline: `Breakfast time, ${n}!`, body: `It is time for a warm, nourishing breakfast. Try a healthy meal with seasonal foods — mindful nourishment 1–2 hours after waking to kindle Agni before the Pitta peak. Log after eating.` }),
+  main_meal_noon: (n) => ({ headline: `Main Meal time, ${n}!`, body: `Your largest meal of the day. Between 12–1 PM your Agni is strongest — the very foundation of Ayurvedic diet and health. Eat with gratitude and mindfulness. Log after your meal.` }),
+  shatapavali: (n) => ({ headline: `Post-Meal Walk, ${n}!`, body: `100 gentle steps after lunch — Shatapavali. It aids digestion without straining Agni. A simple 10-minute walk that transforms your health. Log after your walk.` }),
+  deep_work_afternoon: (n) => ({ headline: `Deep Work time, ${n}!`, body: `Enter flow state during the Pitta peak — your sharpest mental clarity window. Channel the fire for undistracted, meaningful work. Log your session.` }),
+  herbal_tea: (n) => ({ headline: `Herbal Tea time, ${n}!`, body: `Cumin-Coriander-Fennel tea — a tri-doshic digestive that reduces Ama and supports all three doshas. A simple, profound daily ritual. Log after sipping.` }),
+  evening_walk: (n) => ({ headline: `Evening Walk, ${n}!`, body: `A gentle 20-minute Sandhya walk reduces Pitta and Kapha, grounds Vata and builds Ojas. Step outside into the evening light and log after returning.` }),
+  light_dinner_early: (n) => ({ headline: `Dinner time, ${n}!`, body: `Light dinner by 7 PM gives your body 12+ hours to restore Ojas and repair cells before breakfast. Eat light, eat early. Log after dinner.` }),
+  screen_free_hour: (n) => ({ headline: `Digital Sunset, ${n}!`, body: `No screens 1 hour before bed. This single habit preserves your Ojas and ensures deep, restorative Kapha-dominant sleep. Log after switching off screens.` }),
+  journaling: (n) => ({ headline: `Reflection time, ${n}!`, body: `Evening Svadhyaya — process the day's experiences and release mental Ama through writing. A clear mind before sleep means deeper rest and a brighter tomorrow. Log after writing.` }),
+  sleep_by_10: (n) => ({ headline: `Sleep time, ${n}!`, body: `Sleep by 10 PM in the Kapha hours — the sacred window for maximum Ojas restoration and deep cellular repair. Your most powerful wellness investment. Log before sleeping.` }),
+};
+
+function getActivitySubtitle(id: string, name: string, userName: string): { headline: string; body: string } {
+  const fn = TODO_SUBTITLES[id];
+  if (fn) return fn(userName);
+  return {
+    headline: `${name}, ${userName}!`,
+    body: `It is time for ${name}. Complete this practice and log here to nurture your wellness journey.`,
+  };
+}
 
 
 // ─── SmartLog store helpers ───────────────────────────────────────────────────
@@ -258,6 +299,133 @@ function MiniHabitCard({ habit, isCompleted, streak, onComplete }: {
         }
       </div>
     </motion.div>
+  );
+}
+
+// ─── ToDo Duo Grid ─────────────────────────────────────────────────────────────
+function TodoDuoGrid({
+  current,
+  next,
+  slotColor,
+  onLogCurrent,
+}: {
+  current: HabitItem;
+  next: HabitItem | null;
+  slotColor: string;
+  onLogCurrent: (id: string) => void;
+}) {
+  const userName = typeof window !== 'undefined' ? getLocalUserNameSAD() : 'friend';
+  const curSub = getActivitySubtitle(current.id, current.name, userName);
+  const nextSub = next ? getActivitySubtitle(next.id, next.name, userName) : null;
+  const curColor = current.color ?? slotColor;
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: next ? '1fr 1fr' : '1fr', gap: '0.5rem', marginBottom: '0.65rem' }}>
+      {/* ── Current Activity Card (loggable) ── */}
+      <motion.div
+        whileTap={{ scale: 0.96 }}
+        onClick={() => onLogCurrent(current.id)}
+        style={{
+          borderRadius: 22, padding: '0.9rem 0.78rem',
+          background: `linear-gradient(145deg, ${curColor}28 0%, rgba(4,2,18,0.9) 100%)`,
+          border: `2px solid ${curColor}70`,
+          boxShadow: `0 8px 36px ${curColor}28, 0 2px 0 ${curColor}18 inset, 0 -1px 0 rgba(0,0,0,0.4) inset`,
+          cursor: 'pointer', position: 'relative', overflow: 'hidden',
+          minHeight: 170, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+        }}
+      >
+        {/* ambient glow pulse */}
+        <motion.div
+          animate={{ opacity: [0.15, 0.4, 0.15] }}
+          transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at 50% 0%, ${curColor}44 0%, transparent 72%)`, pointerEvents: 'none', zIndex: 0 }}
+        />
+        {/* NOW badge */}
+        <motion.div
+          animate={{ opacity: [1, 0.4, 1] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+          style={{
+            position: 'absolute', top: 9, right: 9, zIndex: 2,
+            fontSize: '0.38rem', padding: '0.12rem 0.38rem', borderRadius: 99,
+            background: `${curColor}28`, border: `1px solid ${curColor}68`,
+            color: curColor, fontWeight: 900, fontFamily: "'Outfit',sans-serif", letterSpacing: '0.1em',
+          }}
+        >● NOW</motion.div>
+        {/* Card content */}
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <motion.span
+            animate={{ filter: [`drop-shadow(0 0 6px ${curColor}60)`, `drop-shadow(0 0 14px ${curColor}90)`, `drop-shadow(0 0 6px ${curColor}60)`] }}
+            transition={{ duration: 2.5, repeat: Infinity }}
+            style={{ fontSize: '1.9rem', lineHeight: 1, display: 'block', marginBottom: '0.45rem' }}
+          >{current.icon}</motion.span>
+          <p style={{ margin: '0 0 0.3rem', fontSize: '0.73rem', fontWeight: 900, color: curColor, fontFamily: "'Outfit',sans-serif", lineHeight: 1.22, paddingRight: '1.4rem', textShadow: `0 0 20px ${curColor}50` }}>
+            {curSub.headline}
+          </p>
+          <p style={{ margin: 0, fontSize: '0.54rem', color: 'rgba(255,255,255,0.68)', fontFamily: "'Outfit',sans-serif", lineHeight: 1.55, fontWeight: 500, display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            {curSub.body}
+          </p>
+        </div>
+        {/* Log button */}
+        <motion.div
+          whileTap={{ scale: 0.88 }}
+          style={{
+            marginTop: '0.65rem', position: 'relative', zIndex: 1,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+            padding: '0.48rem 0.6rem', borderRadius: 13,
+            background: `linear-gradient(135deg, ${curColor}3a, ${curColor}18)`,
+            border: `1.5px solid ${curColor}55`,
+            boxShadow: `0 4px 18px ${curColor}28`,
+          }}
+        >
+          <CheckCircle2 size={13} style={{ color: curColor }} />
+          <span style={{ fontSize: '0.64rem', fontWeight: 900, color: curColor, fontFamily: "'Outfit',sans-serif", letterSpacing: '0.02em' }}>
+            Tap to Log ✦
+          </span>
+        </motion.div>
+      </motion.div>
+
+      {/* ── Next Activity Card (locked preview) ── */}
+      {next && nextSub && (
+        <div style={{
+          borderRadius: 22, padding: '0.9rem 0.78rem',
+          background: 'linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(4,2,18,0.75) 100%)',
+          border: '1.5px solid rgba(255,255,255,0.09)',
+          minHeight: 170, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+          position: 'relative', overflow: 'hidden',
+          opacity: 0.62,
+        }}>
+          {/* UP NEXT badge */}
+          <div style={{
+            position: 'absolute', top: 9, right: 9,
+            fontSize: '0.38rem', padding: '0.12rem 0.38rem', borderRadius: 99,
+            background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.18)',
+            color: 'rgba(255,255,255,0.4)', fontWeight: 900, fontFamily: "'Outfit',sans-serif", letterSpacing: '0.1em',
+          }}>UP NEXT</div>
+          {/* Card content */}
+          <div>
+            <span style={{ fontSize: '1.9rem', lineHeight: 1, display: 'block', marginBottom: '0.45rem', filter: 'grayscale(0.4) opacity(0.75)' }}>{next.icon}</span>
+            <p style={{ margin: '0 0 0.3rem', fontSize: '0.73rem', fontWeight: 900, color: 'rgba(255,255,255,0.52)', fontFamily: "'Outfit',sans-serif", lineHeight: 1.22, paddingRight: '1.4rem' }}>
+              {next.name}
+            </p>
+            <p style={{ margin: 0, fontSize: '0.54rem', color: 'rgba(255,255,255,0.3)', fontFamily: "'Outfit',sans-serif", lineHeight: 1.55, fontWeight: 500, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+              {nextSub.body}
+            </p>
+          </div>
+          {/* Lock indicator */}
+          <div style={{
+            marginTop: '0.65rem',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+            padding: '0.48rem 0.6rem', borderRadius: 13,
+            background: 'rgba(255,255,255,0.03)', border: '1.5px solid rgba(255,255,255,0.09)',
+          }}>
+            <span style={{ fontSize: '0.72rem' }}>🔒</span>
+            <span style={{ fontSize: '0.58rem', fontWeight: 700, color: 'rgba(255,255,255,0.24)', fontFamily: "'Outfit',sans-serif" }}>
+              Unlocks after current
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -461,17 +629,24 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   engine.habitLogs
     .filter(l => l.date === todayStr && l.completed)
     .forEach(l => {
+      // Map h_* → ALL Ayurvedic IDs that alias to it (not just the canonical one)
+      (H_ID_TO_ALL_AYUR[l.habitId] ?? []).forEach(aId => firestoreAyurDone.add(aId));
+      // Also the singular H_ID_TO_AYUR entry for safety
       const aId = H_ID_TO_AYUR[l.habitId];
       if (aId) firestoreAyurDone.add(aId);
+      // If the logged ID itself is a direct Ayurvedic ID (e.g. 'main_meal_noon', 'evening_walk')
       if (ayurvedic_ids_set.has(l.habitId)) firestoreAyurDone.add(l.habitId);
     });
-  // SmartLog bubbles also count (e.g. 'lunch' bubble → 'main_meal_noon')
+  // SmartLog bubbles also count (e.g. legacy 'h_walk' bubble → all matching Ayurvedic IDs)
   const smartLogAyurDone = new Set<string>();
   smartLoggedToday.forEach(slId => {
+    // slId can be a legacy bubble ID, an h_* ID, or a direct Ayurvedic ID
     const hId = SMARTLOG_TO_H_ID_SAD[slId] ?? slId;
+    (H_ID_TO_ALL_AYUR[hId] ?? []).forEach(aId => smartLogAyurDone.add(aId));
     const aId = H_ID_TO_AYUR[hId];
     if (aId) smartLogAyurDone.add(aId);
     if (ayurvedic_ids_set.has(slId)) smartLogAyurDone.add(slId);
+    if (ayurvedic_ids_set.has(hId)) smartLogAyurDone.add(hId);
   });
   const mergedAyurDone = new Set([...ayurCompletedIds, ...firestoreAyurDone, ...smartLogAyurDone]);
 
@@ -656,18 +831,24 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '0.3rem 0.9rem', borderRadius: 99, background: 'rgba(139,92,246,0.22)', border: '1px solid rgba(167,139,250,0.38)', color: '#c4b5fd', fontSize: '0.7rem', fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}><Plus size={10} /> Add Habits</span>
             </motion.div>
           ) : pendingHabits.length > 0 ? (
-            <>
-              <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-                style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '0.38rem 0.62rem', borderRadius: 12, marginBottom: '0.38rem', background: `linear-gradient(135deg,${slotCfg.color}12,rgba(139,92,246,0.07))`, border: `1px solid ${slotCfg.color}28` }}>
-                <motion.span animate={{ rotate: [0, 12, -12, 0] }} transition={{ duration: 2.4, repeat: Infinity }} style={{ fontSize: '0.9rem' }}>✨</motion.span>
-                <p style={{ margin: 0, fontSize: '0.58rem', fontWeight: 800, color: slotCfg.color, fontFamily: "'Outfit',sans-serif" }}>Tap any card to log — Bodhi celebrates with you!</p>
+            <AnimatePresence mode="wait">
+              <motion.div key={pendingHabits[0].id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.3 }}>
+                <TodoDuoGrid
+                  current={pendingHabits[0]}
+                  next={pendingHabits[1] ?? null}
+                  slotColor={slotCfgColor}
+                  onLogCurrent={(id) => { playConfirmChime(); setActiveSubHabitId(id); }}
+                />
+                {pendingHabits.length > 2 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.28rem', justifyContent: 'center', marginTop: '0.1rem', marginBottom: '0.2rem' }}>
+                    {pendingHabits.slice(2).map((_, i) => (
+                      <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,0.14)', flexShrink: 0 }} />
+                    ))}
+                    <span style={{ fontSize: '0.46rem', color: 'rgba(255,255,255,0.22)', fontFamily: "'Outfit',sans-serif", marginLeft: 4 }}>{pendingHabits.length - 2} more ahead</span>
+                  </div>
+                )}
               </motion.div>
-              {pendingHabits.map((h, i) => (
-                <motion.div key={h.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                  <MiniHabitCard habit={h} isCompleted={false} streak={engine.getHabitStreak(h.id)} onComplete={(id) => { playConfirmChime(); setActiveSubHabitId(id); }} />
-                </motion.div>
-              ))}
-            </>
+            </AnimatePresence>
           ) : totalHabits > 0 ? (
             <div style={{ textAlign: 'center', padding: '0.55rem', border: '1px solid rgba(74,222,128,0.2)', borderRadius: 12, background: 'rgba(74,222,128,0.04)' }}>
               <motion.p animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }} style={{ margin: '0 0 0.1rem', fontSize: '1.1rem' }}>🪔</motion.p>

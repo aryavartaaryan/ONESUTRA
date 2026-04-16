@@ -70,7 +70,7 @@ const H_ID_TO_SMARTLOG: Record<string, string> = {
 };
 
 // ─── Order Enforcement ────────────────────────────────────────────────────────
-const MORNING_ORDER = ['wake', 'warm_water', 'tongue_scrape', 'breathwork', 'bath', 'morning_light'];
+const MORNING_ORDER = ['wake', 'warm_water', 'dant_manjan_bath', 'breathwork', 'morning_light'];
 const LOG_STORE_KEY = 'onesutra_smartlog_v2';
 const LIFESTYLE_STORE_KEY = 'onesutra_lifestyle_v2';
 
@@ -340,7 +340,7 @@ const STATIC_BUBBLE_IDS = new Set([
     'sleep', 'gratitude', 'read',
     // Ayurvedic habit IDs (now the canonical source shown in bubbles)
     'morning_meal',
-    'warm_water_morning', 'tongue_scraping', 'abhyanga', 'anulom_vilom', 'kapalabhati',
+    'warm_water_morning', 'dant_manjan_bath', 'anulom_vilom', 'kapalabhati',
     'meditation', 'sunlight_morning', 'gratitude_practice',
     'main_meal_noon', 'deep_work_afternoon', 'shatapavali', 'herbal_tea',
     'evening_walk', 'light_dinner_early', 'screen_free_hour', 'journaling', 'sleep_by_10',
@@ -616,6 +616,12 @@ const SLOT_COLORS: Record<string, string> = {
 
 // ─── Rich sub-options by habit category (shown when bubble is tapped) ─────────
 export function getSubOptionsForHabit(id: string, name: string): SubOption[] {
+    if (id === 'dant_manjan_bath') return [
+        { icon: '🌿', label: 'Full cleanse done', detail: 'completed Dant Manjan and natural water bath — full Bhoota Shuddhi' },
+        { icon: '🪥', label: 'Dant Manjan only', detail: 'did Ayurvedic Dant Manjan oral cleanse this morning' },
+        { icon: '🚿', label: 'Bath only', detail: 'took a natural fresh water bath for Bhoota Shuddhi' },
+        { icon: '🌊', label: 'Full + oil pulling', detail: 'completed Dant Manjan, Gandusha oil pulling and natural bath' },
+    ];
     // Meal habits — full food-picker (matches old MealLoggingSection)
     if (id === 'morning_meal') return [
         { icon: '🥣', label: 'Oats & fruits', detail: 'had oats and fruits for breakfast' },
@@ -710,14 +716,14 @@ export function getTimedBubbles(): LogBubble[] {
     }));
 }
 
-export function getTimeLabel(): { label: string; color: string; Icon: LucideIcon; sublabel: string } {
+export function getTimeLabel(): { label: string; slotName: string; color: string; Icon: LucideIcon; sublabel: string } {
     const h = new Date().getHours();
-    if (h >= 2 && h < 6) return { label: 'Brahma Muhurta', color: '#fbbf24', Icon: Sparkles, sublabel: 'Sacred window open' };
-    if (h >= 6 && h < 11) return { label: 'Morning Log', color: '#fbbf24', Icon: Sunrise, sublabel: 'Kapha window • Agni activation' };
-    if (h >= 11 && h < 15) return { label: 'Midday Log', color: '#fb923c', Icon: Sun, sublabel: 'Pitta window • Peak energy' };
-    if (h >= 15 && h < 18) return { label: 'Evening Log', color: '#f97316', Icon: Sunset, sublabel: 'Vata-Kapha transition • Wind down begins' };
-    if (h >= 18 && h < 22) return { label: 'Evening Log', color: '#a78bfa', Icon: Sunset, sublabel: 'Kapha wind-down • Wind down ritual' };
-    return { label: 'Night Log', color: '#818cf8', Icon: Moon, sublabel: 'Late Pitta • Sleep ritual' };
+    if (h >= 2 && h < 6) return { label: 'Brahma Muhurta', slotName: 'Brahma Muhurta', color: '#fbbf24', Icon: Sparkles, sublabel: 'Sacred window open' };
+    if (h >= 6 && h < 11) return { label: 'Morning Activities', slotName: 'Morning', color: '#fbbf24', Icon: Sunrise, sublabel: 'Kapha window • Agni activation' };
+    if (h >= 11 && h < 15) return { label: 'Midday Activities', slotName: 'Midday', color: '#fb923c', Icon: Sun, sublabel: 'Pitta window • Peak energy' };
+    if (h >= 15 && h < 18) return { label: 'Evening Activities', slotName: 'Evening', color: '#f97316', Icon: Sunset, sublabel: 'Vata-Kapha transition • Wind down begins' };
+    if (h >= 18 && h < 22) return { label: 'Evening Activities', slotName: 'Evening', color: '#a78bfa', Icon: Sunset, sublabel: 'Kapha wind-down • Ojas building' };
+    return { label: 'Night Activities', slotName: 'Night', color: '#818cf8', Icon: Moon, sublabel: 'Kapha dominance • Rest and restore' };
 }
 
 // ─── Semantic ordering heuristic (strict Ayurvedic dinacharya sequence) ──────
@@ -727,6 +733,7 @@ function getSortIndex(label: string, id: string): number {
     if (id === 'warm_water' || text.includes('ushapana') || (text.includes('warm') && text.includes('water'))) return 15;
     if (text.includes('water') || text.includes('hydrat')) return 20;
     if (text.includes('teeth') || text.includes('tongue') || text.includes('scrap') || text.includes('oil pull')) return 25;
+    if (id === 'dant_manjan_bath' || text.includes('manjan') || text.includes('bhoota')) return 30;
     if (text.includes('meditat') || text.includes('pranayama') || text.includes('breath') || text.includes('yoga') || text.includes('stretch')) return 35;
     if (text.includes('bath') || text.includes('shower') || text.includes('snana') || text.includes('clean')) return 45;
     if (text.includes('sun') || text.includes('light') || text.includes('surya')) return 60;
@@ -915,7 +922,7 @@ export default function SmartLogBubbles() {
         if (orderIdx <= 0) return null;
         const prereq = MORNING_ORDER[orderIdx - 1];
         if (!loggedToday.has(prereq)) {
-            const names: Record<string, string> = { wake: 'Rise and Shine', warm_water: 'Warm Water Ritual', tongue_scrape: 'Tongue Scraping', breathwork: 'Pranayama', bath: 'Morning Bath', morning_light: 'Morning Sunlight', breakfast: 'Mindful Breakfast' };
+            const names: Record<string, string> = { wake: 'Rise and Shine', warm_water: 'Warm Water Ritual', dant_manjan_bath: 'Dant Manjan & Natural Bath', breathwork: 'Pranayama', morning_light: 'Morning Sunlight', breakfast: 'Mindful Breakfast' };
             return `Log "${names[prereq] ?? prereq}" first ✦`;
         }
         return null;
@@ -995,12 +1002,16 @@ export default function SmartLogBubbles() {
         const hId = SMARTLOG_TO_H_ID[bubble.id] ?? (bubble.isDynamic ? null : AYUR_TO_H_ID[bubble.id]);
         const targetId = hId ?? bubble.id;
         // Fire-and-forget: updates local Zustand store instantly + writes to
-        // habit_logs Firestore. onSnapshot on all logged-in devices picks this
-        // up in milliseconds without any additional listener in this component.
+        // habit_logs Firestore. onSnapshot on all logged-in devices picks this up.
         logHabitAndSync(user?.uid, targetId, sub?.detail);
-        // Mark in the Ayurvedic local log so ayurvedic page + dashboard sync
+        // ALSO write the original Ayurvedic ID so cross-device onSnapshot can find it
+        // (H_ID_TO_AYUR is not a full inverse of AYUR_TO_H_ID — e.g. h_walk maps to
+        // 'shatapavali' but the bubble might be 'evening_walk')
+        if (bubble.id !== targetId) logHabitAndSync(user?.uid, bubble.id, sub?.detail);
+        // Mark BOTH the mapped ID and the canonical Ayurvedic ID in localStorage
         const ayurId = H_ID_TO_AYUR[targetId] ?? bubble.id;
         setAyurHabitCompleted(ayurId);
+        if (bubble.id !== ayurId) setAyurHabitCompleted(bubble.id);
         // Dispatch event so SmartAnalyticsDashboard and LifestylePanel both refresh
         try { window.dispatchEvent(new CustomEvent('habit-logged')); } catch { }
         try { window.dispatchEvent(new CustomEvent('daily-log-story-updated')); } catch { }
@@ -1083,7 +1094,7 @@ export default function SmartLogBubbles() {
         let rafId: number;
         let elapsed = 0;          // accumulated active (non-paused) time in seconds
         let lastTime = 0;
-        const CYCLE = 18;          // seconds for one full round trip (adjust for speed)
+        const CYCLE = 55;          // seconds for one full round trip (adjust for speed)
 
         const step = (now: number) => {
             if (lastTime === 0) lastTime = now;
@@ -1164,7 +1175,7 @@ export default function SmartLogBubbles() {
     };
 
     // ── Render a single bubble ───────────────────────────────────────────────
-    const renderBubble = (bubble: LogBubble, i: number) => {
+    const renderBubble = (bubble: LogBubble, i: number, isSequentiallyLocked = false) => {
         const isActive = activeBubble === bubble.id;
         // Ayurvedic habits: use effectiveAyurDoneIds (localStorage + Firestore-synced).
         // Legacy/dynamic habits: use loggedToday.
@@ -1172,7 +1183,7 @@ export default function SmartLogBubbles() {
             ? effectiveAyurDoneIds.has(bubble.id)
             : loggedToday.has(bubble.id);
         if (isDone) return null;
-        const isLocked = !isDone && getBlockReason(bubble.id) !== null;
+        const isLocked = !isDone && (isSequentiallyLocked || getBlockReason(bubble.id) !== null);
         const isDynamic = !!bubble.isDynamic;
 
         return (
@@ -1181,8 +1192,16 @@ export default function SmartLogBubbles() {
                 initial={{ opacity: 0, y: 16, scale: 0.9 }}
                 animate={{ opacity: isDone ? 0.38 : 1, y: 0, scale: 1 }}
                 transition={{ delay: i * 0.06, type: 'spring', stiffness: 340, damping: 26 }}
-                style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, cursor: isLocked || isDone ? 'default' : 'pointer', opacity: isLocked ? 0.45 : undefined }}
-                onClick={() => !isDone && toggleBubble(bubble)}
+                style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, cursor: isLocked || isDone ? 'default' : 'pointer', opacity: isSequentiallyLocked ? 0.38 : isLocked ? 0.45 : undefined }}
+                onClick={() => {
+                    if (isSequentiallyLocked && !isDone) {
+                        const curLabel = timedBubbles[0]?.label ?? 'current activity';
+                        setOrderToast(`Complete "${curLabel}" first ✦`);
+                        setTimeout(() => setOrderToast(null), 2500);
+                        return;
+                    }
+                    !isDone && toggleBubble(bubble);
+                }}
             >
                 {/* Bubble circle */}
                 <motion.div
@@ -1258,13 +1277,17 @@ export default function SmartLogBubbles() {
                     )}
                     {/* Done checkmark */}
                     {isDone ? <span style={{ fontSize: '1.4rem' }}>✓</span> : bubble.icon}
+                    {/* Sequential lock overlay */}
+                    {isSequentiallyLocked && !isDone && (
+                        <div style={{ position: 'absolute', bottom: 3, right: 3, width: 17, height: 17, borderRadius: '50%', background: 'rgba(0,0,0,0.78)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.48rem', border: '1px solid rgba(255,255,255,0.18)', zIndex: 2 }}>🔒</div>
+                    )}
                 </motion.div>
 
                 {/* Label */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                     <span style={{
                         fontSize: '0.76rem', fontWeight: isDone ? 600 : 800,
-                        color: isDone ? 'rgba(74,222,128,0.55)' : isActive ? bubble.color : 'rgba(255,255,255,0.78)',
+                        color: isDone ? 'rgba(74,222,128,0.55)' : isSequentiallyLocked ? 'rgba(255,255,255,0.28)' : isActive ? bubble.color : 'rgba(255,255,255,0.78)',
                         letterSpacing: '0.02em', textAlign: 'center', maxWidth: 160,
                         lineHeight: 1.25, fontFamily: "'Outfit', sans-serif",
                         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
@@ -1349,48 +1372,65 @@ export default function SmartLogBubbles() {
                 )}
             </AnimatePresence>
 
-            {/* ══ PREMIUM HEADER ══════════════════════════════════════════════ */}
+            {/* ══ PREMIUM HEADER ═════════════════════════════════════════════════════ */}
             <motion.div
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
                 style={{
-                    marginBottom: '0.7rem',
-                    padding: '0.6rem 0.85rem',
-                    borderRadius: 18,
-                    background: `linear-gradient(135deg, ${timeLabel.color}14 0%, rgba(4,2,20,0.0) 100%)`,
-                    border: `1.5px solid ${timeLabel.color}28`,
-                    display: 'flex', alignItems: 'center', gap: '0.65rem',
+                    marginBottom: '0.72rem',
+                    padding: '0.72rem 0.9rem',
+                    borderRadius: 20,
+                    background: `linear-gradient(135deg, ${timeLabel.color}1c 0%, rgba(4,2,20,0.04) 80%)`,
+                    border: `1.5px solid ${timeLabel.color}38`,
+                    display: 'flex', alignItems: 'center', gap: '0.7rem',
                     position: 'relative', overflow: 'hidden',
+                    boxShadow: `0 4px 24px ${timeLabel.color}14, inset 0 1px 0 rgba(255,255,255,0.06)`,
                 }}
             >
-                {/* Ambient glow */}
-                <div style={{ position: 'absolute', right: -20, top: -20, width: 80, height: 80, borderRadius: '50%', background: `radial-gradient(circle, ${timeLabel.color}18, transparent 70%)`, pointerEvents: 'none' }} />
-
+                {/* Ambient glow corner */}
                 <motion.div
-                    animate={{ filter: [`drop-shadow(0 0 6px ${timeLabel.color}60)`, `drop-shadow(0 0 16px ${timeLabel.color}cc)`, `drop-shadow(0 0 6px ${timeLabel.color}60)`] }}
+                    animate={{ opacity: [0.25, 0.55, 0.25] }}
+                    transition={{ duration: 3.2, repeat: Infinity }}
+                    style={{ position: 'absolute', right: -12, top: -12, width: 90, height: 90, borderRadius: '50%', background: `radial-gradient(circle, ${timeLabel.color}28, transparent 70%)`, pointerEvents: 'none' }}
+                />
+                {/* Shimmer sweep */}
+                <motion.div
+                    animate={{ x: ['-110%', '210%'] }}
+                    transition={{ duration: 3.8, repeat: Infinity, repeatDelay: 5, ease: 'easeInOut' }}
+                    style={{ position: 'absolute', inset: 0, background: `linear-gradient(105deg, transparent 28%, ${timeLabel.color}20 50%, transparent 72%)`, pointerEvents: 'none' }}
+                />
+                {/* Icon */}
+                <motion.div
+                    animate={{ filter: [`drop-shadow(0 0 5px ${timeLabel.color}55)`, `drop-shadow(0 0 18px ${timeLabel.color}cc)`, `drop-shadow(0 0 5px ${timeLabel.color}55)`] }}
                     transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+                    style={{ flexShrink: 0, position: 'relative', zIndex: 1 }}
                 >
-                    <TimeLabelIcon size={22} strokeWidth={2} style={{ color: timeLabel.color, display: 'block' }} />
+                    <TimeLabelIcon size={26} strokeWidth={2} style={{ color: timeLabel.color, display: 'block' }} />
                 </motion.div>
-
-                <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 900, color: timeLabel.color, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.06em', textTransform: 'uppercase', lineHeight: 1 }}>
-                        {timeLabel.label}
+                {/* Text block */}
+                <div style={{ flex: 1, minWidth: 0, position: 'relative', zIndex: 1 }}>
+                    <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 900, color: timeLabel.color, fontFamily: "'Outfit', sans-serif", lineHeight: 1.28, textShadow: `0 0 22px ${timeLabel.color}50` }}>
+                        Log the {timeLabel.slotName} activities on time
                     </p>
-                    <p style={{ margin: '0.22rem 0 0', fontSize: '0.6rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.06em' }}>
-                        {timeLabel.sublabel}
+                    <p style={{ margin: '0.18rem 0 0', fontSize: '0.58rem', color: 'rgba(255,255,255,0.52)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.45, fontWeight: 600 }}>
+                        Increase your wellness to ultra level ✦
                     </p>
                 </div>
-
-                {!allLogged && (
+                {/* Count badge */}
+                {!allLogged && timedBubbles.length > 0 && (
                     <motion.div
-                        animate={{ opacity: [0.5, 1, 0.5] }}
+                        animate={{ opacity: [0.65, 1, 0.65] }}
                         transition={{ duration: 2.2, repeat: Infinity }}
-                        style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }}
+                        style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, position: 'relative', zIndex: 1 }}
                     >
-                        <Flame size={11} style={{ color: timeLabel.color }} />
-                        <span style={{ fontSize: '0.62rem', color: timeLabel.color, fontFamily: "'Outfit', sans-serif", fontWeight: 700, whiteSpace: 'nowrap' }}>
-                            Tap to log
+                        <motion.div
+                            animate={{ scale: [1, 1.15, 1] }}
+                            transition={{ duration: 1.8, repeat: Infinity }}
+                        >
+                            <Flame size={14} style={{ color: timeLabel.color }} />
+                        </motion.div>
+                        <span style={{ fontSize: '0.46rem', color: timeLabel.color, fontFamily: "'Outfit', sans-serif", fontWeight: 900, whiteSpace: 'nowrap', lineHeight: 1 }}>
+                            {timedBubbles.length} left
                         </span>
                     </motion.div>
                 )}
@@ -1427,7 +1467,7 @@ export default function SmartLogBubbles() {
                         }}
                     >
                         <style>{`.smart-log-row::-webkit-scrollbar{display:none}`}</style>
-                        {timedBubbles.map((bubble, i) => renderBubble(bubble, i))}
+                        {timedBubbles.map((bubble, i) => renderBubble(bubble, i, i > 0))}
                         {timedBubbles.length > 0 && anytimeBubbles.length > 0 && (
                             <div style={{
                                 flexShrink: 0,
