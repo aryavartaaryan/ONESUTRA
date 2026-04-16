@@ -309,17 +309,11 @@ function TodoDuoGrid({
   next,
   slotColor,
   onLogCurrent,
-  currentNum = 1,
-  nextNum = 2,
-  isLoggable = true,
 }: {
   current: HabitItem;
   next: HabitItem | null;
   slotColor: string;
   onLogCurrent: (id: string) => void;
-  currentNum?: number;
-  nextNum?: number;
-  isLoggable?: boolean;
 }) {
   const userName = typeof window !== 'undefined' ? getLocalUserNameSAD() : 'friend';
   const curSub = getActivitySubtitle(current.id, current.name, userName);
@@ -329,42 +323,36 @@ function TodoDuoGrid({
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: next ? '1fr 1fr' : '1fr', gap: '0.5rem', marginBottom: '0.65rem' }}>
-      {/* ── Current Activity Card ── */}
+      {/* ── Current Activity Card (loggable) ── */}
       <div
-        onClick={isLoggable ? () => onLogCurrent(current.id) : undefined}
+        onClick={() => onLogCurrent(current.id)}
         style={{
           borderRadius: 22, padding: '0.9rem 0.78rem',
-          background: isLoggable
-            ? `linear-gradient(145deg, ${curColor}28 0%, rgba(4,2,18,0.9) 100%)`
-            : `linear-gradient(145deg, ${curColor}12 0%, rgba(4,2,18,0.82) 100%)`,
-          border: isLoggable ? `2px solid ${curColor}70` : `1.5px solid ${curColor}30`,
-          boxShadow: isLoggable ? `0 8px 36px ${curColor}28, 0 2px 0 ${curColor}18 inset` : 'none',
-          cursor: isLoggable ? 'pointer' : 'default', position: 'relative', overflow: 'hidden',
+          background: `linear-gradient(145deg, ${curColor}28 0%, rgba(4,2,18,0.9) 100%)`,
+          border: `2px solid ${curColor}70`,
+          boxShadow: `0 8px 36px ${curColor}28, 0 2px 0 ${curColor}18 inset, 0 -1px 0 rgba(0,0,0,0.4) inset`,
+          cursor: 'pointer', position: 'relative', overflow: 'hidden',
           minHeight: 170, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
           WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation',
         }}
       >
-        {/* number badge top-left */}
-        <div style={{
-          position: 'absolute', top: 8, left: 9, zIndex: 2,
-          width: 18, height: 18, borderRadius: '50%',
-          background: isLoggable ? curColor : `${curColor}40`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '0.46rem', fontWeight: 900, color: isLoggable ? '#000' : `${curColor}cc`,
-          fontFamily: "'Outfit',sans-serif",
-        }}>{currentNum}</div>
         {/* ambient glow pulse */}
-        {isLoggable && <motion.div
+        <motion.div
           animate={{ opacity: [0.15, 0.4, 0.15] }}
           transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
           style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at 50% 0%, ${curColor}44 0%, transparent 72%)`, pointerEvents: 'none', zIndex: 0 }}
-        />}
-        {/* NOW / LOCKED badge top-right */}
-        {isLoggable
-          ? <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.5, repeat: Infinity }}
-              style={{ position: 'absolute', top: 9, right: 9, zIndex: 2, fontSize: '0.38rem', padding: '0.12rem 0.38rem', borderRadius: 99, background: `${curColor}28`, border: `1px solid ${curColor}68`, color: curColor, fontWeight: 900, fontFamily: "'Outfit',sans-serif", letterSpacing: '0.1em' }}>● NOW</motion.div>
-          : <div style={{ position: 'absolute', top: 9, right: 9, zIndex: 2, fontSize: '0.38rem', padding: '0.12rem 0.38rem', borderRadius: 99, background: `${curColor}14`, border: `1px solid ${curColor}30`, color: `${curColor}88`, fontWeight: 900, fontFamily: "'Outfit',sans-serif", letterSpacing: '0.1em' }}>🔒</div>
-        }
+        />
+        {/* NOW badge */}
+        <motion.div
+          animate={{ opacity: [1, 0.4, 1] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+          style={{
+            position: 'absolute', top: 9, right: 9, zIndex: 2,
+            fontSize: '0.38rem', padding: '0.12rem 0.38rem', borderRadius: 99,
+            background: `${curColor}28`, border: `1px solid ${curColor}68`,
+            color: curColor, fontWeight: 900, fontFamily: "'Outfit',sans-serif", letterSpacing: '0.1em',
+          }}
+        >● NOW</motion.div>
         {/* Card content */}
         <div style={{ position: 'relative', zIndex: 1 }}>
           <motion.span
@@ -379,16 +367,23 @@ function TodoDuoGrid({
             {curSub.body}
           </p>
         </div>
-        {isLoggable
-          ? <div style={{ marginTop: '0.65rem', position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '0.48rem 0.6rem', borderRadius: 13, background: `linear-gradient(135deg,${curColor}3a,${curColor}18)`, border: `1.5px solid ${curColor}55`, boxShadow: `0 4px 18px ${curColor}28`, touchAction: 'manipulation' }}>
-              <CheckCircle2 size={13} style={{ color: curColor }} />
-              <span style={{ fontSize: '0.64rem', fontWeight: 900, color: curColor, fontFamily: "'Outfit',sans-serif" }}>Tap to Log ✦</span>
-            </div>
-          : <div style={{ marginTop: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '0.42rem 0.6rem', borderRadius: 13, background: `${curColor}08`, border: `1px solid ${curColor}22` }}>
-              <span style={{ fontSize: '0.68rem' }}>🔒</span>
-              <span style={{ fontSize: '0.58rem', fontWeight: 700, color: `${curColor}88`, fontFamily: "'Outfit',sans-serif" }}>Locked · Log #1 first</span>
-            </div>
-        }
+        {/* Log button */}
+        <div
+          style={{
+            marginTop: '0.65rem', position: 'relative', zIndex: 1,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+            padding: '0.48rem 0.6rem', borderRadius: 13,
+            background: `linear-gradient(135deg, ${curColor}3a, ${curColor}18)`,
+            border: `1.5px solid ${curColor}55`,
+            boxShadow: `0 4px 18px ${curColor}28`,
+            touchAction: 'manipulation',
+          }}
+        >
+          <CheckCircle2 size={13} style={{ color: curColor }} />
+          <span style={{ fontSize: '0.64rem', fontWeight: 900, color: curColor, fontFamily: "'Outfit',sans-serif", letterSpacing: '0.02em' }}>
+            Tap to Log ✦
+          </span>
+        </div>
       </div>
 
       {/* ── Next Activity Card — locked, fully visible, no blur ── */}
@@ -400,10 +395,13 @@ function TodoDuoGrid({
           minHeight: 170, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
           position: 'relative', overflow: 'hidden',
         }}>
-          {/* number badge */}
-          <div style={{ position: 'absolute', top: 8, left: 9, zIndex: 2, width: 18, height: 18, borderRadius: '50%', background: `${nxtColor}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.46rem', fontWeight: 900, color: `${nxtColor}cc`, fontFamily: "'Outfit',sans-serif" }}>{nextNum}</div>
-          {/* locked badge */}
-          <div style={{ position: 'absolute', top: 9, right: 9, fontSize: '0.38rem', padding: '0.12rem 0.38rem', borderRadius: 99, background: `${nxtColor}14`, border: `1px solid ${nxtColor}35`, color: `${nxtColor}88`, fontWeight: 900, fontFamily: "'Outfit',sans-serif" }}>🔒</div>
+          {/* NEXT badge */}
+          <div style={{
+            position: 'absolute', top: 9, right: 9,
+            fontSize: '0.38rem', padding: '0.12rem 0.38rem', borderRadius: 99,
+            background: `${nxtColor}14`, border: `1px solid ${nxtColor}35`,
+            color: `${nxtColor}bb`, fontWeight: 900, fontFamily: "'Outfit',sans-serif", letterSpacing: '0.1em',
+          }}>NEXT →</div>
           {/* Card content — no filter, no grayscale, fully readable */}
           <div>
             <span style={{ fontSize: '1.9rem', lineHeight: 1, display: 'block', marginBottom: '0.45rem' }}>{next.icon}</span>
@@ -617,9 +615,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
         }
       }
     } catch { /* fallback */ }
-    const _cfg = getTimeSlotConfig();
-    const _ts = (_cfg.slotKey === 'morning' ? 'morning' : _cfg.slotKey === 'midday' ? 'midday' : _cfg.slotKey === 'evening' ? 'evening' : 'night') as import('@/lib/bodhiVoice').TimeSlot;
-    bodhiSpeakLog({ habitIcon: ayurHabit.emoji, habitName: ayurHabit.name, isLocked: false, timeSlot: _ts });
+    bodhiSpeakLog({ habitIcon: ayurHabit.emoji, habitName: ayurHabit.name, isLocked: false, timeSlot: 'morning' });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
@@ -722,18 +718,9 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const extraPending = extraHabits.filter(h => !firestoreDoneIdsForExtra.has(h.id) && !ayurCompletedIds.has(h.id));
   const extraDone = extraHabits.filter(h => firestoreDoneIdsForExtra.has(h.id) || ayurCompletedIds.has(h.id));
 
-  const EVENING_ORDER: Record<string, number> = {
-    h_evening_meditation: 1, evening_meditation: 1,
-    light_dinner_early: 2,
-    evening_walk: 3, h_walk: 3,
-    screen_free_hour: 4, h_digital_sunset: 4,
-    journaling: 5, h_brain_dump: 5,
-  };
   const pendingHabits = slotCfg.slotKey === 'morning'
     ? [...pendingAyurItems, ...extraPending].sort((a, b) => (MORNING_PRACTICE_ORDER_SAD[AYUR_TO_H_ID[a.id] ?? a.id] ?? 99) - (MORNING_PRACTICE_ORDER_SAD[AYUR_TO_H_ID[b.id] ?? b.id] ?? 99))
-    : slotCfg.slotKey === 'evening'
-      ? [...pendingAyurItems, ...extraPending].sort((a, b) => (EVENING_ORDER[a.id] ?? EVENING_ORDER[AYUR_TO_H_ID[a.id] ?? ''] ?? 99) - (EVENING_ORDER[b.id] ?? EVENING_ORDER[AYUR_TO_H_ID[b.id] ?? ''] ?? 99))
-      : [...pendingAyurItems, ...extraPending];
+    : [...pendingAyurItems, ...extraPending];
   const doneHabits = [...doneAyurItems, ...extraDone];
 
   const completedCount = slotAyurHabitsAll.filter(h => mergedAyurDone.has(h.id)).length + extraDone.length;
@@ -918,9 +905,6 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
                         next={next}
                         slotColor={slotCfgColor}
                         onLogCurrent={(hab) => { playConfirmChime(); setActiveSubHabitId(hab); }}
-                        currentNum={i * 2 + 1}
-                        nextNum={i * 2 + 2}
-                        isLoggable={i === 0}
                       />
                     </div>
                   );
