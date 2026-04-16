@@ -10,6 +10,7 @@ import { BODHI_DEFAULT_STORIES } from '@/components/HomePage/StickyTopNav';
 import { MANTRA_REELS } from '@/components/PranaVerse/MantraReelFeed';
 import { useDoshaEngine } from '@/hooks/useDoshaEngine';
 import { useLifestyleEngine } from '@/hooks/useLifestyleEngine';
+import { getWellnessStories, deleteWellnessStory, getStoryBg, type WellnessStory } from '@/lib/wellnessStories';
 
 // ── User story types (mirroring StickyTopNav) ─────────────────────────
 type UserStoryCategory = 'task' | 'challenge' | 'idea' | 'issue' | 'wellness' | 'log';
@@ -1888,7 +1889,87 @@ function RectStoryCard({
     );
 }
 
-// ── Main HomeStoryBar ─────────────────────────────────────────────────────────
+// ── Wellness Story Viewer ──────────────────────────────────────────────────
+function WellnessStoryViewer({ stories, currentIdx, onClose, onNext, onPrev, onDelete }: {
+    stories: WellnessStory[]; currentIdx: number;
+    onClose: () => void; onNext: () => void; onPrev: () => void;
+    onDelete: (id: string) => void;
+}) {
+    const story = stories[currentIdx];
+    useEffect(() => { document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = ''; }; }, []);
+    if (!story) return null;
+    const bg = story.imageDataUrl ?? getStoryBg(story.habitId);
+    const timeStr = new Date(story.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 10005, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            onClick={onClose}
+        >
+            <style>{`@keyframes wsStoryFill { from { transform: scaleX(0); } to { transform: scaleX(1); } }`}</style>
+            <motion.div onClick={e => e.stopPropagation()} initial={{ scale: 0.94 }} animate={{ scale: 1 }} exit={{ scale: 0.94 }}
+                transition={{ type: 'spring', stiffness: 340, damping: 30 }}
+                style={{ position: 'relative', width: '100%', maxWidth: 480, height: '100dvh', overflow: 'hidden', background: '#000' }}
+            >
+                <AnimatePresence initial={false}>
+                    <motion.div key={bg} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}
+                        style={{ position: 'absolute', inset: 0, backgroundImage: `url(${bg})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: story.imageDataUrl ? 'brightness(0.72)' : 'brightness(0.55) saturate(1.2)' }}
+                    />
+                </AnimatePresence>
+                <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(160deg, ${story.accentColor}28 0%, transparent 40%, rgba(0,0,0,0.35) 65%, rgba(0,0,0,0.72) 100%)` }} />
+                <div style={{ position: 'absolute', top: 14, left: 12, right: 12, display: 'flex', gap: 4, zIndex: 20 }}>
+                    {stories.map((_, i) => (
+                        <div key={i} style={{ flex: 1, height: 2.5, borderRadius: 2, background: 'rgba(255,255,255,0.22)', overflow: 'hidden' }}>
+                            <div key={`ws-${i}-${story.id}`} onAnimationEnd={i === currentIdx ? onNext : undefined}
+                                style={{ height: '100%', background: `linear-gradient(90deg,${story.color},#fbbf24)`, borderRadius: 2, transformOrigin: 'left center', transform: i < currentIdx ? 'scaleX(1)' : i === currentIdx ? undefined : 'scaleX(0)', animation: i === currentIdx ? 'wsStoryFill 10s linear forwards' : 'none' }}
+                            />
+                        </div>
+                    ))}
+                </div>
+                <div style={{ position: 'absolute', top: 30, right: 12, display: 'flex', gap: 8, zIndex: 20 }}>
+                    <button onClick={e => { e.stopPropagation(); if (window.confirm('Remove this story?')) { onDelete(story.id); if (stories.length <= 1) onClose(); else onNext(); } }}
+                        style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(239,68,68,0.25)', backdropFilter: 'blur(10px)', border: '1px solid rgba(239,68,68,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fca5a5', fontSize: '0.65rem', fontWeight: 700, fontFamily: "'Outfit',sans-serif" }}
+                    >Del</button>
+                    <button onClick={e => { e.stopPropagation(); onClose(); }}
+                        style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(0,0,0,0.38)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff' }}
+                    ><X size={15} /></button>
+                </div>
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '5rem 1.8rem 6rem', textAlign: 'center', zIndex: 1 }}>
+                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0.25rem 0.85rem', borderRadius: 999, background: `${story.accentColor}22`, border: `1px solid ${story.accentColor}55`, marginBottom: '1rem' }}
+                    >
+                        <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: story.accentColor, fontFamily: "'Inter',sans-serif" }}>Wellness Story ✦ {timeStr}</span>
+                    </motion.div>
+                    {story.feelingEmoji && (
+                        <motion.div initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }}
+                            style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '0.8rem', padding: '0.28rem 0.7rem', borderRadius: 999, background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.2)' }}
+                        >
+                            <span style={{ fontSize: '1.1rem' }}>{story.feelingEmoji}</span>
+                            <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.75)', fontFamily: "'Outfit',sans-serif", fontWeight: 600 }}>{story.feeling}</span>
+                        </motion.div>
+                    )}
+                    <motion.div animate={{ scale: [1, 1.12, 1], y: [0, -8, 0] }} transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+                        style={{ fontSize: 'clamp(2.8rem,10vw,4rem)', marginBottom: '1rem', filter: `drop-shadow(0 0 22px ${story.accentColor}80)` }}
+                    >{story.emoji}</motion.div>
+                    <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
+                        style={{ fontSize: 'clamp(0.88rem,3.8vw,1.18rem)', fontWeight: 700, color: '#fff', margin: '0 0 1rem', fontFamily: "'Outfit',sans-serif", lineHeight: 1.55, textShadow: `0 0 40px ${story.accentColor}55` }}
+                    >{story.storyText}</motion.p>
+                    {story.imageDataUrl && (
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}
+                            style={{ width: 110, height: 110, borderRadius: 18, overflow: 'hidden', border: `2.5px solid ${story.color}80`, boxShadow: `0 8px 32px ${story.color}40`, marginBottom: '0.8rem', flexShrink: 0 }}
+                        >
+                            <img src={story.imageDataUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </motion.div>
+                    )}
+                    <p style={{ margin: 0, fontSize: '0.58rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Outfit',sans-serif", fontStyle: 'italic' }}>Shared by {story.userName} • today at {timeStr}</p>
+                </div>
+                <div onClick={e => { e.stopPropagation(); onPrev(); }} style={{ position: 'absolute', left: 0, top: 60, bottom: 60, width: '28%', zIndex: 15, cursor: 'pointer' }} />
+                <div onClick={e => { e.stopPropagation(); onNext(); }} style={{ position: 'absolute', right: 0, top: 60, bottom: 60, width: '28%', zIndex: 15, cursor: 'pointer' }} />
+            </motion.div>
+        </motion.div>
+    );
+}
+
+// ── Main HomeStoryBar ──────────────────────────────────────────────────
 export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } = {}) {
 
     const getImg = useTimeImages();
@@ -1901,6 +1982,15 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
     const { prakriti } = useDoshaEngine();
     const { todayMood, activeHabits, getTodayStatus, seedStarterHabits } = useLifestyleEngine();
     const [activeLogIdx, setActiveLogIdx] = useState<number | null>(null);
+    const [wellnessStories, setWellnessStories] = useState<WellnessStory[]>(() => typeof window !== 'undefined' ? getWellnessStories() : []);
+    const [activeWellnessIdx, setActiveWellnessIdx] = useState<number | null>(null);
+
+    useEffect(() => {
+        const refresh = () => setWellnessStories(getWellnessStories());
+        window.addEventListener('wellness-story-updated', refresh);
+        window.addEventListener('focus', refresh);
+        return () => { window.removeEventListener('wellness-story-updated', refresh); window.removeEventListener('focus', refresh); };
+    }, []);
 
     useEffect(() => { if (activeHabits.length === 0) seedStarterHabits(); }, []);  // seed once on mount
 
@@ -2140,12 +2230,57 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
                 pointerEvents: isAnyViewerOpen ? 'none' : 'auto',
                 scrollBehavior: 'auto',
             }}>
-                {/* "Add Story" button — only shown in circular mode */}
-                {!rectangular && (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', flexShrink: 0, scrollSnapAlign: 'start', scrollSnapStop: 'always' }}>
-                        <div style={{ width: 86, height: 86, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', border: '1.5px dashed rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', cursor: 'pointer' }}>+</div>
-                        <span style={{ fontSize: '0.48rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.04em' }}>Your Story</span>
-                    </div>
+                {/* ── WELLNESS STORIES bubble (user's logged habit stories) ── */}
+                {wellnessStories.length > 0 && (
+                    rectangular ? (
+                        <RectStoryCard
+                            icon="🌿"
+                            label={`${wellnessStories.length} Wellness`}
+                            sublabel="My Story Today"
+                            color="#34d399"
+                            ring="conic-gradient(#34d399,#fbbf24,#34d399)"
+                            thumbBg={wellnessStories[0].imageDataUrl ?? getStoryBg(wellnessStories[0].habitId)}
+                            index={-1}
+                            isViewed={wellnessStories.every(s => viewedIds.has(s.id))}
+                            onClick={() => { setActiveWellnessIdx(0); setViewedIds(v => new Set([...v, wellnessStories[0].id])); window.history.pushState({ pvStory: true }, ''); }}
+                        />
+                    ) : (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.7, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+                            whileTap={{ scale: 0.91 }}
+                            onClick={() => { setActiveWellnessIdx(0); setViewedIds(v => new Set([...v, wellnessStories[0].id])); window.history.pushState({ pvStory: true }, ''); }}
+                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', flexShrink: 0, cursor: 'pointer', scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
+                        >
+                            <div style={{
+                                width: 86, height: 86, borderRadius: '50%', padding: 3,
+                                background: wellnessStories.every(s => viewedIds.has(s.id))
+                                    ? 'rgba(255,255,255,0.08)'
+                                    : 'conic-gradient(#34d399 0deg,#fbbf24 90deg,#34d399 180deg,#6ee7b7 270deg,#34d399 360deg)',
+                                animation: wellnessStories.every(s => viewedIds.has(s.id)) ? 'none' : 'videoRingPulse 2.4s ease-in-out infinite, videoShimmer 3s ease-in-out infinite',
+                                flexShrink: 0, position: 'relative',
+                            }}>
+                                <div style={{ width: '100%', height: '100%', borderRadius: '50%', border: '2.5px solid #000', overflow: 'hidden', position: 'relative', filter: wellnessStories.every(s => viewedIds.has(s.id)) ? 'grayscale(0.6) brightness(0.55)' : 'none' }}>
+                                    <img
+                                        src={wellnessStories[0].imageDataUrl ?? getStoryBg(wellnessStories[0].habitId)}
+                                        alt="Wellness"
+                                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.72) saturate(1.2)' }}
+                                    />
+                                    <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 40%, #34d39944 0%, transparent 72%)' }} />
+                                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <span style={{ fontSize: '1.55rem', filter: 'drop-shadow(0 0 10px #34d399) drop-shadow(0 0 5px #34d399cc)' }}>{wellnessStories[0].emoji}</span>
+                                    </div>
+                                </div>
+                                {!wellnessStories.every(s => viewedIds.has(s.id)) && (
+                                    <div style={{ position: 'absolute', top: 0, right: 0, background: 'linear-gradient(135deg,#34d399,#10b981)', borderRadius: '50%', minWidth: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #000', boxShadow: '0 0 8px #34d39980', fontSize: '0.44rem', fontWeight: 800, color: '#000', paddingInline: 2, fontFamily: "'Inter',sans-serif", zIndex: 2 }}>
+                                        {wellnessStories.length}
+                                    </div>
+                                )}
+                            </div>
+                            <span style={{ fontSize: '0.52rem', fontFamily: "'Inter',sans-serif", fontWeight: 700, color: wellnessStories.every(s => viewedIds.has(s.id)) ? 'rgba(255,255,255,0.28)' : '#34d399', letterSpacing: '0.04em', textShadow: wellnessStories.every(s => viewedIds.has(s.id)) ? 'none' : '0 0 8px #34d39980' }}>My Wellness</span>
+                        </motion.div>
+                    )
                 )}
 
                 {/* ── USER TASK STORIES: ONE grouped card per category ── */}
@@ -2386,6 +2521,28 @@ export default function HomeStoryBar({ rectangular }: { rectangular?: boolean } 
                                 startIdx={activeMantraIdx}
                                 onClose={() => setActiveMantraIdx(null)}
                                 onViewed={(id) => setViewedIds(prev => new Set([...prev, `mantra-${id}`]))}
+                            />
+                        )}
+                    </AnimatePresence>
+
+                    {/* Full-screen WELLNESS story viewer */}
+                    <AnimatePresence>
+                        {activeWellnessIdx !== null && wellnessStories.length > 0 && (
+                            <WellnessStoryViewer
+                                stories={wellnessStories}
+                                currentIdx={activeWellnessIdx}
+                                onClose={() => setActiveWellnessIdx(null)}
+                                onNext={() => {
+                                    if (activeWellnessIdx < wellnessStories.length - 1) {
+                                        setActiveWellnessIdx(i => i! + 1);
+                                        setViewedIds(v => new Set([...v, wellnessStories[activeWellnessIdx + 1]?.id ?? '']));
+                                    } else setActiveWellnessIdx(null);
+                                }}
+                                onPrev={() => { if (activeWellnessIdx > 0) setActiveWellnessIdx(i => i! - 1); }}
+                                onDelete={(id) => {
+                                    deleteWellnessStory(id);
+                                    setWellnessStories(getWellnessStories());
+                                }}
                             />
                         )}
                     </AnimatePresence>

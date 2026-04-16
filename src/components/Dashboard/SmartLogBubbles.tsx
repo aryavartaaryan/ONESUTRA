@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import dynamic from 'next/dynamic';
+const WellnessStoryCreator = dynamic(() => import('./WellnessStoryCreator'), { ssr: false });
 import { motion, AnimatePresence } from 'framer-motion';
 import { Flame, Sunrise, Sun, Sunset, Moon, Sparkles } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -794,6 +796,7 @@ export default function SmartLogBubbles() {
     const [completedHabitIds, setCompletedHabitIds] = useState<Set<string>>(() => getCompletedHabitIds());
     const [ayurCompletedIds, setAyurCompletedIds] = useState<Set<string>>(() => getTodayAyurCompletedIds());
     const [orderToast, setOrderToast] = useState<string | null>(null);
+    const [storyTrigger, setStoryTrigger] = useState<{ id: string; name: string; emoji: string } | null>(null);
 
     const [currentHour, setCurrentHour] = useState(() => new Date().getHours());
 
@@ -989,6 +992,7 @@ export default function SmartLogBubbles() {
         saveToDailyLogStory(bubble.id, bubble.icon, bubble.label, bubble.color);
         syncActivityEntryToFirestore(user?.uid, { id: bubble.id, icon: bubble.icon, label: bubble.label, color: bubble.color, loggedAt: Date.now(), date: getTodayStr() });
         setActiveBubble(null);
+        setStoryTrigger({ id: bubble.id, name: bubble.label, emoji: bubble.icon });
         // ── Route through engine.completeHabit() → writes to habit_logs Firestore ──
         // This is the single source of truth. Powers:
         //   • re-login persistence (onSnapshot reloads habit_logs on next login)
@@ -1302,6 +1306,7 @@ export default function SmartLogBubbles() {
     };
 
     return (
+        <>
         <div style={{ padding: '0.4rem 0.75rem 0.2rem' }} onClick={unlockAudio}>
 
             {/* ── Bodhi speaking floating bubble ──────────────────────────── */}
@@ -1553,5 +1558,17 @@ export default function SmartLogBubbles() {
                 </>
             )}
         </div>
+
+        {/* ── Wellness Story Creator ── */}
+        {storyTrigger && (
+            <WellnessStoryCreator
+                habitId={storyTrigger.id}
+                habitName={storyTrigger.name}
+                habitEmoji={storyTrigger.emoji}
+                userName={getLocalUserName()}
+                onClose={() => setStoryTrigger(null)}
+            />
+        )}
+        </>
     );
 }
