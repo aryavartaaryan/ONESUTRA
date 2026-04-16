@@ -643,105 +643,105 @@ export default function Home() {
               zIndex: 10,
             }}
           >
-            {/* ── Title row: sparkle + Smart Ayur Planner + LIVE ── */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
-              <motion.div animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.07, 1] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-                style={{ fontSize: '1.05rem', filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.6))' }}>✦</motion.div>
-              <div style={{ flex: 1 }}>
-                <p style={{ margin: 0, fontSize: '0.92rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.02em', lineHeight: 1 }}>Smart Ayurvedic Intelligence System</p>
-                <p style={{ margin: '2px 0 0', fontSize: '0.52rem', color: 'rgba(255,255,255,0.30)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.05em' }}>Dosha · Habits · Lifestyle · Kala</p>
+            {/* ── Hero Greeting Row — ONE sun/moon icon + personalized greeting ── */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.52rem' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ margin: '0 0 0.06rem', fontSize: '0.62rem', fontWeight: 800, color: doshaColor, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                  {(() => { const h = new Date().getHours(); if (h >= 3 && h < 12) return 'Good Morning'; if (h >= 12 && h < 17) return 'Good Afternoon'; if (h >= 17 && h < 21) return 'Good Evening'; return 'Good Night'; })()}
+                </p>
+                <p style={{ margin: '0 0 0.18rem', fontSize: '1.52rem', fontWeight: 900, color: '#fff', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.03em', lineHeight: 1.05, textShadow: `0 0 32px ${doshaColor}55` }}>
+                  {(userName || 'Friend').split(' ')[0]} 👋
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.38rem' }}>
+                  <span style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.28)', fontFamily: "'Outfit', sans-serif" }}>
+                    {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}
+                  </span>
+                  <motion.span animate={{ opacity: [0.35, 1, 0.35] }} transition={{ duration: 2.2, repeat: Infinity }}
+                    style={{ fontSize: '0.38rem', padding: '0.09rem 0.34rem', borderRadius: 99, background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.28)', color: '#4ade80', fontFamily: "'Outfit', sans-serif", fontWeight: 800, letterSpacing: '0.12em' }}>● LIVE</motion.span>
+                </div>
               </div>
-              <motion.span animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 3, repeat: Infinity }}
-                style={{ fontSize: '0.46rem', padding: '0.18rem 0.5rem', borderRadius: 99, background: 'rgba(251,191,36,0.10)', border: '1px solid rgba(251,191,36,0.28)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 800, letterSpacing: '0.12em' }}>LIVE</motion.span>
-            </div>
-
-            {/* ── Date + controls row ── */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-              <p style={{ margin: 0, fontSize: '0.68rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.04em' }}>
-                {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}
-              </p>
-              <div style={{ display: 'flex', gap: '0.32rem', alignItems: 'center' }}>
-                <motion.button whileTap={{ scale: 0.88 }} onClick={() => setShowMoodCheck(s => !s)}
-                  style={{ padding: '0.25rem 0.6rem', borderRadius: 999, cursor: 'pointer', background: lifestyleEngine.todayMood ? 'rgba(168,85,247,0.2)' : 'rgba(255,255,255,0.07)', border: `1px solid ${lifestyleEngine.todayMood ? 'rgba(168,85,247,0.45)' : 'rgba(255,255,255,0.1)'}`, color: lifestyleEngine.todayMood ? '#c084fc' : 'rgba(255,255,255,0.42)', fontSize: '0.7rem', fontWeight: 800, fontFamily: "'Outfit', sans-serif", display: 'flex', alignItems: 'center', gap: 3 }}>
-                  ♡ {lifestyleEngine.todayMood ? (HOME_MOOD_OPTIONS.find(m => m.value === lifestyleEngine.todayMood!.mood)?.emoji ?? '😊') : '😊'}
-                </motion.button>
-                <motion.button whileTap={{ scale: 0.88 }} onClick={lifestyleEngine.toggleAdhdMode}
-                  style={{ padding: '0.25rem 0.6rem', borderRadius: 999, cursor: 'pointer', background: lifestyleEngine.adhdMode ? 'rgba(251,191,36,0.2)' : 'rgba(255,255,255,0.07)', border: `1px solid ${lifestyleEngine.adhdMode ? 'rgba(251,191,36,0.5)' : 'rgba(255,255,255,0.1)'}`, color: lifestyleEngine.adhdMode ? '#fbbf24' : 'rgba(255,255,255,0.42)', fontSize: '0.7rem', fontWeight: 800, fontFamily: "'Outfit', sans-serif", display: 'flex', alignItems: 'center', gap: 3 }}>
-                  ⚡ {lifestyleEngine.adhdMode ? 'Focus ON' : 'Focus'}
-                </motion.button>
-                <motion.button whileTap={{ rotate: 180, scale: 0.9 }} onClick={() => setGreeting(buildGreeting(lang, new Date().getHours()))}
-                  style={{ padding: '0.25rem 0.4rem', borderRadius: 999, cursor: 'pointer', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.22)', display: 'flex', alignItems: 'center', fontSize: '0.9rem' }}>↻
-                </motion.button>
-              </div>
-            </div>
-
-            {/* ── Sun/Moon orb + Dosha Phase (merged, elegant) ── */}
-            <div style={{ margin: '0 0 0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              {/* ONE icon only — contextual Sun / Moon orb */}
               <motion.div
-                animate={{ boxShadow: [`0 0 0 1px ${sapIconColor}40, 0 0 18px ${sapIconColor}55`, `0 0 0 1px ${sapIconColor}88, 0 0 36px ${sapIconColor}bb`, `0 0 0 1px ${sapIconColor}40, 0 0 18px ${sapIconColor}55`] }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                animate={{ boxShadow: [`0 0 0 1px ${sapIconColor}38, 0 0 16px ${sapIconColor}50`, `0 0 0 1px ${sapIconColor}78, 0 0 30px ${sapIconColor}90`, `0 0 0 1px ${sapIconColor}38, 0 0 16px ${sapIconColor}50`] }}
+                transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
                 style={isSunsetPeriod ? {
-                  width: 50, height: 50, borderRadius: 14, flexShrink: 0,
+                  width: 56, height: 56, borderRadius: 18, flexShrink: 0, marginLeft: '0.5rem',
                   background: 'linear-gradient(145deg, #f97316cc 0%, #dc2626aa 50%, #7c2d1288 100%)',
-                  border: '1px solid rgba(249,115,22,0.55)',
+                  border: '1px solid rgba(249,115,22,0.5)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
                 } : {
-                  width: 50, height: 50, borderRadius: '50%', flexShrink: 0,
-                  background: `radial-gradient(circle at 38% 32%, ${sapIconColor}28 0%, transparent 70%)`,
-                  border: `1px solid ${sapIconColor}44`,
+                  width: 56, height: 56, borderRadius: '50%', flexShrink: 0, marginLeft: '0.5rem',
+                  background: `radial-gradient(circle at 38% 32%, ${sapIconColor}26 0%, transparent 72%)`,
+                  border: `1px solid ${sapIconColor}40`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
                 }}
               >
-                {sapHour >= 3 && sapHour < 7 ? <RisingSunSVG size={40} /> :
-                 sapHour >= 7 && sapHour < 15 ? <RealSunSVG size={40} /> :
-                 isSunsetPeriod ? <span style={{ fontSize: '2rem', lineHeight: 1, display: 'block', textAlign: 'center', filter: 'drop-shadow(0 0 8px rgba(249,115,22,0.8))' }}>{greeting?.emoji ?? '🌇'}</span> :
-                 <RealMoonSVG size={40} />}
+                {sapHour >= 3 && sapHour < 7 ? <RisingSunSVG size={46} /> :
+                 sapHour >= 7 && sapHour < 15 ? <RealSunSVG size={46} /> :
+                 isSunsetPeriod ? <span style={{ fontSize: '2.2rem', lineHeight: 1, display: 'block', textAlign: 'center', filter: 'drop-shadow(0 0 8px rgba(249,115,22,0.85))' }}>{greeting?.emoji ?? '🌇'}</span> :
+                 <RealMoonSVG size={46} />}
               </motion.div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'nowrap' }}>
-                  <motion.div animate={{ opacity: [1, 0.25, 1] }} transition={{ duration: 2.2, repeat: Infinity }}
-                    style={{ width: 7, height: 7, borderRadius: '50%', background: doshaColor, flexShrink: 0, boxShadow: `0 0 6px ${doshaColor}` }} />
-                  <span style={{ fontSize: '0.94rem', fontWeight: 800, color: 'rgba(255,255,255,0.92)', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.01em' }}>
-                    {doshaCurrentPhase.label}
+            </div>
+
+            {/* ── Dosha Period Strip — compact single row ── */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.42rem', marginBottom: '0.44rem', flexWrap: 'wrap' }}>
+              <motion.div animate={{ opacity: [1, 0.18, 1] }} transition={{ duration: 2, repeat: Infinity }}
+                style={{ width: 8, height: 8, borderRadius: '50%', background: doshaColor, flexShrink: 0, boxShadow: `0 0 9px ${doshaColor}` }} />
+              <span style={{ fontSize: '0.9rem', fontWeight: 900, color: doshaColor, fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.01em' }}>
+                {doshaCurrentPhase.label}
+              </span>
+              <span style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.26)', fontFamily: "'Outfit', sans-serif" }}>
+                {doshaCurrentPhase.timeRange}
+              </span>
+              {(() => {
+                const pranaKey = sapHour >= 4 && sapHour < 11 ? 'morning' : sapHour >= 11 && sapHour < 16 ? 'noon' : sapHour >= 16 && sapHour < 22 ? 'evening' : 'night';
+                const pl = SAP_PRANA_LABEL[pranaKey];
+                return (
+                  <motion.span animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 3.5, repeat: Infinity }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.48rem', fontWeight: 800, color: sapIconColor, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.09em', textTransform: 'uppercase', background: `${sapIconColor}14`, border: `1px solid ${sapIconColor}2e`, borderRadius: 99, padding: '0.1rem 0.44rem' }}>
+                    {pl.emoji} {pl.label}
+                  </motion.span>
+                );
+              })()}
+              {inBrahmaMuhurta && (
+                <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 2, repeat: Infinity }}
+                  style={{ fontSize: '0.46rem', padding: '0.08rem 0.36rem', borderRadius: 99, background: 'rgba(251,191,36,0.14)', border: '1px solid rgba(251,191,36,0.36)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>✦ Brahma</motion.span>
+              )}
+            </div>
+
+            {/* ── Productivity Intelligence Card ── */}
+            <motion.div
+              key={doshaCurrentPhase.phase}
+              initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}
+              style={{ marginBottom: '0.55rem', borderRadius: 16, border: `1.5px solid ${doshaColor}28`, background: `linear-gradient(135deg, ${doshaColor}0e 0%, rgba(4,2,18,0.62) 100%)`, overflow: 'hidden', boxShadow: `0 4px 22px ${doshaColor}12` }}
+            >
+              <p style={{ margin: 0, padding: '0.4rem 0.7rem 0.24rem', fontSize: '0.7rem', fontWeight: 600, color: 'rgba(255,255,255,0.82)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.58 }}>
+                {buildPhaseEssence(doshaCurrentPhase.phase, userName ?? '')}
+              </p>
+              <div style={{ display: 'flex', gap: '0.26rem', flexWrap: 'wrap', padding: '0 0.7rem 0.4rem' }}>
+                {doshaCurrentPhase.bestFor.slice(0, 3).map((item: string, i: number) => (
+                  <span key={i} style={{ fontSize: '0.56rem', fontWeight: 800, color: doshaColor, fontFamily: "'Outfit', sans-serif", padding: '0.14rem 0.52rem', borderRadius: 99, background: `${doshaColor}1c`, border: `1px solid ${doshaColor}3a`, letterSpacing: '0.02em' }}>
+                    {item}
                   </span>
-                  <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.22)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.03em', flexShrink: 0 }}>
-                    {doshaCurrentPhase.timeRange}
-                  </span>
-                  {inBrahmaMuhurta && (
-                    <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 2, repeat: Infinity }}
-                      style={{ fontSize: '0.55rem', padding: '0.1rem 0.4rem', borderRadius: 99, background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.38)', color: '#fbbf24', fontFamily: "'Outfit', sans-serif", fontWeight: 700, flexShrink: 0 }}>✦ Brahma
-                    </motion.span>
-                  )}
-                </div>
-                {/* Prana Time badge */}
-                {(() => {
-                  const pranaKey = sapHour >= 4 && sapHour < 11 ? 'morning' : sapHour >= 11 && sapHour < 16 ? 'noon' : sapHour >= 16 && sapHour < 22 ? 'evening' : 'night';
-                  const pl = SAP_PRANA_LABEL[pranaKey];
-                  return (
-                    <motion.span animate={{ opacity: [0.7, 1, 0.7] }} transition={{ duration: 3.5, repeat: Infinity }}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 3, marginTop: '0.18rem', fontSize: '0.56rem', fontWeight: 800, color: sapIconColor, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.09em', textTransform: 'uppercase', background: `${sapIconColor}14`, border: `1px solid ${sapIconColor}30`, borderRadius: 99, padding: '0.12rem 0.52rem' }}>
-                      {pl.emoji} {pl.label}
-                    </motion.span>
-                  );
-                })()}
-                {/* Dosha essence — catchy subtitle + Do Now pills */}
-                <motion.div
-                  key={doshaCurrentPhase.phase}
-                  initial={{ opacity: 0, y: 3 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}
-                  style={{ margin: '0.3rem 0 0', borderRadius: 14, border: `1px solid ${doshaColor}2e`, background: `${doshaColor}0e`, overflow: 'hidden' }}
-                >
-                  <p style={{ margin: 0, padding: '0.28rem 0.62rem 0.2rem', fontSize: '0.72rem', fontWeight: 700, color: doshaColor, fontFamily: "'Outfit', sans-serif", letterSpacing: '0.01em', lineHeight: 1.4 }}>
-                    {buildPhaseEssence(doshaCurrentPhase.phase, userName ?? '')}
-                  </p>
-                  <div style={{ display: 'flex', gap: '0.26rem', flexWrap: 'wrap', padding: '0 0.62rem 0.32rem' }}>
-                    {doshaCurrentPhase.bestFor.slice(0, 3).map((item: string, i: number) => (
-                      <span key={i} style={{ fontSize: '0.55rem', fontWeight: 800, color: doshaColor, fontFamily: "'Outfit', sans-serif", padding: '0.12rem 0.44rem', borderRadius: 99, background: `${doshaColor}18`, border: `1px solid ${doshaColor}35` }}>
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </motion.div>
+                ))}
               </div>
+            </motion.div>
+
+            {/* ── Controls Row ── */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+                <motion.button whileTap={{ scale: 0.88 }} onClick={() => setShowMoodCheck(s => !s)}
+                  style={{ padding: '0.24rem 0.58rem', borderRadius: 999, cursor: 'pointer', background: lifestyleEngine.todayMood ? 'rgba(168,85,247,0.18)' : 'rgba(255,255,255,0.06)', border: `1px solid ${lifestyleEngine.todayMood ? 'rgba(168,85,247,0.42)' : 'rgba(255,255,255,0.09)'}`, color: lifestyleEngine.todayMood ? '#c084fc' : 'rgba(255,255,255,0.38)', fontSize: '0.68rem', fontWeight: 800, fontFamily: "'Outfit', sans-serif", display: 'flex', alignItems: 'center', gap: 3 }}>
+                  ♡ {lifestyleEngine.todayMood ? (HOME_MOOD_OPTIONS.find(m => m.value === lifestyleEngine.todayMood!.mood)?.emoji ?? '😊') : '😊'}
+                </motion.button>
+                <motion.button whileTap={{ scale: 0.88 }} onClick={lifestyleEngine.toggleAdhdMode}
+                  style={{ padding: '0.24rem 0.58rem', borderRadius: 999, cursor: 'pointer', background: lifestyleEngine.adhdMode ? 'rgba(251,191,36,0.18)' : 'rgba(255,255,255,0.06)', border: `1px solid ${lifestyleEngine.adhdMode ? 'rgba(251,191,36,0.48)' : 'rgba(255,255,255,0.09)'}`, color: lifestyleEngine.adhdMode ? '#fbbf24' : 'rgba(255,255,255,0.38)', fontSize: '0.68rem', fontWeight: 800, fontFamily: "'Outfit', sans-serif", display: 'flex', alignItems: 'center', gap: 3 }}>
+                  ⚡ {lifestyleEngine.adhdMode ? 'Focus ON' : 'Focus'}
+                </motion.button>
+              </div>
+              <motion.button whileTap={{ rotate: 180, scale: 0.9 }} onClick={() => setGreeting(buildGreeting(lang, new Date().getHours()))}
+                style={{ padding: '0.24rem 0.42rem', borderRadius: 999, cursor: 'pointer', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', fontSize: '0.88rem' }}>↻
+              </motion.button>
             </div>
 
             {/* Expandable mood picker */}
