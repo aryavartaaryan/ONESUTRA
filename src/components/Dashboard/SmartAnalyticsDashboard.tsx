@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Sunrise, Sun, Sunset, Moon, Sparkles, Plus, CheckCircle2, Bell, Zap, Flame } from 'lucide-react';
-import { saveToDailyLogStory, getTodayLogStory, syncActivityEntryToFirestore, subscribeToActivityLog, clearLogStoryForOtherUsers, getSubOptionsForHabit, type DailyLogEntry, type SubOption } from './SmartLogBubbles';
+import { saveToDailyLogStory, getTodayLogStory, syncActivityEntryToFirestore, subscribeToActivityLog, clearLogStoryForOtherUsers, getSubOptionsForHabit, INSIGHT_SNIPPETS, type DailyLogEntry, type SubOption } from './SmartLogBubbles';
 import { bodhiSpeakLog } from '@/lib/bodhiVoice';
 import { useLifestyleEngine, logHabitAndSync } from '@/hooks/useLifestyleEngine';
 import { useOneSutraAuth } from '@/hooks/useOneSutraAuth';
@@ -96,6 +96,45 @@ const EVENING_PRACTICE_ORDER_SAD: Record<string, number> = {
   light_dinner_early: 0, evening_walk: 1,
   screen_free_hour: 2, journaling: 3, sleep_by_10: 4,
 };
+
+// ─── Ayurvedic Timing Windows (per habit ID) ──────────────────────────────────
+// ideal: [startH, endH]  late: [endH, veryLateH]  label: human-readable window
+// missedLoss: classical Ayurvedic consequence of skipping
+const HABIT_TIMING_WINDOWS: Record<string, {
+  ideal: [number, number]; late: [number, number];
+  label: string; missedLoss: string; kala: string;
+}> = {
+  wake_early:          { ideal:[3.5,6],  late:[6,8],   label:'3:30–6 AM',   kala:'Brahma Muhurta',   missedLoss:'Brahma Muhurta lost — the rarest Sattvic window of the day slipped by.' },
+  warm_water_morning:  { ideal:[4,7],    late:[7,9],   label:'4–7 AM',      kala:'Vata Kala',        missedLoss:'Overnight Ama stays — Agni starts the day uncleansed, digestion sluggish.' },
+  dant_manjan_bath:    { ideal:[5,8],    late:[8,10],  label:'5–8 AM',      kala:'Vata→Kapha Kala',  missedLoss:'Oral Ama carried into meals — Rasa absorption dulled at the source.' },
+  kapalabhati:         { ideal:[4,8],    late:[8,10],  label:'4–8 AM',      kala:'Vata Kala',        missedLoss:'Kapha stagnates in the lungs — energy dips, mind stays foggy.' },
+  meditation:          { ideal:[4,8],    late:[8,10],  label:'4–8 AM',      kala:'Vata Kala',        missedLoss:'Vata unsettled — nervous system skips its morning calibration.' },
+  sunlight_morning:    { ideal:[6,9],    late:[9,11],  label:'6–9 AM',      kala:'Kapha Kala',       missedLoss:'Circadian rhythm drifts — cortisol curve flattened, Vitamin D window missed.' },
+  gratitude_practice:  { ideal:[5,9],    late:[9,11],  label:'5–9 AM',      kala:'Vata→Kapha Kala',  missedLoss:'Santosha not seeded — mind defaults to Rajasic reactivity through the day.' },
+  morning_meal:        { ideal:[7,10],   late:[10,12], label:'7–10 AM',     kala:'Kapha Kala',       missedLoss:'Agni burns hollow — Vata spikes, cravings and irritability build by noon.' },
+  main_meal_noon:      { ideal:[12,13],  late:[13,15], label:'12–1 PM',     kala:'Pitta Kala',       missedLoss:'Pitta peak missed — food eaten later converts to Ama instead of Ojas.' },
+  shatapavali:         { ideal:[12.5,14],late:[14,16], label:'12:30–2 PM',  kala:'Pitta Kala',       missedLoss:'Samana Vata not activated — food sits heavy, afternoon energy drops.' },
+  deep_work_afternoon: { ideal:[10,14],  late:[14,16], label:'10 AM–2 PM',  kala:'Pitta Kala',       missedLoss:"Pitta's peak focus window unused — mental fire dispersed into distraction." },
+  herbal_tea:          { ideal:[0,24],   late:[0,24],  label:'Anytime',     kala:'Anytime',          missedLoss:'Tri-doshic digestive skipped — Ama builds slowly in the Srotas.' },
+  light_dinner_early:  { ideal:[18,19.5],late:[19.5,21],label:'6–7:30 PM', kala:'Kapha Kala',       missedLoss:'12-hr digestive rest shortened — Ojas depleted, sleep quality suffers.' },
+  evening_walk:        { ideal:[17,19],  late:[19,20.5],label:'5–7 PM',    kala:'Vata Kala',        missedLoss:'Apana Vata stagnates — Kapha accumulates, afternoon tension carried to bed.' },
+  screen_free_hour:    { ideal:[21,22],  late:[22,23], label:'9–10 PM',     kala:'Kapha Kala',       missedLoss:'Melatonin suppressed by blue light — Ojas eroded before deep repair begins.' },
+  journaling:          { ideal:[20,22],  late:[22,23], label:'8–10 PM',     kala:'Kapha Kala',       missedLoss:"Day's mental Ama not released — unprocessed thoughts enter the dream state." },
+  sleep_by_10:         { ideal:[21.5,22],late:[22,23], label:'By 10 PM',    kala:'Kapha Kala',       missedLoss:"Pitta's cellular repair window missed — Ojas not rebuilt, inflammation rises." },
+};
+
+type AyurTimingResult = 'on_time' | 'late' | 'very_late' | 'anytime';
+function getAyurTimingStatus(habitId: string, loggedAt: number): AyurTimingResult {
+  const w = HABIT_TIMING_WINDOWS[habitId];
+  if (!w || w.label === 'Anytime') return 'anytime';
+  const hDec = new Date(loggedAt).getHours() + new Date(loggedAt).getMinutes() / 60;
+  const [is, ie] = w.ideal;
+  const [, le] = w.late;
+  if (hDec >= is && hDec <= ie) return 'on_time';
+  if (hDec <= le) return 'late';
+  return 'very_late';
+}
+
 // SmartLog bubble ID → lifestyle-store h_* ID (for cross-section sync)
 const SMARTLOG_TO_H_ID_SAD: Record<string, string> = {
   wake: 'h_wake_early', warm_water: 'h_warm_water',
@@ -1003,80 +1042,129 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
               style={{ overflow: 'hidden' }}
             >
         <div style={{ marginBottom: '0.65rem', paddingTop: '0.2rem' }}>
-          {/* Per-slot accordion — logged + missed only */}
           {(['morning', 'noon', 'evening'] as const).map((slotKey) => {
             const sCfg = {
-              morning: { label: 'Morning', emoji: '🌅', color: '#fbbf24', startH: 4,  endH: 12 },
-              noon:    { label: 'Noon',    emoji: '☀️', color: '#fb923c', startH: 12, endH: 17 },
-              evening: { label: 'Evening', emoji: '🪔', color: '#a78bfa', startH: 17, endH: 24 },
+              morning: { label: 'Morning', emoji: '🌅', color: '#fbbf24', startH: 4,  endH: 12, kala: 'Brahma–Kapha Kala' },
+              noon:    { label: 'Noon',    emoji: '☀️', color: '#fb923c', startH: 12, endH: 17, kala: 'Pitta Kala' },
+              evening: { label: 'Evening', emoji: '🪔', color: '#a78bfa', startH: 17, endH: 24, kala: 'Vata–Kapha Kala' },
             }[slotKey];
             const curH = new Date().getHours();
             const isCurrent = curH >= sCfg.startH && curH < sCfg.endH;
+            const isPast = curH >= sCfg.endH;
             if (curH < sCfg.startH) return null;
             const sLogs = logStory.filter(e => {
               const h = new Date(e.loggedAt).getHours();
               return h >= sCfg.startH && h < sCfg.endH;
             });
-            const pastAyurKey = slotKey === 'morning' ? 'morning' : slotKey === 'noon' ? 'midday' : 'evening';
-            const pastBase = getHabitsForSlot(pastAyurKey as AyurTimeSlot).filter(h => _storeAyurIds.has(h.id));
-            const extraIds = (MEAL_DEFAULTS as Record<string, string[]>)[pastAyurKey] ?? [];
-            const allSlotH = [...pastBase, ...AYURVEDIC_HABITS.filter(h => extraIds.includes(h.id) && !pastBase.some(p => p.id === h.id))];
-            const missedH = !isCurrent ? allSlotH.filter(h => !mergedAyurDone.has(h.id)) : [];
-            const isExp = expandedSlots[slotKey];
+            const logsWithStatus = sLogs.map(e => ({ ...e, ts: getAyurTimingStatus(e.id, e.loggedAt) }));
+            const onTimeCount  = logsWithStatus.filter(e => e.ts === 'on_time' || e.ts === 'anytime').length;
+            const lateCount    = logsWithStatus.filter(e => e.ts === 'late').length;
+            const vLateCount   = logsWithStatus.filter(e => e.ts === 'very_late').length;
+            const pastAyurKey  = slotKey === 'morning' ? 'morning' : slotKey === 'noon' ? 'midday' : 'evening';
+            const pastBase     = getHabitsForSlot(pastAyurKey as AyurTimeSlot).filter(h => _storeAyurIds.has(h.id));
+            const extraIds     = (MEAL_DEFAULTS as Record<string, string[]>)[pastAyurKey] ?? [];
+            const allSlotH     = [...pastBase, ...AYURVEDIC_HABITS.filter(h => extraIds.includes(h.id) && !pastBase.some(p => p.id === h.id))];
+            const missedH      = isPast ? allSlotH.filter(h => !mergedAyurDone.has(h.id)) : [];
+            const isExp        = expandedSlots[slotKey];
             return (
-              <div key={slotKey} style={{ marginBottom: '0.28rem' }}>
+              <div key={slotKey} style={{ marginBottom: '0.32rem' }}>
+                {/* ── Accordion header ── */}
                 <button onClick={() => setExpandedSlots(prev => ({ ...prev, [slotKey]: !prev[slotKey] }))}
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.42rem 0.68rem', borderRadius: 12, marginBottom: isExp ? '0.2rem' : 0, background: isCurrent ? `${sCfg.color}14` : 'rgba(255,255,255,0.04)', border: `1.5px solid ${isCurrent ? sCfg.color + '35' : 'rgba(255,255,255,0.09)'}`, cursor: 'pointer' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                    <span style={{ fontSize: '0.78rem' }}>{sCfg.emoji}</span>
-                    <span style={{ fontSize: '0.66rem', fontWeight: 800, color: sCfg.color, fontFamily: "'Outfit',sans-serif" }}>{sCfg.label}</span>
-                    {isCurrent && <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.5, repeat: Infinity }} style={{ fontSize: '0.44rem', padding: '0.04rem 0.26rem', borderRadius: 99, background: `${sCfg.color}28`, color: sCfg.color, fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}>● LIVE</motion.span>}
-                  </div>
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.44rem 0.72rem', borderRadius: 13, marginBottom: isExp ? '0.22rem' : 0, background: isCurrent ? `${sCfg.color}14` : 'rgba(255,255,255,0.04)', border: `1.5px solid ${isCurrent ? sCfg.color + '38' : 'rgba(255,255,255,0.09)'}`, cursor: 'pointer', transition: 'background 0.2s' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.32rem' }}>
-                    {sLogs.length > 0 && <span style={{ fontSize: '0.52rem', color: sCfg.color, fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>{sLogs.length} ✓</span>}
-                    {missedH.length > 0 && <span style={{ fontSize: '0.52rem', color: 'rgba(255,180,0,0.55)', fontFamily: "'Outfit',sans-serif", fontWeight: 700 }}>{missedH.length} missed</span>}
-                    {sLogs.length === 0 && missedH.length === 0 && <span style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.2)', fontFamily: "'Outfit',sans-serif" }}>none</span>}
-                    <span style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.28)' }}>{isExp ? '▲' : '▼'}</span>
+                    <span style={{ fontSize: '0.8rem' }}>{sCfg.emoji}</span>
+                    <span style={{ fontSize: '0.68rem', fontWeight: 800, color: sCfg.color, fontFamily: "'Outfit',sans-serif" }}>{sCfg.label}</span>
+                    <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.22)', fontFamily: "'Outfit',sans-serif", fontWeight: 600 }}>{sCfg.kala}</span>
+                    {isCurrent && <motion.span animate={{ opacity: [1,0.4,1] }} transition={{ duration: 1.5, repeat: Infinity }} style={{ fontSize: '0.42rem', padding: '0.04rem 0.28rem', borderRadius: 99, background: `${sCfg.color}28`, color: sCfg.color, fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}>● LIVE</motion.span>}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.28rem' }}>
+                    {onTimeCount > 0 && <span style={{ fontSize: '0.46rem', padding: '0.04rem 0.3rem', borderRadius: 99, background: 'rgba(74,222,128,0.14)', border: '1px solid rgba(74,222,128,0.3)', color: '#4ade80', fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}>✅ {onTimeCount}</span>}
+                    {lateCount > 0  && <span style={{ fontSize: '0.46rem', padding: '0.04rem 0.3rem', borderRadius: 99, background: 'rgba(251,191,36,0.14)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24', fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}>⏰ {lateCount}</span>}
+                    {vLateCount > 0 && <span style={{ fontSize: '0.46rem', padding: '0.04rem 0.3rem', borderRadius: 99, background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.28)', color: '#f87171', fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}>🔴 {vLateCount}</span>}
+                    {missedH.length > 0 && <span style={{ fontSize: '0.46rem', padding: '0.04rem 0.3rem', borderRadius: 99, background: 'rgba(248,113,113,0.08)', border: '1px dashed rgba(248,113,113,0.3)', color: 'rgba(248,113,113,0.7)', fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}>✗ {missedH.length} missed</span>}
+                    {sLogs.length === 0 && missedH.length === 0 && <span style={{ fontSize: '0.48rem', color: 'rgba(255,255,255,0.2)', fontFamily: "'Outfit',sans-serif" }}>none</span>}
+                    <motion.span animate={{ rotate: isExp ? 180 : 0 }} transition={{ duration: 0.22 }} style={{ fontSize: '0.56rem', color: 'rgba(255,255,255,0.28)' }}>▼</motion.span>
                   </div>
                 </button>
-                {isExp && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.13rem' }}>
-                    {sLogs.map((entry, i) => {
-                      const t = new Date(entry.loggedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-                      const lH = new Date(entry.loggedAt).getHours();
-                      const ayurH = AYURVEDIC_HABITS.find(h => h.id === entry.id);
-                      const expCat = ayurH?.category ?? slotKey;
-                      const logCat = lH >= 4 && lH < 12 ? 'morning' : lH >= 12 && lH < 17 ? 'midday' : 'evening';
-                      const onTime = expCat === logCat || (expCat as string) === 'anytime';
-                      return (
-                        <motion.div key={`${entry.id}_${i}`} initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}
-                          style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.38rem 0.58rem', borderRadius: 11, background: `${entry.color}0d`, border: `1.5px solid ${entry.color}25`, boxShadow: `0 2px 8px ${entry.color}0a` }}>
-                          <span style={{ fontSize: '0.85rem', flexShrink: 0 }}>{entry.icon}</span>
-                          <p style={{ flex: 1, margin: 0, fontSize: '0.74rem', fontWeight: 700, color: 'rgba(255,255,255,0.88)', fontFamily: "'Outfit',sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.label}</p>
-                          <span style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.3)', fontFamily: "'Outfit',sans-serif", flexShrink: 0 }}>{t}</span>
-                          <span style={{ fontSize: '0.46rem', padding: '0.04rem 0.24rem', borderRadius: 99, background: onTime ? 'rgba(74,222,128,0.14)' : 'rgba(251,191,36,0.14)', color: onTime ? '#4ade80' : '#fbbf24', fontFamily: "'Outfit',sans-serif", fontWeight: 800, flexShrink: 0, border: onTime ? '1px solid rgba(74,222,128,0.28)' : '1px solid rgba(251,191,36,0.28)' }}>
-                            {onTime ? '✅' : '⏰'}
-                          </span>
-                        </motion.div>
-                      );
-                    })}
-                    {missedH.length > 0 && (
-                      <div style={{ marginTop: sLogs.length > 0 ? '0.15rem' : 0 }}>
-                        <p style={{ margin: '0 0 0.12rem 0.08rem', fontSize: '0.48rem', color: 'rgba(255,180,0,0.4)', fontFamily: "'Outfit',sans-serif", letterSpacing: '0.06em' }}>📌 Not logged</p>
-                        {missedH.map(h => (
-                          <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: '0.36rem', padding: '0.26rem 0.5rem', borderRadius: 9, background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.09)', marginBottom: '0.1rem', opacity: 0.5 }}>
-                            <span style={{ fontSize: '0.78rem', flexShrink: 0 }}>{h.emoji}</span>
-                            <span style={{ flex: 1, fontSize: '0.64rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Outfit',sans-serif", fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.name}</span>
-                            <span style={{ fontSize: '0.42rem', color: 'rgba(255,180,0,0.3)', fontFamily: "'Outfit',sans-serif", flexShrink: 0 }}>missed</span>
-                          </div>
-                        ))}
+
+                {/* ── Expanded body ── */}
+                <AnimatePresence initial={false}>
+                  {isExp && (
+                    <motion.div key={`body-${slotKey}`} initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.26, ease: [0.22,1,0.36,1] }} style={{ overflow: 'hidden' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', paddingBottom: '0.1rem' }}>
+
+                        {/* ── Logged entries ── */}
+                        {logsWithStatus.map((entry, i) => {
+                          const tw = HABIT_TIMING_WINDOWS[entry.id];
+                          const isOnTime  = entry.ts === 'on_time' || entry.ts === 'anytime';
+                          const isLate    = entry.ts === 'late';
+                          const isVLate   = entry.ts === 'very_late';
+                          const logTime   = new Date(entry.loggedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+                          const badgeBg   = isOnTime ? 'rgba(74,222,128,0.14)'  : isLate ? 'rgba(251,191,36,0.14)' : 'rgba(248,113,113,0.14)';
+                          const badgeBdr  = isOnTime ? 'rgba(74,222,128,0.35)'  : isLate ? 'rgba(251,191,36,0.35)' : 'rgba(248,113,113,0.35)';
+                          const badgeCol  = isOnTime ? '#4ade80' : isLate ? '#fbbf24' : '#f87171';
+                          const badgeLabel= isOnTime ? '✅ On Time' : isLate ? '⏰ Late' : '🔴 Very Late';
+                          const accentCol = isOnTime ? '#4ade80' : isLate ? '#fbbf24' : '#f87171';
+                          const insightTxt= isVLate
+                            ? `Window was ${tw?.label ?? '—'} (${tw?.kala ?? ''}) — logged well outside Ayurvedic time.`
+                            : isLate
+                            ? `Ideal: ${tw?.label ?? '—'} (${tw?.kala ?? ''}). Still beneficial — just slightly outside the peak window.`
+                            : (INSIGHT_SNIPPETS[entry.id] ?? '');
+                          return (
+                            <motion.div key={`${entry.id}_${i}`} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+                              style={{ display: 'flex', alignItems: 'flex-start', gap: '0.45rem', padding: '0.48rem 0.62rem', borderRadius: 13, background: isOnTime ? `${entry.color}0c` : `${badgeBg}`, border: `1px solid ${isOnTime ? entry.color + '22' : badgeBdr + '55'}`, borderLeft: `3px solid ${accentCol}` }}>
+                              <span style={{ fontSize: '0.88rem', flexShrink: 0, lineHeight: 1.2 }}>{entry.icon}</span>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <p style={{ margin: 0, fontSize: '0.72rem', fontWeight: 800, color: 'rgba(255,255,255,0.9)', fontFamily: "'Outfit',sans-serif" }}>{entry.label}</p>
+                                {insightTxt ? <p style={{ margin: '0.1rem 0 0', fontSize: '0.52rem', color: isOnTime ? 'rgba(255,255,255,0.35)' : badgeCol + 'bb', fontFamily: "'Outfit',sans-serif", lineHeight: 1.45, fontStyle: 'italic' }}>{insightTxt}</p> : null}
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.12rem', flexShrink: 0 }}>
+                                <span style={{ fontSize: '0.44rem', color: 'rgba(255,255,255,0.25)', fontFamily: "'Outfit',sans-serif" }}>{logTime}</span>
+                                <span style={{ fontSize: '0.44rem', padding: '0.05rem 0.32rem', borderRadius: 99, background: badgeBg, border: `1px solid ${badgeBdr}`, color: badgeCol, fontWeight: 800, fontFamily: "'Outfit',sans-serif" }}>{badgeLabel}</span>
+                              </div>
+                            </motion.div>
+                          );
+                        })}
+
+                        {/* ── Missed / Skipped separator ── */}
+                        {missedH.length > 0 && (
+                          <>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', margin: `${sLogs.length > 0 ? '0.2rem' : 0} 0 0.12rem` }}>
+                              <div style={{ flex: 1, height: 1, background: 'rgba(248,113,113,0.18)' }} />
+                              <span style={{ fontSize: '0.42rem', color: 'rgba(248,113,113,0.5)', fontWeight: 900, fontFamily: "'Outfit',sans-serif", letterSpacing: '0.1em' }}>SKIPPED / MISSED</span>
+                              <div style={{ flex: 1, height: 1, background: 'rgba(248,113,113,0.18)' }} />
+                            </div>
+                            {missedH.map((h, mi) => {
+                              const tw = HABIT_TIMING_WINDOWS[h.id];
+                              return (
+                                <motion.div key={h.id} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: mi * 0.05 }}
+                                  style={{ display: 'flex', alignItems: 'flex-start', gap: '0.45rem', padding: '0.48rem 0.62rem', borderRadius: 13, background: 'rgba(248,113,113,0.04)', border: '1px dashed rgba(248,113,113,0.22)', borderLeft: '3px solid rgba(248,113,113,0.45)' }}>
+                                  <span style={{ fontSize: '0.88rem', flexShrink: 0, opacity: 0.45, lineHeight: 1.2 }}>{h.emoji}</span>
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <p style={{ margin: 0, fontSize: '0.72rem', fontWeight: 800, color: 'rgba(255,255,255,0.42)', fontFamily: "'Outfit',sans-serif" }}>{h.name}</p>
+                                    <p style={{ margin: '0.1rem 0 0', fontSize: '0.52rem', color: 'rgba(248,113,113,0.6)', fontFamily: "'Outfit',sans-serif", lineHeight: 1.45, fontStyle: 'italic' }}>
+                                      {tw?.missedLoss ?? `This ${sCfg.label.toLowerCase()} practice was not logged.`}
+                                    </p>
+                                  </div>
+                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.12rem', flexShrink: 0 }}>
+                                    {tw && <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.22)', fontFamily: "'Outfit',sans-serif", whiteSpace: 'nowrap' }}>Ideal: {tw.label}</span>}
+                                    <span style={{ fontSize: '0.44rem', padding: '0.05rem 0.32rem', borderRadius: 99, background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.38)', color: '#f87171', fontWeight: 900, fontFamily: "'Outfit',sans-serif", letterSpacing: '0.04em' }}>MISSED</span>
+                                  </div>
+                                </motion.div>
+                              );
+                            })}
+                          </>
+                        )}
+
+                        {sLogs.length === 0 && missedH.length === 0 && (
+                          <p style={{ margin: 0, padding: '0.3rem 0.5rem', fontSize: '0.52rem', color: 'rgba(255,255,255,0.15)', fontFamily: "'Outfit',sans-serif", fontStyle: 'italic' }}>
+                            {isCurrent ? 'Active window — nothing logged yet' : 'Nothing logged in this window'}
+                          </p>
+                        )}
                       </div>
-                    )}
-                    {sLogs.length === 0 && missedH.length === 0 && (
-                      <p style={{ margin: 0, padding: '0.28rem 0.48rem', fontSize: '0.52rem', color: 'rgba(255,255,255,0.15)', fontFamily: "'Outfit',sans-serif", fontStyle: 'italic' }}>No activities here yet</p>
-                    )}
-                  </div>
-                )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             );
           })}
