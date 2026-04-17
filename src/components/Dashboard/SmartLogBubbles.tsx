@@ -22,6 +22,9 @@ import { useLifestyleStore } from '@/stores/lifestyleStore';
 import { logHabitAndSync } from '@/hooks/useLifestyleEngine';
 import { AYURVEDIC_HABITS, AYUR_TO_H_ID, H_ID_TO_AYUR, setAyurHabitCompleted, getHabitsForSlot, getTodayAyurCompletedIds, HABIT_DISPLAY_OVERRIDES } from '@/lib/ayurvedicHabitsData';
 
+const MEAL_BUBBLE_IDS = new Set(['morning_meal', 'main_meal_noon', 'light_dinner_early']);
+const MEAL_TYPE_MAP: Record<string, string> = { morning_meal: 'Breakfast', main_meal_noon: 'Lunch', light_dinner_early: 'Dinner' };
+
 // ─── Set of canonical Ayurvedic habit IDs (used for done-status routing) ─────
 const AYUR_IDS = new Set(AYURVEDIC_HABITS.map(h => h.id));
 
@@ -1014,20 +1017,10 @@ export default function SmartLogBubbles() {
         syncActivityEntryToFirestore(user?.uid, { id: bubble.id, icon: bubble.icon, label: bubble.label, color: bubble.color, loggedAt: Date.now(), date: getTodayStr() });
         setActiveBubble(null);
 
-        // ── Meal photo analysis trigger ──────────────────────────────────────
-        const MEAL_IDS = new Set(['morning_meal', 'main_meal_noon', 'light_dinner_early']);
-        const mealTypeMap: Record<string, string> = { morning_meal: 'Breakfast', main_meal_noon: 'Lunch', light_dinner_early: 'Dinner' };
-        if (MEAL_IDS.has(bubble.id)) {
-            setMealAnalyzeTrigger({
-                mealId: bubble.id,
-                mealLabel: bubble.label,
-                mealEmoji: bubble.icon,
-                mealDetail: sub?.detail ?? bubble.label,
-                mealType: mealTypeMap[bubble.id] ?? 'Meal',
-            });
+        // WellnessStoryCreator only for non-meal habits (meals get Vaidya analysis instead)
+        if (!MEAL_BUBBLE_IDS.has(bubble.id)) {
+            setStoryTrigger({ id: bubble.id, name: bubble.label, emoji: bubble.icon });
         }
-
-        setStoryTrigger({ id: bubble.id, name: bubble.label, emoji: bubble.icon });
         // ── Route through engine.completeHabit() → writes to habit_logs Firestore ──
         // This is the single source of truth. Powers:
         //   • re-login persistence (onSnapshot reloads habit_logs on next login)
@@ -1608,6 +1601,49 @@ export default function SmartLogBubbles() {
                             {/* Option rows */}
                             <div style={{ flex: 1, overflowY: 'auto', padding: '0.55rem 1.1rem', paddingBottom: 'env(safe-area-inset-bottom, 1.6rem)' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.38rem' }}>
+
+                                    {/* ── Vaidya Meal Analysis CTA (meals only) ── */}
+                                    {MEAL_BUBBLE_IDS.has(active.id) && (
+                                        <>
+                                            <motion.div
+                                                initial={{ opacity: 0, scale: 0.93, y: -10 }}
+                                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                transition={{ duration: 0.38, type: 'spring', stiffness: 340, damping: 24 }}
+                                                onClick={() => {
+                                                    logAndNavigate(active);
+                                                    setMealAnalyzeTrigger({
+                                                        mealId: active.id,
+                                                        mealLabel: active.label,
+                                                        mealEmoji: active.icon,
+                                                        mealDetail: active.sublabel ?? active.label,
+                                                        mealType: MEAL_TYPE_MAP[active.id] ?? 'Meal',
+                                                    });
+                                                }}
+                                                style={{ display: 'flex', alignItems: 'center', gap: '0.72rem', padding: '0.82rem 0.92rem', borderRadius: 20, background: 'linear-gradient(135deg, rgba(251,191,36,0.16) 0%, rgba(139,92,246,0.13) 100%)', border: '1.5px solid rgba(251,191,36,0.55)', cursor: 'pointer', position: 'relative', overflow: 'hidden', boxShadow: '0 4px 28px rgba(251,191,36,0.22), inset 0 1px 0 rgba(255,255,255,0.06)' }}
+                                            >
+                                                {/* Animated glow */}
+                                                <motion.div animate={{ opacity: [0.1, 0.28, 0.1] }} transition={{ duration: 2.4, repeat: Infinity }} style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 15% 50%, rgba(251,191,36,0.22), transparent 65%)', pointerEvents: 'none' }} />
+                                                <motion.div
+                                                    animate={{ scale: [1, 1.12, 1], boxShadow: ['0 0 0 rgba(251,191,36,0.4)', '0 0 18px rgba(251,191,36,0.65)', '0 0 0 rgba(251,191,36,0.4)'] }}
+                                                    transition={{ duration: 2.1, repeat: Infinity }}
+                                                    style={{ width: 48, height: 48, borderRadius: 15, background: 'linear-gradient(135deg, rgba(251,191,36,0.28), rgba(139,92,246,0.22))', border: '1.5px solid rgba(251,191,36,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.45rem', flexShrink: 0 }}
+                                                >📸</motion.div>
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 900, color: '#fbbf24', fontFamily: "'Outfit', sans-serif", lineHeight: 1.2 }}>Get Vaidya Analysis ✦</p>
+                                                    <p style={{ margin: '3px 0 0', fontSize: '0.58rem', color: 'rgba(255,255,255,0.48)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.35 }}>Log + share meal photo for personalised Ayurvedic insight</p>
+                                                </div>
+                                                <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.5, repeat: Infinity }} style={{ fontSize: '1rem', color: '#fbbf24', flexShrink: 0, opacity: 0.85 }}>›</motion.span>
+                                            </motion.div>
+
+                                            {/* Separator */}
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', margin: '0.08rem 0' }}>
+                                                <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.07)' }} />
+                                                <span style={{ fontSize: '0.44rem', color: 'rgba(255,255,255,0.22)', fontFamily: "'Outfit', sans-serif", fontWeight: 700, letterSpacing: '0.1em' }}>OR JUST LOG AS</span>
+                                                <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.07)' }} />
+                                            </div>
+                                        </>
+                                    )}
+
                                     {active.subOptions.map((sub, i) => (
                                         <motion.div
                                             key={sub.label}
