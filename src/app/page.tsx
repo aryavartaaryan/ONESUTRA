@@ -684,7 +684,7 @@ export default function Home() {
           <StickyTopNav />
         </div>
 
-        {/* ══ SMART AYUR PLANNER ══ */}
+        {/* ══ SIAS — SMART INTELLIGENT AYURVEDIC SYSTEM ══ */}
         {!isPortalOpen && greeting && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
@@ -702,7 +702,7 @@ export default function Home() {
               zIndex: 10,
             }}
           >
-            {/* ── SIAS System Title ── */}
+            {/* ── SIAS Title ── */}
             <div style={{ marginBottom: '0.62rem', paddingBottom: '0.52rem', borderBottom: `1px solid ${doshaColor}1c` }}>
               <motion.div
                 style={{
@@ -728,18 +728,28 @@ export default function Home() {
                     }}
                   >✦</motion.div>
                   <div>
+                    {/* S·I·A·S — acronym hero */}
                     <p style={{
-                      margin: 0, fontSize: '0.83rem', fontWeight: 900,
-                      background: `linear-gradient(90deg, #ffffff 0%, ${doshaColor} 55%, #c084fc 100%)`,
+                      margin: 0, fontSize: '1.08rem', fontWeight: 900,
+                      background: `linear-gradient(90deg, #ffffff 0%, ${doshaColor} 38%, #c084fc 72%, #38bdf8 100%)`,
                       WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-                      fontFamily: "'Outfit',sans-serif", letterSpacing: '-0.01em', lineHeight: 1.15,
+                      fontFamily: "'Outfit',sans-serif", letterSpacing: '0.22em', lineHeight: 1.1,
                     }}>
-                      Smart Ayurvedic Intelligence System
+                      S · I · A · S
                     </p>
+                    {/* Full name */}
                     <p style={{
-                      margin: '0.13rem 0 0', fontSize: '0.5rem', fontWeight: 600,
-                      color: 'rgba(255,255,255,0.42)',
-                      fontFamily: "'Outfit',sans-serif", letterSpacing: '0.13em',
+                      margin: '0.1rem 0 0', fontSize: '0.52rem', fontWeight: 700,
+                      color: 'rgba(255,255,255,0.58)',
+                      fontFamily: "'Outfit',sans-serif", letterSpacing: '0.01em', lineHeight: 1.25,
+                    }}>
+                      Smart Intelligent Ayurvedic System
+                    </p>
+                    {/* Descriptor */}
+                    <p style={{
+                      margin: '0.05rem 0 0', fontSize: '0.4rem', fontWeight: 600,
+                      color: 'rgba(255,255,255,0.28)',
+                      fontFamily: "'Outfit',sans-serif", letterSpacing: '0.14em',
                       textTransform: 'uppercase',
                     }}>
                       Dosha · Habits · Lifestyle · Kala
