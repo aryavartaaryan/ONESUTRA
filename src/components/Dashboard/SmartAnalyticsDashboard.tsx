@@ -452,6 +452,7 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const [activeSubHabitId, setActiveSubHabitId] = useState<string | null>(null);
   const [blockToast, setBlockToast] = useState<string | null>(null);
   const [storyTrigger, setStoryTrigger] = useState<{ id: string; name: string; emoji: string } | null>(null);
+  const [mealAnalysisData, setMealAnalysisData] = useState<Record<string, { analysis: Record<string, unknown>; imageDataUrl: string; analyzedAt: number }>>({});
   const pendingScrollRef = useRef<HTMLDivElement>(null);
   const [pendingSlide, setPendingSlide] = useState(0);
   const [expandedSlots, setExpandedSlots] = useState<Record<string, boolean>>({});
@@ -463,6 +464,21 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const { user } = useOneSutraAuth();
   const router = useRouter();
   const goAddHabit = useCallback(() => router.push('/lifestyle/ayurvedic-habits'), [router]);
+
+  // Load meal analysis data from localStorage
+  useEffect(() => {
+    const loadMealData = () => {
+      try {
+        const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+        const raw = JSON.parse(localStorage.getItem('onesutra_meal_analysis_v1') ?? '{}');
+        if (raw.date === today && raw.meals) setMealAnalysisData(raw.meals);
+        else setMealAnalysisData({});
+      } catch { setMealAnalysisData({}); }
+    };
+    loadMealData();
+    window.addEventListener('meal-analysis-updated', loadMealData);
+    return () => window.removeEventListener('meal-analysis-updated', loadMealData);
+  }, []);
 
   // Clear stale log entries when a different account logs in
   useEffect(() => {
@@ -1086,6 +1102,51 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
         </motion.button>
       </div>
     </motion.div>
+
+    {/* ── Meal Intelligence Card ── */}
+    {mounted && Object.keys(mealAnalysisData).length > 0 && (
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+        style={{ margin: '0 0.5rem 1rem', borderRadius: 22, overflow: 'hidden', border: '1px solid rgba(251,191,36,0.18)', background: 'linear-gradient(135deg, rgba(251,191,36,0.07), rgba(167,139,250,0.05))' }}>
+        <div style={{ padding: '0.85rem 1rem 0.5rem', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+            <span style={{ fontSize: '0.95rem' }}>🔬</span>
+            <span style={{ fontSize: '0.72rem', fontWeight: 900, color: '#fbbf24', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.04em' }}>VAIDYA&apos;S MEAL INTELLIGENCE</span>
+          </div>
+          <span style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.3)', fontFamily: "'Outfit', sans-serif" }}>Today</span>
+        </div>
+        <div style={{ padding: '0.75rem 1rem 0.85rem', display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+          {(['breakfast', 'lunch', 'dinner'] as const).map(mealKey => {
+            const mEntry = mealAnalysisData[mealKey];
+            if (!mEntry) return null;
+            const a = mEntry.analysis as { meal_identified?: string; sattvic_score?: number; agni_assessment?: { impact?: string }; sakha_message?: string; dosha_impact?: { vata?: { effect?: string }; pitta?: { effect?: string }; kapha?: { effect?: string } } };
+            const sattvic = a?.sattvic_score ?? 0;
+            const agni = a?.agni_assessment?.impact ?? '';
+            const satColor = sattvic >= 70 ? '#4ade80' : sattvic >= 45 ? '#fbbf24' : '#f87171';
+            const agniColors: Record<string, string> = { Deepana: '#4ade80', Sama: '#fbbf24', Manda: '#fb923c', Vishama: '#f87171' };
+            const mealEmoji = mealKey === 'breakfast' ? '🥣' : mealKey === 'lunch' ? '🍛' : '🥗';
+            const mealLabel = mealKey === 'breakfast' ? 'Breakfast' : mealKey === 'lunch' ? 'Lunch' : 'Dinner';
+            return (
+              <div key={mealKey} style={{ display: 'flex', gap: '0.7rem', alignItems: 'center', padding: '0.7rem 0.8rem', borderRadius: 16, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                {mEntry.imageDataUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={mEntry.imageDataUrl} alt={mealLabel} style={{ width: 48, height: 48, borderRadius: 12, objectFit: 'cover', flexShrink: 0, border: '1.5px solid rgba(251,191,36,0.2)' }} />
+                ) : (
+                  <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(251,191,36,0.1)', border: '1.5px solid rgba(251,191,36,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', flexShrink: 0 }}>{mealEmoji}</div>
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.2rem', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'rgba(255,255,255,0.88)', fontFamily: "'Outfit', sans-serif" }}>{mealLabel}</span>
+                    <span style={{ fontSize: '0.48rem', padding: '0.07rem 0.38rem', borderRadius: 99, background: `${satColor}1a`, border: `1px solid ${satColor}44`, color: satColor, fontWeight: 800, fontFamily: "'Outfit', sans-serif" }}>✦ {sattvic}/100</span>
+                    {agni && <span style={{ fontSize: '0.48rem', padding: '0.07rem 0.38rem', borderRadius: 99, background: `${agniColors[agni] ?? '#fbbf24'}1a`, border: `1px solid ${agniColors[agni] ?? '#fbbf24'}44`, color: agniColors[agni] ?? '#fbbf24', fontWeight: 800, fontFamily: "'Outfit', sans-serif" }}>🔥 {agni}</span>}
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.6rem', color: 'rgba(255,255,255,0.38)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{a?.sakha_message ?? (a?.meal_identified ?? '')}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </motion.div>
+    )}
 
     {/* ── Wellness Story Creator (triggered after SmartAnalytics log) ── */}
     {mounted && storyTrigger && (

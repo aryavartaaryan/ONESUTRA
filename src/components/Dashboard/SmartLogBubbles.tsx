@@ -4,6 +4,8 @@ import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import dynamic from 'next/dynamic';
 const WellnessStoryCreator = dynamic(() => import('./WellnessStoryCreator'), { ssr: false });
+const MealAnalyzerSheet = dynamic(() => import('./MealAnalyzerSheet'), { ssr: false });
+import type { MealAnalyzeTrigger } from './MealAnalyzerSheet';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Flame, Sunrise, Sun, Sunset, Moon, Sparkles } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -813,6 +815,7 @@ export default function SmartLogBubbles() {
     const [orderToast, setOrderToast] = useState<string | null>(null);
     const [mounted, setMounted] = useState(false);
     const [storyTrigger, setStoryTrigger] = useState<{ id: string; name: string; emoji: string } | null>(null);
+    const [mealAnalyzeTrigger, setMealAnalyzeTrigger] = useState<MealAnalyzeTrigger | null>(null);
 
     const [currentHour, setCurrentHour] = useState(() => new Date().getHours());
 
@@ -1010,6 +1013,20 @@ export default function SmartLogBubbles() {
         saveToDailyLogStory(bubble.id, bubble.icon, bubble.label, bubble.color);
         syncActivityEntryToFirestore(user?.uid, { id: bubble.id, icon: bubble.icon, label: bubble.label, color: bubble.color, loggedAt: Date.now(), date: getTodayStr() });
         setActiveBubble(null);
+
+        // ── Meal photo analysis trigger ──────────────────────────────────────
+        const MEAL_IDS = new Set(['morning_meal', 'main_meal_noon', 'light_dinner_early']);
+        const mealTypeMap: Record<string, string> = { morning_meal: 'Breakfast', main_meal_noon: 'Lunch', light_dinner_early: 'Dinner' };
+        if (MEAL_IDS.has(bubble.id)) {
+            setMealAnalyzeTrigger({
+                mealId: bubble.id,
+                mealLabel: bubble.label,
+                mealEmoji: bubble.icon,
+                mealDetail: sub?.detail ?? bubble.label,
+                mealType: mealTypeMap[bubble.id] ?? 'Meal',
+            });
+        }
+
         setStoryTrigger({ id: bubble.id, name: bubble.label, emoji: bubble.icon });
         // ── Route through engine.completeHabit() → writes to habit_logs Firestore ──
         // This is the single source of truth. Powers:
@@ -1639,6 +1656,16 @@ export default function SmartLogBubbles() {
                 userName={getLocalUserName()}
                 userId={user?.uid}
                 onClose={() => setStoryTrigger(null)}
+            />
+        )}
+
+        {/* ── Meal Analyzer Sheet ── */}
+        {mealAnalyzeTrigger && (
+            <MealAnalyzerSheet
+                trigger={mealAnalyzeTrigger}
+                userName={getLocalUserName()}
+                userId={user?.uid}
+                onClose={() => setMealAnalyzeTrigger(null)}
             />
         )}
         </>
