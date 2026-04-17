@@ -25,6 +25,7 @@ import LifestylePanel from '@/components/HomePage/LifestylePanel';
 import StickyFeedbackButton from '@/components/StickyFeedbackButton';
 import MagicSyncModule from '@/components/Dashboard/MagicSyncModule'; // kept for potential other usage
 import { useLifestyleEngine } from '@/hooks/useLifestyleEngine';
+import { getToday } from '@/stores/lifestyleStore';
 
 import BrahmastraFocusCard from '@/components/Dashboard/BrahmastraFocusCard';
 import UpgradeDonateCard from '@/components/Dashboard/UpgradeDonateCard';
@@ -296,6 +297,64 @@ export default function Home() {
   const [showMoodCheck, setShowMoodCheck] = useState(true);
   const [editingMood, setEditingMood] = useState(false);
   const lifestyleEngine = useLifestyleEngine();
+
+  // ── Build Bodhi Orb lifestyle context (mirrors bodhi-chat/page.tsx) ──────────
+  const _today = getToday();
+  const _todayHabitLogs = lifestyleEngine.habitLogs.filter(l => l.date === _today && l.completed);
+  const _todayMantra = lifestyleEngine.mantraSessions.some(s => s.date === _today);
+  const _todayBreathing = lifestyleEngine.breathingSessions.some(s => s.date === _today);
+  const _todayJournal = lifestyleEngine.journalEntries.some(e => e.date === _today);
+  const _bestStreak = Object.values(lifestyleEngine.streaks).reduce((m, s) => Math.max(m, s.currentStreak ?? 0), 0);
+  const _longestEver = Object.values(lifestyleEngine.streaks).reduce((m, s) => Math.max(m, s.longestStreak ?? 0), 0);
+  const _activeChallenge = lifestyleEngine.profile?.activeMantraPractices?.[0]
+    ? lifestyleEngine.mantraStreaks[lifestyleEngine.profile.activeMantraPractices[0]] : null;
+  const MORNING_HABIT_ORDER_ORB: Record<string, number> = {
+    h_morning_water: 1, h_tongue_scraping: 2, h_bathing: 3,
+    h_morning_sunlight: 4, h_pranayama: 5, h_morning_meditation: 6,
+    h_gratitude: 7, h_breakfast: 8,
+  };
+  const _pendingHabitsToday = lifestyleEngine.activeHabits.filter(h =>
+    !_todayHabitLogs.some(l => l.habitId === h.id)
+  );
+  const _nextPendingHabit = _pendingHabitsToday
+    .filter(h => h.category === 'morning' || h.category === 'sacred')
+    .sort((a, b) => (MORNING_HABIT_ORDER_ORB[a.id] ?? 99) - (MORNING_HABIT_ORDER_ORB[b.id] ?? 99))[0]
+    ?? _pendingHabitsToday[0];
+  const _bathTakenToday = lifestyleEngine.activeHabits.some(h => h.id === 'h_bathing')
+    ? _todayHabitLogs.some(l => l.habitId === 'h_bathing')
+    : undefined;
+  const _breakfastTakenToday = lifestyleEngine.activeHabits.some(h => h.id === 'h_breakfast')
+    ? _todayHabitLogs.some(l => l.habitId === 'h_breakfast')
+    : undefined;
+  const bodhiLifestyleCtx = lifestyleEngine.profile?.onboardingComplete ? {
+    buddyName: lifestyleEngine.profile.buddyName,
+    buddyPersonality: lifestyleEngine.profile.buddyPersonality,
+    habitsCompletedToday: _todayHabitLogs.length,
+    totalHabitsToday: lifestyleEngine.activeHabits.length,
+    currentStreak: _bestStreak,
+    longestStreak: _longestEver,
+    todayMood: lifestyleEngine.todayMood?.mood,
+    todayMoodLabel: lifestyleEngine.todayMood?.mood ? ['', 'Very Low', 'Low', 'Okay', 'Good', 'Great'][lifestyleEngine.todayMood.mood] : undefined,
+    lastMoodNote: lifestyleEngine.todayMood?.note,
+    mantraPracticeToday: _todayMantra,
+    breathingPracticeToday: _todayBreathing,
+    activeChallengeName: _activeChallenge?.mantraId,
+    activeChallengeDay: _activeChallenge?.currentStreak,
+    activeChallengeDays: (_activeChallenge as any)?.challengeDays,
+    journaledToday: _todayJournal,
+    xpLevel: lifestyleEngine.xp.level,
+    totalXP: lifestyleEngine.xp.total,
+    recentBadges: lifestyleEngine.badges.slice(-3).map(b => b.name),
+    lifeAreas: lifestyleEngine.profile.lifeAreas,
+    primaryMotivation: lifestyleEngine.profile.motivation,
+    spiritualBackground: lifestyleEngine.profile.spiritualBackground,
+    onboardingComplete: true as const,
+    adhdMode: lifestyleEngine.adhdMode,
+    nextPendingHabit: _nextPendingHabit ? `${_nextPendingHabit.icon} ${_nextPendingHabit.name}` : undefined,
+    bathTakenToday: _bathTakenToday,
+    breakfastTakenToday: _breakfastTakenToday,
+  } : undefined;
+
   const { user, loading: authLoading } = useOneSutraAuth();
   const userName = user?.name || null;
   const [userId, setUserId] = useState<string | null>(null); // Firebase UID for greeting dedup
@@ -1085,6 +1144,7 @@ export default function Home() {
             onAddTask={addTask}
             onRemoveTask={removeTask}
             onDismiss={() => setIsSakhaActive(false)}
+            lifestyleContext={bodhiLifestyleCtx}
           />
         )}
       </AnimatePresence>

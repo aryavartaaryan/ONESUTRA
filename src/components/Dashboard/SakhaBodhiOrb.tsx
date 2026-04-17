@@ -7,6 +7,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { type TaskItem } from '@/hooks/useDailyTasks';
 import { Sparkles, Calendar, Focus, Moon, Wind, Lightbulb } from 'lucide-react';
 import styles from './SakhaBodhiOrb.module.css';
+import type { BodhiLifestyleContext } from '@/hooks/useBodhiChatVoice';
 
 // ─── Mood data ───────────────────────────────────────────────────────────────
 const MOOD_EMOJIS_ORB = [
@@ -80,6 +81,8 @@ interface SakhaBodhiOrbProps {
     onRemoveTask?: (taskId: string) => Promise<void>;
     onTriggerMeditationScreen?: () => void;
     onNavigateToPlanner?: () => void;
+    /** Lifestyle & habit context passed from page.tsx via useLifestyleEngine */
+    lifestyleContext?: BodhiLifestyleContext;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -94,6 +97,7 @@ export default function SakhaBodhiOrb({
     onRemoveTask,
     onTriggerMeditationScreen,
     onNavigateToPlanner,
+    lifestyleContext,
 }: SakhaBodhiOrbProps) {
     const { lang } = useLanguage();
 
@@ -121,6 +125,7 @@ export default function SakhaBodhiOrb({
         onTriggerMeditationScreen,
         onNavigateToPlanner,
         userMood: orbMoodEmoji ? `${orbMoodEmoji} ${orbMoodLabel}` : '',
+        lifestyleContext,
     });
 
     useEffect(() => {
