@@ -52,9 +52,8 @@ interface HabitLogEntry {
 
 const AYURVEDIC_HABITS: AyurvedicHabit[] = [
   { id: 'warm_water_morning', name: 'Warm Water on Rising', nameHi: 'उष्ण जल', emoji: '🫗', category: 'morning', targetMin: 3, description: 'Warm water upon waking kindles Agni and begins the morning cleanse.', doshaEffect: { vata: -1, pitta: 0, kapha: -1 }, bestFor: ['vata', 'kapha'], tags: ['agni', 'cleansing', 'morning'] },
-  { id: 'tongue_scraping', name: 'Tongue Scraping', nameHi: 'जिह्वा निर्लेखन', emoji: '🪥', category: 'morning', targetMin: 2, description: '7–14 copper scraper strokes removes overnight Ama and stimulates organ meridians.', doshaEffect: { vata: 0, pitta: 0, kapha: -2 }, bestFor: ['kapha', 'pitta'], tags: ['ama', 'oral-care', 'morning'] },
+  { id: 'dant_manjan_bath', name: 'Dantanmanjan, Tongue Scrapping & Natural Bath', nameHi: 'दंत मंजन एवं स्नान', emoji: '🌿', category: 'morning', targetMin: 20, description: 'A complete oral and body purification set — Tongue Scrapping removes overnight Ama, Dant Manjan activates oral energy centres and improves gut health, Natural water bath for Bhoota Shuddhi (five-element purification). A scientific way to remove Amas and recharge body and mind.', doshaEffect: { vata: -2, pitta: -1, kapha: -2 }, bestFor: ['vata', 'kapha', 'pitta'], tags: ['oral', 'tongue', 'ama', 'bhoota-shuddhi', 'snana', 'morning'] },
   { id: 'abhyanga', name: 'Abhyanga (Oil Massage)', nameHi: 'अभ्यङ्ग', emoji: '🫙', category: 'morning', targetMin: 15, description: 'Self-oil massage calms Vata, improves circulation and nourishes the nervous system.', doshaEffect: { vata: -2, pitta: -1, kapha: 0 }, bestFor: ['vata', 'pitta'], tags: ['vata', 'self-care', 'nervous-system'] },
-  { id: 'anulom_vilom', name: 'Anulom Vilom', nameHi: 'अनुलोम विलोम', emoji: '🌬️', category: 'morning', targetMin: 10, description: 'Alternate nostril breathing balances prana, calms anxiety and cleanses nadis.', doshaEffect: { vata: -2, pitta: -1, kapha: 0 }, bestFor: ['vata', 'pitta'], tags: ['pranayama', 'vata', 'nervous-system'] },
   { id: 'kapalabhati', name: 'Kapalabhati', nameHi: 'कपालभाति', emoji: '💨', category: 'morning', targetMin: 5, description: 'Rapid bellows breathing clears Kapha, strengthens Agni and energises the system.', doshaEffect: { vata: 1, pitta: 0, kapha: -2 }, bestFor: ['kapha'], tags: ['pranayama', 'kapha', 'agni'] },
   { id: 'meditation', name: 'Silent Meditation', nameHi: 'ध्यान', emoji: '🧘', category: 'morning', targetMin: 15, description: 'Morning meditation — ideally in Brahma Muhurta — reduces all three doshas and builds Ojas.', doshaEffect: { vata: -1, pitta: -1, kapha: -1 }, bestFor: ['vata', 'pitta', 'kapha'], tags: ['ojas', 'sattva', 'morning'] },
   { id: 'sunlight_morning', name: 'Morning Sunlight', nameHi: 'सूर्य दर्शन', emoji: '🌅', category: 'morning', targetMin: 5, description: 'Natural morning light synchronises your circadian rhythm with the Ayurvedic clock.', doshaEffect: { vata: -1, pitta: 0, kapha: -1 }, bestFor: ['vata', 'kapha'], tags: ['circadian', 'kapha', 'morning'] },
@@ -112,9 +111,8 @@ const LIFE_AREA_COLORS: Record<string, string> = {
 // ─── Ayurvedic habit ID → lifestyle-store h_* habit ID (shared source bridge) ───────
 const AYUR_TO_H_ID: Record<string, string> = {
   warm_water_morning: 'h_warm_water',
-  tongue_scraping: 'h_tongue_scraping',
+  dant_manjan_bath: 'h_bathing',
   abhyanga: 'h_bathing',
-  anulom_vilom: 'h_pranayama',
   kapalabhati: 'h_pranayama',
   meditation: 'h_morning_meditation',
   sunlight_morning: 'h_morning_sunlight',
@@ -132,9 +130,8 @@ const AYUR_TO_H_ID: Record<string, string> = {
 // Used to mark ayurvedic habits as done when logged from SmartLogBubbles / LifestylePanel
 const H_ID_TO_AYUR: Record<string, string> = {
   h_warm_water: 'warm_water_morning',
-  h_tongue_scraping: 'tongue_scraping',
-  h_bathing: 'abhyanga',
-  h_pranayama: 'anulom_vilom',
+  h_bathing: 'dant_manjan_bath',
+  h_pranayama: 'kapalabhati',
   h_morning_meditation: 'meditation',
   h_morning_sunlight: 'sunlight_morning',
   h_breakfast: 'main_meal_noon',
@@ -237,9 +234,9 @@ function AyurvedicHabitCard({ habit, isCompleted, streak, prakritiDosha, onToggl
             {habit.targetMin > 0 && <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.28)', fontFamily: "'Outfit', sans-serif" }}>{habit.targetMin} min</span>}
           </div>
           {isInRoutine && (
-            <div style={{ marginTop: '0.35rem' }}>
-              <span style={{ fontSize: '0.6rem', color: 'rgba(74,222,128,0.75)', fontFamily: "'Outfit', sans-serif", fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                <CheckCircle2 size={10} style={{ color: '#4ade80' }} /> In My Routine
+            <div style={{ marginTop: '0.38rem' }}>
+              <span style={{ fontSize: '0.62rem', padding: '0.16rem 0.5rem', borderRadius: 99, background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.3)', color: '#4ade80', fontWeight: 700, fontFamily: "'Outfit', sans-serif", display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <CheckCircle2 size={10} style={{ color: '#4ade80' }} /> Added to My Habits
               </span>
             </div>
           )}
@@ -257,23 +254,30 @@ function AyurvedicHabitCard({ habit, isCompleted, streak, prakritiDosha, onToggl
 
 // ─── LibraryHabitCard ────────────────────────────────────────────────────────────
 
-function LibraryHabitCard({ habit, onAdd }: { habit: HabitTemplate; onAdd: () => void }) {
+function LibraryHabitCard({ habit, onAdd, isAdded }: { habit: HabitTemplate; onAdd: () => void; isAdded: boolean }) {
   return (
-    <motion.div layout whileTap={{ scale: 0.98 }} onClick={onAdd} style={{
-      padding: '0.9rem', borderRadius: 16, marginBottom: '0.55rem', cursor: 'pointer',
-      background: 'rgba(255,255,255,0.04)',
-      border: '1px solid rgba(255,255,255,0.07)',
+    <motion.div layout whileTap={!isAdded ? { scale: 0.98 } : {}} onClick={!isAdded ? onAdd : undefined} style={{
+      padding: '0.9rem', borderRadius: 16, marginBottom: '0.55rem', cursor: isAdded ? 'default' : 'pointer',
+      background: isAdded ? 'rgba(74,222,128,0.05)' : 'rgba(255,255,255,0.04)',
+      border: `1px solid ${isAdded ? 'rgba(74,222,128,0.25)' : 'rgba(255,255,255,0.07)'}`,
       transition: 'all 0.25s', position: 'relative', overflow: 'hidden',
     }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
         <div style={{ flexShrink: 0, marginTop: 2 }}>
-          <Plus size={20} style={{ color: '#c084fc' }} />
+          {isAdded
+            ? <CheckCircle2 size={20} style={{ color: '#4ade80' }} />
+            : <Plus size={20} style={{ color: '#c084fc' }} />}
         </div>
         <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{habit.icon}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ margin: 0, fontSize: '0.88rem', fontWeight: 700, color: 'rgba(255,255,255,0.88)', fontFamily: "'Outfit', sans-serif" }}>{habit.name}</p>
+          <p style={{ margin: 0, fontSize: '0.88rem', fontWeight: 700, color: isAdded ? 'rgba(74,222,128,0.85)' : 'rgba(255,255,255,0.88)', fontFamily: "'Outfit', sans-serif" }}>{habit.name}</p>
           <p style={{ margin: '0.2rem 0 0.5rem', fontSize: '0.73rem', color: 'rgba(255,255,255,0.42)', fontFamily: "'Outfit', sans-serif", lineHeight: 1.4 }}>{habit.description}</p>
-          <span style={{ fontSize: '0.62rem', padding: '0.15rem 0.45rem', borderRadius: 99, background: `${habit.color}15`, border: `1px solid ${habit.color}30`, color: habit.color, fontWeight: 700, fontFamily: "'Outfit', sans-serif" }}>{habit.lifeArea}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.62rem', padding: '0.15rem 0.45rem', borderRadius: 99, background: `${habit.color}15`, border: `1px solid ${habit.color}30`, color: habit.color, fontWeight: 700, fontFamily: "'Outfit', sans-serif" }}>{habit.lifeArea}</span>
+            {isAdded && (
+              <span style={{ fontSize: '0.6rem', padding: '0.15rem 0.5rem', borderRadius: 99, background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.3)', color: '#4ade80', fontWeight: 700, fontFamily: "'Outfit', sans-serif" }}>✅ Added to My Habits</span>
+            )}
+          </div>
         </div>
       </div>
     </motion.div>
@@ -544,23 +548,22 @@ export default function AyurvedicHabitsPage() {
   const inRoutineIds = useMemo(() => new Set(store.habits.map(h => h.id)), [store.habits]);
 
   const filteredAyurvedicHabits = useMemo(() => {
-    let habits = AYURVEDIC_HABITS.filter(h => !inRoutineIds.has(h.id));
+    let habits = [...AYURVEDIC_HABITS];
     if (activeTab !== 'all') habits = habits.filter(h => h.category === activeTab);
     if (search.trim()) habits = habits.filter(h => h.name.toLowerCase().includes(search.toLowerCase()) || (h.nameHi && h.nameHi.includes(search)));
-    if (prakriti) return [...habits].sort((a, b) => (a.bestFor.includes(prakriti.primary) ? -1 : 0) - (b.bestFor.includes(prakriti.primary) ? -1 : 0));
+    if (prakriti) return [...habits].sort((a, b) => (b.bestFor.includes(prakriti.primary) ? 1 : 0) - (a.bestFor.includes(prakriti.primary) ? 1 : 0));
     return habits;
-  }, [activeTab, prakriti, search, inRoutineIds]);
+  }, [activeTab, prakriti, search]);
 
   const completionPct = Math.round((completedToday.size / AYURVEDIC_HABITS.length) * 100);
 
   // Library tab
   const filteredLibrary = useMemo(() => {
-    const existingIds = new Set(store.habits.map(h => h.id));
-    let lib = HABIT_LIBRARY.filter(h => !existingIds.has(h.id));
+    let lib = [...HABIT_LIBRARY];
     if (activeTab !== 'all') lib = lib.filter(h => h.category === activeTab);
     if (search.trim()) lib = lib.filter(h => h.name.toLowerCase().includes(search.toLowerCase()));
     return lib;
-  }, [store.habits, search, activeTab]);
+  }, [search, activeTab]);
 
   const unifiedList = useMemo(() => [
     ...filteredAyurvedicHabits.map(h => ({ type: 'ayurvedic' as const, data: h })),
@@ -684,7 +687,7 @@ export default function AyurvedicHabitsPage() {
 
             {/* ── Unified single list ── */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-              <p style={{ margin: 0, fontSize: '0.78rem', fontWeight: 700, color: 'rgba(255,255,255,0.55)', letterSpacing: '0.04em', ...s }}>Add to Your Routine</p>
+              <p style={{ margin: 0, fontSize: '0.78rem', fontWeight: 700, color: 'rgba(255,255,255,0.55)', letterSpacing: '0.04em', ...s }}>Habit Library · Tap to Add</p>
               <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.2)', ...s }}>{completedToday.size}/{AYURVEDIC_HABITS.length} niyamas today</span>
             </div>
             <AnimatePresence mode="popLayout">
@@ -695,11 +698,11 @@ export default function AyurvedicHabitsPage() {
                     onToggle={() => toggleHabit(item.data.id)}
                     onAdd={() => addAyurvedicToRoutine(item.data)}
                     isInRoutine={inRoutineIds.has(item.data.id)} />
-                  : <LibraryHabitCard key={item.data.id} habit={item.data} onAdd={() => addFromLibrary(item.data)} />
+                  : <LibraryHabitCard key={item.data.id} habit={item.data} onAdd={() => addFromLibrary(item.data)} isAdded={inRoutineIds.has(item.data.id)} />
               )}
             </AnimatePresence>
             {unifiedList.length === 0 && (
-              <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '0.82rem', marginTop: '1.5rem', ...s }}>All habits added to your routine ✦</p>
+              <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '0.82rem', marginTop: '1.5rem', ...s }}>No habits match your search ✦</p>
             )}
             <div style={{ marginTop: '1rem', marginBottom: '0.5rem', padding: '0.6rem 1rem', borderRadius: 12, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
               <p style={{ margin: 0, fontSize: '0.68rem', color: 'rgba(255,255,255,0.3)', ...s }}>Dosha tags (on Āyurvedic habits): ↓ Pacifies · ↑ Increases · ● mild · ●● strong</p>

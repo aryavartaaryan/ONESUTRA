@@ -121,7 +121,7 @@ const AYUR_STAT_LABELS = [
 const TODO_SUBTITLES: Record<string, (name: string) => { headline: string; body: string }> = {
   h_wake_early: (n) => ({ headline: `Rise & Shine, ${n}!`, body: `It is wake up time. Rise, pay gratitude to God and start your sacred day. Tap to log once you've awakened.` }),
   warm_water_morning: (n) => ({ headline: `Ushapana time, ${n}!`, body: `It is Ushapana time — drink 2–4 glasses of warm water to flush overnight Ama and kindle your Agni. Just do it and log here.` }),
-  dant_manjan_bath: (n) => ({ headline: `Purify & Recharge, ${n}!`, body: `Time to remove all Amas and do Bhoota Shuddhi. Use Ayurvedic Dant Manjan — it activates mouth energy centres and improves gut health too. Bathe with fresh natural water for five-element purification. These are not just habits but a scientific way to recharge body and mind. Do them and log here.` }),
+  dant_manjan_bath: (n) => ({ headline: `Purify & Recharge, ${n}!`, body: `Do Ayurvedic Dant Manjan, Tongue Scrapping & Take bath with natural fresh water if possible. These three combined Ayurvedic practices remove Amas from mouth, tongue and body — a complete Bhoota Shuddhi set. A scientific way to recharge body and mind fully. Do all three and log here.` }),
   anulom_vilom: (n) => ({ headline: `Meditation & Workout, ${n}!`, body: `Time for morning breathwork, meditation and workout. Meditate using our Meditation section, then complete your workout — a complete recharge ritual for body and mind. Log here after.` }),
   kapalabhati: (n) => ({ headline: `Kapalabhati time, ${n}!`, body: `Skull-shining breath — powerful Kapha reducer and mind energiser. Purifies the lungs and ignites your Agni for the day ahead. Log after completing.` }),
   meditation: (n) => ({ headline: `Meditation & Workout, ${n}!`, body: `Time for morning meditation and workout. Meditate using our Meditation section, then do your workout. These recharge and rejuvenate your body and mind completely. Log here after both.` }),
@@ -340,7 +340,7 @@ function TodoDuoGrid({
           border: isFirstCard ? `2px solid ${curColor}70` : `2px solid ${curColor}35`,
           boxShadow: `0 8px 36px ${curColor}28, 0 2px 0 ${curColor}18 inset, 0 -1px 0 rgba(0,0,0,0.4) inset`,
           cursor: 'pointer', position: 'relative', overflow: 'hidden',
-          minHeight: 170, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+          minHeight: 210, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
           WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation',
         }}
       >
@@ -371,7 +371,7 @@ function TodoDuoGrid({
           <p style={{ margin: '0 0 0.3rem', fontSize: '0.73rem', fontWeight: 900, color: curColor, fontFamily: "'Outfit',sans-serif", lineHeight: 1.22, paddingRight: '1.4rem', textShadow: `0 0 20px ${curColor}50` }}>
             {curSub.headline}
           </p>
-          <p style={{ margin: 0, fontSize: '0.54rem', color: 'rgba(255,255,255,0.68)', fontFamily: "'Outfit',sans-serif", lineHeight: 1.55, fontWeight: 500, display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          <p style={{ margin: 0, fontSize: '0.56rem', color: 'rgba(255,255,255,0.72)', fontFamily: "'Outfit',sans-serif", lineHeight: 1.6, fontWeight: 500 }}>
             {curSub.body}
           </p>
         </div>
@@ -402,7 +402,7 @@ function TodoDuoGrid({
             borderRadius: 22, padding: '0.9rem 0.78rem',
             background: `linear-gradient(145deg, ${nxtColor}12 0%, rgba(4,2,18,0.82) 100%)`,
             border: `1.5px solid ${nxtColor}30`,
-            minHeight: 170, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+            minHeight: 240, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
             position: 'relative', overflow: 'hidden',
             cursor: 'pointer', WebkitTapHighlightColor: 'transparent',
           }}>
@@ -419,7 +419,7 @@ function TodoDuoGrid({
             <p style={{ margin: '0 0 0.3rem', fontSize: '0.73rem', fontWeight: 900, color: `${nxtColor}cc`, fontFamily: "'Outfit',sans-serif", lineHeight: 1.22, paddingRight: '1.4rem' }}>
               {next.name}
             </p>
-            <p style={{ margin: 0, fontSize: '0.54rem', color: 'rgba(255,255,255,0.56)', fontFamily: "'Outfit',sans-serif", lineHeight: 1.55, fontWeight: 500, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            <p style={{ margin: 0, fontSize: '0.56rem', color: 'rgba(255,255,255,0.62)', fontFamily: "'Outfit',sans-serif", lineHeight: 1.6, fontWeight: 500 }}>
               {nextSub.body}
             </p>
           </div>
@@ -454,21 +454,6 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
   const [storyTrigger, setStoryTrigger] = useState<{ id: string; name: string; emoji: string } | null>(null);
   const pendingScrollRef = useRef<HTMLDivElement>(null);
   const [pendingSlide, setPendingSlide] = useState(0);
-  const autoSlideUserTouchedRef = useRef(false);
-
-  // Auto-slide: advances one slide at a time, wraps to 0; pauses after user swipe
-  useEffect(() => {
-    const timer = setInterval(() => {
-      if (autoSlideUserTouchedRef.current) return;
-      const el = pendingScrollRef.current;
-      if (!el || el.scrollWidth <= el.clientWidth + 4) return;
-      const nextLeft = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4
-        ? 0
-        : el.scrollLeft + el.clientWidth;
-      el.scrollTo({ left: nextLeft, behavior: 'smooth' });
-    }, 3500);
-    return () => clearInterval(timer);
-  }, []);
   const [expandedSlots, setExpandedSlots] = useState<Record<string, boolean>>({});
   const [progressOpen, setProgressOpen] = useState(false);
   const [loggedOpen, setLoggedOpen] = useState(false);
@@ -910,11 +895,6 @@ export default function SmartAnalyticsDashboard({ globalBg }: { globalBg?: strin
                   const el = pendingScrollRef.current;
                   const slide = Math.round(el.scrollLeft / Math.max(1, el.clientWidth));
                   setPendingSlide(slide);
-                  // Pause auto-slide for 7 s after user manually swipes
-                  autoSlideUserTouchedRef.current = true;
-                  clearTimeout((pendingScrollRef.current as HTMLDivElement & { _pauseTimer?: ReturnType<typeof setTimeout> })._pauseTimer);
-                  (pendingScrollRef.current as HTMLDivElement & { _pauseTimer?: ReturnType<typeof setTimeout> })._pauseTimer =
-                    setTimeout(() => { autoSlideUserTouchedRef.current = false; }, 7000);
                 }}
                 style={{
                   display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory',

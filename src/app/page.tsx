@@ -644,19 +644,66 @@ export default function Home() {
             }}
           >
             {/* ── SIAS System Title ── */}
-            <div style={{ textAlign: 'center', marginBottom: '0.6rem', paddingBottom: '0.48rem', borderBottom: `1px solid ${doshaColor}1c` }}>
-              <motion.div animate={{ opacity: [0.82, 1, 0.82] }} transition={{ duration: 3.6, repeat: Infinity }}>
-                <p style={{
-                  margin: 0, fontSize: '0.78rem', fontWeight: 900,
-                  background: `linear-gradient(90deg, ${doshaColor}, #c084fc, #22d3ee, ${doshaColor})`,
-                  WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-                  fontFamily: "'Outfit',sans-serif", letterSpacing: '-0.01em', lineHeight: 1.15,
-                }}>
-                  Smart Intelligent Ayurvedic System
-                </p>
-                <p style={{ margin: '0.1rem 0 0', fontSize: '0.44rem', fontWeight: 900, color: `${doshaColor}88`, fontFamily: "'Outfit',sans-serif", letterSpacing: '0.3em', textTransform: 'uppercase' }}>
-                  ✦ SIAS ✦
-                </p>
+            <div style={{ marginBottom: '0.62rem', paddingBottom: '0.52rem', borderBottom: `1px solid ${doshaColor}1c` }}>
+              <motion.div
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '0.52rem 0.72rem', borderRadius: 16,
+                  background: `linear-gradient(135deg, rgba(5,3,20,0.72) 0%, rgba(12,6,32,0.65) 100%)`,
+                  border: `1.5px solid ${doshaColor}35`,
+                  backdropFilter: 'blur(12px)',
+                  boxShadow: `0 4px 24px ${doshaColor}18, inset 0 1px 0 rgba(255,255,255,0.06)`,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
+                  <motion.div
+                    animate={{ rotate: [0, 12, 0, -12, 0], scale: [1, 1.18, 1] }}
+                    transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+                    style={{
+                      width: 30, height: 30, borderRadius: 9, flexShrink: 0,
+                      background: `linear-gradient(135deg, ${doshaColor}35, #c084fc28)`,
+                      border: `1.5px solid ${doshaColor}55`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '0.88rem',
+                      boxShadow: `0 0 14px ${doshaColor}45`,
+                    }}
+                  >✦</motion.div>
+                  <div>
+                    <p style={{
+                      margin: 0, fontSize: '0.83rem', fontWeight: 900,
+                      background: `linear-gradient(90deg, #ffffff 0%, ${doshaColor} 55%, #c084fc 100%)`,
+                      WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+                      fontFamily: "'Outfit',sans-serif", letterSpacing: '-0.01em', lineHeight: 1.15,
+                    }}>
+                      Smart Ayurvedic Intelligence System
+                    </p>
+                    <p style={{
+                      margin: '0.13rem 0 0', fontSize: '0.5rem', fontWeight: 600,
+                      color: 'rgba(255,255,255,0.42)',
+                      fontFamily: "'Outfit',sans-serif", letterSpacing: '0.13em',
+                      textTransform: 'uppercase',
+                    }}>
+                      Dosha · Habits · Lifestyle · Kala
+                    </p>
+                  </div>
+                </div>
+                <motion.div
+                  animate={{
+                    opacity: [0.75, 1, 0.75],
+                    boxShadow: ['0 0 6px rgba(74,222,128,0.25)', '0 0 14px rgba(74,222,128,0.55)', '0 0 6px rgba(74,222,128,0.25)'],
+                  }}
+                  transition={{ duration: 1.8, repeat: Infinity }}
+                  style={{
+                    padding: '0.22rem 0.62rem', borderRadius: 99, flexShrink: 0,
+                    background: 'rgba(74,222,128,0.16)',
+                    border: '1.5px solid rgba(74,222,128,0.5)',
+                    fontSize: '0.5rem', fontWeight: 900,
+                    color: '#4ade80', fontFamily: "'Outfit',sans-serif",
+                    letterSpacing: '0.14em',
+                  }}
+                >
+                  LIVE
+                </motion.div>
               </motion.div>
             </div>
             {/* ── Hero Greeting Row — ONE sun/moon icon + personalized greeting ── */}

@@ -30,8 +30,7 @@ export interface AyurvedicHabit {
 export const AYURVEDIC_HABITS: AyurvedicHabit[] = [
     // ── Morning ──────────────────────────────────────────────────────────────
     { id: 'warm_water_morning', name: 'Ushapana (Warm Water)', nameHi: 'उषापान', emoji: '💧', category: 'morning', targetMin: 5, description: 'Drink 2–4 glasses of warm water upon waking. Flushes Ama and activates Agni for the day.', doshaEffect: { vata: -1, pitta: -1, kapha: -2 }, bestFor: ['kapha', 'vata'], tags: ['ama', 'agni', 'morning'] },
-    { id: 'dant_manjan_bath', name: 'Dant Manjan, Fresh up & Natural Bath', nameHi: 'दंत मंजन एवं स्नान', emoji: '🌿', category: 'morning', targetMin: 20, description: 'Ayurvedic Dant Manjan activates mouth energy centres and improves gut health. Natural water bath for Bhoota Shuddhi — purification of the five elements. These are not just hygiene practices but a scientific way to remove Amas, recharge body and mind.', doshaEffect: { vata: -2, pitta: -1, kapha: -2 }, bestFor: ['vata', 'kapha', 'pitta'], tags: ['oral', 'ama', 'bhoota-shuddhi', 'snana', 'morning'] },
-    { id: 'anulom_vilom', name: 'Anulom Vilom', nameHi: 'अनुलोम विलोम', emoji: '🌬️', category: 'morning', targetMin: 15, description: 'Alternate nostril pranayama — balances ida and pingala nadis. Reduces all Doshas.', doshaEffect: { vata: -2, pitta: -2, kapha: -1 }, bestFor: ['vata', 'pitta', 'kapha'], tags: ['pranayama', 'nadi', 'morning'] },
+    { id: 'dant_manjan_bath', name: 'Dantanmanjan, Tongue Scrapping & Natural Bath', nameHi: 'दंत मंजन एवं स्नान', emoji: '🌿', category: 'morning', targetMin: 20, description: 'Ayurvedic Dant Manjan, Tongue Scrapping & Natural Bath — a complete oral and body purification set. Tongue scrapping removes overnight Ama. Dant Manjan activates oral energy centres and improves gut health. Natural water bath for Bhoota Shuddhi — purification of the five elements.', doshaEffect: { vata: -2, pitta: -1, kapha: -2 }, bestFor: ['vata', 'kapha', 'pitta'], tags: ['oral', 'tongue', 'ama', 'bhoota-shuddhi', 'snana', 'morning'] },
     { id: 'kapalabhati', name: 'Kapalabhati', nameHi: 'कपालभाति', emoji: '💨', category: 'morning', targetMin: 10, description: 'Skull-shining breath — powerful Kapha reducer. Energises the mind and purifies lungs.', doshaEffect: { vata: 1, pitta: 1, kapha: -3 }, bestFor: ['kapha'], tags: ['pranayama', 'kapha', 'energy'] },
     { id: 'meditation', name: 'Silent Meditation', nameHi: 'ध्यान', emoji: '🧘', category: 'morning', targetMin: 15, description: 'Morning meditation — ideally in Brahma Muhurta — reduces all three doshas and builds Ojas.', doshaEffect: { vata: -1, pitta: -1, kapha: -1 }, bestFor: ['vata', 'pitta', 'kapha'], tags: ['ojas', 'sattva', 'morning'] },
     { id: 'sunlight_morning', name: 'Morning Sunlight', nameHi: 'सूर्य दर्शन', emoji: '🌅', category: 'morning', targetMin: 5, description: 'Natural morning light synchronises your circadian rhythm with the Ayurvedic clock.', doshaEffect: { vata: -1, pitta: 0, kapha: -1 }, bestFor: ['vata', 'kapha'], tags: ['circadian', 'kapha', 'morning'] },
@@ -62,7 +61,6 @@ export const AYUR_TO_H_ID: Record<string, string> = {
     morning_meal: 'h_breakfast',
     warm_water_morning: 'h_warm_water',
     dant_manjan_bath: 'h_bathing',
-    anulom_vilom: 'h_pranayama',
     kapalabhati: 'h_pranayama',
     meditation: 'h_morning_meditation',
     sunlight_morning: 'h_morning_sunlight',
@@ -80,7 +78,7 @@ export const AYUR_TO_H_ID: Record<string, string> = {
 export const H_ID_TO_AYUR: Record<string, string> = {
     h_warm_water: 'warm_water_morning',
     h_bathing: 'dant_manjan_bath',
-    h_pranayama: 'anulom_vilom',
+    h_pranayama: 'kapalabhati',
     h_morning_meditation: 'meditation',
     h_morning_sunlight: 'sunlight_morning',
     h_breakfast: 'morning_meal',

@@ -229,7 +229,7 @@ function getCurrentTimeSlot(): TimeSlot {
 
 // ─── Check if log is in its ideal time slot ───────────────────────────────────
 function isOnTimeForSlot(bubbleId: string, slot: TimeSlot): boolean {
-    const morningIds = new Set(['wake', 'warm_water', 'tongue_scrape', 'bath', 'breathwork', 'morning_light', 'warm_water_morning', 'tongue_scraping', 'abhyanga', 'anulom_vilom', 'kapalabhati', 'meditation', 'sunlight_morning', 'gratitude_practice']);
+    const morningIds = new Set(['wake', 'warm_water', 'tongue_scrape', 'bath', 'breathwork', 'morning_light', 'warm_water_morning', 'dant_manjan_bath', 'abhyanga', 'kapalabhati', 'meditation', 'sunlight_morning', 'gratitude_practice']);
     const middayIds = new Set(['deep_work', 'screen_break', 'hydration', 'main_meal_noon', 'deep_work_afternoon', 'shatapavali', 'herbal_tea']);
     const eveningIds = new Set(['h_walk', 'h_evening_meditation', 'h_digital_sunset', 'h_brain_dump', 'evening_walk', 'light_dinner_early', 'screen_free_hour', 'journaling']);
     const nightIds = new Set(['sleep', 'gratitude', 'read', 'sleep_by_10']);
@@ -357,7 +357,7 @@ const STATIC_BUBBLE_IDS = new Set([
     'sleep', 'gratitude', 'read',
     // Ayurvedic habit IDs (now the canonical source shown in bubbles)
     'morning_meal',
-    'warm_water_morning', 'dant_manjan_bath', 'anulom_vilom', 'kapalabhati',
+    'warm_water_morning', 'dant_manjan_bath', 'kapalabhati',
     'meditation', 'sunlight_morning', 'gratitude_practice',
     'main_meal_noon', 'deep_work_afternoon', 'shatapavali', 'herbal_tea',
     'evening_walk', 'light_dinner_early', 'screen_free_hour', 'journaling', 'sleep_by_10',
